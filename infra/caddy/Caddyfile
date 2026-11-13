@@ -1,0 +1,27 @@
+# Single entry point: HTTPS (and WSS) only, plain HTTP is redirected.
+# For `localhost` and `*.localhost` Caddy issues certificates from its own
+# local CA; for a public domain it obtains and renews them via ACME.
+
+{$CAMPUS_DOMAIN} {
+	encode zstd gzip
+
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+
+	# Centrifugo client transports (WebSocket and fallbacks). Its server
+	# API and admin endpoints are not exposed.
+	handle /connection/* {
+		reverse_proxy centrifugo:8000
+	}
+
+	handle {
+		respond 404
+	}
+}
+
+# S3 endpoint for pre-signed upload and download URLs. Pre-signed URLs
+# sign the host, so object storage gets its own domain instead of a path.
+{$CAMPUS_STORAGE_DOMAIN} {
+	reverse_proxy rustfs:9000
+}

@@ -1,0 +1,38 @@
+# Development additions, applied automatically by `docker compose` in infra/
+# unless COMPOSE_FILE is set: Mailpit and service ports published on the
+# loopback interface for tools running on the host (psql, redis-cli,
+# `uv run campus-api`, the RustFS console).
+
+services:
+  postgres:
+    ports:
+      - 127.0.0.1:${DEV_POSTGRES_PORT:-5432}:5432
+
+  redis:
+    ports:
+      - 127.0.0.1:${DEV_REDIS_PORT:-6379}:6379
+
+  centrifugo:
+    ports:
+      - 127.0.0.1:${DEV_CENTRIFUGO_PORT:-8001}:8000
+
+  rustfs:
+    ports:
+      - 127.0.0.1:${DEV_RUSTFS_PORT:-9000}:9000
+      - 127.0.0.1:${DEV_RUSTFS_CONSOLE_PORT:-9001}:9001
+
+  # Catches all outgoing mail: SMTP on mailpit:1025, web UI on the host.
+  mailpit:
+    image: docker.io/axllent/mailpit:v1.33.1
+    ports:
+      - 127.0.0.1:${DEV_MAILPIT_SMTP_PORT:-1025}:1025
+      - 127.0.0.1:${DEV_MAILPIT_UI_PORT:-8025}:8025
+    networks: [data]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+      start_interval: 1s

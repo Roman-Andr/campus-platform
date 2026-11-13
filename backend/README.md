@@ -14,6 +14,9 @@ cp .env.example .env         # по желанию: локальные наст�
 uv run campus-api            # http://127.0.0.1:8000/api/v1/docs
 ```
 
+Образ сервера — `Dockerfile`; запуск вместе с базой данных и остальными
+сервисами в Docker Compose — [`infra/README.md`](../infra/README.md).
+
 Воркер и планировщик — `uv run campus-worker` и `uv run campus-scheduler`
 (пока заглушки: пишут в журнал о запуске и ждут сигнала остановки).
 

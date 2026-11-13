@@ -48,3 +48,6 @@ pre-commit run --all-files
 [Typst](https://typst.app)); в репозитории хранится только PDF ТЗ.
 
 Сервер: запуск, проверки и устройство — [`backend/README.md`](backend/README.md).
+
+Все серверные компоненты в Docker Compose (API, PostgreSQL, Redis,
+Centrifugo, RustFS, Caddy) — [`infra/README.md`](infra/README.md).
