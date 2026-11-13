@@ -203,14 +203,14 @@
         let changes_table = figure(
             table(
                 columns: (10mm,) + (15mm, ) * 4 + (20mm, ) * 2 + (auto, ) + (auto, ) * 2,
-                
+
                 rows: (auto, ) * 3 + (9.5mm, ) * 21,
 
                 table.cell(
                 colspan: 10,
                 align: horizon,
                 [Лист регистрации изменений]
-                ), 
+                ),
                 table.cell(
                 colspan: 5,
                 align: horizon,
@@ -291,7 +291,7 @@
             #grid(
                 columns: (1fr),
                 row-gutter: 1fr,
-                list_name, 
+                list_name,
                 changes_table,
             )
         ]
