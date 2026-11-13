@@ -20,3 +20,36 @@ repos:
       - id: check-toml
       - id: check-json
       - id: detect-private-key
+  # Backend: tools run from backend/.venv at the versions pinned in uv.lock.
+  - repo: local
+    hooks:
+      - id: backend-uv-lock
+        name: backend uv.lock is up to date
+        entry: uv lock --check --project backend
+        language: unsupported
+        files: ^backend/(pyproject\.toml|uv\.lock)$
+        pass_filenames: false
+      - id: backend-ruff-check
+        name: backend ruff check
+        entry: uv run --project backend --frozen ruff check --fix
+        language: unsupported
+        types_or: [python, pyi]
+        files: ^backend/
+      - id: backend-ruff-format
+        name: backend ruff format
+        entry: uv run --project backend --frozen ruff format
+        language: unsupported
+        types_or: [python, pyi]
+        files: ^backend/
+      - id: backend-mypy
+        name: backend mypy
+        entry: uv run --directory backend --frozen mypy
+        language: unsupported
+        files: ^backend/(.*\.pyi?|pyproject\.toml)$
+        pass_filenames: false
+      - id: backend-import-linter
+        name: backend import-linter
+        entry: uv run --directory backend --frozen lint-imports
+        language: unsupported
+        files: ^backend/(.*\.py|pyproject\.toml)$
+        pass_filenames: false

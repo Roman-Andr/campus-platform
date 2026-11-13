@@ -1,0 +1,138 @@
+[project]
+name = "campus"
+version = "0.1.0"
+description = "Campus backend: API, worker and scheduler"
+requires-python = ">=3.14"
+dependencies = [
+    "asgi-correlation-id>=5.0.1",
+    "fastapi>=0.162.7",
+    "pydantic-settings>=2.16.3",
+    "sentry-sdk[fastapi]>=2.75.0",
+    "structlog>=26.1.0",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[project.scripts]
+campus-api = "campus.api.__main__:main"
+campus-worker = "campus.worker.__main__:main"
+campus-scheduler = "campus.scheduler.__main__:main"
+
+[build-system]
+requires = ["uv_build>=0.13.7,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.16.0",
+    "import-linter>=2.16",
+    "mypy>=2.4.1",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.5.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.5",
+]
+
+[tool.ruff]
+line-length = 88
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "A",     # flake8-builtins
+    "ARG",   # flake8-unused-arguments
+    "ASYNC", # flake8-async
+    "B",     # flake8-bugbear
+    "C4",    # flake8-comprehensions
+    "DTZ",   # flake8-datetimez
+    "E",     # pycodestyle errors
+    "ERA",   # commented-out code
+    "F",     # pyflakes
+    "FAST",  # FastAPI
+    "G",     # flake8-logging-format
+    "I",     # isort
+    "LOG",   # flake8-logging
+    "N",     # pep8-naming
+    "PERF",  # perflint
+    "PIE",   # flake8-pie
+    "PL",    # pylint
+    "PT",    # flake8-pytest-style
+    "PTH",   # flake8-use-pathlib
+    "RET",   # flake8-return
+    "RUF",   # ruff-specific
+    "S",     # flake8-bandit
+    "SIM",   # flake8-simplify
+    "T20",   # flake8-print
+    "UP",    # pyupgrade
+    "W",     # pycodestyle warnings
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "PLR2004", # magic values in assertions
+    "S101",    # assert
+]
+
+[tool.mypy]
+strict = true
+files = ["src", "tests"]
+plugins = ["pydantic.mypy"]
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = [
+    "-ra",
+    "--strict-config",
+    "--strict-markers",
+    "--cov",
+    "--cov-report=term-missing",
+    "--cov-report=xml",
+]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = ["error"]
+
+[tool.coverage.run]
+source = ["campus"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+exclude_also = [
+    'if __name__ == "__main__":',
+]
+
+# Module boundaries (specification, 4.1). A domain module is a package under
+# campus.modules; its __init__ is the public interface, its submodules are
+# internal. Run with `uv run lint-imports`.
+[tool.importlinter]
+root_package = "campus"
+
+[[tool.importlinter.contracts]]
+name = "Processes depend on domain modules, modules on the shared kernel"
+type = "layers"
+layers = [
+    "campus.api | campus.worker | campus.scheduler",
+    "campus.modules",
+    "campus.core",
+]
+
+[[tool.importlinter.contracts]]
+name = "Modules reach other modules only through their public interface"
+type = "independence"
+modules = ["campus.modules.*"]
+# Imports of a module's package (its public interface) are allowed; what
+# remains between modules are imports of their internals.
+ignore_imports = ["campus.modules.** -> campus.modules.*"]
+unmatched_ignore_imports_alerting = "none"
+
+[[tool.importlinter.contracts]]
+name = "Processes reach domain modules only through their public interface"
+type = "forbidden"
+source_modules = ["campus.api", "campus.worker", "campus.scheduler"]
+forbidden_modules = ["campus.modules.*.*"]
+allow_indirect_imports = true
