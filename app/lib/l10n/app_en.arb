@@ -1,0 +1,15 @@
+{
+  "@@locale": "en",
+  "appTitle": "Campus",
+  "homeWelcome": "Welcome to Campus",
+  "homePlaceholder": "Listings, events and group purchases of your community will appear here.",
+  "settingsTitle": "Settings",
+  "settingsLanguage": "Language",
+  "settingsLanguageSystem": "System default",
+  "settingsLanguageRussian": "Русский",
+  "settingsLanguageEnglish": "English",
+  "settingsTheme": "Theme",
+  "settingsThemeSystem": "System default",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark"
+}

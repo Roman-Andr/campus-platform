@@ -1,0 +1,53 @@
+# Effective Dart and flutter_lints (ТЗ п. 5.5.3) with stricter type checks
+# and extra rules.
+include: package:flutter_lints/flutter.yaml
+
+formatter:
+  page_width: 80
+  trailing_commas: automate
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  errors:
+    missing_required_param: error
+    missing_return: error
+  exclude:
+    - "**/*.g.dart"
+    - lib/src/core/l10n/generated/**
+    - test/drift/*/generated/**
+    - build/**
+    - android/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
+
+linter:
+  rules:
+    - always_declare_return_types
+    - avoid_dynamic_calls
+    - avoid_redundant_argument_values
+    - avoid_type_to_string
+    - avoid_void_async
+    - cancel_subscriptions
+    - close_sinks
+    - directives_ordering
+    - discarded_futures
+    - prefer_const_constructors
+    - prefer_const_declarations
+    - prefer_final_in_for_each
+    - prefer_final_locals
+    - prefer_single_quotes
+    - require_trailing_commas
+    - sort_pub_dependencies
+    - test_types_in_equals
+    - throw_in_finally
+    - unawaited_futures
+    - unnecessary_lambdas
+    - unnecessary_parenthesis
+    - unnecessary_statements
+    - use_named_constants
+    - use_super_parameters
