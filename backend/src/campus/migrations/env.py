@@ -6,6 +6,7 @@ from alembic import context
 from sqlalchemy.engine import Connection
 
 from campus import modules
+from campus.core import idempotency  # noqa: F401 - registers its table
 from campus.core.config import Settings
 from campus.core.db import Base, DatabaseNotConfiguredError, create_engine
 from campus.core.logging import configure_logging

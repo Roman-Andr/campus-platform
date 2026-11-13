@@ -1,13 +1,16 @@
 import os
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
 
+import httpx2
 import pytest
 from fastapi.testclient import TestClient
+from pydantic import SecretStr
 
 from campus.api.app import create_app
-from campus.core.config import Settings, get_settings
+from campus.core.config import ClientPlatform, Settings, get_settings
 from tests.logging_state import preserved_logging
+from tests.web_app import create_test_app, serve
 
 pytest_plugins = ["tests.database"]
 
@@ -42,3 +45,25 @@ def settings() -> Settings:
 def client(settings: Settings) -> Iterator[TestClient]:
     with TestClient(create_app(settings)) as test_client:
         yield test_client
+
+
+def web_settings(database_url: str | None = None) -> Settings:
+    """Settings of the test API: android clients must be 1.2.0 or newer."""
+    return Settings(
+        database_url=SecretStr(database_url) if database_url else None,
+        client_min_versions={ClientPlatform.ANDROID: "1.2.0"},
+    )
+
+
+@pytest.fixture
+async def api(database_url: str) -> AsyncIterator[httpx2.AsyncClient]:
+    """Client of the API with the test router, on a fresh database."""
+    async with serve(create_test_app(web_settings(database_url))) as client:
+        yield client
+
+
+@pytest.fixture
+async def api_without_database() -> AsyncIterator[httpx2.AsyncClient]:
+    """Client of the API with the test router and no database configured."""
+    async with serve(create_test_app(web_settings())) as client:
+        yield client

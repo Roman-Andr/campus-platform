@@ -37,8 +37,8 @@ uv run lint-imports          # границы модулей
 С podman вместо Docker:
 
 ```sh
-sudo systemctl start podman.socket
-export DOCKER_HOST=unix:///run/podman/podman.sock TESTCONTAINERS_RYUK_DISABLED=true
+systemctl --user start podman.socket       # rootless; от root — без --user
+export DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock TESTCONTAINERS_RYUK_DISABLED=true
 ```
 
 Вместо контейнера можно указать готовый сервер:
@@ -106,6 +106,8 @@ uv run alembic downgrade -1                           # откатить пос�
 | `campus.migrations` | Миграции Alembic                                        |
 | `campus.modules.*`  | Доменные модули (ТЗ, п. 4.1)                            |
 | `campus.core`       | Общее ядро: конфигурация, БД, часы, журналы, Sentry     |
+| `campus.core.web`   | Общие механизмы HTTP API (см. ниже)                     |
+| `campus.locales`    | Каталоги переводов сообщений (gettext)                  |
 
 Доменные модули: `identity` (аутентификация и пользователи), `university`
 (структура вуза), `listings` (объявления и взаимодействия), `reputation`
@@ -118,6 +120,58 @@ uv run alembic downgrade -1                           # откатить пос�
 - процессы зависят от модулей, модули — от `campus.core`, не наоборот;
 - публичный интерфейс модуля — его пакет (`__init__.py`); подмодули —
   внутренние, другие модули и процессы их не импортируют.
+
+## Соглашения API
+
+Общие механизмы (ТЗ, п. 4.3 и 4.6) — в `campus.core.web`; пример
+использования — тестовый роутер `tests/web_app.py`.
+
+- **Роутер модуля** — `api_router(prefix=...)`. Его маршруты (`ApiRoute`)
+  до проверки параметров требуют заголовки `X-Client-Platform`
+  (`android|web|desktop|telegram|admin`) и `X-Client-Version`. Без них —
+  `400 client_version_missing`; версия старее минимальной для платформы
+  (`CAMPUS_CLIENT_MIN_VERSIONS`) — `426 client_update_required` с полем
+  `min_version`. Health и документация от проверки освобождены.
+- **Транзакция запроса.** Эндпоинт получает сессию зависимостью
+  `DbSession` и сам не коммитит: ответ 2xx фиксируется, исключение или
+  другой код — откатывают всё.
+- **Идемпотентность.** POST, PUT, PATCH и DELETE требуют
+  `Idempotency-Key` (UUID). Ключ занимается в транзакции запроса и
+  сохраняется вместе с ответом на `CAMPUS_IDEMPOTENCY_KEY_TTL` (24 ч).
+  Повтор, в том числе параллельный, получает сохранённый ответ с
+  заголовком `Idempotent-Replayed: true`; тот же ключ с другим запросом —
+  `422 idempotency_key_reused`. Просроченные ключи удаляет
+  `delete_expired_idempotency_keys` (периодический запуск — задача
+  планировщика).
+- **Ошибки** — Problem Details (`application/problem+json`): `type`,
+  `title`, `status`, `detail`, машинный `code`, `request_id`; у ошибок
+  проверки — `errors[]` с `pointer` (`#/поле` тела), `parameter` или
+  `header`. Свои ошибки модуль объявляет как
+  `ProblemType("code", status, N_("Title"), N_("Detail {param}"))` и
+  бросает `ProblemError(тип, param=...)`. Необработанное исключение —
+  `500 internal_error` без подробностей.
+- **Списки** — курсорная пагинация: зависимость `PageQuery`
+  (`?size=&cursor=`; `CAMPUS_PAGE_SIZE_DEFAULT`/`_MAX`), параметр
+  `order_by: Literal[...]` эндпоинта, `sort_by(...)` с уникальным `id`
+  для однозначного порядка и `paginate(...)` → `{items, next_page}`.
+  Курсор хранит ключ сортировки последней записи, поэтому вставки и
+  удаления во время прокрутки не теряют и не дублируют записи.
+
+### Переводы сообщений
+
+Тексты для пользователя пишутся по-английски и помечаются `N_("...")`;
+переводятся при отрисовке на язык из `Accept-Language` (по умолчанию —
+`CAMPUS_DEFAULT_LOCALE`, `ru`). После изменения текстов:
+
+```sh
+uv run pybabel extract --no-location --sort-output --omit-header \
+  -o src/campus/locales/messages.pot src/campus
+uv run pybabel update -i src/campus/locales/messages.pot -d src/campus/locales
+# перевести новые строки в src/campus/locales/ru/LC_MESSAGES/messages.po
+```
+
+Тест `tests/test_i18n.py` проверяет, что шаблон актуален, а перевод
+полный. Файлы `.mo` не нужны: `.po` компилируются в память при запуске.
 
 ## Конфигурация
 

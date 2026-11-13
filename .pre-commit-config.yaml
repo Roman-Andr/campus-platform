@@ -9,8 +9,9 @@ repos:
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
-        # drift_dev compares exported schemas byte for byte.
-        exclude: ^app/drift_schemas/
+        # drift_dev compares exported schemas byte for byte; gettext
+        # catalogs are written by pybabel, which ends them so.
+        exclude: ^app/drift_schemas/|\.pot?$
       - id: mixed-line-ending
         args: [--fix=lf]
         exclude: \.(bat|cmd)$

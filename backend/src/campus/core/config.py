@@ -1,9 +1,12 @@
 """Application settings read from environment variables."""
 
+from datetime import timedelta
+from enum import StrEnum
 from functools import lru_cache
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import Field, SecretStr, field_validator
+from packaging.version import InvalidVersion, Version
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import ArgumentError
@@ -11,6 +14,17 @@ from sqlalchemy.exc import ArgumentError
 type Environment = Literal["development", "test", "staging", "production"]
 type LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 type LogFormat = Literal["json", "console"]
+type Locale = Literal["ru", "en"]
+
+
+class ClientPlatform(StrEnum):
+    """Client applications, sent in the ``X-Client-Platform`` header."""
+
+    ANDROID = "android"
+    WEB = "web"
+    DESKTOP = "desktop"
+    TELEGRAM = "telegram"
+    ADMIN = "admin"
 
 
 class Settings(BaseSettings):
@@ -56,10 +70,54 @@ class Settings(BaseSettings):
         default=30.0, gt=0, description="Seconds to wait for a free connection."
     )
 
+    default_locale: Locale = Field(
+        default="ru",
+        description="Language of messages when Accept-Language matches none.",
+    )
+    client_min_versions: dict[ClientPlatform, str] = Field(
+        default_factory=dict,
+        description=(
+            "Oldest supported client version per platform, as JSON, e.g."
+            ' {"android": "1.2.0"}; older clients must update.'
+        ),
+    )
+    idempotency_key_ttl: timedelta = Field(
+        default=timedelta(hours=24),
+        gt=timedelta(0),
+        description="How long an Idempotency-Key and its response are kept.",
+    )
+    page_size_default: int = Field(default=20, ge=1)
+    page_size_max: int = Field(default=100, ge=1)
+
     sentry_dsn: SecretStr | None = Field(
         default=None, description="Error reporting is disabled when empty."
     )
     sentry_traces_sample_rate: float = Field(default=0.0, ge=0.0, le=1.0)
+
+    @field_validator("client_min_versions")
+    @classmethod
+    def _check_versions(
+        cls, value: dict[ClientPlatform, str]
+    ) -> dict[ClientPlatform, str]:
+        for platform, version in value.items():
+            try:
+                Version(version)
+            except InvalidVersion as error:
+                msg = f"{platform}: {version!r} is not a version"
+                raise ValueError(msg) from error
+        return value
+
+    @model_validator(mode="after")
+    def _check_page_sizes(self) -> Self:
+        if self.page_size_default > self.page_size_max:
+            msg = "page_size_default exceeds page_size_max"
+            raise ValueError(msg)
+        return self
+
+    def client_min_version(self, platform: ClientPlatform) -> Version | None:
+        """Oldest supported version of ``platform``, if one is configured."""
+        version = self.client_min_versions.get(platform)
+        return None if version is None else Version(version)
 
     @field_validator("database_url", mode="before")
     @classmethod

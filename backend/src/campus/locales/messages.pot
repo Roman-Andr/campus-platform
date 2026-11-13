@@ -1,0 +1,150 @@
+msgid "Bad request"
+msgstr ""
+
+msgid "Client version missing"
+msgstr ""
+
+msgid "Has an invalid format."
+msgstr ""
+
+msgid "Idempotency key missing"
+msgstr ""
+
+msgid "Idempotency key reused"
+msgstr ""
+
+msgid "Internal error"
+msgstr ""
+
+msgid "Invalid client version"
+msgstr ""
+
+msgid "Invalid cursor"
+msgstr ""
+
+msgid "Invalid idempotency key"
+msgstr ""
+
+msgid "Invalid request"
+msgstr ""
+
+msgid "Method not allowed"
+msgstr ""
+
+msgid "Must be a UUID."
+msgstr ""
+
+msgid "Must be a date and time."
+msgstr ""
+
+msgid "Must be a date."
+msgstr ""
+
+msgid "Must be a list."
+msgstr ""
+
+msgid "Must be a number."
+msgstr ""
+
+msgid "Must be a string."
+msgstr ""
+
+msgid "Must be an integer."
+msgstr ""
+
+msgid "Must be an object."
+msgstr ""
+
+#, python-brace-format
+msgid "Must be at least {ge}."
+msgstr ""
+
+#, python-brace-format
+msgid "Must be at least {min_length} characters long."
+msgstr ""
+
+#, python-brace-format
+msgid "Must be at most {le}."
+msgstr ""
+
+#, python-brace-format
+msgid "Must be at most {max_length} characters long."
+msgstr ""
+
+#, python-brace-format
+msgid "Must be greater than {gt}."
+msgstr ""
+
+#, python-brace-format
+msgid "Must be less than {lt}."
+msgstr ""
+
+#, python-brace-format
+msgid "Must be one of: {expected}."
+msgstr ""
+
+msgid "Must be true or false."
+msgstr ""
+
+#, python-brace-format
+msgid "Must have at least {min_length} items."
+msgstr ""
+
+#, python-brace-format
+msgid "Must have at most {max_length} items."
+msgstr ""
+
+msgid "Not found"
+msgstr ""
+
+msgid "Request failed"
+msgstr ""
+
+msgid "Requests that change data need an Idempotency-Key header."
+msgstr ""
+
+msgid "Some fields of the request are invalid."
+msgstr ""
+
+msgid "Something went wrong on our side. Please try again later."
+msgstr ""
+
+msgid "The Idempotency-Key header must be a UUID."
+msgstr ""
+
+msgid "The X-Client-Platform and X-Client-Version headers are required."
+msgstr ""
+
+msgid "The client platform or version is not recognized."
+msgstr ""
+
+msgid "The page cursor is invalid or belongs to another list; start over."
+msgstr ""
+
+msgid "The request body is not valid JSON."
+msgstr ""
+
+msgid "The requested resource does not exist."
+msgstr ""
+
+msgid "The resource does not support this method."
+msgstr ""
+
+msgid "This Idempotency-Key was already used for a different request."
+msgstr ""
+
+msgid "This field is not allowed."
+msgstr ""
+
+msgid "This field is required."
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"This version of the app is no longer supported. Please update to "
+"{version} or newer."
+msgstr ""
+
+msgid "Update required"
+msgstr ""
+
