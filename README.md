@@ -43,3 +43,5 @@ pre-commit run --all-files
 
 Сборка документов — `make compile` в `docs/paperwork/` (нужен
 [Typst](https://typst.app)); в репозитории хранится только PDF ТЗ.
+
+Сервер: запуск, проверки и устройство — [`backend/README.md`](backend/README.md).
