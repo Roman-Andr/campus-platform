@@ -9,12 +9,24 @@ pgvector, Redis 7, Centrifugo, RustFS и обратный прокси Caddy. В
 Нужен Docker с Compose v2. Из корня репозитория:
 
 ```sh
-cd infra && (test -f .env || cp .env.example .env) && docker compose up -d --build
+cd infra && (test -f .env || cp .env.example .env) && docker compose up -d --build --wait
 ```
+
+`--wait` возвращает управление, когда все сервисы готовы (healthcheck),
+и завершается с ошибкой, если какой-то не поднялся, например упали
+миграции.
 
 Проверка: `curl -k https://localhost/api/v1/health` → `{"status":"ok"}`
 (сертификат для `localhost` выпускает локальный центр сертификации Caddy,
 отсюда `-k`). Документация API — <https://localhost/api/v1/docs>.
+
+Rootless Docker или podman не открывают порты ниже 1024: задайте в
+`.env` `CADDY_HTTP_PORT=8080` и `CADDY_HTTPS_PORT=8443` и обращайтесь к
+`https://localhost:8443`. С podman Docker API включается сокетом
+пользователя (`systemctl --user start podman.socket`,
+`DOCKER_HOST=unix:///run/user/$UID/podman/podman.sock`); имена сервисов
+в сети compose резолвятся при сетевом бэкенде netavark или с плагином
+CNI `dnsname`.
 
 Остановка — `docker compose down` (данные остаются в томах);
 `docker compose down -v` удаляет и данные.
