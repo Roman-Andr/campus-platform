@@ -6,7 +6,7 @@ from alembic import context
 from sqlalchemy.engine import Connection
 
 from campus import modules
-from campus.core import idempotency  # noqa: F401 - registers its table
+from campus.core import deadlines, idempotency, outbox  # noqa: F401 - their tables
 from campus.core.config import Settings
 from campus.core.db import Base, DatabaseNotConfiguredError, create_engine
 from campus.core.logging import configure_logging
@@ -16,7 +16,8 @@ if not context.is_offline_mode():
     # In --sql mode stdout carries the SQL script, so it gets no log records.
     configure_logging(settings, process="migrations")
 
-# Every module registers its tables in Base.metadata when imported.
+# Every module registers its tables in Base.metadata when imported; the
+# job tables of the shared kernel are imported above.
 modules.import_all()
 target_metadata = Base.metadata
 
