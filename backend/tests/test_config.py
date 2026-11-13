@@ -1,3 +1,4 @@
+from datetime import timedelta
 from pathlib import Path
 
 import pytest
@@ -109,3 +110,30 @@ def test_empty_value_means_default(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CAMPUS_SENTRY_DSN", "")
 
     assert Settings().sentry_dsn is None
+
+
+def test_api_convention_defaults() -> None:
+    settings = Settings()
+
+    assert settings.default_locale == "ru"
+    assert settings.client_min_versions == {}
+    assert settings.idempotency_key_ttl == timedelta(hours=24)
+    assert (settings.page_size_default, settings.page_size_max) == (20, 100)
+
+
+def test_idempotency_key_ttl_accepts_iso_duration(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("CAMPUS_IDEMPOTENCY_KEY_TTL", "PT1H")
+
+    assert Settings().idempotency_key_ttl == timedelta(hours=1)
+
+
+def test_default_page_size_must_not_exceed_maximum(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("CAMPUS_PAGE_SIZE_DEFAULT", "50")
+    monkeypatch.setenv("CAMPUS_PAGE_SIZE_MAX", "40")
+
+    with pytest.raises(ValidationError, match="page_size_default"):
+        Settings()

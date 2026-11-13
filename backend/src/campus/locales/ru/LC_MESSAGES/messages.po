@@ -1,0 +1,171 @@
+# Russian translations for campus.
+#
+# This file is distributed under the same license as the campus project.
+msgid ""
+msgstr ""
+"Project-Id-Version: campus 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-14 02:47+0300\n"
+"PO-Revision-Date: 2026-11-14 02:41+0300\n"
+"Last-Translator: \n"
+"Language: ru\n"
+"Language-Team: ru\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+msgid "Bad request"
+msgstr "Некорректный запрос"
+
+msgid "Client version missing"
+msgstr "Не указана версия клиента"
+
+msgid "Has an invalid format."
+msgstr "Неверный формат."
+
+msgid "Idempotency key missing"
+msgstr "Нет ключа идемпотентности"
+
+msgid "Idempotency key reused"
+msgstr "Ключ идемпотентности уже использован"
+
+msgid "Internal error"
+msgstr "Внутренняя ошибка"
+
+msgid "Invalid client version"
+msgstr "Неверная версия клиента"
+
+msgid "Invalid cursor"
+msgstr "Неверный курсор"
+
+msgid "Invalid idempotency key"
+msgstr "Неверный ключ идемпотентности"
+
+msgid "Invalid request"
+msgstr "Неверные данные запроса"
+
+msgid "Method not allowed"
+msgstr "Метод не поддерживается"
+
+msgid "Must be a UUID."
+msgstr "Должно быть UUID."
+
+msgid "Must be a date and time."
+msgstr "Должно быть датой и временем."
+
+msgid "Must be a date."
+msgstr "Должно быть датой."
+
+msgid "Must be a list."
+msgstr "Должно быть списком."
+
+msgid "Must be a number."
+msgstr "Должно быть числом."
+
+msgid "Must be a string."
+msgstr "Должно быть строкой."
+
+msgid "Must be an integer."
+msgstr "Должно быть целым числом."
+
+msgid "Must be an object."
+msgstr "Должно быть объектом."
+
+#, python-brace-format
+msgid "Must be at least {ge}."
+msgstr "Должно быть не меньше {ge}."
+
+#, python-brace-format
+msgid "Must be at least {min_length} characters long."
+msgstr "Минимальная длина — {min_length}."
+
+#, python-brace-format
+msgid "Must be at most {le}."
+msgstr "Должно быть не больше {le}."
+
+#, python-brace-format
+msgid "Must be at most {max_length} characters long."
+msgstr "Максимальная длина — {max_length}."
+
+#, python-brace-format
+msgid "Must be greater than {gt}."
+msgstr "Должно быть больше {gt}."
+
+#, python-brace-format
+msgid "Must be less than {lt}."
+msgstr "Должно быть меньше {lt}."
+
+#, python-brace-format
+msgid "Must be one of: {expected}."
+msgstr "Допустимые значения: {expected}."
+
+msgid "Must be true or false."
+msgstr "Должно быть true или false."
+
+#, python-brace-format
+msgid "Must have at least {min_length} items."
+msgstr "Минимальное число элементов — {min_length}."
+
+#, python-brace-format
+msgid "Must have at most {max_length} items."
+msgstr "Максимальное число элементов — {max_length}."
+
+msgid "Not found"
+msgstr "Не найдено"
+
+msgid "Request failed"
+msgstr "Запрос не выполнен"
+
+msgid "Requests that change data need an Idempotency-Key header."
+msgstr "Изменяющему запросу нужен заголовок Idempotency-Key."
+
+msgid "Some fields of the request are invalid."
+msgstr "Некоторые поля запроса заполнены неверно."
+
+msgid "Something went wrong on our side. Please try again later."
+msgstr "Что-то пошло не так на нашей стороне. Попробуйте позже."
+
+msgid "The Idempotency-Key header must be a UUID."
+msgstr "Заголовок Idempotency-Key должен быть UUID."
+
+msgid "The X-Client-Platform and X-Client-Version headers are required."
+msgstr "Нужны заголовки X-Client-Platform и X-Client-Version."
+
+msgid "The client platform or version is not recognized."
+msgstr "Платформа или версия клиента не распознаны."
+
+msgid "The page cursor is invalid or belongs to another list; start over."
+msgstr "Курсор страницы неверен или относится к другому списку; начните сначала."
+
+msgid "The request body is not valid JSON."
+msgstr "Тело запроса — некорректный JSON."
+
+msgid "The requested resource does not exist."
+msgstr "Запрошенный ресурс не существует."
+
+msgid "The resource does not support this method."
+msgstr "Ресурс не поддерживает этот метод."
+
+msgid "This Idempotency-Key was already used for a different request."
+msgstr "Этот Idempotency-Key уже использован для другого запроса."
+
+msgid "This field is not allowed."
+msgstr "Это поле недопустимо."
+
+msgid "This field is required."
+msgstr "Обязательное поле."
+
+#, python-brace-format
+msgid ""
+"This version of the app is no longer supported. Please update to "
+"{version} or newer."
+msgstr ""
+"Эта версия приложения больше не поддерживается. Обновите его до версии "
+"{version} или новее."
+
+msgid "Update required"
+msgstr "Требуется обновление"
+

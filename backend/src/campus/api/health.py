@@ -5,6 +5,8 @@ from typing import Literal
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+# A plain APIRoute: probes and monitoring are not clients, so the endpoint
+# needs no client headers and no database.
 router = APIRouter(tags=["system"])
 
 

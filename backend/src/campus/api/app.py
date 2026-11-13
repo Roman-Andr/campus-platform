@@ -1,5 +1,9 @@
 """FastAPI application factory."""
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from typing import Any
+
 from asgi_correlation_id import CorrelationIdMiddleware
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
@@ -8,7 +12,9 @@ from campus import __version__
 from campus.api import health
 from campus.api.access_log import AccessLogMiddleware
 from campus.core.config import Settings, get_settings
+from campus.core.db import create_engine, create_session_factory
 from campus.core.observability import configure_observability
+from campus.core.web import install_problem_handlers, use_problem_media_type
 
 API_PREFIX = "/api/v1"
 
@@ -18,10 +24,29 @@ def _operation_id(route: APIRoute) -> str:
     return route.name
 
 
+def _install_openapi(app: FastAPI) -> None:
+    """Post-process the generated schema (error media type, problem codes)."""
+    generate = app.openapi
+
+    def openapi() -> dict[str, Any]:
+        if app.openapi_schema is None:
+            app.openapi_schema = use_problem_media_type(generate())
+        return app.openapi_schema
+
+    app.openapi = openapi  # type: ignore[method-assign]
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     """Build the API application; used by uvicorn as a factory."""
     settings = settings or get_settings()
     configure_observability(settings, process="api")
+    engine = create_engine(settings) if settings.database_url else None
+
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+        yield
+        if engine is not None:
+            await engine.dispose()
 
     app = FastAPI(
         title="Campus API",
@@ -30,7 +55,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         docs_url=f"{API_PREFIX}/docs",
         redoc_url=f"{API_PREFIX}/redoc",
         generate_unique_id_function=_operation_id,
+        lifespan=lifespan,
     )
+    app.state.settings = settings
+    app.state.session_factory = (
+        create_session_factory(engine) if engine is not None else None
+    )
+    install_problem_handlers(app)
+    _install_openapi(app)
     app.include_router(health.router, prefix=API_PREFIX)
 
     # The last added middleware is the outermost: the request ID is set
