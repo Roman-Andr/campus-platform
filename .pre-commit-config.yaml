@@ -1,7 +1,9 @@
 # Repository-wide checks. Language-specific hooks (ruff, dart format,
 # eslint, ...) are added by the backend/, app/ and admin/ scaffolds.
-# Setup: `pre-commit install`; run manually: `pre-commit run --all-files`.
-default_install_hook_types: [pre-commit]
+# Setup: `pre-commit install` (pre-commit and pre-push hooks);
+# run manually: `pre-commit run --all-files`.
+default_install_hook_types: [pre-commit, pre-push]
+default_stages: [pre-commit]
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -23,6 +25,20 @@ repos:
       - id: check-toml
       - id: check-json
       - id: detect-private-key
+  # main changes only through pull requests. GitHub cannot enforce it in
+  # this private repository (see .github/rulesets/), so refuse it locally;
+  # the Main guard workflow reports pushes that bypass this hook.
+  - repo: local
+    hooks:
+      - id: no-push-to-main
+        name: no direct push to main
+        entry: >-
+          bash -c '[ "$PRE_COMMIT_REMOTE_BRANCH" != refs/heads/main ]
+          || { echo "Pushing to main is not allowed: open a pull request."; exit 1; }'
+        language: unsupported
+        stages: [pre-push]
+        always_run: true
+        pass_filenames: false
   # Backend: tools run from backend/.venv at the versions pinned in uv.lock.
   - repo: local
     hooks:

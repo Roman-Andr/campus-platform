@@ -30,6 +30,7 @@ uv run campus-api            # http://127.0.0.1:8000/api/v1/docs
 
 ```sh
 uv run pytest                # тесты и отчёт покрытия (терминал и coverage.xml)
+uv run coverage report --include='src/campus/modules/*' --fail-under=80  # порог CI
 uv run ruff check .          # линтер
 uv run ruff format .         # форматтер
 uv run mypy                  # типы, строгий режим

@@ -1,0 +1,78 @@
+# Stand-in for branch protection while the private repository has no
+# GitHub Pro (rulesets are unavailable; the intended ruleset is
+# .github/rulesets/main.json). GitHub cannot reject a push here, so every
+# change of main is checked afterwards: each new commit must be the merge
+# of a pull request whose required checks were green on its head commit,
+# and the push must not be forced. A violation fails this workflow and
+# opens a `bug` issue.
+name: Main guard
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  checks: read
+  pull-requests: read
+  issues: write
+
+jobs:
+  verify:
+    name: Changes came through green pull requests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/scripts
+      - name: Verify pushed commits
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.after }}
+          FORCED: ${{ github.event.forced }}
+          PUSHER: ${{ github.event.pusher.name }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          problems=()
+          if [ "$FORCED" = true ]; then
+            problems+=("force push: \`$BEFORE\` → \`$AFTER\`")
+          fi
+
+          commits=$(gh api "repos/$GH_REPO/compare/$BEFORE...$AFTER" --jq '.commits[].sha')
+          for sha in $commits; do
+            # The commit-to-PR association may lag a few seconds behind a merge.
+            for attempt in 1 2 3; do
+              pr=$(gh api "repos/$GH_REPO/commits/$sha/pulls" \
+                --jq '[.[] | select(.merged_at != null and .base.ref == "main"
+                                    and .merge_commit_sha == "'"$sha"'")][0]
+                      | if . == null then "" else "\(.number) \(.head.sha)" end')
+              [ -n "$pr" ] || [ "$attempt" = 3 ] && break
+              sleep 10
+            done
+            if [ -z "$pr" ]; then
+              problems+=("\`$sha\` — не мерж pull request")
+              continue
+            fi
+            read -r number head <<< "$pr"
+            if ! checks=$(.github/scripts/required-checks.sh "$head"); then
+              problems+=("\`$sha\` — PR #$number слит без зелёных проверок (${checks//$'\n'/, })")
+            fi
+            echo "$sha: PR #$number, ${checks//$'\n'/, }"
+          done
+
+          if [ ${#problems[@]} -eq 0 ]; then
+            echo "All changes came through pull requests with green checks."
+            exit 0
+          fi
+
+          printf '::error::%s\n' "${problems[@]}"
+          # shellcheck disable=SC2016 # backticks are Markdown
+          body=$(printf 'Изменение `main` в обход PR с зелёными проверками (push от %s, [запуск](%s)).\n\n' "$PUSHER" "$RUN_URL"
+                 printf -- '- %s\n' "${problems[@]}"
+                 printf '\nПроверить изменения и при необходимости откатить их через PR.\n')
+          gh issue create --label bug \
+            --title "main изменён в обход PR с зелёными проверками" \
+            --body "$body"
+          exit 1
