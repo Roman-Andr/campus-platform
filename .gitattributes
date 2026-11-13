@@ -1,0 +1,36 @@
+# Normalize text files to LF in the repository and working tree.
+* text=auto eol=lf
+
+# Windows scripts need CRLF to run correctly.
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+
+# Documents
+*.pdf  binary
+*.docx binary
+*.xlsx binary
+*.pptx binary
+
+# Fonts
+*.ttf   binary
+*.otf   binary
+*.woff  binary
+*.woff2 binary
+
+# Images (SVG stays text)
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+
+# Archives and native artifacts
+*.zip  binary
+*.gz   binary
+*.jar  binary
+*.apk  binary
+*.aab  binary
+*.so   binary
+*.dll  binary
+*.exe  binary

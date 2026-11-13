@@ -15,11 +15,11 @@
   assert(cfg.edu_program_name != none)
   // assert(cfg.city != none)
   assert(cfg.year != none)
-  
+
   let un(n) = "_" * n
-  
+
   let approval_page_code = cfg.project.code + "-ЛУ"
-  
+
   // отметка об учёте и хранении по ГОСТ 19.601-78
   let storage_table = {
     set text(size: 10pt)
@@ -39,19 +39,19 @@
       ),
     )
   }
-  
+
   // Лист утверждения
   let approval_page = {
     let top_banner = [
       #set par(spacing: 0.65em)
-      
+
       #text(weight: "bold", cfg.university_name)
-      
+
       #cfg.faculty_name
-      
+
       #cfg.edu_program_name
     ]
-    
+
     let approve_table = grid(
       columns: (1fr, 1fr),
       inset: (
@@ -59,61 +59,61 @@
         y: 3mm,
       ),
       align: center,
-      
+
       [
         СОГЛАСОВАНО
-        
+
         #cfg.agreed_by.position
       ],
       [
         УТВЕРЖДЕНО
-        
+
         #cfg.approved_by.position
       ],
-      
+
       box[
         #un(13) #cfg.agreed_by.name
-        
+
         "#un(3)" #un(13) #cfg.year г.
       ],
       [
         #un(13) #cfg.approved_by.name
-        
+
         "#un(3)" #un(13) #cfg.year г.
       ],
     )
-    
+
     let center_banner = [
       #set text(size: 14pt, weight: "bold")
       #set par(spacing: 2em)
-      
+
       #par(spacing: 0.65em, cfg.project.name)
-      
+
       Пояснительная записка
-      
+
       ЛИСТ УТВЕРЖДЕНИЯ
-      
+
       #approval_page_code
     ]
-    
+
     let student_info = align(right)[
       #set par(spacing: 1em)
-      
+
       Исполнитель:
-      
+
       Студент группы #cfg.student.group
-      
+
       #un(13) / #cfg.student.name /
-      
+
       "#un(3)" #un(15) #cfg.year г.
     ]
-    
+
     let bottom_banner = [
       #set text(weight: "bold")
-      
+
       #cfg.year
     ]
-    
+
     page(
       header: none,
       footer: none,
@@ -126,7 +126,7 @@
       foreground: storage_table,
     )[
       #set align(center)
-      
+
       #grid(
         columns: 1fr,
         row-gutter: 1fr,
@@ -137,39 +137,39 @@
         bottom_banner,
       )
     ]
-    
+
     counter(page).update(1)
   }
-  
+
   let title_page = {
     let top_banner = [
       #set align(left)
       #set par(spacing: 2em)
-      
+
       УТВЕРЖДЕН
-      
+
       #approval_page_code
     ]
-    
+
     let center_banner = [
       #set text(size: 14pt, weight: "bold")
       #set par(spacing: 2em)
-      
+
       #par(spacing: 0.65em, cfg.project.name)
-      
+
       Пояснительная записка
-      
+
       #cfg.project.code
-      
+
       Листов #context { counter(page).final().at(0) }
     ]
-    
+
     let bottom_banner = [
       #set text(weight: "bold")
-      
+
       #cfg.year
     ]
-    
+
     page(
       header: none,
       footer: none,
@@ -182,7 +182,7 @@
       foreground: storage_table,
     )[
       #set align(center)
-      
+
       #grid(
         columns: 1fr,
         row-gutter: 1fr,
@@ -192,20 +192,20 @@
       )
     ]
   }
-  
+
   let list_registraion_changes = {
     let list_name = [
       #set text(size: 14pt, weight: "bold")
       #set par(spacing: 2em)
       ЛИСТ РЕГИСТРАЦИИ ИЗМЕНЕНИЙ
     ]
-    
+
     let changes_table = figure(
       table(
         columns: (10mm,) + (15mm,) * 4 + (20mm,) * 2 + (auto,) + (auto,) * 2,
-        
+
         rows: (auto,) * 3 + (9.5mm,) * 21,
-        
+
         table.cell(
           colspan: 10,
           align: horizon,
@@ -216,7 +216,7 @@
           align: horizon,
           [Номера листов (страниц)],
         ),
-        
+
         table.cell(
           rowspan: 2,
           align: horizon,
@@ -242,7 +242,7 @@
           align: horizon,
           [Дата],
         ),
-        
+
         table.cell(
           align: horizon,
           rotate(-90deg, reflow: true)[
@@ -275,7 +275,7 @@
         ),
       ),
     )
-    
+
     page(
       header: none,
       footer: none,
@@ -287,7 +287,7 @@
       ),
     )[
       #set align(center)
-      
+
       #grid(
         columns: 1fr,
         row-gutter: 1fr,
@@ -296,23 +296,23 @@
       )
     ]
   }
-  
+
   let outline = {
     pagebreak(weak: true)
-    
+
     {
       set align(center)
       set text(weight: "bold")
-      
+
       [СОДЕРЖАНИЕ]
     }
-    
+
     outline(
       title: none,
       indent: 5mm,
     )
   }
-  
+
   let outline_and_normal_pages = {
     set page(
       margin: (
@@ -324,9 +324,9 @@
       header: [
         #set align(center)
         #set text(weight: "bold")
-        
+
         #context counter(page).display()
-        
+
         #cfg.project.code
       ],
       footer: [
@@ -334,7 +334,7 @@
           columns: (2fr, 1fr, 1fr, 1fr, 1fr),
           align: center,
           rows: 7mm,
-          
+
           [], [], [], [], [],
           [Изм.], [Лист], [№ докум.], [Подп.], [Дата],
           cfg.project.code, [], [], [], [],
@@ -342,19 +342,19 @@
         )
       ],
     )
-    
+
     set par(
       //first-line-indent: 1em,
       justify: true,
       leading: 1em,
     )
-    
+
     set heading(numbering: "1.")
-    
+
     show heading.where(level: 1): h => {
       set align(center)
       set text(weight: "bold", size: 12pt)
-      
+
       pagebreak(weak: true)
       if h.numbering != none [
         #counter(heading).display(h.numbering) #h.body
@@ -362,40 +362,40 @@
         #h.body
       ]
     }
-    
+
     show heading.where(level: 2): h => {
       set text(weight: "bold", size: 12pt)
-      
+
       [#counter(heading).display() #h.body]
     }
-    
+
     pagebreak(weak: true)
     align(center, text(weight: "bold", size: 12pt, [АННОТАЦИЯ]))
     cfg.annotation
-    
+
     outline
     // set page(
     //     header: [
     //         #set align(center)
     //         #set text(weight: "bold")
-    
+
     //         #context counter(page).display()
-    
+
     //         #cfg.project.code
     //     ]
     // )
-    
+
     // counter(page).update(6)
-    
+
     body
   }
-  
+
   set text(
     lang: "ru",
     size: 12pt,
     font: "STIX Two Text",
   )
-  
+
   approval_page
   title_page
 }
