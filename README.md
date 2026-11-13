@@ -51,3 +51,5 @@ pre-commit run --all-files
 
 Все серверные компоненты в Docker Compose (API, PostgreSQL, Redis,
 Centrifugo, RustFS, Caddy) — [`infra/README.md`](infra/README.md).
+
+Клиент студента: запуск, проверки и устройство — [`app/README.md`](app/README.md).

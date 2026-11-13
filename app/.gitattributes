@@ -1,0 +1,7 @@
+# Generated code: collapsed in diffs, regenerated rather than edited.
+*.g.dart                       linguist-generated=true
+lib/src/core/l10n/generated/** linguist-generated=true
+test/drift/*/generated/**      linguist-generated=true
+drift_schemas/**               linguist-generated=true
+web/drift_worker.js            linguist-generated=true
+web/sqlite3.wasm               binary

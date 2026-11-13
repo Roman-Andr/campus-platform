@@ -1,0 +1,51 @@
+{
+  "@@locale": "ru",
+  "appTitle": "Кампус",
+  "@appTitle": {
+    "description": "Application name shown in the app bar, task switcher and browser tab."
+  },
+  "homeWelcome": "Добро пожаловать в Кампус",
+  "@homeWelcome": {
+    "description": "Heading on the home screen placeholder."
+  },
+  "homePlaceholder": "Здесь появятся объявления, мероприятия и закупки вашего сообщества.",
+  "@homePlaceholder": {
+    "description": "Body text on the home screen placeholder until the feed is implemented."
+  },
+  "settingsTitle": "Настройки",
+  "@settingsTitle": {
+    "description": "Title of the settings screen and tooltip of the button that opens it."
+  },
+  "settingsLanguage": "Язык",
+  "@settingsLanguage": {
+    "description": "Header of the interface language section in settings."
+  },
+  "settingsLanguageSystem": "Как в системе",
+  "@settingsLanguageSystem": {
+    "description": "Language option that follows the device language."
+  },
+  "settingsLanguageRussian": "Русский",
+  "@settingsLanguageRussian": {
+    "description": "Russian language option, always written in Russian."
+  },
+  "settingsLanguageEnglish": "English",
+  "@settingsLanguageEnglish": {
+    "description": "English language option, always written in English."
+  },
+  "settingsTheme": "Тема",
+  "@settingsTheme": {
+    "description": "Header of the color theme section in settings."
+  },
+  "settingsThemeSystem": "Как в системе",
+  "@settingsThemeSystem": {
+    "description": "Theme option that follows the device light or dark mode."
+  },
+  "settingsThemeLight": "Светлая",
+  "@settingsThemeLight": {
+    "description": "Light theme option."
+  },
+  "settingsThemeDark": "Тёмная",
+  "@settingsThemeDark": {
+    "description": "Dark theme option."
+  }
+}

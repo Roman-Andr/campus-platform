@@ -9,6 +9,8 @@ repos:
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
+        # drift_dev compares exported schemas byte for byte.
+        exclude: ^app/drift_schemas/
       - id: mixed-line-ending
         args: [--fix=lf]
         exclude: \.(bat|cmd)$
@@ -73,4 +75,18 @@ repos:
         entry: npm --prefix admin run --silent typecheck
         language: unsupported
         files: ^admin/.*\.(ts|tsx|json)$
+        pass_filenames: false
+  # app/: needs Flutter on PATH and `flutter pub get` in app/ first.
+  - repo: local
+    hooks:
+      - id: app-dart-format
+        name: app dart format
+        entry: dart format
+        language: unsupported
+        files: ^app/.*\.dart$
+      - id: app-flutter-analyze
+        name: app flutter analyze
+        entry: bash -c 'cd app && flutter analyze --no-pub'
+        language: unsupported
+        files: ^app/(.*\.dart|pubspec\.(yaml|lock)|analysis_options\.yaml)$
         pass_filenames: false
