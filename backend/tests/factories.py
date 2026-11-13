@@ -1,13 +1,16 @@
 """Test data factories (polyfactory) persisted through the test session."""
 
 from typing import Any
+from uuid import uuid4
 
+from polyfactory import Use
 from polyfactory.factories.sqlalchemy_factory import (
     SQLAlchemyFactory,
     SQLAlchemyPersistenceMethod,
 )
 
 from campus.core.db import Entity
+from campus.modules.university import City
 from tests.models import Note
 
 # Columns filled by the database or the application clock, never randomly.
@@ -34,3 +37,10 @@ class EntityFactory[T: Entity](SQLAlchemyFactory[T]):
 
 class NoteFactory(EntityFactory[Note]):
     pass
+
+
+class CityFactory(EntityFactory[City]):
+    code = Use(lambda: f"city-{uuid4().hex[:8]}")
+    timezone = "Europe/Moscow"
+    name_ru = "Город"
+    name_en = "City"

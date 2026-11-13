@@ -15,6 +15,7 @@ dependencies = [
     "sqlakeyset>=2.0.1787969905",
     "sqlalchemy[asyncio]>=2.1.8",
     "structlog>=26.1.0",
+    "tzdata>=2026.6",
     "uvicorn[standard]>=0.54.0",
 ]
 
@@ -22,6 +23,7 @@ dependencies = [
 campus-api = "campus.api.__main__:main"
 campus-worker = "campus.worker.__main__:main"
 campus-scheduler = "campus.scheduler.__main__:main"
+campus-seed = "campus.seed.__main__:main"
 
 [build-system]
 requires = ["uv_build>=0.13.7,<0.14.0"]
@@ -145,7 +147,7 @@ root_package = "campus"
 name = "Processes depend on domain modules, modules on the shared kernel"
 type = "layers"
 layers = [
-    "campus.api | campus.worker | campus.scheduler | campus.migrations",
+    "campus.api | campus.worker | campus.scheduler | campus.migrations | campus.seed",
     "campus.modules",
     "campus.core",
 ]
@@ -167,6 +169,7 @@ source_modules = [
     "campus.worker",
     "campus.scheduler",
     "campus.migrations",
+    "campus.seed",
 ]
 forbidden_modules = ["campus.modules.*.*"]
 allow_indirect_imports = true

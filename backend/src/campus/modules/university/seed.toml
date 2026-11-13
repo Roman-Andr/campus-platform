@@ -1,0 +1,116 @@
+# Initial reference data of the demo stand: HSE University campuses.
+# Loaded by `campus-seed`; rows are matched by `code` (cities, and within
+# a city dormitories and faculties) and by `domain`, so loading again adds
+# only what is missing and keeps rows edited in the admin panel.
+
+[[cities]]
+code = "moscow"
+name_ru = "Москва"
+name_en = "Moscow"
+timezone = "Europe/Moscow"
+
+[[cities.dormitories]]
+code = "dubki"
+name_ru = "Общежитие «Дубки»"
+name_en = "Dubki Dormitory"
+
+[[cities.dormitories]]
+code = "dorm-4"
+name_ru = "Общежитие № 4"
+name_en = "Dormitory No. 4"
+
+[[cities.dormitories]]
+code = "dorm-6"
+name_ru = "Общежитие № 6"
+name_en = "Dormitory No. 6"
+
+[[cities.faculties]]
+code = "cs"
+name_ru = "Факультет компьютерных наук"
+name_en = "Faculty of Computer Science"
+
+[[cities.faculties]]
+code = "economics"
+name_ru = "Факультет экономических наук"
+name_en = "Faculty of Economic Sciences"
+
+[[cities.faculties]]
+code = "law"
+name_ru = "Факультет права"
+name_en = "Faculty of Law"
+
+[[cities.faculties]]
+code = "humanities"
+name_ru = "Факультет гуманитарных наук"
+name_en = "Faculty of Humanities"
+
+[[cities]]
+code = "saint-petersburg"
+name_ru = "Санкт-Петербург"
+name_en = "Saint Petersburg"
+timezone = "Europe/Moscow"
+
+[[cities.dormitories]]
+code = "dorm-1"
+name_ru = "Общежитие № 1"
+name_en = "Dormitory No. 1"
+
+[[cities.dormitories]]
+code = "dorm-2"
+name_ru = "Общежитие № 2"
+name_en = "Dormitory No. 2"
+
+[[cities.faculties]]
+code = "economics-management"
+name_ru = "Санкт-Петербургская школа экономики и менеджмента"
+name_en = "St. Petersburg School of Economics and Management"
+
+[[cities.faculties]]
+code = "physics-math-cs"
+name_ru = "Санкт-Петербургская школа физико-математических и компьютерных наук"
+name_en = "St. Petersburg School of Physics, Mathematics, and Computer Science"
+
+[[cities]]
+code = "nizhny-novgorod"
+name_ru = "Нижний Новгород"
+name_en = "Nizhny Novgorod"
+timezone = "Europe/Moscow"
+
+[[cities.dormitories]]
+code = "dorm-1"
+name_ru = "Общежитие № 1"
+name_en = "Dormitory No. 1"
+
+[[cities.faculties]]
+code = "informatics-math-cs"
+name_ru = "Факультет информатики, математики и компьютерных наук"
+name_en = "Faculty of Informatics, Mathematics, and Computer Science"
+
+[[cities.faculties]]
+code = "economics"
+name_ru = "Факультет экономики"
+name_en = "Faculty of Economics"
+
+[[cities]]
+code = "perm"
+name_ru = "Пермь"
+name_en = "Perm"
+timezone = "Asia/Yekaterinburg"
+
+[[cities.dormitories]]
+code = "dorm-1"
+name_ru = "Общежитие № 1"
+name_en = "Dormitory No. 1"
+
+[[cities.faculties]]
+code = "economics-management-bi"
+name_ru = "Факультет экономики, менеджмента и бизнес-информатики"
+name_en = "Faculty of Economics, Management, and Business Informatics"
+
+[[email_domains]]
+domain = "edu.hse.ru"
+account_type = "student"
+
+[[email_domains]]
+domain = "hse.ru"
+account_type = "employee"
