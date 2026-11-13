@@ -1,5 +1,7 @@
 #set enum(indent: 2em)
 #set list(indent: 2em)
+#show figure.where(kind: table): set block(breakable: true)
+#show table: set par(justify: false)
 
 #include "sections/01-intro.typ"
 #include "sections/02-foundations.typ"
