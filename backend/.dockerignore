@@ -1,0 +1,20 @@
+# Only what the image needs: pyproject.toml, uv.lock, sources and, later,
+# Alembic files. Local environments, caches and secrets stay outside.
+**/.env
+**/.env.*
+.venv/
+**/__pycache__/
+**/*.py[cod]
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.import_linter_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+dist/
+build/
+tests/
+Dockerfile
+.dockerignore
