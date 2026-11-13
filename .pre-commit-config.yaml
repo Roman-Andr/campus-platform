@@ -53,3 +53,24 @@ repos:
         language: unsupported
         files: ^backend/(.*\.py|pyproject\.toml)$
         pass_filenames: false
+  # admin/: needs `npm ci` in admin/ first.
+  - repo: local
+    hooks:
+      - id: admin-prettier
+        name: admin prettier
+        entry: npm --prefix admin run --silent format:check
+        language: unsupported
+        files: ^admin/
+        pass_filenames: false
+      - id: admin-eslint
+        name: admin eslint
+        entry: npm --prefix admin run --silent lint
+        language: unsupported
+        files: ^admin/.*\.(ts|tsx|js)$
+        pass_filenames: false
+      - id: admin-typecheck
+        name: admin typecheck
+        entry: npm --prefix admin run --silent typecheck
+        language: unsupported
+        files: ^admin/.*\.(ts|tsx|json)$
+        pass_filenames: false
