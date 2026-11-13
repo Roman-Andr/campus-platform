@@ -41,6 +41,9 @@ pre-commit run --all-files
 Форматирование для редакторов задаёт `.editorconfig`, окончания строк —
 `.gitattributes` (LF).
 
+Веб-панель администратора — см. [`admin/README.md`](admin/README.md);
+хуки pre-commit для `admin/` требуют `npm ci` в этом каталоге.
+
 Сборка документов — `make compile` в `docs/paperwork/` (нужен
 [Typst](https://typst.app)); в репозитории хранится только PDF ТЗ.
 
