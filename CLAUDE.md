@@ -40,7 +40,7 @@
 | Todo        | открыта, без метки `in-progress`                         |
 | In progress | метка `in-progress` + комментарий «взял <агент>, ветка …» |
 | In review   | открыт PR с `Closes #N`                                  |
-| Done        | закрыта мержем PR                                        |
+| Done        | закрыта мержем PR; метку `in-progress` снимает workflow  |
 
 ## Цикл работы над issue
 
