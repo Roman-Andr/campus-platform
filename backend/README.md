@@ -17,6 +17,12 @@ uv run campus-api            # http://127.0.0.1:8000/api/v1/docs
 Образ сервера — `Dockerfile`; запуск вместе с базой данных и остальными
 сервисами в Docker Compose — [`infra/README.md`](../infra/README.md).
 
+Начальные данные стенда (справочники вуза: кампусы НИУ ВШЭ, общежития,
+факультеты, почтовые домены) загружает команда `uv run campus-seed`
+после миграций. Повторный запуск добавляет только недостающие строки и не
+меняет отредактированные; свой файл справочников —
+`campus-seed --university FILE.toml` (формат — `src/campus/modules/university/seed.toml`).
+
 Воркер и планировщик — `uv run campus-worker` и `uv run campus-scheduler`
 (пока заглушки: пишут в журнал о запуске и ждут сигнала остановки).
 
@@ -75,6 +81,10 @@ uv run alembic downgrade -1                           # откатить пос�
 - имена ограничений задаёт соглашение (`pk_<таблица>`, `fk_…`, `uq_…`,
   `ix_…`, `ck_…`).
 
+Справочники с названиями на русском и английском добавляют примесь
+`campus.core.db.LocalizedName` (`name_ru`, `name_en`, `name_in(locale)`);
+API отдаёт название на языке запроса (`request_locale(request)`).
+
 ### Время
 
 Текущее время код берёт только из `campus.core.clock.now()` (UTC, с
@@ -104,6 +114,7 @@ uv run alembic downgrade -1                           # откатить пос�
 | `campus.worker`     | Процесс воркера                                         |
 | `campus.scheduler`  | Процесс планировщика                                    |
 | `campus.migrations` | Миграции Alembic                                        |
+| `campus.seed`       | Команда `campus-seed`: начальные данные стенда          |
 | `campus.modules.*`  | Доменные модули (ТЗ, п. 4.1)                            |
 | `campus.core`       | Общее ядро: конфигурация, БД, часы, журналы, Sentry     |
 | `campus.core.web`   | Общие механизмы HTTP API (см. ниже)                     |

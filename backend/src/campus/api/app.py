@@ -15,6 +15,7 @@ from campus.core.config import Settings, get_settings
 from campus.core.db import create_engine, create_session_factory
 from campus.core.observability import configure_observability
 from campus.core.web import install_problem_handlers, use_problem_media_type
+from campus.modules import university
 
 API_PREFIX = "/api/v1"
 
@@ -64,6 +65,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     install_problem_handlers(app)
     _install_openapi(app)
     app.include_router(health.router, prefix=API_PREFIX)
+    app.include_router(university.router, prefix=API_PREFIX)
 
     # The last added middleware is the outermost: the request ID is set
     # before the access log record is written.
