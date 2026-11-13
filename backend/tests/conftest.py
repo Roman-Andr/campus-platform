@@ -1,14 +1,15 @@
-import logging
 import os
 from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
-import structlog
 from fastapi.testclient import TestClient
 
 from campus.api.app import create_app
 from campus.core.config import Settings, get_settings
+from tests.logging_state import preserved_logging
+
+pytest_plugins = ["tests.database"]
 
 
 @pytest.fixture(autouse=True)
@@ -28,12 +29,8 @@ def isolated_environment(
 @pytest.fixture(autouse=True)
 def restore_logging() -> Iterator[None]:
     """Undo the global logging configuration done by a test."""
-    root = logging.getLogger()
-    handlers, level = root.handlers[:], root.level
-    yield
-    root.handlers, root.level = handlers, level
-    structlog.reset_defaults()
-    structlog.contextvars.clear_contextvars()
+    with preserved_logging():
+        yield
 
 
 @pytest.fixture

@@ -4,10 +4,13 @@ version = "0.1.0"
 description = "Campus backend: API, worker and scheduler"
 requires-python = ">=3.14"
 dependencies = [
+    "alembic>=1.20.1",
     "asgi-correlation-id>=5.0.1",
+    "asyncpg>=0.32.0",
     "fastapi>=0.162.7",
     "pydantic-settings>=2.16.3",
     "sentry-sdk[fastapi]>=2.75.0",
+    "sqlalchemy[asyncio]>=2.1.8",
     "structlog>=26.1.0",
     "uvicorn[standard]>=0.54.0",
 ]
@@ -23,13 +26,17 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "asyncpg-stubs>=0.32.0",
     "httpx2>=2.16.0",
     "import-linter>=2.16",
     "mypy>=2.4.1",
+    "polyfactory>=3.5.0",
     "pytest>=9.2.0",
     "pytest-asyncio>=1.5.0",
     "pytest-cov>=7.1.0",
     "ruff>=0.17.5",
+    "testcontainers[postgres]>=4.15.0",
+    "time-machine>=3.6.0",
 ]
 
 [tool.ruff]
@@ -62,11 +69,23 @@ select = [
     "S",     # flake8-bandit
     "SIM",   # flake8-simplify
     "T20",   # flake8-print
+    "TID",   # flake8-tidy-imports
     "UP",    # pyupgrade
     "W",     # pycodestyle warnings
 ]
 
+# The current time comes only from campus.core.clock (controlled in tests).
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"datetime.datetime.now".msg = "Use campus.core.clock.now()."
+"datetime.datetime.utcnow".msg = "Use campus.core.clock.now()."
+"datetime.datetime.today".msg = "Use campus.core.clock.now()."
+"datetime.date.today".msg = "Use campus.core.clock.now().date()."
+"time.time".msg = "Use campus.core.clock.now(); time.monotonic() for durations."
+"time.time_ns".msg = "Use campus.core.clock.now(); time.monotonic() for durations."
+
 [tool.ruff.lint.per-file-ignores]
+"src/campus/core/clock.py" = ["TID251"]
+"src/campus/migrations/versions/*" = ["N999"] # file names sort by date
 "tests/**" = [
     "PLR2004", # magic values in assertions
     "S101",    # assert
@@ -94,10 +113,17 @@ addopts = [
 ]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-filterwarnings = ["error"]
+filterwarnings = [
+    "error",
+    # Docker Desktop leaves a credential helper in ~/.docker/config.json that
+    # is missing in WSL and containers; images used by tests are public.
+    "ignore:docker-credential-.* not installed:UserWarning",
+]
 
 [tool.coverage.run]
-source = ["campus"]
+# A path, not the package name: Alembic loads env.py and migration scripts
+# under its own module names.
+source = ["src"]
 branch = true
 
 [tool.coverage.report]
@@ -116,7 +142,7 @@ root_package = "campus"
 name = "Processes depend on domain modules, modules on the shared kernel"
 type = "layers"
 layers = [
-    "campus.api | campus.worker | campus.scheduler",
+    "campus.api | campus.worker | campus.scheduler | campus.migrations",
     "campus.modules",
     "campus.core",
 ]
@@ -133,6 +159,32 @@ unmatched_ignore_imports_alerting = "none"
 [[tool.importlinter.contracts]]
 name = "Processes reach domain modules only through their public interface"
 type = "forbidden"
-source_modules = ["campus.api", "campus.worker", "campus.scheduler"]
+source_modules = [
+    "campus.api",
+    "campus.worker",
+    "campus.scheduler",
+    "campus.migrations",
+]
 forbidden_modules = ["campus.modules.*.*"]
 allow_indirect_imports = true
+
+# Migrations: run `uv run alembic <command>` from backend/; the database is
+# CAMPUS_DATABASE_URL. Scripts live in the package, so they ship with it.
+[tool.alembic]
+script_location = "campus:migrations"
+file_template = "%%(year)d_%%(month).2d_%%(day).2d_%%(hour).2d%%(minute).2d-%%(rev)s_%%(slug)s"
+prepend_sys_path = []
+truncate_slug_length = 40
+timezone = "UTC"
+
+[[tool.alembic.post_write_hooks]]
+name = "ruff_fix"
+type = "module"
+module = "ruff"
+options = "check --fix --quiet REVISION_SCRIPT_FILENAME"
+
+[[tool.alembic.post_write_hooks]]
+name = "ruff_format"
+type = "module"
+module = "ruff"
+options = "format --quiet REVISION_SCRIPT_FILENAME"

@@ -29,15 +29,80 @@ uv run lint-imports          # границы модулей
 
 Те же проверки запускает pre-commit из корня репозитория.
 
+Тесты с базой данных поднимают PostgreSQL 18 с pgvector
+(`pgvector/pgvector:0.8.7-pg18-trixie`) через testcontainers, поэтому нужен Docker.
+С podman вместо Docker:
+
+```sh
+sudo systemctl start podman.socket
+export DOCKER_HOST=unix:///run/podman/podman.sock TESTCONTAINERS_RYUK_DISABLED=true
+```
+
+Вместо контейнера можно указать готовый сервер:
+`CAMPUS_TEST_DATABASE_URL=postgresql://user:password@host:5432/postgres`
+(пользователю нужно право создавать базы данных).
+
+## База данных и миграции
+
+PostgreSQL 18 с pgvector, асинхронный SQLAlchemy 2 (asyncpg). Адрес —
+`CAMPUS_DATABASE_URL` в формате
+`postgresql+asyncpg://USER:PASSWORD@HOST:PORT/DATABASE`; адрес
+`postgresql://…` переводится на драйвер asyncpg автоматически.
+
+Схема меняется только миграциями Alembic (ТЗ, п. 4.4). Команды — из
+каталога `backend/` (настройки в `[tool.alembic]` файла `pyproject.toml`,
+сами миграции — в пакете, `src/campus/migrations/`):
+
+```sh
+uv run alembic upgrade head                           # применить миграции
+uv run alembic revision --autogenerate -m "add listings"  # новая миграция
+uv run alembic check                                  # модели = миграции?
+uv run alembic downgrade -1                           # откатить последнюю
+```
+
+Автогенерированную миграцию нужно прочитать и поправить. Таблицы модуль
+объявляет в своих моделях и импортирует их в `__init__.py` модуля — так
+их видит автогенерация.
+
+Модели наследуют `campus.core.db.Entity`:
+
+- `id` — UUIDv7, генерирует PostgreSQL (`uuidv7()`);
+- `created_at`, `updated_at` — `timestamptz`, значения берутся из часов
+  приложения;
+- имена ограничений задаёт соглашение (`pk_<таблица>`, `fk_…`, `uq_…`,
+  `ix_…`, `ck_…`).
+
+### Время
+
+Текущее время код берёт только из `campus.core.clock.now()` (UTC, с
+часовым поясом). Прямые вызовы `datetime.now()`, `date.today()`,
+`time.time()` запрещены правилом ruff. В тестах время управляется
+[time-machine](https://github.com/adamchainz/time-machine), пример —
+`tests/test_entity.py`. Функцию `now()` из SQL для бизнес-правил не
+используйте: время передаётся параметром запроса.
+
+### Тесты с базой данных
+
+Фикстуры — в `tests/database.py`. Миграции один раз применяются к
+шаблонной базе, затем каждый тест получает собственную копию шаблона.
+Поэтому тест может делать коммиты и параллельные транзакции, не влияя на
+другие тесты.
+
+- `session` — сессия на базе теста; через неё создают строки фабрики
+  (`tests/factories.py`, polyfactory): `await NoteFactory.create_async()`;
+- `engine` — движок базы теста, например для параллельных сессий;
+- `database_url` — адрес базы теста.
+
 ## Устройство
 
-| Пакет              | Назначение                                                |
-|--------------------|-----------------------------------------------------------|
-| `campus.api`       | Процесс API: сборка приложения, health, журнал запросов   |
-| `campus.worker`    | Процесс воркера                                           |
-| `campus.scheduler` | Процесс планировщика                                      |
-| `campus.modules.*` | Доменные модули (ТЗ, п. 4.1)                              |
-| `campus.core`      | Общее ядро: конфигурация, журналы, Sentry, жизненный цикл |
+| Пакет               | Назначение                                              |
+|---------------------|---------------------------------------------------------|
+| `campus.api`        | Процесс API: сборка приложения, health, журнал запросов |
+| `campus.worker`     | Процесс воркера                                         |
+| `campus.scheduler`  | Процесс планировщика                                    |
+| `campus.migrations` | Миграции Alembic                                        |
+| `campus.modules.*`  | Доменные модули (ТЗ, п. 4.1)                            |
+| `campus.core`       | Общее ядро: конфигурация, БД, часы, журналы, Sentry     |
 
 Доменные модули: `identity` (аутентификация и пользователи), `university`
 (структура вуза), `listings` (объявления и взаимодействия), `reputation`
