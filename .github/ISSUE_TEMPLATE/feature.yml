@@ -1,0 +1,35 @@
+name: Фича
+description: Вертикальная фича — от БД до экрана, один PR
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Родитель — эпик, milestone — срез, метки `area:*` и `mod:*`.
+        Зависимости — связью «Blocked by» в разделе Relationships.
+        Общий Definition of Done — в CLAUDE.md.
+  - type: textarea
+    id: context
+    attributes:
+      label: Контекст
+      description: Зачем и какие пункты ТЗ закрывает (например, «п. 5.1.1, модуль 4, пункт 8»)
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Что сделать
+      description: По слоям — БД, API, клиент, веб-панель, уведомления
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Не входит
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Критерии приёмки
+      description: Проверяемые утверждения — из них получаются кейсы ПМИ
+      value: "- [ ] "
+    validations:
+      required: true

@@ -1,0 +1,29 @@
+name: Ошибка
+description: Программа работает не так, как требует ТЗ
+labels: [bug]
+body:
+  - type: textarea
+    id: actual
+    attributes:
+      label: Что произошло
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Как воспроизвести
+      value: "1. "
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Что ожидалось
+      description: Со ссылкой на пункт ТЗ, если есть
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Окружение
+      description: Платформа и версия клиента, стенд или локально

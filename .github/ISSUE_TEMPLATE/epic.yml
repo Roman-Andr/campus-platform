@@ -1,0 +1,33 @@
+name: Эпик
+description: Срез или группа фич одного модуля
+labels: [epic]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Родитель — Roadmap (#1) или эпик среза, milestone — срез.
+        Фичи добавляются под-задачами.
+  - type: textarea
+    id: goal
+    attributes:
+      label: Цель
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Входит
+      description: Пункты и модули ТЗ
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Результат
+      description: Что можно показать на стенде, когда эпик закрыт
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Не входит
