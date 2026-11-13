@@ -84,7 +84,7 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           version: "0.13.8"
           enable-cache: true
@@ -160,7 +160,11 @@ jobs:
       run:
         working-directory: app
     steps:
+      # Only app/: the Gradle cache globs the whole checkout and stops at
+      # unreadable paths elsewhere in the repository.
       - uses: actions/checkout@v7
+        with:
+          sparse-checkout: app
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
