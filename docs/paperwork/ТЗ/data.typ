@@ -1,0 +1,1 @@
+/root/projects/mentor-bot/.work/.course_work_2/data.typ
