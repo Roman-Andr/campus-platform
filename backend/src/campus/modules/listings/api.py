@@ -50,6 +50,8 @@ from campus.modules.listings.models import (
     Meeting,
     MeetingStatus,
     Visibility,
+    WaitlistEntry,
+    WaitlistStatus,
 )
 from campus.modules.listings.service import (
     CONFLICT,
@@ -61,11 +63,20 @@ from campus.modules.listings.service import (
     MEETING_SCHEDULED,
     MEETING_STALE,
     MEETING_STATE,
+    OFFER_PENDING,
     RATE_LIMIT,
     STALE,
     TYPE_POLICIES,
+    active_offer,
+    active_waitlist,
     change_listing,
+    claim_offer,
+    clear_waitlist,
+    decline_offer,
+    join_waitlist,
+    leave_waitlist,
     locked,
+    offer_timing,
     rate_limit,
     record,
     record_meeting,
@@ -75,6 +86,7 @@ from campus.modules.listings.service import (
     transition,
     validate_meeting,
     visible,
+    waitlist_position,
 )
 from campus.modules.notifications import notify
 from campus.modules.publications import Publication
@@ -244,6 +256,7 @@ class EventOutput(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
     interaction_id: UUID | None
+    waitlist_entry_id: UUID | None
     actor_id: UUID | None
     action: str
     previous_status: str | None
@@ -255,6 +268,45 @@ class EventOutput(BaseModel):
     details: dict[str, Any] | None
     via_assistant: bool
     offline_qr: bool
+
+
+class WaitlistEntryOutput(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    listing_id: UUID
+    participant_name: str
+    participant_id: UUID
+    status: WaitlistStatus
+    position: int | None = None
+    offered_at: Instant | None
+    offer_expires_at: Instant | None
+    interaction_id: UUID | None
+    created_at: Instant
+
+
+class WaitlistQueue(BaseModel):
+    items: list[WaitlistEntryOutput]
+
+
+def waitlist_output(entry: WaitlistEntry, position: int | None) -> WaitlistEntryOutput:
+    return WaitlistEntryOutput(
+        id=entry.id,
+        listing_id=entry.listing_id,
+        participant_name=entry.participant_name,
+        participant_id=entry.participant_id,
+        status=WaitlistStatus(entry.status),
+        position=position,
+        offered_at=entry.offered_at,
+        offer_expires_at=entry.offer_expires_at,
+        interaction_id=entry.interaction_id,
+        created_at=entry.created_at,
+    )
+
+
+async def own_waitlist_output(
+    session: DbSession, entry: WaitlistEntry
+) -> WaitlistEntryOutput:
+    return waitlist_output(entry, await waitlist_position(session, entry))
 
 
 def check_text(title: str, description: str, settings: Settings) -> None:
@@ -796,6 +848,7 @@ async def cancel_listing(
         session, listing, ListingStatus.CANCELLED, principal.user_id, "cancelled"
     )
     await reject_pending(session, listing, "listing_cancelled")
+    await clear_waitlist(session, listing, "listing_cancelled")
     await session.flush()
     return ListingOutput.model_validate(listing)
 
@@ -824,6 +877,9 @@ async def reserve_giveaway(
     require_live(listing)
     if listing.status != ListingStatus.ACTIVE or listing.kind != "giveaway":
         raise ProblemError(CONFLICT)
+    # The queue's first member holds the released place until the timer ends.
+    if await active_offer(session, listing.id) is not None:
+        raise ProblemError(OFFER_PENDING)
     settings: Settings = request.app.state.settings
     retry = await rate_limit(
         session,
@@ -859,10 +915,11 @@ async def reserve_giveaway(
 
 
 @router.post("/{listing_id}/interactions/{interaction_id}/transition")
-async def transition_interaction(
+async def transition_interaction(  # noqa: PLR0913, PLR0917 - route fields
     listing_id: UUID,
     interaction_id: UUID,
     data: TransitionInput,
+    request: Request,
     session: DbSession,
     principal: ProfiledUser,
 ) -> InteractionOutput:
@@ -872,7 +929,14 @@ async def transition_interaction(
         raise ProblemError(NOT_FOUND)
     if principal.user_id not in (listing.author_id, interaction.participant_id):
         raise ProblemError(FORBIDDEN)
-    await transition(session, listing, interaction, data.status, principal.user_id)
+    await transition(
+        session,
+        listing,
+        interaction,
+        data.status,
+        principal.user_id,
+        settings=request.app.state.settings,
+    )
     return InteractionOutput.model_validate(interaction)
 
 
@@ -1059,10 +1123,18 @@ async def listing_events(
             Interaction.listing_id == listing.id,
             Interaction.participant_id == principal.user_id,
         )
+        own_entries = select(WaitlistEntry.id).where(
+            WaitlistEntry.listing_id == listing.id,
+            WaitlistEntry.participant_id == principal.user_id,
+        )
         query = query.where(
             or_(
-                ListingEvent.interaction_id.is_(None),
+                and_(
+                    ListingEvent.interaction_id.is_(None),
+                    ListingEvent.waitlist_entry_id.is_(None),
+                ),
                 ListingEvent.interaction_id.in_(own_interactions),
+                ListingEvent.waitlist_entry_id.in_(own_entries),
             )
         )
     query = sort_by(
@@ -1203,3 +1275,151 @@ async def interaction_events(
         ListingEvent.id,
     )
     return await paginate(session, query, page, EventOutput)
+
+
+def check_participant(listing: Listing, user: User) -> None:
+    """Reject the author and roles that cannot respond to this audience."""
+    if user.id == listing.author_id:
+        raise ProblemError(FORBIDDEN)
+    if user.account_type not in (AccountType.STUDENT, AccountType.EMPLOYEE):
+        raise ProblemError(FORBIDDEN)
+    if (
+        user.account_type == AccountType.EMPLOYEE
+        and listing.audience == Audience.STUDENTS
+    ):
+        raise ProblemError(FORBIDDEN)
+
+
+@router.post("/{listing_id}/waitlist", status_code=201)
+async def join_listing_waitlist(
+    listing_id: UUID,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> WaitlistEntryOutput:
+    """Take the last place of the queue; only occupied listings have one."""
+    listing = await locked(session, listing_id)
+    user = await user_for(session, principal)
+    check_participant(listing, user)
+    if not visible(listing, user):
+        raise ProblemError(NOT_FOUND)
+    require_live(listing)
+    if listing.status not in (ListingStatus.ACTIVE, ListingStatus.BUSY):
+        raise ProblemError(CONFLICT)
+    entry = await join_waitlist(session, listing, user)
+    await session.flush()
+    return await own_waitlist_output(session, entry)
+
+
+@router.get("/{listing_id}/waitlist/me")
+async def my_waitlist_entry(
+    listing_id: UUID, session: DbSession, principal: CurrentUser
+) -> WaitlistEntryOutput:
+    entry = await active_waitlist(session, listing_id, principal.user_id)
+    if entry is None:
+        raise ProblemError(NOT_FOUND)
+    return await own_waitlist_output(session, entry)
+
+
+@router.get("/{listing_id}/waitlist")
+async def listing_waitlist(
+    listing_id: UUID, session: DbSession, principal: CurrentUser
+) -> WaitlistQueue:
+    """The active queue, visible to the author of the listing."""
+    listing = await session.get(Listing, listing_id)
+    if listing is None:
+        raise ProblemError(NOT_FOUND)
+    if listing.author_id != principal.user_id:
+        raise ProblemError(FORBIDDEN)
+    entries = list(
+        await session.scalars(
+            select(WaitlistEntry)
+            .where(
+                WaitlistEntry.listing_id == listing_id,
+                WaitlistEntry.status.in_(
+                    (WaitlistStatus.WAITING, WaitlistStatus.OFFERED)
+                ),
+            )
+            .order_by(WaitlistEntry.created_at, WaitlistEntry.id)
+        )
+    )
+    return WaitlistQueue(
+        items=[
+            waitlist_output(entry, position)
+            for position, entry in enumerate(entries, start=1)
+        ]
+    )
+
+
+@router.get("/waitlist/mine")
+async def my_waitlist(
+    session: DbSession, principal: CurrentUser, page: PageQuery
+) -> Page[WaitlistEntryOutput]:
+    query = sort_by(
+        select(WaitlistEntry).where(WaitlistEntry.participant_id == principal.user_id),
+        "-created_at",
+        {"created_at": WaitlistEntry.created_at},
+        WaitlistEntry.id,
+    )
+    result = await paginate(session, query, page, WaitlistEntryOutput)
+    for item in result.items:
+        entry = await session.get(WaitlistEntry, item.id)
+        assert entry is not None  # noqa: S101 - just read from the page
+        item.position = await waitlist_position(session, entry)
+    return result
+
+
+@router.delete("/{listing_id}/waitlist", status_code=204)
+async def leave_listing_waitlist(
+    listing_id: UUID,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> Response:
+    listing = await locked(session, listing_id)
+    user = await user_for(session, principal)
+    offer_timeout, open_all_before = offer_timing(request.app.state.settings)
+    await leave_waitlist(
+        session,
+        listing,
+        user,
+        offer_timeout=offer_timeout,
+        open_all_before=open_all_before,
+    )
+    await session.flush()
+    return Response(status_code=204)
+
+
+@router.post("/{listing_id}/waitlist/offer/accept", status_code=201)
+async def accept_place_offer(
+    listing_id: UUID,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> InteractionOutput:
+    """Confirming an offer creates the usual pending application."""
+    listing = await locked(session, listing_id)
+    user = await user_for(session, principal)
+    check_participant(listing, user)
+    interaction = await claim_offer(session, listing, user, request.app.state.settings)
+    return InteractionOutput.model_validate(interaction)
+
+
+@router.post("/{listing_id}/waitlist/offer/decline")
+async def decline_place_offer(
+    listing_id: UUID,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> WaitlistEntryOutput:
+    listing = await locked(session, listing_id)
+    user = await user_for(session, principal)
+    offer_timeout, open_all_before = offer_timing(request.app.state.settings)
+    entry = await decline_offer(
+        session,
+        listing,
+        user,
+        offer_timeout=offer_timeout,
+        open_all_before=open_all_before,
+    )
+    await session.flush()
+    return waitlist_output(entry, None)

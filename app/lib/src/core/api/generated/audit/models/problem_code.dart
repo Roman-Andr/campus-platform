@@ -22,8 +22,15 @@ enum ProblemCodeValue {
   listingConflict("listing_conflict"),
   listingContentInvalid("listing_content_invalid"),
   listingForbidden("listing_forbidden"),
+  listingOfferExpired("listing_offer_expired"),
+  listingOfferMissing("listing_offer_missing"),
+  listingOfferPending("listing_offer_pending"),
   listingRateLimited("listing_rate_limited"),
   listingVersionConflict("listing_version_conflict"),
+  listingWaitlistDuplicate("listing_waitlist_duplicate"),
+  listingWaitlistFree("listing_waitlist_free"),
+  listingWaitlistParticipating("listing_waitlist_participating"),
+  listingWaitlistUnavailable("listing_waitlist_unavailable"),
   meetingPlaceInvalid("meeting_place_invalid"),
   meetingStale("meeting_stale"),
   meetingStateConflict("meeting_state_conflict"),
@@ -98,11 +105,32 @@ sealed class ProblemCode {
   static const listingForbidden = ProblemCodeKnown(
     ProblemCodeValue.listingForbidden,
   );
+  static const listingOfferExpired = ProblemCodeKnown(
+    ProblemCodeValue.listingOfferExpired,
+  );
+  static const listingOfferMissing = ProblemCodeKnown(
+    ProblemCodeValue.listingOfferMissing,
+  );
+  static const listingOfferPending = ProblemCodeKnown(
+    ProblemCodeValue.listingOfferPending,
+  );
   static const listingRateLimited = ProblemCodeKnown(
     ProblemCodeValue.listingRateLimited,
   );
   static const listingVersionConflict = ProblemCodeKnown(
     ProblemCodeValue.listingVersionConflict,
+  );
+  static const listingWaitlistDuplicate = ProblemCodeKnown(
+    ProblemCodeValue.listingWaitlistDuplicate,
+  );
+  static const listingWaitlistFree = ProblemCodeKnown(
+    ProblemCodeValue.listingWaitlistFree,
+  );
+  static const listingWaitlistParticipating = ProblemCodeKnown(
+    ProblemCodeValue.listingWaitlistParticipating,
+  );
+  static const listingWaitlistUnavailable = ProblemCodeKnown(
+    ProblemCodeValue.listingWaitlistUnavailable,
   );
   static const meetingPlaceInvalid = ProblemCodeKnown(
     ProblemCodeValue.meetingPlaceInvalid,

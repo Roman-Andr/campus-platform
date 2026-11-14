@@ -9,6 +9,16 @@ from campus.core.i18n import N_, translate
 from campus.core.outbox import add_message
 
 LISTING_CHANGED = N_("There is an update to your listing.")
+LISTING_WAITLIST_JOINED = N_("Someone joined the queue of your listing.")
+LISTING_WAITLIST_CLEARED = N_("The listing is closed; you are no longer in its queue.")
+LISTING_WAITLIST_OPEN = N_("Places are open to everyone; book now.")
+LISTING_OFFER = N_(
+    "A place in the queue is available for you. Confirm it before the timer ends."
+)
+LISTING_OFFER_EXPIRED = N_("Your place offer has expired.")
+
+# Important notifications are not grouped and pass through quiet hours (#88).
+IMPORTANT_TYPES = frozenset({"listing.offer"})
 
 
 def notify(
@@ -30,6 +40,7 @@ def notify(
         {
             "recipients": sorted(str(value) for value in recipients),
             "type": notification_type,
+            "important": notification_type in IMPORTANT_TYPES,
             "params": params,
             "text": {locale: translate(message, locale) for locale in ("ru", "en")},
         },
