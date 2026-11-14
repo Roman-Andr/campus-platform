@@ -113,8 +113,11 @@ void main() {
   List<SentRequest> sentTo(String path) =>
       server.sent.where((request) => request.path == path).toList();
 
-  Future<ProviderContainer> start(WidgetTester tester) {
-    tester.platformDispatcher.localesTestValue = [const Locale('ru')];
+  Future<ProviderContainer> start(
+    WidgetTester tester, {
+    String language = 'ru',
+  }) {
+    tester.platformDispatcher.localesTestValue = [Locale(language)];
     addTearDown(tester.platformDispatcher.clearLocalesTestValue);
     return tester.pumpCampusApp(InMemorySettingsRepository(), adapter: server);
   }
@@ -346,23 +349,36 @@ void main() {
   });
 
   for (final accountType in ['employee', 'former_employee']) {
-    testWidgets('$accountType: the profile of an employee has no course', (
-      tester,
-    ) async {
-      server.me = {
-        ...userJson,
-        ...filledProfileJson,
-        'account_type': accountType,
-        'course': null,
-      };
-      final container = await start(tester);
+    for (final language in ['ru', 'en']) {
+      testWidgets('$accountType/$language: staff profile label and no course', (
+        tester,
+      ) async {
+        server.me = {
+          ...userJson,
+          ...filledProfileJson,
+          'account_type': accountType,
+          'course': null,
+        };
+        final container = await start(tester, language: language);
 
-      container.read(appRouterProvider).go(AppRoutes.profile);
-      await tester.pumpAndSettle();
+        container.read(appRouterProvider).go(AppRoutes.profile);
+        await tester.pumpAndSettle();
 
-      expect(find.text('Сотрудник'), findsOneWidget);
-      expect(find.text('Курс'), findsNothing);
-    });
+        final activeLabel = language == 'ru' ? 'Сотрудник' : 'Employee';
+        final formerLabel = language == 'ru'
+            ? 'Бывший сотрудник'
+            : 'Former employee';
+        expect(
+          find.text(accountType == 'employee' ? activeLabel : formerLabel),
+          findsOneWidget,
+        );
+        expect(
+          find.text(accountType == 'employee' ? formerLabel : activeLabel),
+          findsNothing,
+        );
+        expect(find.text(language == 'ru' ? 'Курс' : 'Course'), findsNothing);
+      });
+    }
   }
 
   testWidgets('a profile that fails to load can be loaded again', (

@@ -260,6 +260,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileAccountEmployee => 'Employee';
 
   @override
+  String get profileAccountFormerEmployee => 'Former employee';
+
+  @override
   String profileCourseValue(int course) {
     return 'Year $course';
   }

@@ -74,6 +74,7 @@
   "profileEmail": "E-mail",
   "profileAccountStudent": "Student",
   "profileAccountEmployee": "Employee",
+  "profileAccountFormerEmployee": "Former employee",
   "profileCourseValue": "Year {course}",
   "listingsCity": "City",
   "listingsEmpty": "Nothing here yet",

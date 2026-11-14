@@ -542,6 +542,12 @@ abstract class AppLocalizations {
   /// **'Сотрудник'**
   String get profileAccountEmployee;
 
+  /// Account type label of former university employees.
+  ///
+  /// In ru, this message translates to:
+  /// **'Бывший сотрудник'**
+  String get profileAccountFormerEmployee;
+
   /// A course (year of study) in the course field and in the profile.
   ///
   /// In ru, this message translates to:

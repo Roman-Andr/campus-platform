@@ -260,6 +260,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileAccountEmployee => 'Сотрудник';
 
   @override
+  String get profileAccountFormerEmployee => 'Бывший сотрудник';
+
+  @override
   String profileCourseValue(int course) {
     return '$course курс';
   }
