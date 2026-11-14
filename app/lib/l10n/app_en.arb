@@ -235,5 +235,53 @@
   },
   "@devicesEmpty": {
     "description": "devicesEmpty"
-  }
+  },
+  "listingSaveDraft": "Save draft",
+  "listingSaveChanges": "Save changes",
+  "listingEditDraft": "Edit draft",
+  "listingRepublish": "Publish again",
+  "listingExtend": "Extend listing",
+  "listingsArchive": "Archive",
+  "reservationCancel": "Cancel request or reservation",
+  "reservationRejectedExpired": "The listing expired.",
+  "reservationRejectedClosed": "The author closed the listing.",
+  "reservationRejectedTimeout": "The author did not respond in time.",
+  "reservationRejectedAuthor": "The author rejected the request.",
+  "reservationRejectedOther": "The request was rejected.",
+  "listingHiddenReason": "Hidden: {reason}",
+  "listingRateLimitedFor": "Too many requests. Try again in {seconds} seconds.",
+  "listingVersionConflict": "The listing changed. Reopen it before editing.",
+  "listingUnavailable": "The listing is unavailable. It may have been removed or access has changed.",
+  "@listingRateLimitedFor": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@listingHiddenReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "@listingSaveDraft": {},
+  "@listingSaveChanges": {},
+  "@listingEditDraft": {},
+  "@listingRepublish": {},
+  "@listingExtend": {},
+  "@listingsArchive": {},
+  "@reservationCancel": {},
+  "@reservationRejectedExpired": {},
+  "@reservationRejectedClosed": {},
+  "@reservationRejectedTimeout": {},
+  "@reservationRejectedAuthor": {},
+  "@reservationRejectedOther": {},
+  "@listingVersionConflict": {},
+  "@listingUnavailable": {},
+  "listingTransitionConflict": "This action is unavailable in the current status. Refresh the listing.",
+  "@listingTransitionConflict": {},
+  "listingExtended": "The listing has been extended.",
+  "@listingExtended": {}
 }

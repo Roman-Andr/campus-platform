@@ -7,6 +7,15 @@ import '../../../core/api/api_failure_message.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../profile/application/my_profile.dart';
 import '../application/listings.dart';
+import 'status_labels.dart';
+
+export 'status_labels.dart';
+
+// Compatibility for existing callers.
+String listingName(AppLocalizations l, ListingStatus s) =>
+    listingStatusLabel(l, s);
+String interactionName(AppLocalizations l, InteractionStatus s) =>
+    interactionStatusLabel(l, s);
 
 String scopeName(AppLocalizations l, Visibility scope) => switch (scope) {
   VisibilityKnown(value: VisibilityValue.city) => l.listingsCity,
@@ -14,43 +23,13 @@ String scopeName(AppLocalizations l, Visibility scope) => switch (scope) {
   _ => l.profileDormitory,
 };
 
-String interactionName(AppLocalizations l, InteractionStatus status) =>
-    switch (status) {
-      InteractionStatusKnown(value: InteractionStatusValue.pending) =>
-        l.reservationPending,
-      InteractionStatusKnown(value: InteractionStatusValue.accepted) =>
-        l.reservationAccepted,
-      InteractionStatusKnown(value: InteractionStatusValue.rejected) =>
-        l.reservationRejected,
-      InteractionStatusKnown(value: InteractionStatusValue.cancelled) =>
-        l.reservationCancelled,
-      InteractionStatusKnown(value: InteractionStatusValue.completed) =>
-        l.listingCompleted,
-      InteractionStatusKnown(value: InteractionStatusValue.noShow) =>
-        l.reservationNoShow,
-      _ => l.listingStatusUnknown,
-    };
-
-String listingName(AppLocalizations l, ListingStatus status) =>
-    switch (status) {
-      ListingStatusKnown(value: ListingStatusValue.active) => l.listingActive,
-      ListingStatusKnown(value: ListingStatusValue.busy) => l.listingBusy,
-      ListingStatusKnown(value: ListingStatusValue.expired) => l.listingExpired,
-      ListingStatusKnown(value: ListingStatusValue.cancelled) =>
-        l.reservationCancelled,
-      ListingStatusKnown(value: ListingStatusValue.draft) => l.listingDraft,
-      ListingStatusKnown(value: ListingStatusValue.completed) =>
-        l.listingCompleted,
-      ListingStatusKnown(value: ListingStatusValue.hidden) => l.listingHidden,
-      _ => l.listingStatusUnknown,
-    };
-
 /// Mutations keep the current page visible and explain Problem Details locally.
 class ListingAction extends ConsumerStatefulWidget {
   const ListingAction({
     required this.label,
     required this.run,
     this.after,
+    this.failureMessage = listingFailureMessage,
     this.enabled = true,
     super.key,
   });
@@ -58,6 +37,7 @@ class ListingAction extends ConsumerStatefulWidget {
   final bool enabled;
   final Future<void> Function() run;
   final VoidCallback? after;
+  final String Function(AppLocalizations, Object) failureMessage;
   @override
   ConsumerState<ListingAction> createState() => _ListingActionState();
 }
@@ -87,7 +67,9 @@ class _ListingActionState extends ConsumerState<ListingAction> {
                   // Field validators already explain what to fix.
                 } catch (e) {
                   if (mounted) {
-                    setState(() => error = apiFailureMessage(context.l10n, e));
+                    setState(
+                      () => error = widget.failureMessage(context.l10n, e),
+                    );
                   }
                 } finally {
                   if (mounted) setState(() => busy = false);
@@ -197,16 +179,24 @@ class _FeedBodyState extends ConsumerState<FeedBody> {
   }
 }
 
-class ListingTile extends StatelessWidget {
+class ListingTile extends ConsumerWidget {
   const ListingTile({required this.item, super.key});
   final ListingOutput item;
   @override
-  Widget build(BuildContext context) => ListTile(
-    title: Text(item.title),
-    subtitle: Text(
-      '${item.authorName} · ${listingName(context.l10n, item.status)}',
-    ),
-    onTap: () => context.push('/listings/${item.id}'),
+  Widget build(BuildContext context, WidgetRef ref) => Column(
+    children: [
+      ListTile(
+        title: Text(item.title),
+        subtitle: Text(
+          '${item.authorName} · ${listingName(context.l10n, item.status)}',
+        ),
+        onTap: () => context.push('/listings/${item.id}'),
+      ),
+      if (item.authorId == ref.watch(myProfileProvider).value?.id &&
+          (item.status == ListingStatus.draft ||
+              item.status == ListingStatus.expired))
+        ListingOwnerActions(item: item),
+    ],
   );
 }
 
@@ -227,7 +217,7 @@ class ListingScreen extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(apiFailureMessage(l, e)),
+                  Text(listingFailureMessage(l, e)),
                   TextButton(
                     onPressed: () => ref.invalidate(listingProvider(id)),
                     child: Text(l.errorRetry),
@@ -245,10 +235,14 @@ class ListingScreen extends ConsumerWidget {
                 Text(l.listingAuthor(item.authorName)),
                 Text(listingName(l, item.status)),
                 Text(item.description),
+                if (item.hiddenReason != null)
+                  Text(l.listingHiddenReason(item.hiddenReason!)),
+                if (item.authorId == user?.id) ListingOwnerActions(item: item),
                 if (item.authorId != user?.id && user != null)
                   if (item.status == ListingStatus.active)
                     ListingAction(
                       label: l.listingReserve,
+                      failureMessage: apiFailureMessage,
                       run: () async {
                         await ref
                             .read(campusApiProvider)
@@ -258,6 +252,8 @@ class ListingScreen extends ConsumerWidget {
                       after: () => context.push('/my-listings'),
                     ),
                 if (item.authorId == user?.id) IncomingList(id: id),
+                if (user != null && item.authorId != user.id)
+                  ListingParticipation(id: id),
               ],
             ),
           ),
@@ -266,7 +262,8 @@ class ListingScreen extends ConsumerWidget {
 }
 
 class CreateListingScreen extends ConsumerStatefulWidget {
-  const CreateListingScreen({super.key});
+  const CreateListingScreen({this.initial, super.key});
+  final ListingOutput? initial;
   @override
   ConsumerState<CreateListingScreen> createState() =>
       _CreateListingScreenState();
@@ -279,6 +276,58 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   Visibility scope = Visibility.city;
   Audience audience = Audience.students;
   String? categoryId;
+  bool saving = false;
+  bool savingDraft = false;
+  @override
+  void initState() {
+    super.initState();
+    final item = widget.initial;
+    if (item != null) {
+      title.text = item.title;
+      description.text = item.description;
+      scope = item.visibility;
+      audience = item.audience;
+      categoryId = item.categoryId;
+    }
+  }
+
+  Future<void> save({required bool draft}) async {
+    savingDraft = draft;
+    if (!form.currentState!.validate()) throw const InvalidListingForm();
+    setState(() => saving = true);
+    try {
+      final api = ref.read(campusApiProvider).listings;
+      final item = widget.initial;
+      if (item != null) {
+        await api.editListing(
+          listingId: item.id,
+          body: ListingEdit(
+            title: title.text.trim(),
+            description: description.text.trim(),
+            version: item.version,
+            categoryId: categoryId,
+          ),
+        );
+      } else {
+        final employee =
+            ref.read(myProfileProvider).value?.accountType ==
+            UserOutputAccountType.employee;
+        await api.publishGiveaway(
+          body: GiveawayInput(
+            title: title.text.trim(),
+            description: description.text.trim(),
+            visibility: scope,
+            audience: employee ? Audience.community : audience,
+            categoryId: categoryId,
+            draft: draft,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => saving = false);
+    }
+  }
+
   @override
   void dispose() {
     title.dispose();
@@ -292,7 +341,11 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
     final user = ref.watch(myProfileProvider).value;
     final categories = ref.watch(listingCategoriesProvider);
     return Scaffold(
-      appBar: AppBar(title: Text(l.listingCreate)),
+      appBar: AppBar(
+        title: Text(
+          widget.initial == null ? l.listingCreate : l.listingEditDraft,
+        ),
+      ),
       body: Form(
         key: form,
         child: ListView(
@@ -325,7 +378,8 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                           ),
                       ],
                       validator: (value) =>
-                          items.any((item) => item.id == value)
+                          (savingDraft && value == null) ||
+                              items.any((item) => item.id == value)
                           ? null
                           : l.profileChoose,
                       onChanged: (value) => setState(() => categoryId = value),
@@ -353,17 +407,27 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
               items: [
                 for (final s in [
                   Visibility.city,
-                  if (user?.facultyId != null) Visibility.faculty,
+                  if (user?.facultyId != null ||
+                      widget.initial?.visibility == Visibility.faculty)
+                    Visibility.faculty,
                   if (user?.dormitoryId != null &&
-                      user?.accountType == UserOutputAccountType.student)
+                          user?.accountType == UserOutputAccountType.student ||
+                      widget.initial?.visibility == Visibility.dormitory)
                     Visibility.dormitory,
                 ])
                   DropdownMenuItem(value: s, child: Text(scopeName(l, s))),
               ],
-              onChanged: (v) => setState(() => scope = v!),
+              onChanged: widget.initial != null
+                  ? null
+                  : (v) => setState(() => scope = v!),
             ),
             DropdownButtonFormField<Audience>(
-              initialValue: audience,
+              key: ValueKey(
+                'audience-${user?.accountType}-${widget.initial?.id}',
+              ),
+              initialValue: user?.accountType == UserOutputAccountType.employee
+                  ? Audience.community
+                  : audience,
               decoration: InputDecoration(labelText: l.listingAudience),
               items: [
                 DropdownMenuItem(
@@ -375,28 +439,29 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                   child: Text(l.listingCommunity),
                 ),
               ],
-              onChanged: (v) => setState(() => audience = v!),
+              onChanged:
+                  widget.initial != null ||
+                      user == null ||
+                      user.accountType == UserOutputAccountType.employee
+                  ? null
+                  : (v) => setState(() => audience = v!),
             ),
+            if (widget.initial == null)
+              ListingAction(
+                label: l.listingPublish,
+                enabled:
+                    !saving &&
+                    user != null &&
+                    (categories.value?.isNotEmpty ?? false),
+                run: () => save(draft: false),
+                after: () => context.pop(),
+              ),
             ListingAction(
-              label: l.listingPublish,
-              enabled: categories.value?.isNotEmpty ?? false,
-              run: () async {
-                if (!form.currentState!.validate()) {
-                  throw const InvalidListingForm();
-                }
-                await ref
-                    .read(campusApiProvider)
-                    .listings
-                    .publishGiveaway(
-                      body: GiveawayInput(
-                        title: title.text.trim(),
-                        description: description.text.trim(),
-                        visibility: scope,
-                        audience: audience,
-                        categoryId: categoryId,
-                      ),
-                    );
-              },
+              label: widget.initial == null
+                  ? l.listingSaveDraft
+                  : l.listingSaveChanges,
+              enabled: !saving && user != null,
+              run: () => save(draft: true),
               after: () => context.pop(),
             ),
           ],
@@ -461,7 +526,16 @@ class _MyPageState extends ConsumerState<MyPage> {
               .watch(ownListingsProvider(cursor))
               .whenData(
                 (p) => (
-                  rows: [for (final i in p.items) ListingTile(item: i)],
+                  rows: [
+                    for (final i in p.items.where(
+                      (i) => i.status != ListingStatus.expired,
+                    ))
+                      ListingTile(item: i),
+                    if (p.items.any(
+                      (item) => item.status == ListingStatus.expired,
+                    ))
+                      ExpiredListingsSection(items: p.items),
+                  ],
                   next: p.nextPage,
                 ),
               );
@@ -516,10 +590,32 @@ class ReservationTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final listing = ref.watch(listingProvider(item.listingId));
-    return ListTile(
-      title: Text(listing.value?.title ?? context.l10n.listingDetails),
-      subtitle: Text(interactionName(context.l10n, item.status)),
-      onTap: () => context.push('/listings/${item.listingId}'),
+    return Column(
+      children: [
+        ListTile(
+          title: Text(listing.value?.title ?? context.l10n.listingDetails),
+          subtitle: InteractionStatusText(item: item),
+          onTap: () => context.push('/listings/${item.listingId}'),
+        ),
+        if (item.participantId == ref.watch(myProfileProvider).value?.id &&
+            (item.status == InteractionStatus.pending ||
+                item.status == InteractionStatus.accepted))
+          ListingAction(
+            label: context.l10n.reservationCancel,
+            run: () async {
+              await ref
+                  .read(campusApiProvider)
+                  .listings
+                  .transitionInteraction(
+                    listingId: item.listingId,
+                    interactionId: item.id,
+                    body: const TransitionInput(
+                      status: InteractionStatus.cancelled,
+                    ),
+                  );
+            },
+          ),
+      ],
     );
   }
 }
@@ -563,7 +659,7 @@ class _IncomingListState extends ConsumerState<IncomingList> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(item.participantName),
-                    Text(interactionName(l, item.status)),
+                    InteractionStatusText(item: item),
                     if (item.status == InteractionStatus.pending)
                       Wrap(
                         spacing: 8,
@@ -605,4 +701,144 @@ class _IncomingListState extends ConsumerState<IncomingList> {
           ),
         );
   }
+}
+
+class ListingOwnerActions extends ConsumerWidget {
+  const ListingOwnerActions({required this.item, super.key});
+  final ListingOutput item;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    return Wrap(
+      spacing: 8,
+      children: [
+        if (item.status == ListingStatus.draft)
+          TextButton(
+            onPressed: () => Navigator.of(context).push<void>(
+              MaterialPageRoute(
+                builder: (_) => CreateListingScreen(initial: item),
+              ),
+            ),
+            child: Text(l.listingEditDraft),
+          ),
+        if (item.status == ListingStatus.draft ||
+            item.status == ListingStatus.expired)
+          ListingAction(
+            label: item.status == ListingStatus.draft
+                ? l.listingPublish
+                : l.listingRepublish,
+            run: () async {
+              await ref
+                  .read(campusApiProvider)
+                  .listings
+                  .publishListing(listingId: item.id);
+            },
+          ),
+        if (item.status == ListingStatus.active ||
+            item.status == ListingStatus.busy)
+          ListingAction(
+            label: l.listingExtend,
+            after: () =>
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(l.listingExtended))),
+            run: () async {
+              await ref
+                  .read(campusApiProvider)
+                  .listings
+                  .extendListing(listingId: item.id);
+            },
+          ),
+      ],
+    );
+  }
+}
+
+/// The My screen can replace this with its archive filter.
+class ExpiredListingsSection extends StatelessWidget {
+  const ExpiredListingsSection({required this.items, super.key});
+  final List<ListingOutput> items;
+  @override
+  Widget build(BuildContext context) {
+    final expired = items.where((item) => item.status == ListingStatus.expired);
+    if (expired.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(context.l10n.listingsArchive),
+        ),
+        for (final item in expired) ListingTile(item: item),
+      ],
+    );
+  }
+}
+
+/// Only the rejection reason is shown; the timeline belongs to #67.
+class InteractionStatusText extends ConsumerWidget {
+  const InteractionStatusText({required this.item, super.key});
+  final InteractionOutput item;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    if (item.status != InteractionStatus.rejected) {
+      return Text(interactionStatusLabel(l, item.status));
+    }
+    final provider = interactionRejectionProvider((item.listingId, item.id));
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(interactionStatusLabel(l, item.status)),
+        ref
+            .watch(provider)
+            .when(
+              loading: () => const LinearProgressIndicator(),
+              error: (e, _) => TextButton(
+                onPressed: () => ref.invalidate(provider),
+                child: Text(l.errorRetry),
+              ),
+              data: (reason) => Text(switch (reason) {
+                'listing_expired' => l.reservationRejectedExpired,
+                'listing_cancelled' => l.reservationRejectedClosed,
+                'author_timeout' => l.reservationRejectedTimeout,
+                null => l.reservationRejectedAuthor,
+                _ => l.reservationRejectedOther,
+              }),
+            ),
+      ],
+    );
+  }
+}
+
+String listingFailureMessage(AppLocalizations l, Object error) =>
+    switch (ApiFailure.from(error)) {
+      ProblemFailure(
+        code: ProblemCodeKnown(value: ProblemCodeValue.listingConflict),
+      ) =>
+        l.listingTransitionConflict,
+      ProblemFailure(status: 404) => l.listingUnavailable,
+      _ => apiFailureMessage(l, error),
+    };
+
+class ListingParticipation extends ConsumerWidget {
+  const ListingParticipation({required this.id, super.key});
+  final String id;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => ref
+      .watch(listingParticipationProvider(id))
+      .when(
+        loading: () => const LinearProgressIndicator(),
+        error: (e, _) => Column(
+          children: [
+            Text(listingFailureMessage(context.l10n, e)),
+            TextButton(
+              onPressed: () => ref.invalidate(listingParticipationProvider(id)),
+              child: Text(context.l10n.errorRetry),
+            ),
+          ],
+        ),
+        data: (items) => Column(
+          children: [for (final item in items) ReservationTile(item: item)],
+        ),
+      );
 }

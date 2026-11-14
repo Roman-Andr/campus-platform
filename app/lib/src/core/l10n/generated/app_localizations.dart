@@ -1087,6 +1087,114 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'{platform, select, android{Android} web{Браузер} desktop{Компьютер} telegram{Telegram} admin{Панель администратора} other{Другая платформа}}'**
   String devicesPlatform(String platform);
+
+  /// No description provided for @listingSaveDraft.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сохранить черновик'**
+  String get listingSaveDraft;
+
+  /// No description provided for @listingSaveChanges.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сохранить изменения'**
+  String get listingSaveChanges;
+
+  /// No description provided for @listingEditDraft.
+  ///
+  /// In ru, this message translates to:
+  /// **'Редактировать черновик'**
+  String get listingEditDraft;
+
+  /// No description provided for @listingRepublish.
+  ///
+  /// In ru, this message translates to:
+  /// **'Опубликовать снова'**
+  String get listingRepublish;
+
+  /// No description provided for @listingExtend.
+  ///
+  /// In ru, this message translates to:
+  /// **'Продлить объявление'**
+  String get listingExtend;
+
+  /// No description provided for @listingsArchive.
+  ///
+  /// In ru, this message translates to:
+  /// **'Архив'**
+  String get listingsArchive;
+
+  /// No description provided for @reservationCancel.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отменить заявку или бронь'**
+  String get reservationCancel;
+
+  /// No description provided for @reservationRejectedExpired.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок объявления истёк.'**
+  String get reservationRejectedExpired;
+
+  /// No description provided for @reservationRejectedClosed.
+  ///
+  /// In ru, this message translates to:
+  /// **'Автор закрыл объявление.'**
+  String get reservationRejectedClosed;
+
+  /// No description provided for @reservationRejectedTimeout.
+  ///
+  /// In ru, this message translates to:
+  /// **'Автор не ответил вовремя.'**
+  String get reservationRejectedTimeout;
+
+  /// No description provided for @reservationRejectedAuthor.
+  ///
+  /// In ru, this message translates to:
+  /// **'Автор отклонил заявку.'**
+  String get reservationRejectedAuthor;
+
+  /// No description provided for @reservationRejectedOther.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заявка отклонена.'**
+  String get reservationRejectedOther;
+
+  /// No description provided for @listingHiddenReason.
+  ///
+  /// In ru, this message translates to:
+  /// **'Причина скрытия: {reason}'**
+  String listingHiddenReason(String reason);
+
+  /// No description provided for @listingRateLimitedFor.
+  ///
+  /// In ru, this message translates to:
+  /// **'Слишком много запросов. Повторите через {seconds} с.'**
+  String listingRateLimitedFor(int seconds);
+
+  /// No description provided for @listingVersionConflict.
+  ///
+  /// In ru, this message translates to:
+  /// **'Объявление изменилось. Откройте его заново перед правкой.'**
+  String get listingVersionConflict;
+
+  /// No description provided for @listingUnavailable.
+  ///
+  /// In ru, this message translates to:
+  /// **'Объявление недоступно. Возможно, оно удалено или доступ изменился.'**
+  String get listingUnavailable;
+
+  /// No description provided for @listingTransitionConflict.
+  ///
+  /// In ru, this message translates to:
+  /// **'Действие недоступно в текущем статусе. Обновите объявление.'**
+  String get listingTransitionConflict;
+
+  /// No description provided for @listingExtended.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок объявления продлён.'**
+  String get listingExtended;
 }
 
 class _AppLocalizationsDelegate

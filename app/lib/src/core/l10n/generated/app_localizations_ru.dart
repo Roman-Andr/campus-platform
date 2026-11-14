@@ -572,4 +572,65 @@ class AppLocalizationsRu extends AppLocalizations {
     });
     return '$_temp0';
   }
+
+  @override
+  String get listingSaveDraft => 'Сохранить черновик';
+
+  @override
+  String get listingSaveChanges => 'Сохранить изменения';
+
+  @override
+  String get listingEditDraft => 'Редактировать черновик';
+
+  @override
+  String get listingRepublish => 'Опубликовать снова';
+
+  @override
+  String get listingExtend => 'Продлить объявление';
+
+  @override
+  String get listingsArchive => 'Архив';
+
+  @override
+  String get reservationCancel => 'Отменить заявку или бронь';
+
+  @override
+  String get reservationRejectedExpired => 'Срок объявления истёк.';
+
+  @override
+  String get reservationRejectedClosed => 'Автор закрыл объявление.';
+
+  @override
+  String get reservationRejectedTimeout => 'Автор не ответил вовремя.';
+
+  @override
+  String get reservationRejectedAuthor => 'Автор отклонил заявку.';
+
+  @override
+  String get reservationRejectedOther => 'Заявка отклонена.';
+
+  @override
+  String listingHiddenReason(String reason) {
+    return 'Причина скрытия: $reason';
+  }
+
+  @override
+  String listingRateLimitedFor(int seconds) {
+    return 'Слишком много запросов. Повторите через $seconds с.';
+  }
+
+  @override
+  String get listingVersionConflict =>
+      'Объявление изменилось. Откройте его заново перед правкой.';
+
+  @override
+  String get listingUnavailable =>
+      'Объявление недоступно. Возможно, оно удалено или доступ изменился.';
+
+  @override
+  String get listingTransitionConflict =>
+      'Действие недоступно в текущем статусе. Обновите объявление.';
+
+  @override
+  String get listingExtended => 'Срок объявления продлён.';
 }

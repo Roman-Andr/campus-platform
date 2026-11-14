@@ -93,4 +93,40 @@ void refreshListings(WidgetRef ref) {
   ref.invalidate(ownListingsProvider);
   ref.invalidate(ownReservationsProvider);
   ref.invalidate(incomingProvider);
+  ref.invalidate(interactionRejectionProvider);
+  ref.invalidate(listingParticipationProvider);
 }
+
+/// Events are ascending and paginated. Keep the latest rejection only.
+final interactionRejectionProvider = FutureProvider.autoDispose
+    .family<String?, (String, String)>((ref, ids) async {
+      final api = ref.watch(campusApiProvider).listings;
+      String? cursor;
+      String? reason;
+      do {
+        final page = await api.interactionEvents(
+          listingId: ids.$1,
+          interactionId: ids.$2,
+          cursor: cursor,
+        );
+        for (final event in page.items) {
+          if (event.status == 'rejected') reason = event.reason;
+        }
+        cursor = page.nextPage;
+      } while (cursor != null);
+      return reason;
+    }, retry: listingRetry);
+
+/// The API exposes participation by account; collect matching rows across pages.
+final listingParticipationProvider = FutureProvider.autoDispose
+    .family<List<InteractionOutput>, String>((ref, id) async {
+      final api = ref.watch(campusApiProvider).listings;
+      final items = <InteractionOutput>[];
+      String? cursor;
+      do {
+        final page = await api.myReservations(cursor: cursor);
+        items.addAll(page.items.where((item) => item.listingId == id));
+        cursor = page.nextPage;
+      } while (cursor != null);
+      return items;
+    }, retry: listingRetry);

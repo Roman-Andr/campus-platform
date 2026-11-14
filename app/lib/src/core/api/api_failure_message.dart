@@ -12,6 +12,8 @@ String apiFailureMessage(AppLocalizations l10n, Object error) =>
       NetworkFailure() => l10n.errorNetwork,
       CancelledFailure() || UnexpectedFailure() => l10n.errorUnexpected,
       UpdateRequiredFailure() => l10n.errorUpdateRequired,
+      ProblemFailure(:final status, :final retryAfter?) when status == 429 =>
+        l10n.listingRateLimitedFor(retryAfter.inSeconds),
       ProblemFailure(:final code, :final status) => switch (code) {
         ProblemCodeKnown(
           value: ProblemCodeValue.consentRequired ||
@@ -24,8 +26,18 @@ String apiFailureMessage(AppLocalizations l10n, Object error) =>
           l10n.errorValidation,
         ProblemCodeKnown(value: ProblemCodeValue.invalidCursor) =>
           l10n.errorListChanged,
-        ProblemCodeKnown(value: ProblemCodeValue.rateLimited) =>
+        ProblemCodeKnown(
+          value: ProblemCodeValue.rateLimited ||
+              ProblemCodeValue.listingRateLimited,
+        ) =>
           l10n.errorRateLimited,
+        ProblemCodeKnown(value: ProblemCodeValue.listingVersionConflict) =>
+          l10n.listingVersionConflict,
+        ProblemCodeKnown(
+          value: ProblemCodeValue.listingCategoryInvalid ||
+              ProblemCodeValue.listingContentInvalid,
+        ) =>
+          l10n.errorValidation,
         ProblemCodeKnown(value: ProblemCodeValue.listingConflict) =>
           l10n.listingConflict,
         ProblemCodeKnown(value: ProblemCodeValue.listingForbidden) =>

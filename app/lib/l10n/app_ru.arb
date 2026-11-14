@@ -747,5 +747,53 @@
   },
   "@devicesEmpty": {
     "description": "devicesEmpty"
-  }
+  },
+  "listingSaveDraft": "Сохранить черновик",
+  "listingSaveChanges": "Сохранить изменения",
+  "listingEditDraft": "Редактировать черновик",
+  "listingRepublish": "Опубликовать снова",
+  "listingExtend": "Продлить объявление",
+  "listingsArchive": "Архив",
+  "reservationCancel": "Отменить заявку или бронь",
+  "reservationRejectedExpired": "Срок объявления истёк.",
+  "reservationRejectedClosed": "Автор закрыл объявление.",
+  "reservationRejectedTimeout": "Автор не ответил вовремя.",
+  "reservationRejectedAuthor": "Автор отклонил заявку.",
+  "reservationRejectedOther": "Заявка отклонена.",
+  "listingHiddenReason": "Причина скрытия: {reason}",
+  "listingRateLimitedFor": "Слишком много запросов. Повторите через {seconds} с.",
+  "listingVersionConflict": "Объявление изменилось. Откройте его заново перед правкой.",
+  "listingUnavailable": "Объявление недоступно. Возможно, оно удалено или доступ изменился.",
+  "@listingRateLimitedFor": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@listingHiddenReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "@listingSaveDraft": {},
+  "@listingSaveChanges": {},
+  "@listingEditDraft": {},
+  "@listingRepublish": {},
+  "@listingExtend": {},
+  "@listingsArchive": {},
+  "@reservationCancel": {},
+  "@reservationRejectedExpired": {},
+  "@reservationRejectedClosed": {},
+  "@reservationRejectedTimeout": {},
+  "@reservationRejectedAuthor": {},
+  "@reservationRejectedOther": {},
+  "@listingVersionConflict": {},
+  "@listingUnavailable": {},
+  "listingTransitionConflict": "Действие недоступно в текущем статусе. Обновите объявление.",
+  "@listingTransitionConflict": {},
+  "listingExtended": "Срок объявления продлён.",
+  "@listingExtended": {}
 }
