@@ -380,6 +380,11 @@ class Settings(BaseSettings):
     lesson_options_max: int = Field(default=3, ge=1)
 
     meeting_place_max_length: int = Field(default=200, ge=1)
+    return_reminder_before: timedelta = Field(
+        default=timedelta(hours=24),
+        gt=timedelta(0),
+        description="How long before a return deadline to notify its participants.",
+    )
     meeting_reminder_long: timedelta = Field(
         default=timedelta(hours=24),
         gt=timedelta(0),

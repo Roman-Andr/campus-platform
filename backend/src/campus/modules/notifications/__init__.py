@@ -1,47 +1,44 @@
-"""Transactional notification interface; delivery belongs to #85."""
+"""Transactional notification producers, inbox and delivery adapters."""
 
-from typing import Any
-from uuid import UUID
-
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from campus.core.i18n import N_, translate
-from campus.core.outbox import add_message
-
-LISTING_CHANGED = N_("There is an update to your listing.")
-LISTING_WAITLIST_JOINED = N_("Someone joined the queue of your listing.")
-LISTING_WAITLIST_CLEARED = N_("The listing is closed; you are no longer in its queue.")
-LISTING_WAITLIST_OPEN = N_("Places are open to everyone; book now.")
-LISTING_OFFER = N_(
-    "A place in the queue is available for you. Confirm it before the timer ends."
+from campus.modules.notifications.api import router
+from campus.modules.notifications.delivery import (
+    NotificationEvent,
+    notification_consumers,
+    register_channel,
+    register_validator,
+    replay_notification_events,
 )
-LISTING_OFFER_EXPIRED = N_("Your place offer has expired.")
+from campus.modules.notifications.events import (
+    IMPORTANT_TYPES,
+    LISTING_CHANGED,
+    LISTING_OFFER,
+    LISTING_OFFER_EXPIRED,
+    LISTING_WAITLIST_CLEARED,
+    LISTING_WAITLIST_JOINED,
+    LISTING_WAITLIST_OPEN,
+    notify,
+)
+from campus.modules.notifications.models import Inbox, Notification, Reminder
+from campus.modules.notifications.reminders import cancel_reminders, schedule_reminders
 
-# Important notifications are not grouped and pass through quiet hours (#88).
-IMPORTANT_TYPES = frozenset({"listing.offer"})
-
-
-def notify(
-    session: AsyncSession,
-    recipients: set[UUID],
-    notification_type: str,
-    params: dict[str, Any],
-    message: str = LISTING_CHANGED,
-) -> None:
-    """Enqueue a notification in the caller's transaction, without delivery.
-
-    ``message`` is an English message ID marked with :func:`N_`; the
-    catalog of every supported locale is stored with the message, so the
-    delivery stage can render it in the language of the recipient.
-    """
-    add_message(
-        session,
-        "notifications.send",
-        {
-            "recipients": sorted(str(value) for value in recipients),
-            "type": notification_type,
-            "important": notification_type in IMPORTANT_TYPES,
-            "params": params,
-            "text": {locale: translate(message, locale) for locale in ("ru", "en")},
-        },
-    )
+__all__ = [
+    "IMPORTANT_TYPES",
+    "LISTING_CHANGED",
+    "LISTING_OFFER",
+    "LISTING_OFFER_EXPIRED",
+    "LISTING_WAITLIST_CLEARED",
+    "LISTING_WAITLIST_JOINED",
+    "LISTING_WAITLIST_OPEN",
+    "Inbox",
+    "Notification",
+    "NotificationEvent",
+    "Reminder",
+    "cancel_reminders",
+    "notification_consumers",
+    "notify",
+    "register_channel",
+    "register_validator",
+    "replay_notification_events",
+    "router",
+    "schedule_reminders",
+]

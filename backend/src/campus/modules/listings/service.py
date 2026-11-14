@@ -5,7 +5,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid5
 
 from sqlalchemy import and_, func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -39,7 +39,9 @@ from campus.modules.notifications import (
     LISTING_WAITLIST_CLEARED,
     LISTING_WAITLIST_JOINED,
     LISTING_WAITLIST_OPEN,
+    NotificationEvent,
     notify,
+    register_validator,
 )
 from campus.modules.university import AccountType
 
@@ -1297,6 +1299,7 @@ async def remind_meeting(session: AsyncSession, job: JobInfo) -> None:
     if (
         meeting is None
         or meeting.scheduled_at is None
+        or meeting.scheduled_at <= clock.now()
         or meeting.version != job.payload.get("version")
     ):
         return
@@ -1312,8 +1315,32 @@ async def remind_meeting(session: AsyncSession, job: JobInfo) -> None:
             "time": meeting.scheduled_at.isoformat(),
             "location": meeting.location,
             "kind": job.payload.get("kind"),
+            "version": meeting.version,
         },
         message=MEETING_REMINDER,
+        event_id=uuid5(job.id, "notification"),
+    )
+
+
+@register_validator("listing.meeting.reminder")
+async def current_meeting_reminder(
+    session: AsyncSession, event: NotificationEvent
+) -> bool:
+    # Lock the aggregate exactly as its source transitions do. A queued
+    # reminder from before a transfer/cancellation must not enter the inbox.
+    listing = await locked(session, UUID(event.params["listing_id"]))
+    interaction = await session.get(Interaction, UUID(event.params["interaction_id"]))
+    if interaction is None or interaction.status != InteractionStatus.ACCEPTED:
+        return False
+    meeting = await session.scalar(
+        select(Meeting).where(Meeting.interaction_id == interaction.id)
+    )
+    return (
+        listing.status in (ListingStatus.ACTIVE, ListingStatus.BUSY)
+        and meeting is not None
+        and meeting.version == event.params.get("version")
+        and meeting.scheduled_at is not None
+        and meeting.scheduled_at > clock.now()
     )
 
 

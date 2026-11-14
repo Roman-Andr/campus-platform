@@ -24,6 +24,7 @@ from campus.modules.realtime.channels import (
     revoke_chat_access,
 )
 from campus.modules.realtime.models import ChannelGrant
+from campus.modules.realtime.publish import publish_personal
 from campus.modules.realtime.tokens import connection_token, subscription_token
 
 __all__ = [
@@ -36,6 +37,7 @@ __all__ = [
     "grant_chat_access",
     "parse_channel",
     "personal_channel",
+    "publish_personal",
     "revoke_chat_access",
     "router",
     "subscription_token",
