@@ -2,6 +2,7 @@
 
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime, timedelta
+from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
@@ -26,8 +27,10 @@ from campus.core.tasks import (
     DEADLINES_TASK,
     configure_broker,
     kick,
+    register_cleanup,
     worker_resources,
 )
+from campus.modules.identity import SignInCode
 
 START = datetime(2027, 3, 1, 12, 0, tzinfo=UTC)
 TOPIC = "test.task"
@@ -78,6 +81,13 @@ async def test_cleanup_task_deletes_expired_records(broker: InMemoryBroker) -> N
     with time_machine.travel(START, tick=False) as traveller:
         async with sessions() as session, session.begin():
             add_message(session, TOPIC, {})
+            session.add(
+                SignInCode(
+                    email="expired@university.example",
+                    code_hash="0" * 64,
+                    expires_at=START,
+                )
+            )
             await schedule_deadline(session, TOPIC, START, {})
             for ttl in (timedelta(days=1), timedelta(days=30)):
                 await claim_idempotency_key(
@@ -99,6 +109,12 @@ async def test_cleanup_task_deletes_expired_records(broker: InMemoryBroker) -> N
     assert await count(broker, OutboxMessage) == 0
     assert await count(broker, Deadline) == 0
     assert await count(broker, IdempotencyKey) == 1  # the unexpired one
+    assert await count(broker, SignInCode) == 0  # a registered module cleanup
+
+
+def test_cleanup_has_one_name() -> None:
+    with pytest.raises(ValueError, match="already registered"):
+        register_cleanup("identity")(AsyncMock())
 
 
 def test_topic_has_one_handler() -> None:

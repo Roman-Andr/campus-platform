@@ -15,7 +15,7 @@ import time_machine
 from fastapi import Request
 from pydantic import SecretStr, ValidationError
 from redis.asyncio import Redis
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from campus.api.app import create_app
@@ -27,7 +27,13 @@ from campus.core.logging import configure_logging
 from campus.core.outbox import OutboxMessage
 from campus.core.web import api_router
 from campus.core.web.auth import CurrentUser, digest
-from campus.modules.identity import RefreshToken, Session, SignInCode, User
+from campus.modules.identity import (
+    RefreshToken,
+    Session,
+    SignInCode,
+    User,
+    delete_expired_credentials,
+)
 from campus.modules.university import AccountType, EmailDomain
 from tests.web_app import serve
 
@@ -610,3 +616,143 @@ async def test_correct_code_on_last_attempt(auth: Auth) -> None:
         "/sign-in", {**data, "code": code, "first_name": "John", "last_name": "Smith"}
     )
     assert response.status_code == 200
+
+
+async def refresh(auth: Auth, token: str, device: str = DEVICE) -> httpx2.Response:
+    return await auth.post(
+        "/token/refresh", {"refresh_token": token, "device_id": device}
+    )
+
+
+async def cleanup(auth: Auth) -> dict[str, int]:
+    engine = create_engine(auth.settings)
+    try:
+        return await delete_expired_credentials(
+            create_session_factory(engine), auth.settings
+        )
+    finally:
+        await engine.dispose()
+
+
+async def stored(auth: Auth, model: type) -> int:
+    auth.db.expire_all()
+    count = await auth.db.scalar(select(func.count()).select_from(model)) or 0
+    await auth.db.rollback()
+    return count
+
+
+async def test_cleanup_deletes_expired_codes_and_finished_sessions(
+    auth: Auth,
+) -> None:
+    other, expiring = str(uuid4()), str(uuid4())
+    with time_machine.travel(clock.now(), tick=False) as travel:
+        live = await auth.login()
+        signed_out = await auth.login(device_id=other)
+        headers = {"Authorization": "Bearer " + signed_out["access_token"]}
+        assert (await auth.post("/sign-out", **headers)).status_code == 204
+        await auth.login(device_id=expiring)
+        unused_code = await auth.code("teacher@staff.example")
+        assert unused_code
+        assert await stored(auth, SignInCode) == 2
+
+        # A code is kept for a day after it expires; sessions are live.
+        travel.shift(timedelta(days=1))
+        assert await cleanup(auth) == {
+            "sign_in_codes": 0,
+            "sessions": 0,
+            "refresh_tokens": 0,
+        }
+        travel.shift(timedelta(minutes=10))
+        assert (await cleanup(auth))["sign_in_codes"] == 2
+
+        # The revoked session is deleted a week after sign-out.
+        travel.shift(timedelta(days=7))
+        assert await cleanup(auth) == {
+            "sign_in_codes": 0,
+            "sessions": 1,
+            "refresh_tokens": 1,
+        }
+        assert (
+            await refresh(auth, signed_out["refresh_token"], other)
+        ).status_code == 401
+
+        # The live chain rotates; the unused one expires after 30 days and
+        # is deleted a week later. A repeated run deletes nothing.
+        first = (await refresh(auth, live["refresh_token"])).json()
+        travel.shift(timedelta(days=29))
+        assert await cleanup(auth) == {
+            "sign_in_codes": 0,
+            "sessions": 1,
+            "refresh_tokens": 1,
+        }
+        assert await cleanup(auth) == {
+            "sign_in_codes": 0,
+            "sessions": 0,
+            "refresh_tokens": 0,
+        }
+        assert await stored(auth, Session) == 1
+
+        # The used token of the live chain outlived its own expiry and still
+        # reveals theft: its reuse revokes the chain.
+        assert (await refresh(auth, live["refresh_token"])).status_code == 401
+        assert (await refresh(auth, first["refresh_token"])).status_code == 401
+        device = await auth.db.scalar(select(Session))
+        assert device is not None
+        assert device.revoked_at is not None
+
+
+async def test_cleanup_prunes_used_tokens_of_live_chain(auth: Auth) -> None:
+    with time_machine.travel(clock.now(), tick=False) as travel:
+        tokens = await auth.login()
+        chain = [tokens["refresh_token"]]
+        # Rotate every 20 days for 80 days: the chain stays live.
+        for _ in range(4):
+            travel.shift(timedelta(days=20))
+            response = await refresh(auth, chain[-1])
+            assert response.status_code == 200
+            chain.append(response.json()["refresh_token"])
+        # Tokens issued at day 0 and 20 expired more than 30 days ago.
+        assert await cleanup(auth) == {
+            "sign_in_codes": 1,
+            "sessions": 0,
+            "refresh_tokens": 2,
+        }
+        assert await stored(auth, RefreshToken) == 3
+        # A pruned token is rejected; one within the window revokes the chain.
+        assert (await refresh(auth, chain[0])).status_code == 401
+        response = await refresh(auth, chain[-1])
+        assert response.status_code == 200
+        assert (await refresh(auth, chain[3])).status_code == 401
+        latest = response.json()["refresh_token"]
+        assert (await refresh(auth, latest)).status_code == 401
+
+
+async def test_parallel_cleanups_delete_each_record_once(auth: Auth) -> None:
+    with time_machine.travel(clock.now(), tick=False) as travel:
+        # Three sign-ins: the e-mail rate limit allows no more.
+        for _ in range(3):
+            tokens = await auth.login(device_id=str(uuid4()))
+            headers = {"Authorization": "Bearer " + tokens["access_token"]}
+            assert (await auth.post("/sign-out", **headers)).status_code == 204
+        travel.shift(timedelta(days=8))
+        results = await asyncio.gather(*(cleanup(auth) for _ in range(4)))
+    assert sum(r["sessions"] for r in results) == 3
+    assert sum(r["refresh_tokens"] for r in results) == 3
+    assert sum(r["sign_in_codes"] for r in results) == 1
+    assert await stored(auth, Session) == 0
+    assert await stored(auth, RefreshToken) == 0
+
+
+def test_retention_settings() -> None:
+    settings = Settings.model_validate(
+        {
+            "sign_in_code_retention": "PT0S",
+            "refresh_token_reuse_window": "P60D",
+            "session_retention": "P1D",
+        }
+    )
+    assert settings.sign_in_code_retention == timedelta(0)
+    assert settings.refresh_token_reuse_window == timedelta(days=60)
+    assert settings.session_retention == timedelta(days=1)
+    with pytest.raises(ValidationError):
+        Settings(session_retention=timedelta(days=-1))
