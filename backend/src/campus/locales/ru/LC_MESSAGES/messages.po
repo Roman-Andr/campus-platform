@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-14 22:09+0300\n"
+"POT-Creation-Date: 2026-11-14 22:40+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -30,6 +30,9 @@ msgid ""
 msgstr ""
 "Для вас освободилось место в очереди. Подтвердите его до истечения "
 "таймера."
+
+msgid "An event or return deadline is approaching."
+msgstr "Приближается мероприятие или срок возврата."
 
 #, python-brace-format
 msgid "At most {max} skills."

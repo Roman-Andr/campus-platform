@@ -14,6 +14,7 @@ from campus.modules.identity.consents import (
     DocumentVersion,
     check_consents,
     cross_border_allowed,
+    lock_consent_state,
     publish_document,
 )
 from campus.modules.identity.consents import router as consent_router
@@ -77,6 +78,7 @@ __all__ = [
     "cross_border_allowed",
     "delete_expired_credentials",
     "email_router",
+    "lock_consent_state",
     "notify_account_security",
     "profile_router",
     "publish_document",
