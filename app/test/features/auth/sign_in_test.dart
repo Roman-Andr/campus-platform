@@ -328,7 +328,9 @@ void main() {
     expect(find.text('Too many attempts. Try again in 42 s.'), findsOneWidget);
   });
 
-  testWidgets('an address outside the university is rejected', (tester) async {
+  testWidgets('a domain error from an older server is explained', (
+    tester,
+  ) async {
     await start(tester);
     server.replyProblem(422, 'email_domain_not_allowed');
 

@@ -8,8 +8,11 @@ from sqlalchemy import (
     CheckConstraint,
     ForeignKey,
     ForeignKeyConstraint,
+    Index,
     SmallInteger,
     String,
+    UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -71,10 +74,42 @@ class User(Entity):
         )
 
 
+class UserEmail(Entity):
+    """Verified addresses; User.email is the compatible primary-address cache."""
+
+    __tablename__ = "identity_user_email"
+    __table_args__ = (
+        CheckConstraint("email = lower(email)", name="email_lowercase"),
+        CheckConstraint("kind IN ('corporate', 'backup')", name="kind_valid"),
+        Index(
+            "uq_identity_user_email_backup",
+            "user_id",
+            unique=True,
+            postgresql_where=text("kind = 'backup'"),
+        ),
+    )
+
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("identity_user.id", ondelete="CASCADE"), index=True
+    )
+    email: Mapped[str] = mapped_column(String(320), unique=True)
+    kind: Mapped[str] = mapped_column(String(16))
+    verified_at: Mapped[datetime]
+
+
 class SignInCode(Entity):
     __tablename__ = "identity_sign_in_code"
+    __table_args__ = (
+        UniqueConstraint(
+            "email", "purpose", "user_id", postgresql_nulls_not_distinct=True
+        ),
+    )
 
-    email: Mapped[str] = mapped_column(String(320), unique=True)
+    email: Mapped[str] = mapped_column(String(320))
+    purpose: Mapped[str] = mapped_column(String(16), default="sign_in")
+    user_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("identity_user.id", ondelete="CASCADE")
+    )
     code_hash: Mapped[str] = mapped_column(String(64))
     expires_at: Mapped[datetime]
     attempts: Mapped[int] = mapped_column(default=0)

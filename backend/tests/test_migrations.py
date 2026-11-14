@@ -111,3 +111,32 @@ def test_database_url_is_required(mode: list[str]) -> None:
     # CAMPUS_DATABASE_URL is unset by the isolated_environment fixture.
     with pytest.raises(DatabaseNotConfiguredError):
         CommandLine().main(argv=["-c", str(PYPROJECT), *mode])
+
+
+def test_existing_email_is_migrated(empty_database: str) -> None:
+    run_alembic(empty_database, "upgrade", "90fb233ce001")
+    asyncio.run(
+        fetch(
+            empty_database,
+            """
+        INSERT INTO identity_user (email, first_name, last_name, account_type,
+                                   created_at, updated_at)
+        VALUES ('existing@university.example', 'Existing', 'User', 'student',
+                now(), now()) RETURNING id
+    """,
+        )
+    )
+    run_alembic(empty_database, "upgrade", "head")
+    rows = asyncio.run(
+        fetch(
+            empty_database,
+            """
+        SELECT e.email, e.kind, e.verified_at = u.created_at AS verified
+        FROM identity_user_email e JOIN identity_user u ON u.id = e.user_id
+    """,
+        )
+    )
+    assert len(rows) == 1
+    assert rows[0]["email"] == "existing@university.example"
+    assert rows[0]["kind"] == "corporate"
+    assert rows[0]["verified"]

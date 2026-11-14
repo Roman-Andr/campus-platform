@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from pydantic_core import PydanticCustomError
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.exc import IntegrityError
 
 from campus.core import clock
 from campus.core.config import Settings
@@ -31,14 +32,18 @@ from campus.modules.identity.consents import (
     record_decision,
     require_registration_consents,
 )
-from campus.modules.identity.models import RefreshToken, Session, SignInCode, User
+from campus.modules.identity.models import (
+    RefreshToken,
+    Session,
+    SignInCode,
+    User,
+    UserEmail,
+)
 from campus.modules.identity.profile import UserOutput, user_output
 from campus.modules.identity.sessions import revoke_sessions
 from campus.modules.university import EmailDomain
 
-DOMAIN_NOT_ALLOWED = ProblemType(
-    "email_domain_not_allowed", 422, N_("E-mail domain not allowed")
-)
+EMAIL_CONFLICT = ProblemType("email_conflict", 409, N_("E-mail address already in use"))
 CODE_INVALID = ProblemType("sign_in_code_invalid", 401, N_("Invalid sign-in code"))
 CODE_EXPIRED = ProblemType(
     "sign_in_code_expired", 401, N_("Sign-in code expired or already used")
@@ -51,6 +56,10 @@ REGISTRATION_REQUIRED = ProblemType(
 )
 REFRESH_INVALID = ProblemType("refresh_token_invalid", 401, N_("Invalid refresh token"))
 MAIL_SUBJECT = N_("Your Campus sign-in code")
+CONFIRM_SUBJECT = N_("Your Campus e-mail confirmation code")
+CONFIRM_TEXT = N_(
+    "Confirm your e-mail address with code: {code}. It expires in {minutes} minutes."
+)
 MAIL_TEXT = N_("Your sign-in code: {code}. It expires in {minutes} minutes.")
 router = api_router(
     prefix="/auth",
@@ -129,26 +138,37 @@ def token_hash(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
-async def allowed_domain(session: DbSession, email: str) -> EmailDomain:
-    domain = await session.scalar(
-        select(EmailDomain).where(EmailDomain.domain == email.rpartition("@")[2])
-    )
-    if domain is None:
-        raise ProblemError(DOMAIN_NOT_ALLOWED)
-    return domain
-
-
 @router.post("/sign-in-codes", status_code=202)
 async def request_sign_in_code(
     data: EmailInput, request: Request, session: DbSession
 ) -> None:
-    settings: Settings = request.app.state.settings
     await rate_limit(request, data.email)
-    await allowed_domain(session, data.email)
+    domain = await session.scalar(
+        select(EmailDomain).where(EmailDomain.domain == data.email.rpartition("@")[2])
+    )
+    known = await session.scalar(
+        select(UserEmail.id).where(UserEmail.email == data.email)
+    )
+    if domain is None and known is None:
+        return
+    await send_code(data.email, request, session)
+
+
+async def send_code(
+    email: str,
+    request: Request,
+    session: DbSession,
+    *,
+    purpose: str = "sign_in",
+    user_id: UUID | None = None,
+) -> None:
+    settings: Settings = request.app.state.settings
     code = f"{secrets.randbelow(1_000_000):06d}"
     values = {
-        "email": data.email,
-        "code_hash": digest(settings, data.email + ":" + code),
+        "email": email,
+        "purpose": purpose,
+        "user_id": user_id,
+        "code_hash": digest(settings, email + ":" + code),
         "expires_at": clock.now() + settings.sign_in_code_ttl,
         "attempts": 0,
         "consumed_at": None,
@@ -157,17 +177,19 @@ async def request_sign_in_code(
         insert(SignInCode)
         .values(**values)
         .on_conflict_do_update(
-            index_elements=[SignInCode.email],
+            constraint="uq_identity_sign_in_code_email_purpose_user_id",
             set_={**values, "updated_at": clock.now()},
         )
     )
     locale = request_locale(request)
     queue_email(
         session,
-        to=data.email,
-        subject=translate(MAIL_SUBJECT, locale),
+        to=email,
+        subject=translate(
+            MAIL_SUBJECT if purpose == "sign_in" else CONFIRM_SUBJECT, locale
+        ),
         text=translate(
-            MAIL_TEXT,
+            MAIL_TEXT if purpose == "sign_in" else CONFIRM_TEXT,
             locale,
             code=code,
             minutes=int(settings.sign_in_code_ttl.total_seconds() // 60),
@@ -175,15 +197,29 @@ async def request_sign_in_code(
     )
 
 
-async def count_attempt(request: Request, email: str) -> tuple[UUID, str]:
+async def count_attempt(
+    request: Request,
+    email: str,
+    *,
+    purpose: str = "sign_in",
+    user_id: UUID | None = None,
+) -> tuple[UUID, str]:
     """Commit attempts even when the outer request transaction rolls back."""
     settings: Settings = request.app.state.settings
     async with request.app.state.session_factory() as session, session.begin():
         challenge = await session.scalar(
-            select(SignInCode).where(SignInCode.email == email).with_for_update()
+            select(SignInCode)
+            .where(
+                SignInCode.email == email,
+                SignInCode.purpose == purpose,
+                SignInCode.user_id == user_id,
+            )
+            .with_for_update()
         )
         if (
             challenge is None
+            or challenge.purpose != purpose
+            or challenge.user_id != user_id
             or challenge.consumed_at
             or challenge.expires_at <= clock.now()
         ):
@@ -222,11 +258,16 @@ async def issue_tokens(
     )
 
 
-@router.post("/sign-in")
+@router.post(
+    "/sign-in",
+    responses={409: {"model": Problem, "description": "Address claimed concurrently."}},
+)
 async def sign_in(data: SignInInput, request: Request, session: DbSession) -> Tokens:
     settings: Settings = request.app.state.settings
     await rate_limit(request)
-    domain = await allowed_domain(session, data.email)
+    domain = await session.scalar(
+        select(EmailDomain).where(EmailDomain.domain == data.email.rpartition("@")[2])
+    )
     challenge_id, expected = await count_attempt(request, data.email)
     if not hmac.compare_digest(
         expected, digest(settings, data.email + ":" + data.code)
@@ -244,23 +285,41 @@ async def sign_in(data: SignInInput, request: Request, session: DbSession) -> To
     ):
         raise ProblemError(CODE_EXPIRED)
     user = await session.scalar(
-        select(User).where(User.email == data.email).with_for_update()
+        select(User)
+        .join(UserEmail, UserEmail.user_id == User.id)
+        .where(UserEmail.email == data.email)
+        .with_for_update(of=User)
     )
     registering = user is None
     if user is None:
+        if domain is None:
+            raise ProblemError(CODE_EXPIRED)
         if data.first_name is None or data.last_name is None:
             raise ProblemError(REGISTRATION_REQUIRED)
         await require_registration_consents(
             session, data.accepted_document_ids, data.cross_border_document_id
         )
-        user = User(
-            email=data.email,
-            first_name=data.first_name,
-            last_name=data.last_name,
-            account_type=domain.account_type.value,
-        )
-        session.add(user)
-        await session.flush()
+        try:
+            async with session.begin_nested():
+                user = User(
+                    email=data.email,
+                    first_name=data.first_name,
+                    last_name=data.last_name,
+                    account_type=domain.account_type.value,
+                )
+                session.add(user)
+                await session.flush()
+                session.add(
+                    UserEmail(
+                        user_id=user.id,
+                        email=data.email,
+                        kind="corporate",
+                        verified_at=clock.now(),
+                    )
+                )
+                await session.flush()
+        except IntegrityError:
+            raise ProblemError(EMAIL_CONFLICT) from None
     challenge.consumed_at = clock.now()
     old_devices = (
         await session.scalars(
