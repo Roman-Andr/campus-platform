@@ -35,6 +35,10 @@ msgid "An event or return deadline is approaching."
 msgstr "Приближается мероприятие или срок возврата."
 
 #, python-brace-format
+msgid "Another complaint reason already uses the code {code}."
+msgstr "Другой причиной жалобы уже используется код {code}."
+
+#, python-brace-format
 msgid "At most {max} skills."
 msgstr "Не больше {max} навыков."
 
@@ -64,6 +68,9 @@ msgstr "Чат недоступен"
 
 msgid "Choose a listing category."
 msgstr "Выберите категорию объявления."
+
+msgid "Choose a published version of the community rules."
+msgstr "Выберите опубликованную версию правил сообщества."
 
 msgid "Client version missing"
 msgstr "Не указана версия клиента"
@@ -153,6 +160,9 @@ msgstr "Недействительный токен обновления"
 
 msgid "Invalid request"
 msgstr "Неверные данные запроса"
+
+msgid "Invalid rules clause"
+msgstr "Неверный пункт правил"
 
 msgid "Invalid sign-in code"
 msgstr "Неверный код входа"
@@ -271,6 +281,10 @@ msgid "Realtime is unavailable"
 msgstr "Реальное время недоступно"
 
 #, python-brace-format
+msgid "Reload the complaint reason. Its current version is {version}."
+msgstr "Обновите причину жалобы. Её текущая версия: {version}."
+
+#, python-brace-format
 msgid "Reload the interaction. The current meeting version is {version}."
 msgstr "Обновите взаимодействие. Текущая версия встречи: {version}."
 
@@ -326,6 +340,12 @@ msgstr "Имя канала не является каналом реально�
 
 msgid "The client platform or version is not recognized."
 msgstr "Платформа или версия клиента не распознаны."
+
+msgid "The complaint reason code is already used"
+msgstr "Код причины жалобы уже используется"
+
+msgid "The complaint reason was edited"
+msgstr "Причина жалобы была изменена"
 
 msgid "The event must start in the future and end after its start."
 msgstr "Мероприятие должно начинаться в будущем и заканчиваться после начала."

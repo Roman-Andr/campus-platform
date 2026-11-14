@@ -24,6 +24,110 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/admin/documents': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Admin List Documents
+     * @description All published versions, newest first by default; both languages are
+     *     returned by the detail endpoint.
+     */
+    get: operations['admin_list_documents'];
+    put?: never;
+    /**
+     * Admin Publish Document
+     * @description Publish a new version atomically; the previous one stays unchanged.
+     *
+     *     A required kind gates every account until it accepts the new version,
+     *     and a new cross-border version revokes the previous grants with the
+     *     existing consent events.
+     */
+    post: operations['admin_publish_document'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/documents/{document_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Admin Get Document
+     * @description One version with both language texts, for editing and review.
+     */
+    get: operations['admin_get_document'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/complaint-reasons': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Admin List Complaint Reasons
+     * @description The whole catalogue, including deactivated reasons and their basis.
+     */
+    get: operations['admin_list_complaint_reasons'];
+    put?: never;
+    /**
+     * Admin Create Complaint Reason
+     * @description Add a reason bound to a published community rules version.
+     */
+    post: operations['admin_create_complaint_reason'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/complaint-reasons/{reason_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Admin Get Complaint Reason
+     * @description One reason with both names and the rules basis it points to.
+     */
+    get: operations['admin_get_complaint_reason'];
+    put?: never;
+    post?: never;
+    /**
+     * Admin Deactivate Complaint Reason
+     * @description Deactivate a reason without deleting it or its rules basis.
+     *
+     *     Complaints keep their own immutable snapshot; an inactive reason is
+     *     simply no longer offered for new complaints.
+     */
+    delete: operations['admin_deactivate_complaint_reason'];
+    options?: never;
+    head?: never;
+    /**
+     * Admin Update Complaint Reason
+     * @description Change a reason; a stale version is rejected without overwriting.
+     */
+    patch: operations['admin_update_complaint_reason'];
+    trace?: never;
+  };
   '/api/v1/health': {
     parameters: {
       query?: never;
@@ -346,6 +450,26 @@ export interface paths {
      *     ``validation_failed`` (code ``not_found``).
      */
     put: operations['set_my_skills'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/complaint-reasons': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Complaint Reasons
+     * @description Active reasons for a new complaint in the request language.
+     */
+    get: operations['list_complaint_reasons'];
+    put?: never;
     post?: never;
     delete?: never;
     options?: never;
@@ -1656,6 +1780,79 @@ export interface components {
      * @enum {string}
      */
     ClientPlatform: 'android' | 'web' | 'desktop' | 'telegram' | 'admin';
+    /** ComplaintReasonEdit */
+    ComplaintReasonEdit: {
+      /** Version */
+      version: number;
+      /** Name Ru */
+      name_ru?: string | null;
+      /** Name En */
+      name_en?: string | null;
+      /** Rules Document Id */
+      rules_document_id?: string | null;
+      /** Rules Clause */
+      rules_clause?: string | null;
+      /** Active */
+      active?: boolean | null;
+    };
+    /** ComplaintReasonInput */
+    ComplaintReasonInput: {
+      /** Code */
+      code: string;
+      /** Name Ru */
+      name_ru: string;
+      /** Name En */
+      name_en: string;
+      /**
+       * Rules Document Id
+       * Format: uuid
+       */
+      rules_document_id: string;
+      /** Rules Clause */
+      rules_clause: string;
+    };
+    /**
+     * ComplaintReasonOut
+     * @description A complaint reason with both languages and its rules basis.
+     */
+    ComplaintReasonOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Code */
+      code: string;
+      /** Name Ru */
+      name_ru: string;
+      /** Name En */
+      name_en: string;
+      /**
+       * Rules Document Id
+       * Format: uuid
+       */
+      rules_document_id: string;
+      /** Rules Version */
+      rules_version: number;
+      /** Rules Clause */
+      rules_clause: string;
+      /** Active */
+      active: boolean;
+      /** Version */
+      version: number;
+      /**
+       * Created At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      created_at: string;
+      /**
+       * Updated At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      updated_at: string;
+    };
     /**
      * CompletionMethod
      * @description How an accepted interaction reached the completed status.
@@ -1705,6 +1902,62 @@ export interface components {
       version: number;
       /** Text */
       text: string;
+      /**
+       * Published At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      published_at: string;
+      /** Required */
+      required: boolean;
+    };
+    /** DocumentPublishInput */
+    DocumentPublishInput: {
+      kind: components['schemas']['DocumentKind'];
+      /** Text Ru */
+      text_ru: string;
+      /** Text En */
+      text_en: string;
+    };
+    /**
+     * DocumentVersionOut
+     * @description A published document version with both languages for the panel.
+     */
+    DocumentVersionOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      kind: components['schemas']['DocumentKind'];
+      /** Version */
+      version: number;
+      /** Text Ru */
+      text_ru: string;
+      /** Text En */
+      text_en: string;
+      /**
+       * Published At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      published_at: string;
+      /** Required */
+      required: boolean;
+    };
+    /**
+     * DocumentVersionSummary
+     * @description A document version in the version list.
+     */
+    DocumentVersionSummary: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      kind: components['schemas']['DocumentKind'];
+      /** Version */
+      version: number;
       /**
        * Published At
        * Format: date-time
@@ -2457,6 +2710,26 @@ export interface components {
        */
       next_page: string | null;
     };
+    /** Page[ComplaintReasonOut] */
+    Page_ComplaintReasonOut_: {
+      /** Items */
+      items: components['schemas']['ComplaintReasonOut'][];
+      /**
+       * Next Page
+       * @description Cursor of the next page; null on the last page.
+       */
+      next_page: string | null;
+    };
+    /** Page[DocumentVersionSummary] */
+    Page_DocumentVersionSummary_: {
+      /** Items */
+      items: components['schemas']['DocumentVersionSummary'][];
+      /**
+       * Next Page
+       * @description Cursor of the next page; null on the last page.
+       */
+      next_page: string | null;
+    };
     /** Page[EventOutput] */
     Page_EventOutput_: {
       /** Items */
@@ -2670,6 +2943,9 @@ export interface components {
         | 'client_update_required'
         | 'client_version_invalid'
         | 'client_version_missing'
+        | 'complaint_reason_code_conflict'
+        | 'complaint_reason_rules_invalid'
+        | 'complaint_reason_version_conflict'
         | 'consent_invalid'
         | 'consent_required'
         | 'email_conflict'
@@ -2810,6 +3086,30 @@ export interface components {
        * @description A ready photo uploaded by the user.
        */
       file_id: string;
+    };
+    /** PublicComplaintReasonList */
+    PublicComplaintReasonList: {
+      /** Items */
+      items: components['schemas']['PublicComplaintReasonOut'][];
+    };
+    /**
+     * PublicComplaintReasonOut
+     * @description A reason offered to a complainant in the request language.
+     */
+    PublicComplaintReasonOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Code */
+      code: string;
+      /** Name */
+      name: string;
+      /** Rules Version */
+      rules_version: number;
+      /** Rules Clause */
+      rules_clause: string;
     };
     /** PublicationInput */
     PublicationInput: {
@@ -3318,6 +3618,680 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['Page_AuditRecordOut_'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  admin_list_documents: {
+    parameters: {
+      query?: {
+        /** @description Only versions of this document kind. */
+        kind?: components['schemas']['DocumentKind'] | null;
+        order_by?: 'published_at' | '-published_at' | 'version' | '-version';
+        /** @description Number of items; the default (20) and the maximum (100) are set in the server configuration. */
+        size?: number | null;
+        /** @description `next_page` of the previous page. */
+        cursor?: string | null;
+      };
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Page_DocumentVersionSummary_'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  admin_publish_document: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DocumentPublishInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DocumentVersionOut'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  admin_get_document: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path: {
+        document_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DocumentVersionOut'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  admin_list_complaint_reasons: {
+    parameters: {
+      query?: {
+        /** @description Only active or only deactivated reasons. */
+        active?: boolean | null;
+        order_by?: 'code' | '-code' | 'created_at' | '-created_at';
+        /** @description Number of items; the default (20) and the maximum (100) are set in the server configuration. */
+        size?: number | null;
+        /** @description `next_page` of the previous page. */
+        cursor?: string | null;
+      };
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Page_ComplaintReasonOut_'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  admin_create_complaint_reason: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ComplaintReasonInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ComplaintReasonOut'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  admin_get_complaint_reason: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path: {
+        reason_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ComplaintReasonOut'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  admin_deactivate_complaint_reason: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        reason_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  admin_update_complaint_reason: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        reason_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ComplaintReasonEdit'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ComplaintReasonOut'];
         };
       };
       /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
@@ -4819,6 +5793,85 @@ export interface operations {
         };
       };
       /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  list_complaint_reasons: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PublicComplaintReasonList'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
       422: {
         headers: {
           [name: string]: unknown;

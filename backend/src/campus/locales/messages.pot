@@ -14,6 +14,10 @@ msgid "An event or return deadline is approaching."
 msgstr ""
 
 #, python-brace-format
+msgid "Another complaint reason already uses the code {code}."
+msgstr ""
+
+#, python-brace-format
 msgid "At most {max} skills."
 msgstr ""
 
@@ -42,6 +46,9 @@ msgid "Chat not available"
 msgstr ""
 
 msgid "Choose a listing category."
+msgstr ""
+
+msgid "Choose a published version of the community rules."
 msgstr ""
 
 msgid "Client version missing"
@@ -129,6 +136,9 @@ msgid "Invalid refresh token"
 msgstr ""
 
 msgid "Invalid request"
+msgstr ""
+
+msgid "Invalid rules clause"
 msgstr ""
 
 msgid "Invalid sign-in code"
@@ -246,6 +256,10 @@ msgid "Realtime is unavailable"
 msgstr ""
 
 #, python-brace-format
+msgid "Reload the complaint reason. Its current version is {version}."
+msgstr ""
+
+#, python-brace-format
 msgid "Reload the interaction. The current meeting version is {version}."
 msgstr ""
 
@@ -300,6 +314,12 @@ msgid "The channel name is not a Campus realtime channel."
 msgstr ""
 
 msgid "The client platform or version is not recognized."
+msgstr ""
+
+msgid "The complaint reason code is already used"
+msgstr ""
+
+msgid "The complaint reason was edited"
 msgstr ""
 
 msgid "The event must start in the future and end after its start."
