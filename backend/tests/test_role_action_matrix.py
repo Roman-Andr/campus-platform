@@ -4,6 +4,7 @@ from uuid import UUID
 
 import httpx2
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import select, update
 
 from campus.modules.identity import Role, RoleAssignment, User
@@ -76,6 +77,46 @@ def test_matrix_is_complete() -> None:
                 c.action == action and c.actor == actor and c.column == column
                 for c in inventory
             )
+
+
+@pytest.mark.parametrize(
+    ("probe", "resources"),
+    [
+        (
+            "reference_data",
+            {
+                "cities",
+                "dormitories",
+                "faculties",
+                "categories",
+                "skills",
+                "skill-tags",
+                "reference-data",
+            },
+        ),
+        ("domains", {"domains", "email-domains"}),
+    ],
+)
+def test_pending_reference_admin_api_is_absent(
+    client: TestClient, probe: str, resources: set[str]
+) -> None:
+    if PENDING.get("administrate", {}).get(probe) != 99:
+        return
+    response = client.get("/api/v1/openapi.json")
+    assert response.status_code == 200
+    # Public lookup GETs do not implement reference-data administration.
+    # Once an administrative read or any write exists, activate API probes.
+    implemented = {
+        f"{method.upper()} {path}"
+        for path, operations in response.json()["paths"].items()
+        if resources.intersection(path.split("/"))
+        for method in operations
+        if method in {"post", "put", "patch", "delete"}
+        or (path.startswith("/api/v1/admin/") and method == "get")
+    }
+    assert not implemented, (
+        f"Replace the #99 {probe} skips with API assertions: {sorted(implemented)}"
+    )
 
 
 @pytest.fixture
@@ -156,8 +197,14 @@ async def publish_respond(case: Case, actor: Account, owner: Account) -> None:
 async def student_feed(case: Case, actor: Account, owner: Account) -> None:
     dormitory = "dormitory" in case.probe
     listing = await publish(
-        owner, audience="students", visibility="dormitory" if dormitory else "city"
+        owner,
+        audience="community" if case.probe.endswith("community") else "students",
+        visibility="dormitory" if dormitory else "city",
     )
+    assert listing["audience"] == (
+        "community" if case.probe.endswith("community") else "students"
+    )
+    assert listing["visibility"] == ("dormitory" if dormitory else "city")
     allowed = case.grant in {Grant.YES, Grant.COMPLAINT}
     if case.probe.startswith("feed"):
         control = await publish(owner, audience="community")

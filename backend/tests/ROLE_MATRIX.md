@@ -29,6 +29,12 @@ permission defects have issue-linked strict xfails: they execute requests,
 and an unexpected pass fails until the marker is removed. No permissions
 are implemented or mocked by this suite.
 
+Dormitory visibility probes cover both student and community audiences
+and assert the audience and scope of the created listing. Issue #99 skips
+refer to administrative reference-data/domain operations, not the existing
+public lookup GETs. An OpenAPI guard rejects these skips once a matching
+administrative read or write endpoint is registered.
+
 When implementing a linked feature, move its probe from `PENDING` to `LIVE`,
 add the API assertion and remove the skip. For role assignment this is #210;
 it was not implemented on the main branch used for this change. Preserve
