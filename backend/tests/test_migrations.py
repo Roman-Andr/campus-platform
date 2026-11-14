@@ -70,6 +70,22 @@ def test_upgrade_and_downgrade_on_empty_database(empty_database: str) -> None:
     assert applied_revisions(empty_database) == []
 
 
+def test_reservation_and_exchange_columns_migrate(empty_database: str) -> None:
+    columns = """
+        SELECT column_name FROM information_schema.columns
+        WHERE table_name = 'listing_interaction'
+    """
+
+    run_alembic(empty_database, "upgrade", "head")
+    names = {row["column_name"] for row in asyncio.run(fetch(empty_database, columns))}
+    assert {"reservation_due_at", "offer_description"} <= names
+
+    run_alembic(empty_database, "downgrade", "-1")
+    names = {row["column_name"] for row in asyncio.run(fetch(empty_database, columns))}
+    assert "reservation_due_at" not in names
+    assert "offer_description" not in names
+
+
 def test_models_match_migrations(empty_database: str) -> None:
     run_alembic(empty_database, "upgrade", "head")
 

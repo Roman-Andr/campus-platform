@@ -1,7 +1,7 @@
 """Acceptance of shared listing lifecycle, deadlines, permissions and quotas."""
 
 import asyncio
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -569,14 +569,45 @@ async def test_configured_text_lengths(owner: Account) -> None:
     assert response.status_code == 422
 
 
+async def schedule_meeting(
+    owner: Account,
+    borrower: Account,
+    listing: dict[str, Any],
+    interaction: dict[str, Any],
+    at: datetime,
+) -> None:
+    """Agree on a meeting so the item reservation lasts until that time."""
+    proposed = await request(
+        owner,
+        "POST",
+        f"/{listing['id']}/interactions/{interaction['id']}/meeting/proposals",
+        {
+            "time": at.astimezone(UTC).isoformat().replace("+00:00", "Z"),
+            "location": "Main library",
+        },
+    )
+    assert proposed.status_code == 200, proposed.text
+    proposals = proposed.json()
+    accepted = await request(
+        borrower,
+        "POST",
+        f"/{listing['id']}/interactions/{interaction['id']}/meeting/accept",
+        {"version": proposals["version"]},
+    )
+    assert accepted.status_code == 200, accepted.text
+
+
 async def test_republish_accepted_stays_occupied(
     owner: Account, borrower: Account
 ) -> None:
     listing = await publish(owner)
     interaction = (await reserve(borrower, listing)).json()
     await move(owner, listing, interaction, "accepted")
+    await schedule_meeting(
+        owner, borrower, listing, interaction, clock.now() + timedelta(days=40)
+    )
     with time_machine.travel(clock.now() + timedelta(days=31), tick=False):
-        assert await deadlines(owner) == 2
+        assert await deadlines(owner) == 1
         assert (await request(owner, "POST", f"/{listing['id']}/publish")).json()[
             "status"
         ] == "busy"
@@ -595,8 +626,11 @@ async def test_accepted_finishes_after_expiry(
     listing = await publish(owner)
     interaction = (await reserve(borrower, listing)).json()
     await move(owner, listing, interaction, "accepted")
+    await schedule_meeting(
+        owner, borrower, listing, interaction, clock.now() + timedelta(days=40)
+    )
     with time_machine.travel(clock.now() + timedelta(days=31), tick=False):
-        assert await deadlines(owner) == 2
+        assert await deadlines(owner) == 1
         db = owner.auth.db
         row = await locked(db, UUID(listing["id"]))
         item = await db.get(Interaction, UUID(interaction["id"]))

@@ -239,6 +239,8 @@ class Interaction(Entity):
     Help-request applications use NULL slots, and the one selected as the
     executor carries ``executor``: only one accepted executor is allowed
     per listing, while the other applications stay pending as a reserve.
+    An exchange offer is an interaction with a NULL slot and a description
+    of the item the participant offers, so several offers coexist.
     """
 
     __tablename__ = "listing_interaction"
@@ -280,6 +282,11 @@ class Interaction(Entity):
 
     stage: Mapped[str | None] = mapped_column(String(32))
     response_due_at: Mapped[datetime | None]
+    # An accepted item reservation lasts until this moment: the configured
+    # reservation window, extended by a scheduled meeting to its time.
+    reservation_due_at: Mapped[datetime | None]
+    # What a participant offers in exchange; NULL for other scenarios.
+    offer_description: Mapped[str | None] = mapped_column(Text)
 
     meeting: Mapped[Meeting | None] = relationship(
         lazy="joined", uselist=False, cascade="all, delete-orphan"

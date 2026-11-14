@@ -356,6 +356,11 @@ class Settings(BaseSettings):
     listing_response_timeout: timedelta = Field(
         default=timedelta(hours=24), gt=timedelta(0)
     )
+    # How long an accepted item reservation lasts until a meeting is scheduled
+    # (appendix 4); a scheduled meeting extends it to the meeting time.
+    listing_reservation_timeout: timedelta = Field(
+        default=timedelta(hours=48), gt=timedelta(0)
+    )
     listing_publication_limit: int = Field(default=10, ge=1)
     listing_publication_window: timedelta = Field(
         default=timedelta(days=1), gt=timedelta(0)

@@ -416,7 +416,9 @@ async def test_deadline_catch_up(owner: Account, borrower: Account, state: str) 
         if interaction:
             item = await owner.auth.db.get(Interaction, UUID(interaction["id"]))
             assert item is not None
-            assert item.status == ("rejected" if state == "pending" else "accepted")
+            # A pending application is rejected on expiry; an accepted item
+            # reservation lapses after its own window well before the listing.
+            assert item.status == ("rejected" if state == "pending" else "cancelled")
         events = list(
             await owner.auth.db.scalars(
                 select(ListingEvent).where(ListingEvent.action == "expired")
