@@ -105,6 +105,27 @@ class Settings(BaseSettings):
     sign_in_code_max_attempts: int = Field(default=5, ge=1)
     sign_in_email_limits: str = "3/15 minutes;10/day"
     sign_in_ip_limits: str = "60/minute"
+    # Retention of credentials, deleted by the cleanup task (CLEANUP_CRON).
+    sign_in_code_retention: timedelta = Field(
+        default=timedelta(days=1),
+        ge=timedelta(0),
+        description="How long a sign-in code is kept after it expires.",
+    )
+    refresh_token_reuse_window: timedelta = Field(
+        default=timedelta(days=30),
+        ge=timedelta(0),
+        description=(
+            "How long a used refresh token of a live session is kept after it"
+            " expires: its reuse within this window revokes the session."
+        ),
+    )
+    session_retention: timedelta = Field(
+        default=timedelta(days=7),
+        ge=timedelta(0),
+        description=(
+            "How long a revoked or expired session is kept with its refresh tokens."
+        ),
+    )
 
     @field_validator("sign_in_email_limits", "sign_in_ip_limits")
     @classmethod

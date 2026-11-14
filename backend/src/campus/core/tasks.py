@@ -7,9 +7,12 @@ duplicated run is harmless: the next one catches up, and concurrent runs
 share the work through ``FOR UPDATE SKIP LOCKED``.
 
 Modules declare their own tasks with :data:`task` (Taskiq shared tasks);
-they are sent through the broker made by :func:`create_broker`.
+they are sent through the broker made by :func:`create_broker`. Modules add
+retention rules of their own tables to the cleanup task with
+:func:`register_cleanup`.
 """
 
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Annotated
 
@@ -54,6 +57,32 @@ AUTOCLAIM_LOCK_TIMEOUT = 10.0
 # with jitter, capped at 10 s, for about a minute in total.
 REDIS_RETRIES = 8
 REDIS_BACKOFF_CAP = 10.0
+
+
+type Cleanup = Callable[
+    [async_sessionmaker[AsyncSession], Settings], Awaitable[dict[str, int]]
+]
+"""Deletes expired records of a module; returns deleted counts by kind."""
+
+_cleanups: dict[str, Cleanup] = {}
+
+
+def register_cleanup(name: str) -> Callable[[Cleanup], Cleanup]:
+    """Decorator: run the decorated coroutine in the cleanup task.
+
+    A cleanup must be idempotent: a repeated or concurrent run deletes
+    nothing more. Modules register cleanups when imported, so the worker
+    imports all modules first. Counts are logged as ``<name>_<kind>``.
+    """
+
+    def decorator(cleanup: Cleanup) -> Cleanup:
+        if name in _cleanups:
+            msg = f"a cleanup {name!r} is already registered"
+            raise ValueError(msg)
+        _cleanups[name] = cleanup
+        return cleanup
+
+    return decorator
 
 
 class RedisNotConfiguredError(RuntimeError):
@@ -142,9 +171,12 @@ async def _delete_expired(context: Annotated[Context, TaskiqDepends()]) -> None:
     sessions, settings = resources.sessions, resources.settings
     async with sessions() as session, session.begin():
         idempotency_keys = await delete_expired_idempotency_keys(session, clock.now())
-    logger.info(
-        "expired_records_deleted",
-        outbox_messages=await delete_finished_messages(sessions, settings),
-        deadlines=await delete_finished_deadlines(sessions, settings),
-        idempotency_keys=idempotency_keys,
-    )
+    counts = {
+        "outbox_messages": await delete_finished_messages(sessions, settings),
+        "deadlines": await delete_finished_deadlines(sessions, settings),
+        "idempotency_keys": idempotency_keys,
+    }
+    for name, cleanup in _cleanups.items():
+        for kind, deleted in (await cleanup(sessions, settings)).items():
+            counts[f"{name}_{kind}"] = deleted
+    logger.info("expired_records_deleted", **counts)
