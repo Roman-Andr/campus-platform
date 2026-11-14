@@ -56,9 +56,8 @@ msgstr "Внутренняя ошибка"
 msgid "Invalid client version"
 msgstr "Неверная версия клиента"
 
-#, fuzzy
 msgid "Invalid consent decision"
-msgstr "Неверная версия клиента"
+msgstr "Недопустимое решение по согласию"
 
 msgid "Invalid cursor"
 msgstr "Неверный курсор"

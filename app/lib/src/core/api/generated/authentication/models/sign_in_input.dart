@@ -3,6 +3,12 @@
 class SignInInput {
   const SignInInput({
     required this.email,
+
+    /// Current document IDs explicitly accepted at registration; send cross-border consent separately in cross_border_document_id.
+    this.acceptedDocumentIds,
+
+    /// Optional separate consent to this current cross-border document version.
+    this.crossBorderDocumentId,
     required this.code,
     required this.deviceId,
     this.deviceName,
@@ -16,6 +22,14 @@ class SignInInput {
     }
     return SignInInput(
       email: json["email"] as String,
+      acceptedDocumentIds: json.containsKey("accepted_document_ids")
+          ? (json["accepted_document_ids"] as List<Object?>)
+                .map((item) => item as String)
+                .toList()
+          : null,
+      crossBorderDocumentId: json.containsKey("cross_border_document_id")
+          ? json["cross_border_document_id"] as String?
+          : null,
       code: json["code"] as String,
       deviceId: json["device_id"] as String,
       deviceName: json.containsKey("device_name")
@@ -32,6 +46,12 @@ class SignInInput {
 
   final String email;
 
+  /// Current document IDs explicitly accepted at registration; send cross-border consent separately in cross_border_document_id.
+  final List<String>? acceptedDocumentIds;
+
+  /// Optional separate consent to this current cross-border document version.
+  final String? crossBorderDocumentId;
+
   final String code;
 
   final String deviceId;
@@ -44,6 +64,8 @@ class SignInInput {
 
   static const _knownKeys = <String>{
     "email",
+    "accepted_document_ids",
+    "cross_border_document_id",
     "code",
     "device_id",
     "device_name",
@@ -53,6 +75,12 @@ class SignInInput {
 
   Map<String, Object?> toJson() => {
     "email": this.email,
+    if (this.acceptedDocumentIds != null)
+      "accepted_document_ids": this.acceptedDocumentIds
+          ?.map((item) => item)
+          .toList(),
+    if (this.crossBorderDocumentId != null)
+      "cross_border_document_id": this.crossBorderDocumentId,
     "code": this.code,
     "device_id": this.deviceId,
     if (this.deviceName != null) "device_name": this.deviceName,

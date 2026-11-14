@@ -19,6 +19,7 @@ from sqlalchemy import (
     select,
     text,
 )
+from sqlalchemy.dialects.postgresql import distinct_on
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -97,7 +98,7 @@ async def current_documents(session: AsyncSession) -> list[DocumentVersion]:
         (
             await session.scalars(
                 select(DocumentVersion)
-                .distinct(DocumentVersion.kind)
+                .ext(distinct_on(DocumentVersion.kind))
                 .order_by(DocumentVersion.kind, DocumentVersion.version.desc())
             )
         ).all()
@@ -126,6 +127,20 @@ async def publish_document(
     )
     session.add(document)
     await session.flush()
+    if kind == DocumentKind.CROSS_BORDER and previous is not None:
+        # A new optional version invalidates previous grants. Include the
+        # new version ID; consumers recheck current state on delivery.
+        latest = (
+            await session.scalars(
+                select(ConsentDecision)
+                .ext(distinct_on(ConsentDecision.user_id))
+                .where(ConsentDecision.document_id == previous.id)
+                .order_by(ConsentDecision.user_id, ConsentDecision.id.desc())
+            )
+        ).all()
+        for decision in latest:
+            if decision.accepted:
+                consent_changed(session, decision.user_id, document.id, allowed=False)
     return document
 
 
@@ -158,7 +173,7 @@ async def cross_border_allowed(session: AsyncSession, user_id: UUID) -> bool:
 
 
 async def require_registration_consents(
-    session: AsyncSession, accepted: list[UUID]
+    session: AsyncSession, accepted: list[UUID], cross_border_id: UUID | None
 ) -> None:
     await publication_lock(session)
     documents = await current_documents(session)
@@ -173,7 +188,11 @@ async def require_registration_consents(
                 for d in missing
             ],
         )
-    if set(accepted) - {d.id for d in documents}:
+    if set(accepted) - {d.id for d in documents if d.kind in REQUIRED}:
+        raise ProblemError(CONSENT_INVALID)
+    if cross_border_id is not None and cross_border_id not in {
+        d.id for d in documents if d.kind == DocumentKind.CROSS_BORDER
+    }:
         raise ProblemError(CONSENT_INVALID)
 
 
@@ -194,16 +213,22 @@ async def record_decision(
         )
     )
     if document.kind == DocumentKind.CROSS_BORDER:
-        add_message(
-            session,
-            "identity.cross_border_consent_changed",
-            {
-                "user_id": str(principal.user_id),
-                "document_id": str(document.id),
-                "allowed": accepted,
-            },
-        )
+        consent_changed(session, principal.user_id, document.id, allowed=accepted)
     await session.flush()
+
+
+def consent_changed(
+    session: AsyncSession, user_id: UUID, document_id: UUID, *, allowed: bool
+) -> None:
+    add_message(
+        session,
+        "identity.cross_border_consent_changed",
+        {
+            "user_id": str(user_id),
+            "document_id": str(document_id),
+            "allowed": allowed,
+        },
+    )
 
 
 async def check_consents(
@@ -283,7 +308,9 @@ async def accept_documents(
     data: AcceptanceInput, session: DbSession, principal: CurrentUser
 ) -> Response:
     await lock_decisions(session, principal)
-    documents = {d.id: d for d in await current_documents(session)}
+    documents = {
+        d.id: d for d in await current_documents(session) if d.kind in REQUIRED
+    }
     if set(data.document_ids) - documents.keys():
         raise ProblemError(CONSENT_INVALID)
     for document_id in dict.fromkeys(data.document_ids):

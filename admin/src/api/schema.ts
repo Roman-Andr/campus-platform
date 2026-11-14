@@ -168,6 +168,57 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/documents': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Documents */
+    get: operations['get_documents'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/me/consents': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Accept Documents */
+    post: operations['accept_documents'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/me/consents/cross-border': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Change Cross Border Consent */
+    put: operations['change_cross_border_consent'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/me': {
     parameters: {
       query?: never;
@@ -342,6 +393,11 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** AcceptanceInput */
+    AcceptanceInput: {
+      /** Document Ids */
+      document_ids: string[];
+    };
     /**
      * AccountType
      * @description Account type given by the e-mail domain an address belongs to.
@@ -424,6 +480,42 @@ export interface components {
      * @enum {string}
      */
     ClientPlatform: 'android' | 'web' | 'desktop' | 'telegram' | 'admin';
+    /** CrossBorderInput */
+    CrossBorderInput: {
+      /**
+       * Document Id
+       * Format: uuid
+       */
+      document_id: string;
+      /** Accepted */
+      accepted: boolean;
+    };
+    /**
+     * DocumentKind
+     * @enum {string}
+     */
+    DocumentKind:
+      'community_rules' | 'privacy_policy' | 'personal_data_processing' | 'cross_border_transfer';
+    /** DocumentOutput */
+    DocumentOutput: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      kind: components['schemas']['DocumentKind'];
+      /** Version */
+      version: number;
+      /** Text */
+      text: string;
+      /**
+       * Published At
+       * Format: date-time
+       */
+      published_at: string;
+      /** Required */
+      required: boolean;
+    };
     /** EmailDomainList */
     EmailDomainList: {
       /** Items */
@@ -666,6 +758,8 @@ export interface components {
         | 'client_update_required'
         | 'client_version_invalid'
         | 'client_version_missing'
+        | 'consent_invalid'
+        | 'consent_required'
         | 'email_domain_not_allowed'
         | 'forbidden'
         | 'http_error'
@@ -763,6 +857,16 @@ export interface components {
        * Format: email
        */
       email: string;
+      /**
+       * Accepted Document Ids
+       * @description Current document IDs explicitly accepted at registration; send cross-border consent separately in cross_border_document_id.
+       */
+      accepted_document_ids?: string[];
+      /**
+       * Cross Border Document Id
+       * @description Optional separate consent to this current cross-border document version.
+       */
+      cross_border_document_id?: string | null;
       /** Code */
       code: string;
       /**
@@ -803,6 +907,11 @@ export interface components {
     UserOutput: {
       /** Roles */
       roles: components['schemas']['RoleOutput'][];
+      /**
+       * Cross Border Transfer Allowed
+       * @default false
+       */
+      cross_border_transfer_allowed: boolean;
       /**
        * Id
        * Format: uuid
@@ -913,6 +1022,15 @@ export interface operations {
           'application/problem+json': components['schemas']['Problem'];
         };
       };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
       /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
       422: {
         headers: {
@@ -979,6 +1097,15 @@ export interface operations {
       };
       /** @description Invalid, expired or revoked authentication (unauthorized). */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
         headers: {
           [name: string]: unknown;
         };
@@ -1059,6 +1186,15 @@ export interface operations {
           'application/problem+json': components['schemas']['Problem'];
         };
       };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
       /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
       422: {
         headers: {
@@ -1122,6 +1258,15 @@ export interface operations {
       };
       /** @description Invalid, expired or revoked authentication (unauthorized). */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
         headers: {
           [name: string]: unknown;
         };
@@ -1198,6 +1343,15 @@ export interface operations {
       };
       /** @description Missing, invalid, expired or revoked credentials. */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
         headers: {
           [name: string]: unknown;
         };
@@ -1290,6 +1444,15 @@ export interface operations {
           'application/problem+json': components['schemas']['Problem'];
         };
       };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
       /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
       422: {
         headers: {
@@ -1368,6 +1531,15 @@ export interface operations {
       };
       /** @description Missing, invalid, expired or revoked credentials. */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
         headers: {
           [name: string]: unknown;
         };
@@ -1454,6 +1626,15 @@ export interface operations {
           'application/problem+json': components['schemas']['Problem'];
         };
       };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
       /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
       422: {
         headers: {
@@ -1474,6 +1655,251 @@ export interface operations {
       };
       /** @description Rate limit exceeded; Retry-After is in seconds. */
       429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  get_documents: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DocumentOutput'][];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  accept_documents: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AcceptanceInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  change_cross_border_consent: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CrossBorderInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
         headers: {
           [name: string]: unknown;
         };
@@ -1526,6 +1952,15 @@ export interface operations {
       };
       /** @description Not signed in. */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
         headers: {
           [name: string]: unknown;
         };
@@ -1602,6 +2037,15 @@ export interface operations {
       };
       /** @description Not signed in. */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
         headers: {
           [name: string]: unknown;
         };

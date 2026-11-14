@@ -81,7 +81,12 @@ class SignInInput(EmailInput):
     accepted_document_ids: list[UUID] = Field(
         default_factory=list,
         description="Current document IDs explicitly accepted at registration; "
-        "cross-border consent is optional.",
+        "send cross-border consent separately in cross_border_document_id.",
+    )
+    cross_border_document_id: UUID | None = Field(
+        default=None,
+        description="Optional separate consent to this current "
+        "cross-border document version.",
     )
     code: str = Field(pattern=r"^[0-9]{6}$")
     device_id: UUID
@@ -242,7 +247,9 @@ async def sign_in(data: SignInInput, request: Request, session: DbSession) -> To
     if user is None:
         if data.first_name is None or data.last_name is None:
             raise ProblemError(REGISTRATION_REQUIRED)
-        await require_registration_consents(session, data.accepted_document_ids)
+        await require_registration_consents(
+            session, data.accepted_document_ids, data.cross_border_document_id
+        )
         user = User(
             email=data.email,
             first_name=data.first_name,
@@ -276,7 +283,10 @@ async def sign_in(data: SignInInput, request: Request, session: DbSession) -> To
     await session.flush()
     if registering:
         for document in await current_documents(session):
-            if document.id in data.accepted_document_ids:
+            if (
+                document.id in data.accepted_document_ids
+                or document.id == data.cross_border_document_id
+            ):
                 await record_decision(
                     session, Principal(user.id, device.id), document, accepted=True
                 )
