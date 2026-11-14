@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-14 15:00+0300\n"
+"POT-Creation-Date: 2026-11-14 15:19+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -191,6 +191,9 @@ msgstr "Запрос не выполнен"
 
 msgid "Requests that change data need an Idempotency-Key header."
 msgstr "Изменяющему запросу нужен заголовок Idempotency-Key."
+
+msgid "Session not found"
+msgstr "Сессия не найдена"
 
 msgid "Sign-in attempts exceeded"
 msgstr "Превышено число попыток входа"

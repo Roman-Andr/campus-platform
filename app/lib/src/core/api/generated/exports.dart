@@ -39,6 +39,8 @@ export 'listings/models/visibility.dart';
 export 'models/client_platform.dart';
 export 'profile/models/profile_input.dart';
 export 'profile/profile_client.dart';
+export 'sessions/models/session_output.dart';
+export 'sessions/sessions_client.dart';
 export 'system/models/health.dart';
 export 'system/models/health_status.dart';
 export 'system/system_client.dart';

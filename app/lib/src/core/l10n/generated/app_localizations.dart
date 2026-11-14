@@ -889,6 +889,72 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Push-уведомления будут без имён и текста. Telegram-бот и ИИ-функции будут отключены.'**
   String get consentRevokeEffects;
+
+  /// devicesTitle
+  ///
+  /// In ru, this message translates to:
+  /// **'Устройства'**
+  String get devicesTitle;
+
+  /// devicesCurrent
+  ///
+  /// In ru, this message translates to:
+  /// **'Текущее устройство'**
+  String get devicesCurrent;
+
+  /// devicesUnknown
+  ///
+  /// In ru, this message translates to:
+  /// **'Устройство без названия'**
+  String get devicesUnknown;
+
+  /// devicesSignOutAll
+  ///
+  /// In ru, this message translates to:
+  /// **'Выйти со всех устройств'**
+  String get devicesSignOutAll;
+
+  /// devicesConfirmAll
+  ///
+  /// In ru, this message translates to:
+  /// **'Выйти со всех устройств, включая текущее?'**
+  String get devicesConfirmAll;
+
+  /// No description provided for @devicesConfirmOne.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выйти с устройства «{device}»?'**
+  String devicesConfirmOne(String device);
+
+  /// devicesCancel
+  ///
+  /// In ru, this message translates to:
+  /// **'Отмена'**
+  String get devicesCancel;
+
+  /// No description provided for @devicesSignedIn.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вход: {time}'**
+  String devicesSignedIn(String time);
+
+  /// No description provided for @devicesLastActive.
+  ///
+  /// In ru, this message translates to:
+  /// **'Последняя активность: {time}'**
+  String devicesLastActive(String time);
+
+  /// devicesEmpty
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет активных сессий'**
+  String get devicesEmpty;
+
+  /// No description provided for @devicesPlatform.
+  ///
+  /// In ru, this message translates to:
+  /// **'{platform, select, android{Android} web{Браузер} desktop{Компьютер} telegram{Telegram} admin{Панель администратора} other{Другая платформа}}'**
+  String devicesPlatform(String platform);
 }
 
 class _AppLocalizationsDelegate

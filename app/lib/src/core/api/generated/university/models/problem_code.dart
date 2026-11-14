@@ -30,6 +30,7 @@ enum ProblemCodeValue {
   rateLimited("rate_limited"),
   refreshTokenInvalid("refresh_token_invalid"),
   registrationRequired("registration_required"),
+  sessionNotFound("session_not_found"),
   signInCodeAttemptsExceeded("sign_in_code_attempts_exceeded"),
   signInCodeExpired("sign_in_code_expired"),
   signInCodeInvalid("sign_in_code_invalid"),
@@ -110,6 +111,9 @@ sealed class ProblemCode {
   );
   static const registrationRequired = ProblemCodeKnown(
     ProblemCodeValue.registrationRequired,
+  );
+  static const sessionNotFound = ProblemCodeKnown(
+    ProblemCodeValue.sessionNotFound,
   );
   static const signInCodeAttemptsExceeded = ProblemCodeKnown(
     ProblemCodeValue.signInCodeAttemptsExceeded,

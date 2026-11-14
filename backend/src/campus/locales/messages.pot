@@ -171,6 +171,9 @@ msgstr ""
 msgid "Requests that change data need an Idempotency-Key header."
 msgstr ""
 
+msgid "Session not found"
+msgstr ""
+
 msgid "Sign-in attempts exceeded"
 msgstr ""
 

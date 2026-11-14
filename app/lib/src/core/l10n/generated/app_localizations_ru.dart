@@ -448,4 +448,53 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get consentRevokeEffects =>
       'Push-уведомления будут без имён и текста. Telegram-бот и ИИ-функции будут отключены.';
+
+  @override
+  String get devicesTitle => 'Устройства';
+
+  @override
+  String get devicesCurrent => 'Текущее устройство';
+
+  @override
+  String get devicesUnknown => 'Устройство без названия';
+
+  @override
+  String get devicesSignOutAll => 'Выйти со всех устройств';
+
+  @override
+  String get devicesConfirmAll => 'Выйти со всех устройств, включая текущее?';
+
+  @override
+  String devicesConfirmOne(String device) {
+    return 'Выйти с устройства «$device»?';
+  }
+
+  @override
+  String get devicesCancel => 'Отмена';
+
+  @override
+  String devicesSignedIn(String time) {
+    return 'Вход: $time';
+  }
+
+  @override
+  String devicesLastActive(String time) {
+    return 'Последняя активность: $time';
+  }
+
+  @override
+  String get devicesEmpty => 'Нет активных сессий';
+
+  @override
+  String devicesPlatform(String platform) {
+    String _temp0 = intl.Intl.selectLogic(platform, {
+      'android': 'Android',
+      'web': 'Браузер',
+      'desktop': 'Компьютер',
+      'telegram': 'Telegram',
+      'admin': 'Панель администратора',
+      'other': 'Другая платформа',
+    });
+    return '$_temp0';
+  }
 }

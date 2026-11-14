@@ -37,6 +37,7 @@ from campus.modules.identity.roles import (
     admin_router,
     require_roles,
 )
+from campus.modules.identity.sessions import router as sessions_router
 
 __all__ = [
     "ConsentChange",
@@ -69,4 +70,5 @@ __all__ = [
     "require_roles",
     "router",
     "seed_documents",
+    "sessions_router",
 ]

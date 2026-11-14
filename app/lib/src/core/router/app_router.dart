@@ -12,6 +12,7 @@ import '../../features/listings/presentation/listings_screens.dart';
 import '../../features/profile/application/my_profile.dart';
 import '../../features/profile/presentation/profile_form_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/sessions/presentation/devices_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/update/presentation/update_required_screen.dart';
 import '../api/client_update.dart';
@@ -23,6 +24,7 @@ part 'app_router.g.dart';
 abstract final class AppRoutes {
   static const home = '/';
   static const settings = '/settings';
+  static const devices = '/settings/devices';
   static const consents = '/settings/consents';
   static const updateRequired = '/update-required';
   static const signIn = '/sign-in';
@@ -62,6 +64,10 @@ GoRouter appRouter(Ref ref) {
             path: AppRoutes.settings.substring(1),
             builder: (context, state) => const SettingsScreen(),
             routes: [
+              GoRoute(
+                path: 'devices',
+                builder: (context, state) => const DevicesScreen(),
+              ),
               GoRoute(
                 path: 'consents',
                 builder: (context, state) => const ConsentsScreen(),
