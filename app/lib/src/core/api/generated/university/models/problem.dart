@@ -22,6 +22,9 @@ class Problem {
     this.requestId,
     this.errors,
 
+    /// Current aggregate version after a stale edit.
+    this.currentVersion,
+
     /// Oldest supported client version (client_update_required).
     this.minVersion,
     this.additionalProperties = const {},
@@ -45,6 +48,9 @@ class Problem {
                           FieldError.fromJson(item as Map<String, Object?>),
                     )
                     .toList()
+        : null,
+    currentVersion: json.containsKey("current_version")
+        ? json["current_version"] as int?
         : null,
     minVersion: json.containsKey("min_version")
         ? json["min_version"] as String?
@@ -73,6 +79,9 @@ class Problem {
 
   final List<FieldError>? errors;
 
+  /// Current aggregate version after a stale edit.
+  final int? currentVersion;
+
   /// Oldest supported client version (client_update_required).
   final String? minVersion;
 
@@ -84,6 +93,7 @@ class Problem {
     "code",
     "request_id",
     "errors",
+    "current_version",
     "min_version",
   };
 
@@ -100,6 +110,7 @@ class Problem {
     if (this.requestId != null) "request_id": this.requestId,
     if (this.errors != null)
       "errors": this.errors?.map((item) => item.toJson()).toList(),
+    if (this.currentVersion != null) "current_version": this.currentVersion,
     if (this.minVersion != null) "min_version": this.minVersion,
   };
 }

@@ -131,6 +131,10 @@ msgstr ""
 msgid "Profile incomplete"
 msgstr ""
 
+#, python-brace-format
+msgid "Reload the listing. Its current version is {version}."
+msgstr ""
+
 msgid "Request failed"
 msgstr ""
 
@@ -161,6 +165,15 @@ msgstr ""
 msgid "The client platform or version is not recognized."
 msgstr ""
 
+msgid "The listing state has changed."
+msgstr ""
+
+msgid "The listing text is empty or too long."
+msgstr ""
+
+msgid "The listing was edited."
+msgstr ""
+
 msgid "The page cursor is invalid or belongs to another list; start over."
 msgstr ""
 
@@ -174,6 +187,9 @@ msgid "The resource does not support this method."
 msgstr ""
 
 msgid "This Idempotency-Key was already used for a different request."
+msgstr ""
+
+msgid "This action is not allowed."
 msgstr ""
 
 msgid "This field is not allowed."
