@@ -15,7 +15,7 @@ from campus.core.config import Settings, get_settings
 from campus.core.db import create_engine, create_session_factory
 from campus.core.observability import configure_observability
 from campus.core.web import install_problem_handlers, use_problem_media_type
-from campus.modules import university
+from campus.modules import identity, university
 
 API_PREFIX = "/api/v1"
 
@@ -46,6 +46,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         yield
+        redis = getattr(_app.state, "auth_redis", None)
+        if redis is not None:
+            await redis.aclose()
+        storage = getattr(_app.state, "auth_limit_storage", None)
+        if storage is not None:
+            storage.bridge.storage.connection_pool.disconnect()
         if engine is not None:
             await engine.dispose()
 
@@ -66,6 +72,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     _install_openapi(app)
     app.include_router(health.router, prefix=API_PREFIX)
     app.include_router(university.router, prefix=API_PREFIX)
+    app.include_router(identity.router, prefix=API_PREFIX)
 
     # The last added middleware is the outermost: the request ID is set
     # before the access log record is written.

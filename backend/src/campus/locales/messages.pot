@@ -1,7 +1,16 @@
+msgid "Authentication required"
+msgstr ""
+
 msgid "Bad request"
 msgstr ""
 
 msgid "Client version missing"
+msgstr ""
+
+msgid "E-mail domain not allowed"
+msgstr ""
+
+msgid "First and last names are required"
 msgstr ""
 
 msgid "Has an invalid format."
@@ -25,7 +34,13 @@ msgstr ""
 msgid "Invalid idempotency key"
 msgstr ""
 
+msgid "Invalid refresh token"
+msgstr ""
+
 msgid "Invalid request"
+msgstr ""
+
+msgid "Invalid sign-in code"
 msgstr ""
 
 msgid "Method not allowed"
@@ -103,6 +118,12 @@ msgstr ""
 msgid "Requests that change data need an Idempotency-Key header."
 msgstr ""
 
+msgid "Sign-in attempts exceeded"
+msgstr ""
+
+msgid "Sign-in code expired or already used"
+msgstr ""
+
 msgid "Some fields of the request are invalid."
 msgstr ""
 
@@ -145,6 +166,16 @@ msgid ""
 "{version} or newer."
 msgstr ""
 
+msgid "Too many requests"
+msgstr ""
+
 msgid "Update required"
+msgstr ""
+
+msgid "Your Campus sign-in code"
+msgstr ""
+
+#, python-brace-format
+msgid "Your sign-in code: {code}. It expires in {minutes} minutes."
 msgstr ""
 

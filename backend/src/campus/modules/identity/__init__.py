@@ -1,5 +1,6 @@
-"""Authentication and users.
+"""Public interface of the identity module."""
 
-Public interface of the module. Other modules import only this package,
-never its submodules (enforced by import-linter).
-"""
+from campus.modules.identity.api import router
+from campus.modules.identity.models import RefreshToken, Session, SignInCode, User
+
+__all__ = ["RefreshToken", "Session", "SignInCode", "User", "router"]

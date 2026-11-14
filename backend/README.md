@@ -257,3 +257,40 @@ uv run pybabel update -i src/campus/locales/messages.pot -d src/campus/locales
 Ошибки уходят в Sentry (сервер сбора — GlitchTip), если задан
 `CAMPUS_SENTRY_DSN`; без DSN отправка выключена. Сбор данных о
 пользователе, заголовков, тел запросов и локальных переменных отключён.
+
+## Вход по коду из письма
+
+Для `/api/v1/auth` нужны PostgreSQL, Redis, разрешённые домены из seed,
+`CAMPUS_AUTH_SECRET_KEY` (случайный секрет минимум 32 символа) и SMTP
+воркера. Миграция: `uv run alembic upgrade head`. Redis подключается
+лениво; сбой Redis закрывает доступ к аутентификации.
+
+Все POST требуют `Idempotency-Key`, `X-Client-Platform` и
+`X-Client-Version`; ошибки возвращаются как Problem Details.
+
+- `POST /sign-in-codes`: `{email}`. Точное совпадение домена, регистр адреса
+  нормализуется. Ответ 202 одинаков для новых и существующих адресов.
+  Код из 6 цифр идёт через outbox на RU/EN по `Accept-Language`, хранится
+  HMAC-хэшем; после отправки payload письма очищается.
+- `POST /sign-in`: `{email, code, device_id, device_name?, first_name?,
+  last_name?}`. Первый вход требует имя и фамилию, состоящие из букв,
+  пробелов, дефисов и апострофов. Тип аккаунта задаётся доменом.
+  Ответ: `access_token`, `refresh_token`, `token_type`, `expires_in`, `user`.
+  Новый вход на том же устройстве отзывает прежнюю сессию.
+- `POST /token/refresh`: `{refresh_token, device_id}`. Ротация refresh;
+  повтор старого токена или несовпадение устройства отзывает всю сессию
+  и её access-токены через Redis. Истечение refresh также отзывает сессию.
+- `POST /sign-out`: `Authorization: Bearer <access_token>`, ответ 204.
+  Отзывает текущую сессию; остальные устройства продолжают работу.
+
+Access — JWT HS256 на 15 минут; refresh — случайный непрозрачный токен
+на 30 дней, в БД только SHA-256. В публичные маршруты входа и обновления
+не следует передавать истёкший access-токен. Защищённые маршруты используют
+`CurrentUser` из `campus.core.web.auth`; ключи идемпотентности имеют область
+пользователя. Схема с bearer security доступна на `/api/v1/openapi.json`;
+генерируемого API-клиента в репозитории пока нет.
+
+Настройки срока кода (10 минут), попыток (5), частоты писем
+(`3/15 minutes;10/day`) и общего лимита запросов кода/ввода по IP
+(`60/minute`) перечислены в `.env.example`. Ответ 429 содержит
+`Retry-After` в секундах. Ключи Redis содержат HMAC адреса/IP, без ПДн.

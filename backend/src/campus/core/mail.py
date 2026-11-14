@@ -10,12 +10,13 @@ from email.message import EmailMessage
 from email.utils import format_datetime, parseaddr
 
 import aiosmtplib
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from campus.core import clock
 from campus.core.config import Settings, get_settings
 from campus.core.jobs import JobInfo
-from campus.core.outbox import add_message, outbox_handlers
+from campus.core.outbox import OutboxMessage, add_message, outbox_handlers
 
 MAIL_TOPIC = "core.mail.send"
 
@@ -81,3 +82,6 @@ async def send_message(settings: Settings, message: EmailMessage) -> None:
 async def _send_queued_email(_session: AsyncSession, job: JobInfo) -> None:
     settings = get_settings()
     await send_message(settings, build_message(settings, job))
+    await _session.execute(
+        update(OutboxMessage).where(OutboxMessage.id == job.id).values(payload={})
+    )
