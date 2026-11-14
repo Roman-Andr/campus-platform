@@ -1483,7 +1483,9 @@ async def register_event(
         participant_id=user.id,
         participant=user,
         slot=None,
+        # New rows start without relationships; validation reads them.
         meeting=None,
+        options=[],
     )
     session.add(interaction)
     await session.flush()
