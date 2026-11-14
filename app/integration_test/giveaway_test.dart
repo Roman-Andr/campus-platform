@@ -68,6 +68,14 @@ void main() {
       await start(ownerRefresh);
       await tester.tap(find.byIcon(Icons.add));
       await tester.pumpAndSettle();
+      await until(find.byKey(const Key('listing-category')));
+      await tester.ensureVisible(find.byKey(const Key('listing-category')));
+      await tester.tap(find.byKey(const Key('listing-category')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byType(DropdownMenuItem<String>).hitTestable().first,
+      );
+      await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('listing-title')),
         'Integration desk',
@@ -76,13 +84,9 @@ void main() {
         find.byKey(const Key('listing-description')),
         'Collect on campus',
       );
-      await until(find.byKey(const Key('listing-category')));
-      await tester.tap(find.byKey(const Key('listing-category')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byType(DropdownMenuItem<String>).last);
-      await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Publish'));
       await tester.tap(find.text('Publish'));
+      await until(find.byIcon(Icons.add));
       await until(find.text('Integration desk'));
       ownerRefresh = (await storage.read(key: AuthStorage.refreshTokenKey))!;
 
