@@ -46,3 +46,5 @@ npm run dev                  # http://localhost:5173, /api проксирует�
 - `src/providers/authProvider.ts` — заглушка входа.
 - `src/i18n/` — строки интерфейса RU/EN; строки самого react-admin — из
   `ra-language-*`, недостающие в русском пакете берутся из английского.
+
+<!-- CI demo for #32, not to be merged -->
