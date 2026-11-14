@@ -6,11 +6,16 @@ import 'package:dio/dio.dart'
     show Dio, Options, ResponseType, CancelToken, ListParam, ListFormat;
 
 import 'models/category_list.dart' as models show CategoryList;
+import 'models/event_edit.dart' as models show EventEdit;
+import 'models/event_input.dart' as models show EventInput;
 import 'models/giveaway_input.dart' as models show GiveawayInput;
+<<<<<<< HEAD
 import 'models/interaction_output.dart' as models show InteractionOutput;
 import 'models/lesson_accept_input.dart' as models show LessonAcceptInput;
 import 'models/lesson_input.dart' as models show LessonInput;
 import 'models/lesson_slot_input.dart' as models show LessonSlotInput;
+=======
+>>>>>>> e66507d (feat: add event signup with seat limits)
 import 'models/listing_edit.dart' as models show ListingEdit;
 import 'models/listing_output.dart' as models show ListingOutput;
 import 'models/listing_status.dart' as models show ListingStatus;
@@ -30,7 +35,13 @@ import 'models/page_waitlist_entry_output.dart'
     show PageWaitlistEntryOutput;
 import 'models/participation_output_meeting.dart' as models show MeetingOutput;
 import 'models/publication_input.dart' as models show PublicationInput;
+<<<<<<< HEAD
 import 'models/skill_input.dart' as models show SkillInput;
+=======
+import 'models/signup_input.dart' as models show SignupInput;
+import 'models/signup_output.dart' as models show SignupOutput;
+import 'models/signup_output_interaction.dart' as models show InteractionOutput;
+>>>>>>> e66507d (feat: add event signup with seat limits)
 import 'models/transition_input.dart' as models show TransitionInput;
 import 'models/visibility.dart' as models show Visibility;
 import 'models/waitlist_entry_output.dart' as models show WaitlistEntryOutput;
@@ -1412,5 +1423,121 @@ class ListingsClient {
     return models.WaitlistEntryOutput.fromJson(
       response.data as Map<String, Object?>,
     );
+  }
+
+  /// Publish Event
+  Future<models.ListingOutput> publishEvent({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required models.EventInput body,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 201),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/events",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.ListingOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Signup Event
+  Future<models.SignupOutput> signupEvent({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required models.SignupInput body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/signup",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.SignupOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Edit Event
+  Future<models.ListingOutput> editEvent({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required models.EventEdit body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "PATCH",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/event",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.ListingOutput.fromJson(response.data as Map<String, Object?>);
   }
 }

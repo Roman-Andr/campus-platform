@@ -36,6 +36,15 @@ class ListingOutput {
     this.pinnedUntil,
     required this.hiddenReason,
 
+    /// RFC 3339 instant with an explicit offset; returned in UTC.
+    this.eventStartsAt,
+
+    /// RFC 3339 instant with an explicit offset; returned in UTC.
+    this.eventEndsAt,
+    this.eventLocation,
+    this.eventCapacity,
+    this.remainingPlaces,
+
     /// Whether the current user bookmarked it.
     this.favorite = false,
 
@@ -109,6 +118,29 @@ class ListingOutput {
                 : DateTime.parse(json["pinned_until"] as String).toUtc()
           : null,
       hiddenReason: json["hidden_reason"] as String?,
+      eventStartsAt: json.containsKey("event_starts_at")
+          ? json["event_starts_at"] == null
+                ? null
+                : DateTime.parse(json["event_starts_at"] as String).toUtc()
+          : null,
+      eventEndsAt: json.containsKey("event_ends_at")
+          ? json["event_ends_at"] == null
+                ? null
+                : DateTime.parse(json["event_ends_at"] as String).toUtc()
+          : null,
+      eventLocation: json.containsKey("event_location")
+          ? json["event_location"] as String?
+          : null,
+      eventCapacity: json.containsKey("event_capacity")
+          ? json["event_capacity"] == null
+                ? null
+                : _readJsonInteger(json["event_capacity"])
+          : null,
+      remainingPlaces: json.containsKey("remaining_places")
+          ? json["remaining_places"] == null
+                ? null
+                : _readJsonInteger(json["remaining_places"])
+          : null,
       favorite: json.containsKey("favorite") ? json["favorite"] as bool : false,
       archivedAt: json["archived_at"] == null
           ? null
@@ -178,6 +210,18 @@ class ListingOutput {
 
   final String? hiddenReason;
 
+  /// RFC 3339 instant with an explicit offset; returned in UTC.
+  final DateTime? eventStartsAt;
+
+  /// RFC 3339 instant with an explicit offset; returned in UTC.
+  final DateTime? eventEndsAt;
+
+  final String? eventLocation;
+
+  final int? eventCapacity;
+
+  final int? remainingPlaces;
+
   /// Whether the current user bookmarked it.
   final bool favorite;
 
@@ -217,6 +261,11 @@ class ListingOutput {
     "direction",
     "pinned_until",
     "hidden_reason",
+    "event_starts_at",
+    "event_ends_at",
+    "event_location",
+    "event_capacity",
+    "remaining_places",
     "favorite",
     "archived_at",
     "purged_at",
@@ -251,6 +300,13 @@ class ListingOutput {
     if (this.pinnedUntil != null)
       "pinned_until": this.pinnedUntil?.toUtc().toIso8601String(),
     "hidden_reason": this.hiddenReason,
+    if (this.eventStartsAt != null)
+      "event_starts_at": this.eventStartsAt?.toUtc().toIso8601String(),
+    if (this.eventEndsAt != null)
+      "event_ends_at": this.eventEndsAt?.toUtc().toIso8601String(),
+    if (this.eventLocation != null) "event_location": this.eventLocation,
+    if (this.eventCapacity != null) "event_capacity": this.eventCapacity,
+    if (this.remainingPlaces != null) "remaining_places": this.remainingPlaces,
     "favorite": this.favorite,
     "archived_at": this.archivedAt?.toUtc().toIso8601String(),
     "purged_at": this.purgedAt?.toUtc().toIso8601String(),
