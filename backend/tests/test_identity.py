@@ -12,7 +12,7 @@ import httpx2
 import jwt
 import pytest
 import time_machine
-from fastapi import Request
+from fastapi import FastAPI, Request
 from pydantic import SecretStr, ValidationError
 from redis.asyncio import Redis
 from sqlalchemy import func, select
@@ -35,7 +35,7 @@ from campus.modules.identity import (
     delete_expired_credentials,
 )
 from campus.modules.university import AccountType, EmailDomain
-from tests.web_app import serve
+from tests.web_app import CLIENT_HEADERS, serve
 
 EMAIL = "student@university.example"
 DEVICE = str(uuid4())
@@ -48,6 +48,14 @@ class Auth:
     db: AsyncSession
     settings: Settings
     redis: Redis
+    app: FastAPI
+
+    def peer(self, host: str) -> httpx2.AsyncClient:
+        """A client of the running app connecting from ``host``."""
+        transport = httpx2.ASGITransport(app=self.app, client=(host, 40000))
+        return httpx2.AsyncClient(
+            transport=transport, base_url="http://test", headers=CLIENT_HEADERS
+        )
 
     async def post(
         self, path: str, data: dict[str, Any] | None = None, **headers: str
@@ -121,7 +129,7 @@ async def auth(database_url: str, redis_url: str) -> AsyncIterator[Auth]:
 
         app.include_router(router)
         async with serve(app) as client:
-            yield Auth(client, db, settings, redis)
+            yield Auth(client, db, settings, redis, app)
     await engine.dispose()
 
 
@@ -441,6 +449,43 @@ async def test_ip_rate_limit_on_requests_and_attempts(auth: Auth) -> None:
     response = await auth.post("/sign-in-codes", {"email": EMAIL})
     assert response.status_code == 429
     assert 1 <= int(response.headers["Retry-After"]) <= 60
+
+
+async def request_code(
+    client: httpx2.AsyncClient, index: int, forwarded_for: str | None = None
+) -> int:
+    headers = {"Idempotency-Key": str(uuid4())}
+    if forwarded_for is not None:
+        headers["X-Forwarded-For"] = forwarded_for
+    response = await client.post(
+        "/api/v1/auth/sign-in-codes",
+        json={"email": f"user{index}@university.example"},
+        headers=headers,
+    )
+    return response.status_code
+
+
+async def test_clients_behind_trusted_proxy_have_separate_ip_limits(
+    auth: Auth,
+) -> None:
+    # The proxy (127.0.0.1 is trusted by default) forwards two clients.
+    async with auth.peer("127.0.0.1") as proxy:
+        for index in range(60):
+            assert await request_code(proxy, index, "198.51.100.1") == 202
+        assert await request_code(proxy, 60, "198.51.100.1") == 429
+        # A proxy appends the peer it got the request from to the chain.
+        assert await request_code(proxy, 61, "10.1.1.1, 198.51.100.1") == 429
+        assert await request_code(proxy, 62, "198.51.100.2") == 202
+        assert await request_code(proxy, 63) == 202
+
+
+async def test_forwarded_for_from_untrusted_peer_is_ignored(auth: Auth) -> None:
+    async with auth.peer("203.0.113.7") as client:
+        for index in range(60):
+            assert await request_code(client, index, f"198.51.100.{index}") == 202
+        assert await request_code(client, 60, "198.51.100.200") == 429
+    async with auth.peer("203.0.113.8") as other:
+        assert await request_code(other, 61) == 202
 
 
 async def test_idempotent_sign_in(auth: Auth) -> None:

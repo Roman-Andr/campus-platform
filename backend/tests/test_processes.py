@@ -55,6 +55,8 @@ def test_api_runs_uvicorn_with_configured_address(
     assert kwargs["factory"] is True
     assert kwargs["access_log"] is False
     assert kwargs["log_config"] is None
+    # X-Forwarded-* are handled by the app from CAMPUS_TRUSTED_PROXIES.
+    assert kwargs["proxy_headers"] is False
 
 
 def test_api_factory_path_resolves_to_create_app() -> None:

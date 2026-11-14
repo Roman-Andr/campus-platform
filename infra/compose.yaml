@@ -56,8 +56,10 @@ services:
     <<: *backend
     environment:
       <<: *backend-env
-      # Only Caddy reaches the API port; trust its X-Forwarded-* headers.
-      FORWARDED_ALLOW_IPS: "*"
+      # The API port is not published: only peers on the compose networks
+      # (in practice Caddy) reach it, and their addresses are private.
+      # Caddy replaces X-Forwarded-For from clients with their address.
+      CAMPUS_TRUSTED_PROXIES: ${CAMPUS_TRUSTED_PROXIES:-10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7}
     depends_on:
       migrate:
         condition: service_completed_successfully

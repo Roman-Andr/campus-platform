@@ -18,6 +18,9 @@ def main() -> None:
         log_config=None,
         access_log=False,
         server_header=False,
+        # X-Forwarded-* are applied by the application from
+        # CAMPUS_TRUSTED_PROXIES, so FORWARDED_ALLOW_IPS has no effect.
+        proxy_headers=False,
     )
 
 

@@ -7,6 +7,7 @@ from typing import Any
 from asgi_correlation_id import CorrelationIdMiddleware
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from campus import __version__
 from campus.api import health
@@ -78,4 +79,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # before the access log record is written.
     app.add_middleware(AccessLogMiddleware)
     app.add_middleware(CorrelationIdMiddleware)
+    # Outermost: everything below sees the client address and scheme from
+    # X-Forwarded-* of a trusted reverse proxy, e.g. the sign-in IP limit.
+    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=settings.trusted_proxies)
     return app
