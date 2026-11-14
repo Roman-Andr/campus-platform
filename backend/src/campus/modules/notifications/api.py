@@ -4,7 +4,7 @@ from datetime import time
 from typing import Annotated, Any, Self
 from uuid import UUID
 
-from fastapi import Query, Request
+from fastapi import Depends, Query, Request
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -16,6 +16,7 @@ from pydantic_core import PydanticCustomError
 from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert
 
+from campus.core import clock
 from campus.core.i18n import N_
 from campus.core.web import (
     DbSession,
@@ -26,16 +27,18 @@ from campus.core.web import (
     ProblemType,
     api_router,
 )
-from campus.core.web.auth import CurrentUser
+from campus.core.web.auth import UNAUTHORIZED, CurrentUser, Principal
 from campus.core.web.datetimes import Instant
 from campus.core.web.pagination import paginate
 from campus.core.web.problems import NOT_FOUND, ProblemResponse, problem_response
+from campus.modules.identity import Session
 from campus.modules.notifications.delivery import NOTIFICATION_TYPES
 from campus.modules.notifications.models import (
     Inbox,
     MutedChat,
     Notification,
     NotificationSettings,
+    PushToken,
 )
 from campus.modules.notifications.preferences import (
     EffectiveSettings,
@@ -87,6 +90,41 @@ class ReadCursor(BaseModel):
     unread_count: int = Field(
         description="Unread notifications left after the cursor moved."
     )
+
+
+class PushTokenInput(BaseModel):
+    """A device registration token issued by FCM."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    token: str = Field(
+        min_length=1,
+        max_length=512,
+        description="FCM registration token of this Android device.",
+    )
+
+
+async def active_session(session: DbSession, principal: CurrentUser) -> Principal:
+    """Reject a revoked device and lock its row for token rotation.
+
+    The lock serializes registration and removal with session revocation and
+    with another registration from the same device. Dependencies run on an
+    idempotent replay too, so a stored answer is never returned to a session
+    revoked after the original request.
+    """
+    device = await session.scalar(
+        select(Session).where(Session.id == principal.session_id).with_for_update()
+    )
+    if (
+        device is None
+        or device.user_id != principal.user_id
+        or device.revoked_at is not None
+    ):
+        raise ProblemError(UNAUTHORIZED, headers={"WWW-Authenticate": "Bearer"})
+    return principal
+
+
+ActiveSession = Annotated[Principal, Depends(active_session)]
 
 
 @router.get("")
@@ -431,3 +469,49 @@ async def update_settings(
     current = await effective_settings(session, principal.user_id, settings)
     timezone = await user_timezone(session, principal.user_id, settings)
     return settings_output(current, timezone)
+
+
+@router.put("/push-token", status_code=204)
+async def register_push_token(
+    data: PushTokenInput, session: DbSession, principal: ActiveSession
+) -> None:
+    """Bind this device's FCM token to the current user and session.
+
+    A new token replaces the previous token of the same session; repeating
+    the same registration is a no-op. A token previously bound to another
+    account is moved, so a device that switched accounts stops receiving the
+    previous user's pushes.
+    """
+    await session.execute(
+        delete(PushToken).where(
+            PushToken.session_id == principal.session_id,
+            PushToken.token != data.token,
+        )
+    )
+    await session.execute(
+        insert(PushToken)
+        .values(
+            token=data.token,
+            user_id=principal.user_id,
+            session_id=principal.session_id,
+        )
+        .on_conflict_do_update(
+            index_elements=[PushToken.token],
+            set_={
+                "user_id": principal.user_id,
+                "session_id": principal.session_id,
+                "updated_at": clock.now(),
+            },
+        )
+    )
+
+
+@router.delete("/push-token", status_code=204)
+async def unregister_push_token(session: DbSession, principal: ActiveSession) -> None:
+    """Forget the current session's token, e.g. on sign-out."""
+    await session.execute(
+        delete(PushToken).where(
+            PushToken.session_id == principal.session_id,
+            PushToken.user_id == principal.user_id,
+        )
+    )

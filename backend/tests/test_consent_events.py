@@ -32,6 +32,13 @@ from campus.modules.identity.consents import (
 from tests.models import Note
 
 
+@pytest.fixture(autouse=True)
+def only_test_consumers() -> Iterator[None]:
+    """Hide consumers of imported modules: each test owns the registry."""
+    with consent_consumers.suspend():
+        yield
+
+
 @pytest.fixture
 def consumers() -> Iterator[list[str]]:
     names: list[str] = []

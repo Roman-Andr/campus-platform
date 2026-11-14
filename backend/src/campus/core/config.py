@@ -419,6 +419,26 @@ class Settings(BaseSettings):
         ),
     )
 
+    # FCM HTTP v1 (specification, 5.1.1, module 7): Android push. The service
+    # account credentials are optional as a group; without them the adapter
+    # reports a permanent configuration error and drops no stored notification.
+    fcm_project_id: str | None = Field(
+        default=None, description="Firebase project ID for FCM HTTP v1 messages."
+    )
+    fcm_client_email: str | None = Field(
+        default=None, description="Service account e-mail used for FCM OAuth."
+    )
+    fcm_private_key: SecretStr | None = Field(
+        default=None, description="Service account private key in PEM form."
+    )
+    fcm_api_url: str = Field(
+        default="https://fcm.googleapis.com",
+        description="Base URL of the FCM HTTP v1 API.",
+    )
+    fcm_timeout: float = Field(
+        default=5.0, gt=0, description="Seconds to wait for FCM or its OAuth endpoint."
+    )
+
     # Centrifugo (specification, 4.4, 4.6): the API issues JWT tokens signed
     # with the shared HMAC secret and talks to the server API for history and
     # forced unsubscribe. Clients reach only the public transports.
@@ -550,6 +570,22 @@ class Settings(BaseSettings):
             msg = f"{value!r} is not an IANA time zone"
             raise ValueError(msg) from None
         return value
+
+    @model_validator(mode="after")
+    def _check_fcm_credentials(self) -> Self:
+        configured = (
+            bool(self.fcm_project_id),
+            bool(self.fcm_client_email),
+            self.fcm_private_key is not None
+            and bool(self.fcm_private_key.get_secret_value()),
+        )
+        if any(configured) and not all(configured):
+            msg = (
+                "fcm_project_id, fcm_client_email and fcm_private_key are"
+                " required together"
+            )
+            raise ValueError(msg)
+        return self
 
     def client_min_version(self, platform: ClientPlatform) -> Version | None:
         """Oldest supported version of ``platform``, if one is configured."""

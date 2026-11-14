@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-14 23:50+0300\n"
+"POT-Creation-Date: 2026-11-15 00:51+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -276,8 +276,7 @@ msgid "Requests that change data need an Idempotency-Key header."
 msgstr "Изменяющему запросу нужен заголовок Idempotency-Key."
 
 msgid "Send the current settings version to replace muted chats."
-msgstr ""
-"Укажите текущую версию настроек, чтобы заменить список отключённых чатов."
+msgstr "Укажите текущую версию настроек, чтобы заменить список отключённых чатов."
 
 msgid "Session not found"
 msgstr "Сессия не найдена"
@@ -469,6 +468,9 @@ msgstr "Вы не участник этого канала."
 
 msgid "You are not a member of this chat."
 msgstr "Вы не участник этого чата."
+
+msgid "You have a new notification."
+msgstr "У вас новое уведомление."
 
 msgid "You have no offer of a place."
 msgstr "У вас нет предложения места."

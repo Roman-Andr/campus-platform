@@ -11,6 +11,7 @@ import 'models/notification_settings_output.dart'
 import 'models/notification_settings_patch.dart'
     as models
     show NotificationSettingsPatch;
+import 'models/push_token_input.dart' as models show PushTokenInput;
 import 'models/read_cursor.dart' as models show ReadCursor;
 import 'models/read_input.dart' as models show ReadInput;
 
@@ -173,6 +174,77 @@ class NotificationsClient {
     );
     return models.NotificationSettingsOutput.fromJson(
       response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Register Push Token
+  ///
+  /// Bind this device's FCM token to the current user and session.
+  ///
+  /// A new token replaces the previous token of the same session; repeating
+  /// the same registration is a no-op. A token previously bound to another
+  /// account is moved, so a device that switched accounts stops receiving the
+  /// previous user's pushes.
+  Future<void> registerPushToken({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required models.PushTokenInput body,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "PUT",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 204),
+    );
+    await _transport.request<dynamic>(
+      "/api/v1/notifications/push-token",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+  }
+
+  /// Unregister Push Token
+  ///
+  /// Forget the current session's token, e.g. on sign-out.
+  Future<void> unregisterPushToken({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "DELETE",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 204),
+    );
+    await _transport.request<dynamic>(
+      "/api/v1/notifications/push-token",
+      options: _options,
+      cancelToken: cancelToken,
     );
   }
 }
