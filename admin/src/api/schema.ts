@@ -472,6 +472,8 @@ export interface paths {
      *     records between pages; a fresh first page reflects current pin deadlines.
      *     Dormitory filters apply in city and faculty feeds without widening access.
      *     A cursor expires after CAMPUS_FEED_SNAPSHOT_TTL.
+     *     With q, title and description match Russian or English morphology and
+     *     relevance replaces pin ordering. Blank searches return an empty page.
      */
     get: operations['listing_feed'];
     put?: never;
@@ -4718,6 +4720,8 @@ export interface operations {
         kind?: string | null;
         category_id?: string | null;
         dormitory_id?: string | null;
+        /** @description RU/EN full-text search; blank returns no matches. */
+        q?: string | null;
         /** @description Number of items; the default (20) and the maximum (100) are set in the server configuration. */
         size?: number | null;
         /** @description `next_page` of the previous page. */

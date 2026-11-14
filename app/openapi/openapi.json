@@ -3538,7 +3538,7 @@
           "Listings"
         ],
         "summary": "Listing Feed",
-        "description": "Visible pins first, then chronology; cursors bind filters and snapshot time.\n\nNew records appear on refresh. Pin expiry during scrolling does not move\nrecords between pages; a fresh first page reflects current pin deadlines.\nDormitory filters apply in city and faculty feeds without widening access.\nA cursor expires after CAMPUS_FEED_SNAPSHOT_TTL.",
+        "description": "Visible pins first, then chronology; cursors bind filters and snapshot time.\n\nNew records appear on refresh. Pin expiry during scrolling does not move\nrecords between pages; a fresh first page reflects current pin deadlines.\nDormitory filters apply in city and faculty feeds without widening access.\nA cursor expires after CAMPUS_FEED_SNAPSHOT_TTL.\nWith q, title and description match Russian or English morphology and\nrelevance replaces pin ordering. Blank searches return an empty page.",
         "operationId": "listing_feed",
         "security": [
           {
@@ -3583,6 +3583,18 @@
               "format": "uuid",
               "title": "Dormitory Id"
             }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 500,
+              "description": "RU/EN full-text search; blank returns no matches.",
+              "title": "Q"
+            },
+            "description": "RU/EN full-text search; blank returns no matches."
           },
           {
             "name": "size",

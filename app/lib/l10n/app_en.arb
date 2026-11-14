@@ -589,5 +589,11 @@
   "profileSetupPhotoIntro": "Add a photo so that people recognize you when you meet. You can skip this step.",
   "profileSetupSkillsIntro": "Mark what you can do and what you want to learn: it helps to find someone to swap skills with. You can skip this step.",
   "profileSkip": "Skip",
-  "profileDone": "Done"
+  "profileDone": "Done",
+  "@feedSearch": {"description": "Listing search field label"},
+  "@feedSearchClear": {"description": "Clear the listing search"},
+  "@feedSearchEmpty": {"description": "No full-text search matches"},
+  "feedSearch": "Search listings",
+  "feedSearchClear": "Clear search",
+  "feedSearchEmpty": "No matching listings"
 }

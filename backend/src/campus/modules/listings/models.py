@@ -7,8 +7,17 @@ from enum import StrEnum
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, ForeignKey, Index, Integer, String, Text, text
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import (
+    CheckConstraint,
+    Computed,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    text,
+)
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from campus.core import clock
@@ -92,6 +101,7 @@ class Listing(Entity):
             "AND faculty_id IS NULL)",
             name="scope",
         ),
+        Index("ix_listing_search", "search_vector", postgresql_using="gin"),
         Index("ix_listing_feed", "city_id", "created_at", "id"),
         Index(
             "ix_listing_archive_cleanup",
@@ -111,6 +121,17 @@ class Listing(Entity):
     kind: Mapped[str] = mapped_column(String(32))
     title: Mapped[str] = mapped_column(Text)
     description: Mapped[str] = mapped_column(Text)
+    search_vector: Mapped[Any] = mapped_column(
+        TSVECTOR,
+        Computed(
+            "setweight(to_tsvector('russian'::regconfig, title), 'A') || "
+            "setweight(to_tsvector('english'::regconfig, title), 'A') || "
+            "setweight(to_tsvector('russian'::regconfig, description), 'B') || "
+            "setweight(to_tsvector('english'::regconfig, description), 'B')",
+            persisted=True,
+        ),
+        deferred=True,
+    )
     status: Mapped[str] = mapped_column(String(16), default=ListingStatus.ACTIVE)
     visibility: Mapped[str] = mapped_column(String(16))
     audience: Mapped[str] = mapped_column(String(16), default=Audience.STUDENTS)

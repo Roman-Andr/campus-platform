@@ -1041,4 +1041,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileDone => 'Done';
+
+  @override
+  String get feedSearch => 'Search listings';
+
+  @override
+  String get feedSearchClear => 'Clear search';
+
+  @override
+  String get feedSearchEmpty => 'No matching listings';
 }

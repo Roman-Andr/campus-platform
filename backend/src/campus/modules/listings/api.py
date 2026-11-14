@@ -19,7 +19,7 @@ from pydantic import (
     SerializerFunctionWrapHandler,
     model_serializer,
 )
-from sqlalchemy import and_, case, delete, or_, select
+from sqlalchemy import and_, case, delete, func, or_, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -526,6 +526,13 @@ async def listing_feed(  # noqa: PLR0913, PLR0917 - independent feed filters
     kind: str | None = None,
     category_id: UUID | None = None,
     dormitory_id: UUID | None = None,
+    q: Annotated[
+        str | None,
+        Query(
+            max_length=500,
+            description="RU/EN full-text search; blank returns no matches.",
+        ),
+    ] = None,
 ) -> Page[ListingOutput]:
     """Visible pins first, then chronology; cursors bind filters and snapshot time.
 
@@ -533,6 +540,8 @@ async def listing_feed(  # noqa: PLR0913, PLR0917 - independent feed filters
     records between pages; a fresh first page reflects current pin deadlines.
     Dormitory filters apply in city and faculty feeds without widening access.
     A cursor expires after CAMPUS_FEED_SNAPSHOT_TTL.
+    With q, title and description match Russian or English morphology and
+    relevance replaces pin ordering. Blank searches return an empty page.
     """
     settings: Settings = request.app.state.settings
     user = await user_for(session, principal)
@@ -583,7 +592,21 @@ async def listing_feed(  # noqa: PLR0913, PLR0917 - independent feed filters
             )
         )
     pinned = case((Listing.pinned_until > snapshot, 1), else_=0)
-    query = query.order_by(pinned.desc(), Listing.created_at.desc(), Listing.id.desc())
+    if q is not None:
+        q = q.strip()
+        terms = func.plainto_tsquery("russian", q).op("||")(
+            func.plainto_tsquery("english", q)
+        )
+        query = query.where(Listing.search_vector.op("@@")(terms))
+        query = query.order_by(
+            func.ts_rank_cd(Listing.search_vector, terms).desc(),
+            Listing.created_at.desc(),
+            Listing.id.desc(),
+        )
+    else:
+        query = query.order_by(
+            pinned.desc(), Listing.created_at.desc(), Listing.id.desc()
+        )
     context = json.dumps(
         [
             str(user.id),
@@ -596,6 +619,7 @@ async def listing_feed(  # noqa: PLR0913, PLR0917 - independent feed filters
             str(category_id),
             str(dormitory_id),
             snapshot.isoformat(),
+            q,
         ]
     )
     result = await paginate(
