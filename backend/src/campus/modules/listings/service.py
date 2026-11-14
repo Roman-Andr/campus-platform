@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import func, select, text
+from sqlalchemy import and_, func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from campus.core import clock
@@ -196,6 +196,9 @@ class TypePolicy:
 
 
 TYPE_POLICIES = {
+    "event": TypePolicy(
+        False, capacity=1, start_time=lambda listing: listing.event_starts_at
+    ),
     "giveaway": TypePolicy(author_response_deadline=True, capacity=1),
     # A skill listing is permanent and takes lessons from many participants.
     "skill": TypePolicy(author_response_deadline=True, capacity=None),
@@ -278,7 +281,13 @@ async def active_offer(session: AsyncSession, listing_id: UUID) -> WaitlistEntry
 
 async def has_free_slot(session: AsyncSession, listing: Listing) -> bool:
     """Whether the listing has an unoccupied slot, by its type's capacity."""
-    capacity = TYPE_POLICIES[listing.kind].capacity
+    capacity = (
+        listing.event_capacity
+        if listing.kind == "event"
+        else TYPE_POLICIES[listing.kind].capacity
+    )
+    if listing.kind == "event":
+        return bool(listing.remaining_places)
     if capacity is None:
         return True
     occupied = await session.scalar(
@@ -343,6 +352,10 @@ async def join_waitlist(
     session: AsyncSession, listing: Listing, user: User
 ) -> WaitlistEntry:
     """Take the last place of the queue, when the listing has no free slot."""
+    if listing.kind == "event" and (
+        listing.event_starts_at is None or listing.event_starts_at <= clock.now()
+    ):
+        raise ProblemError(CONFLICT)
     if TYPE_POLICIES[listing.kind].capacity is None:
         raise ProblemError(WAITLIST_UNAVAILABLE)
     if await active_waitlist(session, listing.id, user.id) is not None:
@@ -358,9 +371,15 @@ async def join_waitlist(
     )
     if participating is not None:
         raise ProblemError(WAITLIST_PARTICIPATING)
-    if await has_free_slot(session, listing) and (
-        await active_offer(session, listing.id) is None
-    ):
+    if listing.kind == "event":
+        free = (listing.remaining_places or 0) > len(
+            await event_offers(session, listing)
+        )
+    else:
+        free = await has_free_slot(session, listing) and (
+            await active_offer(session, listing.id) is None
+        )
+    if free:
         raise ProblemError(WAITLIST_FREE)
     entry = WaitlistEntry(
         listing_id=listing.id, participant_id=user.id, participant=user
@@ -434,7 +453,29 @@ async def open_to_all(session: AsyncSession, listing: Listing) -> None:
             ListingEvent.action == "waitlist_opened",
         )
     )
-    if announced is not None:
+    if listing.kind == "event":
+        # A new cancellation or edit can reopen places; processing the
+        # scheduled boundary after a request must not notify the queue twice.
+        latest = await session.scalar(
+            select(ListingEvent.action)
+            .where(
+                ListingEvent.listing_id == listing.id,
+                or_(
+                    ListingEvent.action.in_(
+                        ("waitlist_opened", "edited", "conditions_changed")
+                    ),
+                    and_(
+                        ListingEvent.action == "transition",
+                        ListingEvent.status == "cancelled",
+                    ),
+                ),
+            )
+            .order_by(ListingEvent.created_at.desc(), ListingEvent.id.desc())
+            .limit(1)
+        )
+        if latest == "waitlist_opened":
+            return
+    elif announced is not None:
         return
     listing.version += 1
     session.add(
@@ -467,6 +508,9 @@ async def offer_next(  # noqa: PLR0911 - early exits of the offer rule
     The caller holds the listing row lock, so the offer and the slot check
     are serialized with reservations and other queue changes.
     """
+    if listing.kind == "event":
+        await offer_event_places(session, listing, offer_timeout, open_all_before)
+        return None
     if listing.status not in (ListingStatus.ACTIVE, ListingStatus.BUSY):
         return None
     if listing.expires_at is not None and listing.expires_at <= clock.now():
@@ -538,6 +582,8 @@ async def claim_offer(
     the same item either happens before (and this offer is gone) or after
     (and is rejected because the listing is busy).
     """
+    if listing.kind == "event":
+        return await accept_event_offer(session, listing, user, settings)
     entry = await active_waitlist(session, listing.id, user.id)
     if entry is None or entry.status != WaitlistStatus.OFFERED:
         raise ProblemError(OFFER_MISSING)
@@ -644,6 +690,15 @@ async def expire_offer(
     open_all_before: timedelta,
 ) -> None:
     """Mark an unconfirmed offer expired and move it to the next member."""
+    if (
+        listing.kind == "event"
+        and listing.event_starts_at is not None
+        and listing.event_starts_at - clock.now() <= open_all_before
+    ):
+        await release_event_offers(session, listing)
+        if listing.remaining_places:
+            await open_to_all(session, listing)
+        return
     previous = entry.status
     entry.status = WaitlistStatus.EXPIRED
     listing.version += 1
@@ -865,7 +920,7 @@ def require_live(listing: Listing) -> None:
         raise ProblemError(CONFLICT)
 
 
-async def transition(  # noqa: PLR0913 - aggregate transition
+async def transition(  # noqa: PLR0912, PLR0913 - aggregate transition
     session: AsyncSession,
     listing: Listing,
     interaction: Interaction,
@@ -905,7 +960,12 @@ async def transition(  # noqa: PLR0913 - aggregate transition
         # Reminders belong to an accepted interaction only.
         await cancel_meeting_reminders(session, interaction.id)
     released = False
-    if (
+    if listing.kind == "event":
+        if target == InteractionStatus.CANCELLED:
+            listing.event_registered -= 1
+            released = True
+        listing.version += 1
+    elif (
         target
         in (
             InteractionStatus.REJECTED,
@@ -1227,6 +1287,8 @@ async def schedule_meeting_reminders(
 async def remind_meeting(session: AsyncSession, job: JobInfo) -> None:
     listing = await locked(session, UUID(job.payload["listing_id"]))
     interaction = await session.get(Interaction, UUID(job.payload["interaction_id"]))
+    if listing.status not in (ListingStatus.ACTIVE, ListingStatus.BUSY):
+        return
     if interaction is None or interaction.status != InteractionStatus.ACCEPTED:
         return
     meeting = await session.scalar(
@@ -1240,7 +1302,9 @@ async def remind_meeting(session: AsyncSession, job: JobInfo) -> None:
         return
     notify(
         session,
-        {listing.author_id, interaction.participant_id},
+        {interaction.participant_id}
+        if listing.kind == "event"
+        else {listing.author_id, interaction.participant_id},
         "listing.meeting.reminder",
         {
             "listing_id": str(listing.id),
@@ -1296,3 +1360,190 @@ async def rate_limit(
             ),
         )
     return None
+
+
+EVENT_TIME_INVALID = ProblemType(
+    "event_time_invalid",
+    422,
+    N_("The event must start in the future and end after its start."),
+)
+EVENT_CAPACITY_CONFLICT = ProblemType(
+    "event_capacity_conflict",
+    409,
+    N_("The capacity cannot be less than the number registered."),
+)
+EVENT_CONDITIONS_CHANGED = N_("The event time or location has changed.")
+
+
+def validate_event(
+    starts_at: datetime, ends_at: datetime, location: str, settings: Settings
+) -> str:
+    if starts_at <= clock.now() or ends_at <= starts_at:
+        raise ProblemError(EVENT_TIME_INVALID)
+    return validate_meeting(starts_at, location, settings)
+
+
+async def event_offers(session: AsyncSession, listing: Listing) -> list[WaitlistEntry]:
+    return list(
+        await session.scalars(
+            select(WaitlistEntry).where(
+                WaitlistEntry.listing_id == listing.id,
+                WaitlistEntry.status == WaitlistStatus.OFFERED,
+            )
+        )
+    )
+
+
+async def release_event_offers(session: AsyncSession, listing: Listing) -> None:
+    for entry in await event_offers(session, listing):
+        entry.status = WaitlistStatus.WAITING
+        await cancel_deadline(session, offer_key(entry.id))
+        record_waitlist(session, listing, None, "offer_released", entry, "offered")
+    await session.flush()
+
+
+async def offer_event_places(
+    session: AsyncSession,
+    listing: Listing,
+    offer_timeout: timedelta,
+    open_all_before: timedelta,
+) -> None:
+    if (
+        listing.status != ListingStatus.ACTIVE
+        or listing.event_starts_at is None
+        or listing.event_starts_at <= clock.now()
+    ):
+        return
+    if listing.event_starts_at - clock.now() <= open_all_before:
+        await release_event_offers(session, listing)
+        if listing.remaining_places:
+            await open_to_all(session, listing)
+        return
+    available = (listing.remaining_places or 0) - len(
+        await event_offers(session, listing)
+    )
+    if available <= 0:
+        return
+    entries = list(
+        await session.scalars(
+            select(WaitlistEntry)
+            .where(
+                WaitlistEntry.listing_id == listing.id,
+                WaitlistEntry.status == WaitlistStatus.WAITING,
+            )
+            .order_by(WaitlistEntry.created_at, WaitlistEntry.id)
+            .limit(available)
+        )
+    )
+    for entry in entries:
+        entry.status = WaitlistStatus.OFFERED
+        entry.offer_slot = None
+        entry.offered_at = clock.now()
+        entry.offer_expires_at = min(
+            clock.now() + offer_timeout, listing.event_starts_at - open_all_before
+        )
+        listing.version += 1
+        record_waitlist(session, listing, None, "offered", entry, "waiting")
+        notify(
+            session,
+            {entry.participant_id},
+            "listing.offer",
+            {
+                "listing_id": str(listing.id),
+                "entry_id": str(entry.id),
+                "offer_expires_at": entry.offer_expires_at.isoformat(),
+            },
+            message=LISTING_OFFER,
+        )
+        await schedule_deadline(
+            session,
+            "listing.offer",
+            entry.offer_expires_at,
+            {
+                "entry_id": str(entry.id),
+                "offer_timeout": int(offer_timeout.total_seconds()),
+                "open_all_before": int(open_all_before.total_seconds()),
+            },
+            key=offer_key(entry.id),
+        )
+
+
+async def register_event(
+    session: AsyncSession, listing: Listing, user: User, settings: Settings
+) -> Interaction:
+    require_live(listing)
+    if (
+        listing.event_starts_at is None
+        or listing.event_starts_at <= clock.now()
+        or not listing.remaining_places
+    ):
+        raise ProblemError(CONFLICT)
+    interaction = Interaction(
+        listing_id=listing.id,
+        participant_id=user.id,
+        participant=user,
+        slot=None,
+        # New rows start without relationships; validation reads them.
+        meeting=None,
+        options=[],
+    )
+    session.add(interaction)
+    await session.flush()
+    record(session, listing, user.id, "requested", None, interaction)
+    interaction.status = InteractionStatus.ACCEPTED
+    listing.event_registered += 1
+    listing.version += 1
+    meeting = Meeting(
+        interaction_id=interaction.id,
+        scheduled_at=listing.event_starts_at,
+        location=listing.event_location,
+        scheduled_by_id=listing.author_id,
+        version=1,
+    )
+    interaction.meeting = meeting
+    session.add(meeting)
+    await session.flush()
+    record(
+        session, listing, user.id, "transition", InteractionStatus.PENDING, interaction
+    )
+    await schedule_meeting_reminders(session, settings, listing, interaction, meeting)
+    return interaction
+
+
+async def accept_event_offer(
+    session: AsyncSession, listing: Listing, user: User, settings: Settings
+) -> Interaction:
+    entry = await active_waitlist(session, listing.id, user.id)
+    if entry is None or entry.status != WaitlistStatus.OFFERED:
+        raise ProblemError(OFFER_MISSING)
+    if entry.offer_expires_at is None or entry.offer_expires_at <= clock.now():
+        raise ProblemError(OFFER_EXPIRED)
+    interaction = await register_event(session, listing, user, settings)
+    entry.status = WaitlistStatus.CLAIMED
+    entry.interaction_id = interaction.id
+    await cancel_deadline(session, offer_key(entry.id))
+    record_waitlist(session, listing, user.id, "offer_accepted", entry, "offered")
+    return interaction
+
+
+async def schedule_event_open(
+    session: AsyncSession, listing: Listing, settings: Settings
+) -> None:
+    if listing.event_starts_at is not None:
+        await schedule_deadline(
+            session,
+            "listing.event_open",
+            listing.event_starts_at - settings.listing_open_to_all_before,
+            {"listing_id": str(listing.id)},
+            key=f"event-open:{listing.id}",
+        )
+
+
+@deadline_handlers.register("listing.event_open")
+async def open_event_places(session: AsyncSession, job: JobInfo) -> None:
+    listing = await locked(session, UUID(job.payload["listing_id"]))
+    if listing.status != ListingStatus.ACTIVE:
+        return
+    await release_event_offers(session, listing)
+    if listing.remaining_places:
+        await open_to_all(session, listing)

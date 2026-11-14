@@ -10,6 +10,8 @@ enum ProblemCodeValue {
   emailConflict("email_conflict"),
   emailKindInvalid("email_kind_invalid"),
   emailNotFound("email_not_found"),
+  eventCapacityConflict("event_capacity_conflict"),
+  eventTimeInvalid("event_time_invalid"),
   forbidden("forbidden"),
   httpError("http_error"),
   idempotencyKeyInvalid("idempotency_key_invalid"),
@@ -82,6 +84,12 @@ sealed class ProblemCode {
     ProblemCodeValue.emailKindInvalid,
   );
   static const emailNotFound = ProblemCodeKnown(ProblemCodeValue.emailNotFound);
+  static const eventCapacityConflict = ProblemCodeKnown(
+    ProblemCodeValue.eventCapacityConflict,
+  );
+  static const eventTimeInvalid = ProblemCodeKnown(
+    ProblemCodeValue.eventTimeInvalid,
+  );
   static const forbidden = ProblemCodeKnown(ProblemCodeValue.forbidden);
   static const httpError = ProblemCodeKnown(ProblemCodeValue.httpError);
   static const idempotencyKeyInvalid = ProblemCodeKnown(

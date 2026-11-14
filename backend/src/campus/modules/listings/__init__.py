@@ -5,9 +5,9 @@ from campus.modules.listings.api import (
     attach_previews,
     readable,
     register_preview_loader,
-    router,
     user_for,
 )
+from campus.modules.listings.event_api import router
 from campus.modules.listings.models import (
     PERMANENT_KINDS,
     Audience,

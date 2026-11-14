@@ -965,6 +965,40 @@ Reusing a cursor with other filters returns `400 invalid_cursor`. Explicit
 edits, withdrawals and permission changes can alter the remaining results;
 the cursor is not a historical snapshot of mutable content.
 
+### Event signup
+
+`POST /api/v1/listings/events` publishes an event with `starts_at`,
+`ends_at`, `location` and a positive `capacity`, plus common listing
+fields. Instants need an explicit UTC offset. Events start in the future
+and end after their start. Cards expose `event_starts_at`, `event_ends_at`,
+`event_location`, `event_capacity` and `remaining_places` (capacity minus
+accepted registrations, including places offered to queue members).
+
+`POST /listings/{id}/signup` accepts `{"join_queue": true}` (or `false`).
+Its result is `registered`, `queued` or `full`; a registration includes the
+accepted interaction. Repeated signup returns the existing registration.
+All modifying requests require `Idempotency-Key`. The listing row is
+locked before checking its counter and inserting the interaction;
+requested and accepted journal entries commit together. The author cannot
+register for their event; employees can join only community events.
+
+A participant cancels through the common interaction transition endpoint.
+Freed places and capacity increases offer places to the FIFO queue;
+offers use the existing accept/decline endpoints. Within
+`CAMPUS_LISTING_OPEN_TO_ALL_BEFORE` (one hour by default), places open to
+everyone and the whole queue is notified together.
+
+`PATCH /listings/{id}/event` is restricted to the author and takes
+`version`, `starts_at`, `ends_at`, `location` and `capacity`. Capacity
+cannot fall below the registered counter (409). Changes of time or place
+append `conditions_changed`, notify registered and queued users, update
+interaction meetings and replace pending reminders. Participants cannot
+negotiate separate meetings for an event. Reminders use
+`CAMPUS_MEETING_REMINDER_LONG` (24 hours) and
+`CAMPUS_MEETING_REMINDER_SHORT` (one hour); cancelled registrations and
+closed listings receive no reminders. Deadlines and notifications commit
+in the transaction of the event change.
+
 ## Метрики Prometheus
 
 Внутренние экспортеры API/worker/scheduler, имена, единицы, buckets,

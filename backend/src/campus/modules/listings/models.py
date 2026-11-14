@@ -39,7 +39,7 @@ class ListingStatus(StrEnum):
 
 
 # Listings of these kinds do not expire and have no archive deadline.
-PERMANENT_KINDS = frozenset({"publication", "skill"})
+PERMANENT_KINDS = frozenset({"publication", "skill", "event"})
 
 
 class SkillDirection(StrEnum):
@@ -94,6 +94,18 @@ class Listing(Entity):
 
     __tablename__ = "listing"
     __table_args__ = (
+        CheckConstraint(
+            "event_registered >= 0 AND (event_capacity IS NULL OR "
+            "event_registered <= event_capacity)",
+            name="event_count",
+        ),
+        CheckConstraint(
+            "kind != 'event' OR (event_starts_at IS NOT NULL AND "
+            "event_ends_at IS NOT NULL AND event_ends_at > event_starts_at "
+            "AND event_location IS NOT NULL "
+            "AND event_capacity IS NOT NULL AND event_capacity > 0)",
+            name="event_details",
+        ),
         CheckConstraint("version >= 1", name="version_positive"),
         CheckConstraint(
             "status IN ('draft','active','busy','completed',"
@@ -123,6 +135,18 @@ class Listing(Entity):
             postgresql_where=text("archived_at IS NOT NULL AND purged_at IS NULL"),
         ),
     )
+
+    event_starts_at: Mapped[datetime | None]
+    event_ends_at: Mapped[datetime | None]
+    event_location: Mapped[str | None] = mapped_column(Text)
+    event_capacity: Mapped[int | None]
+    event_registered: Mapped[int] = mapped_column(default=0, server_default="0")
+
+    @property
+    def remaining_places(self) -> int | None:
+        if self.event_capacity is None:
+            return None
+        return self.event_capacity - self.event_registered
 
     author_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
     author: Mapped[User] = relationship(lazy="joined", innerjoin=True)
@@ -355,10 +379,10 @@ class WaitlistStatus(StrEnum):
 class WaitlistEntry(Entity):
     """One active queue position per participant and listing.
 
-    Released places are offered to the first waiting entry for a limited
-    time; accepting an offer creates a regular pending interaction, so the
-    author still accepts the application. A partial unique index keeps one
-    active position per participant and one active offer per listing.
+    Released places are offered in FIFO order for a limited time. Events
+    accept immediately; giveaways wait for the author's response. A partial
+    index keeps one active position per participant. The offer slot is 1 for
+    single-item listings and NULL for events with several concurrent offers.
     """
 
     __tablename__ = "listing_waitlist"
@@ -381,6 +405,7 @@ class WaitlistEntry(Entity):
         Index(
             "uq_listing_waitlist_offer",
             "listing_id",
+            "offer_slot",
             unique=True,
             postgresql_where=text("status = 'offered'"),
         ),
@@ -396,6 +421,9 @@ class WaitlistEntry(Entity):
     participant_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
     participant: Mapped[User] = relationship(lazy="joined", innerjoin=True)
     status: Mapped[str] = mapped_column(String(16), default=WaitlistStatus.WAITING)
+    offer_slot: Mapped[int | None] = mapped_column(
+        Integer().evaluates_none(), default=1, server_default="1"
+    )
     offered_at: Mapped[datetime | None]
     offer_expires_at: Mapped[datetime | None]
     interaction_id: Mapped[UUID | None] = mapped_column(

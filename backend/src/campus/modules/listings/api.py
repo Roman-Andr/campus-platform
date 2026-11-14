@@ -202,6 +202,11 @@ class ListingOutput(BaseModel):
     )
     pinned_until: Instant | None = None
     hidden_reason: str | None
+    event_starts_at: Instant | None = None
+    event_ends_at: Instant | None = None
+    event_location: str | None = None
+    event_capacity: int | None = None
+    remaining_places: int | None = None
     favorite: bool = Field(
         default=False, description="Whether the current user bookmarked it."
     )
@@ -1493,7 +1498,7 @@ async def meeting_context(
         raise ProblemError(NOT_FOUND)
     if actor_id not in (listing.author_id, interaction.participant_id):
         raise ProblemError(FORBIDDEN)
-    if interaction.status != InteractionStatus.ACCEPTED:
+    if interaction.status != InteractionStatus.ACCEPTED or listing.kind == "event":
         raise ProblemError(MEETING_STATE)
     return listing, interaction
 

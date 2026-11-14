@@ -260,10 +260,19 @@ msgstr ""
 msgid "The X-Client-Platform and X-Client-Version headers are required."
 msgstr ""
 
+msgid "The capacity cannot be less than the number registered."
+msgstr ""
+
 msgid "The channel name is not a Campus realtime channel."
 msgstr ""
 
 msgid "The client platform or version is not recognized."
+msgstr ""
+
+msgid "The event must start in the future and end after its start."
+msgstr ""
+
+msgid "The event time or location has changed."
 msgstr ""
 
 msgid "The interaction must be accepted and have a current meeting proposal."
