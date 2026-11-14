@@ -45,6 +45,7 @@ class CityPlaceOut(BaseModel):
 
     id: UUID
     city_id: UUID
+    city_timezone: str
     code: str = Field(examples=["dubki"])
     name: str = Field(description="In the request language.", examples=["Dubki"])
 
@@ -117,11 +118,14 @@ async def _places(
     if city_id is not None:
         query = query.where(model.city_id == city_id)
     places = await session.scalars(_by_name(query, model, locale))
+    city_zones = await session.execute(select(City.id, City.timezone))
+    timezones = dict(city_zones.all())
     return CityPlaceList(
         items=[
             CityPlaceOut(
                 id=place.id,
                 city_id=place.city_id,
+                city_timezone=timezones[place.city_id],
                 code=place.code,
                 name=place.name_in(locale),
             )

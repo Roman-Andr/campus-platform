@@ -770,6 +770,30 @@ abstract class AppLocalizations {
   /// **'Статус недоступен'**
   String get listingStatusUnknown;
 
+  /// No description provided for @cityTimeZone.
+  ///
+  /// In ru, this message translates to:
+  /// **'{time}, {city}, {offset}'**
+  String cityTimeZone(String time, String city, String offset);
+
+  /// No description provided for @cityDateTimeHelp.
+  ///
+  /// In ru, this message translates to:
+  /// **'Дата и время: {city}'**
+  String cityDateTimeHelp(String city);
+
+  /// No description provided for @chooseCityDateTime.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выбрать дату и время'**
+  String get chooseCityDateTime;
+
+  /// No description provided for @cityTimeDoesNotExist.
+  ///
+  /// In ru, this message translates to:
+  /// **'Такого времени нет в часовом поясе города. Выберите другое время.'**
+  String get cityTimeDoesNotExist;
+
   /// Consents and documents
   ///
   /// In ru, this message translates to:

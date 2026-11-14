@@ -5,6 +5,7 @@ class CityPlaceOut {
   const CityPlaceOut({
     required this.id,
     required this.cityId,
+    required this.cityTimezone,
     required this.code,
 
     /// In the request language.
@@ -15,6 +16,7 @@ class CityPlaceOut {
   factory CityPlaceOut.fromJson(Map<String, Object?> json) => CityPlaceOut(
     id: json["id"] as String,
     cityId: json["city_id"] as String,
+    cityTimezone: json["city_timezone"] as String,
     code: json["code"] as String,
     name: json["name"] as String,
     additionalProperties: {
@@ -27,12 +29,20 @@ class CityPlaceOut {
 
   final String cityId;
 
+  final String cityTimezone;
+
   final String code;
 
   /// In the request language.
   final String name;
 
-  static const _knownKeys = <String>{"id", "city_id", "code", "name"};
+  static const _knownKeys = <String>{
+    "id",
+    "city_id",
+    "city_timezone",
+    "code",
+    "name",
+  };
 
   final Map<String, Object?> additionalProperties;
 
@@ -41,6 +51,7 @@ class CityPlaceOut {
       if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
     "id": this.id,
     "city_id": this.cityId,
+    "city_timezone": this.cityTimezone,
     "code": this.code,
     "name": this.name,
   };

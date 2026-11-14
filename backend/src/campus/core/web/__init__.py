@@ -6,6 +6,7 @@ build their routers with :func:`api_router`.
 """
 
 from campus.core.web.auth import CurrentUser, Principal
+from campus.core.web.datetimes import Instant
 from campus.core.web.pagination import Page, PageParams, PageQuery, paginate, sort_by
 from campus.core.web.problems import (
     FieldError,
@@ -28,6 +29,7 @@ __all__ = [
     "CurrentUser",
     "DbSession",
     "FieldError",
+    "Instant",
     "Page",
     "PageParams",
     "PageQuery",

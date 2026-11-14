@@ -212,6 +212,7 @@ const userJson = <String, Object?>{
 /// Profile fields of a user who has not filled in the profile.
 const emptyProfileJson = <String, Object?>{
   'city_id': null,
+  'city_timezone': null,
   'dormitory_id': null,
   'faculty_id': null,
   'course': null,
@@ -221,6 +222,7 @@ const emptyProfileJson = <String, Object?>{
 /// Profile fields of a student of Moscow, living in Dubki.
 const filledProfileJson = <String, Object?>{
   'city_id': 'city-moscow',
+  'city_timezone': 'Europe/Moscow',
   'dormitory_id': 'dorm-dubki',
   'faculty_id': 'faculty-economics',
   'course': 2,

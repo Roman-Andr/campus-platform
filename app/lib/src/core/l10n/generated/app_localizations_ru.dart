@@ -380,6 +380,23 @@ class AppLocalizationsRu extends AppLocalizations {
   String get listingStatusUnknown => 'Статус недоступен';
 
   @override
+  String cityTimeZone(String time, String city, String offset) {
+    return '$time, $city, $offset';
+  }
+
+  @override
+  String cityDateTimeHelp(String city) {
+    return 'Дата и время: $city';
+  }
+
+  @override
+  String get chooseCityDateTime => 'Выбрать дату и время';
+
+  @override
+  String get cityTimeDoesNotExist =>
+      'Такого времени нет в часовом поясе города. Выберите другое время.';
+
+  @override
   String get consentDocuments => 'Согласия и документы';
 
   @override

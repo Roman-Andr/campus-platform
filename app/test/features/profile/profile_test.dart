@@ -67,7 +67,15 @@ void main() {
         Map<String, List<(String, String)>> all,
       ) => [
         for (final (id, name) in all[city] ?? const <(String, String)>[])
-          {'id': id, 'city_id': city, 'code': id, 'name': name},
+          {
+            'id': id,
+            'city_id': city,
+            'city_timezone': city == 'city-perm'
+                ? 'Asia/Yekaterinburg'
+                : 'Europe/Moscow',
+            'code': id,
+            'name': name,
+          },
       ];
       return switch (options.path) {
         '/api/v1/university/cities' => jsonBody(200, _cities),
@@ -93,6 +101,9 @@ void main() {
   ResponseBody accept(Map<String, Object?> body) => jsonBody(200, {
     ...server.me!,
     'city_id': body['city_id'],
+    'city_timezone': body['city_id'] == 'city-perm'
+        ? 'Asia/Yekaterinburg'
+        : 'Europe/Moscow',
     'dormitory_id': body['dormitory_id'],
     'faculty_id': body['faculty_id'],
     'course': body['course'],

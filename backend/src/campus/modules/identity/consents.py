@@ -37,6 +37,7 @@ from campus.core.web import (
     request_locale,
 )
 from campus.core.web.auth import CurrentUser
+from campus.core.web.datetimes import Instant
 
 
 class DocumentKind(StrEnum):
@@ -261,7 +262,7 @@ class DocumentOutput(BaseModel):
     kind: DocumentKind
     version: int
     text: str
-    published_at: datetime
+    published_at: Instant
     required: bool
 
 
