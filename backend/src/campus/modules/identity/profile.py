@@ -157,7 +157,9 @@ async def user_output(session: DbSession, user: User) -> UserOutput:
                 if name not in {"roles", "cross_border_transfer_allowed"}
             },
             "roles": await user_roles(session, user.id),
-            "cross_border_transfer_allowed": await cross_border_allowed(session, user.id),
+            "cross_border_transfer_allowed": await cross_border_allowed(
+                session, user.id
+            ),
         }
     )
 

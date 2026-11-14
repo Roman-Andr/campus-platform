@@ -18,12 +18,15 @@ from campus.modules.identity import (
     ConsentDecision,
     DocumentKind,
     DocumentVersion,
+    Role,
+    RoleAssignment,
     User,
     cross_border_allowed,
     publish_document,
     seed_documents,
 )
 from campus.modules.identity.consents import publication_lock, record_decision
+from campus.modules.university import City, Faculty
 from tests.test_identity import DEVICE, EMAIL, Auth
 from tests.test_identity import auth as auth  # noqa: PLC0414 - pytest fixture
 
@@ -485,3 +488,37 @@ async def test_cross_border_concurrent_requests_and_missing_key(auth: Auth) -> N
         )
         == 1
     )
+
+
+@pytest.mark.parametrize("role", [None, *Role])
+async def test_every_role_must_accept_new_mandatory_versions(
+    auth: Auth, role: Role | None
+) -> None:
+    tokens = await auth.login()
+    user_id = UUID(tokens["user"]["id"])
+    headers = {"Authorization": "Bearer " + tokens["access_token"]}
+    if role is not None:
+        faculty_id = None
+        if role == Role.HEADMAN:
+            city = City(code="test", name_ru="Город", name_en="City", timezone="UTC")
+            auth.db.add(city)
+            await auth.db.flush()
+            faculty = Faculty(
+                city_id=city.id, code="test", name_ru="Факультет", name_en="Faculty"
+            )
+            auth.db.add(faculty)
+            await auth.db.flush()
+            faculty_id = faculty.id
+        auth.db.add(RoleAssignment(user_id=user_id, role=role, faculty_id=faculty_id))
+        await auth.db.commit()
+    document_id = str(await changed_rules(auth))
+    response = await auth.client.get("/api/v1/me", headers=headers)
+    assert response.status_code == 403
+    assert response.json()["code"] == "consent_required"
+    response = await mutate(
+        auth, "/me/consents", {"document_ids": [document_id]}, headers
+    )
+    assert response.status_code == 204
+    me = await auth.client.get("/api/v1/me", headers=headers)
+    assert me.status_code == 200
+    assert [r["role"] for r in me.json()["roles"]] == ([role] if role else [])

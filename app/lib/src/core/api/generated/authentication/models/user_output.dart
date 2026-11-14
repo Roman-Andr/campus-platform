@@ -6,6 +6,7 @@ import 'role_output.dart';
 /// The user's account and profile.
 class UserOutput {
   const UserOutput({
+    this.crossBorderTransferAllowed = false,
     required this.roles,
     required this.id,
     required this.email,
@@ -44,6 +45,10 @@ class UserOutput {
       throw ArgumentError("Missing required property: course");
     }
     return UserOutput(
+      crossBorderTransferAllowed:
+          json.containsKey("cross_border_transfer_allowed")
+          ? json["cross_border_transfer_allowed"] as bool
+          : false,
       roles: (json["roles"] as List<Object?>)
           .map((item) => RoleOutput.fromJson(item as Map<String, Object?>))
           .toList(),
@@ -63,6 +68,8 @@ class UserOutput {
       },
     );
   }
+
+  final bool crossBorderTransferAllowed;
 
   final List<RoleOutput> roles;
 
@@ -92,6 +99,7 @@ class UserOutput {
   final bool profileComplete;
 
   static const _knownKeys = <String>{
+    "cross_border_transfer_allowed",
     "roles",
     "id",
     "email",
@@ -110,6 +118,7 @@ class UserOutput {
   Map<String, Object?> toJson() => {
     for (final entry in additionalProperties.entries)
       if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
+    "cross_border_transfer_allowed": this.crossBorderTransferAllowed,
     "roles": this.roles.map((item) => item.toJson()).toList(),
     "id": this.id,
     "email": this.email,

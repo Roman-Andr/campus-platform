@@ -905,13 +905,13 @@ export interface components {
      * @description The user's account and profile.
      */
     UserOutput: {
-      /** Roles */
-      roles: components['schemas']['RoleOutput'][];
       /**
        * Cross Border Transfer Allowed
        * @default false
        */
       cross_border_transfer_allowed: boolean;
+      /** Roles */
+      roles: components['schemas']['RoleOutput'][];
       /**
        * Id
        * Format: uuid
