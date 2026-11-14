@@ -80,6 +80,7 @@ class ListingsClient {
   /// New records appear on refresh. Pin expiry during scrolling does not move
   /// records between pages; a fresh first page reflects current pin deadlines.
   /// Dormitory filters apply in city and faculty feeds without widening access.
+  /// A cursor expires after CAMPUS_FEED_SNAPSHOT_TTL.
   Future<models.PageListingOutput> listingFeed({
     Map<String, Object?> extra = const {
       "openapi.security": [

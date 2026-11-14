@@ -114,6 +114,8 @@ def test_env_example_gives_working_defaults(
     )
     assert settings.sentry_dsn is None
     assert settings.release is None
+    assert settings.cursor_secret_key is not None
+    assert settings.feed_snapshot_ttl == timedelta(minutes=15)
 
 
 def test_empty_value_means_default(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -129,6 +131,32 @@ def test_api_convention_defaults() -> None:
     assert settings.client_min_versions == {}
     assert settings.idempotency_key_ttl == timedelta(hours=24)
     assert (settings.page_size_default, settings.page_size_max) == (20, 100)
+    assert settings.feed_snapshot_ttl == timedelta(minutes=15)
+
+
+def test_feed_snapshot_ttl_accepts_iso_duration(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("CAMPUS_FEED_SNAPSHOT_TTL", "PT5M")
+
+    assert Settings().feed_snapshot_ttl == timedelta(minutes=5)
+
+
+def test_cursor_secret_key_is_optional_at_startup(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("CAMPUS_CURSOR_SECRET_KEY")
+
+    assert Settings().cursor_secret_key is None
+
+
+def test_cursor_secret_key_requires_at_least_32_characters(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("CAMPUS_CURSOR_SECRET_KEY", "short")
+
+    with pytest.raises(ValidationError, match="cursor_secret_key"):
+        Settings()
 
 
 def test_idempotency_key_ttl_accepts_iso_duration(

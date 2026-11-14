@@ -129,6 +129,23 @@ class Settings(BaseSettings):
     )
     page_size_default: int = Field(default=20, ge=1)
     page_size_max: int = Field(default=100, ge=1)
+    cursor_secret_key: SecretStr | None = Field(
+        default=None,
+        min_length=32,
+        description=(
+            "Key that signs list page cursors with HMAC-SHA256, at least 32"
+            " characters; required by list endpoints. Generate with"
+            " `openssl rand -hex 32`."
+        ),
+    )
+    feed_snapshot_ttl: timedelta = Field(
+        default=timedelta(minutes=15),
+        gt=timedelta(0),
+        description=(
+            "How long a feed snapshot stays valid; a cursor with an older"
+            " snapshot is rejected."
+        ),
+    )
     redis_url: SecretStr | None = Field(
         default=None,
         description=(

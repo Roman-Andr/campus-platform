@@ -14,6 +14,8 @@ from tests.web_app import ENCRYPTION_KEY, create_test_app, serve
 
 pytest_plugins = ["tests.database", "tests.services", "tests.matrix_summary"]
 
+CURSOR_KEY = "test-cursor-key-at-least-32-characters"
+
 
 @pytest.fixture(autouse=True)
 def isolated_environment(
@@ -21,13 +23,14 @@ def isolated_environment(
 ) -> Iterator[None]:
     """Hide the developer's CAMPUS_* variables and .env file from tests.
 
-    The API needs an encryption key of idempotent responses to start; the
-    tests get a fixed one.
+    The API needs an encryption key of idempotent responses to start and a
+    key that signs page cursors to list rows; the tests get fixed ones.
     """
     for name in os.environ:
         if name.startswith("CAMPUS_"):
             monkeypatch.delenv(name)
     monkeypatch.setenv("CAMPUS_IDEMPOTENCY_ENCRYPTION_KEYS", ENCRYPTION_KEY)
+    monkeypatch.setenv("CAMPUS_CURSOR_SECRET_KEY", CURSOR_KEY)
     monkeypatch.chdir(tmp_path)
     get_settings.cache_clear()
     yield

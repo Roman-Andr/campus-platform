@@ -3538,7 +3538,7 @@
           "Listings"
         ],
         "summary": "Listing Feed",
-        "description": "Visible pins first, then chronology; cursors bind filters and snapshot time.\n\nNew records appear on refresh. Pin expiry during scrolling does not move\nrecords between pages; a fresh first page reflects current pin deadlines.\nDormitory filters apply in city and faculty feeds without widening access.",
+        "description": "Visible pins first, then chronology; cursors bind filters and snapshot time.\n\nNew records appear on refresh. Pin expiry during scrolling does not move\nrecords between pages; a fresh first page reflects current pin deadlines.\nDormitory filters apply in city and faculty feeds without widening access.\nA cursor expires after CAMPUS_FEED_SNAPSHOT_TTL.",
         "operationId": "listing_feed",
         "security": [
           {
