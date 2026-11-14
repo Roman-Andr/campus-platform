@@ -106,6 +106,8 @@ tool/generate_api.sh --check    # схема и клиент актуальны?
 `anyOf: [T, null]` FastAPI в `T | null`, который понимает генератор) и
 генерирует `lib/src/core/api/generated/` (настройки —
 `swagger_parser.yaml`). Сгенерированный код руками не правится.
+CI запускает `tool/generate_api.sh --check` при изменениях клиента или
+сервера, чтобы схема и клиент оставались согласованы.
 
 Запросы идут через общий `Dio` (`apiDioProvider`, клиент —
 `campusApiProvider`), его перехватчики (`lib/src/core/api/`):

@@ -1,13 +1,37 @@
 import 'dart:async';
 
 import 'package:campus/src/core/api/network_status.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:connectivity_plus_platform_interface/connectivity_plus_platform_interface.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/test_app.dart';
 
+class _OfflineConnectivity extends ConnectivityPlatform {
+  @override
+  Future<List<ConnectivityResult>> checkConnectivity() async => [
+    ConnectivityResult.none,
+  ];
+
+  @override
+  Stream<List<ConnectivityResult>> get onConnectivityChanged =>
+      const Stream.empty();
+}
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('detects an offline start without a connectivity change', () async {
+    final original = ConnectivityPlatform.instance;
+    ConnectivityPlatform.instance = _OfflineConnectivity();
+    addTearDown(() => ConnectivityPlatform.instance = original);
+    final providers = ProviderContainer();
+    addTearDown(providers.dispose);
+    providers.listen(networkAvailabilityProvider, (_, _) {});
+
+    expect(await providers.read(networkAvailabilityProvider.future), isFalse);
+  });
+
   late StreamController<bool> network;
   late ProviderContainer container;
 

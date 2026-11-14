@@ -5,8 +5,12 @@ part 'network_status.g.dart';
 
 /// Changes of the device network: `true` when some network is available.
 @Riverpod(keepAlive: true)
-Stream<bool> networkAvailability(Ref ref) =>
-    Connectivity().onConnectivityChanged.map(hasNetwork);
+Stream<bool> networkAvailability(Ref ref) async* {
+  final connectivity = Connectivity();
+  // Some platforms only emit changes, not the state at startup.
+  yield hasNetwork(await connectivity.checkConnectivity());
+  yield* connectivity.onConnectivityChanged.map(hasNetwork);
+}
 
 /// Whether [results] of connectivity_plus include some network.
 bool hasNetwork(List<ConnectivityResult> results) =>

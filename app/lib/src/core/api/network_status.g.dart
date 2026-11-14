@@ -45,7 +45,7 @@ final class NetworkAvailabilityProvider
 }
 
 String _$networkAvailabilityHash() =>
-    r'5259f0970a574b5bbaf9f23842da7996825229e8';
+    r'd46a10985a96ac2f101a107423ab2a1eb9f77896';
 
 /// Whether the app is online (ТЗ п. 5.1.5: the offline state is shown).
 ///
