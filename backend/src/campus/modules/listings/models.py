@@ -5,9 +5,10 @@ from enum import StrEnum
 from uuid import UUID
 
 from sqlalchemy import CheckConstraint, ForeignKey, Index, String, Text, text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from campus.core.db import Base, Entity, LocalizedName
+from campus.modules.identity import User
 
 
 class ListingStatus(StrEnum):
@@ -79,6 +80,12 @@ class Listing(Entity):
     )
 
     author_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
+    author: Mapped[User] = relationship(lazy="joined", innerjoin=True)
+
+    @property
+    def author_name(self) -> str:
+        return f"{self.author.first_name} {self.author.last_name}"
+
     kind: Mapped[str] = mapped_column(String(32))
     title: Mapped[str] = mapped_column(Text)
     description: Mapped[str] = mapped_column(Text)
@@ -129,6 +136,12 @@ class Interaction(Entity):
     listing_id: Mapped[UUID] = mapped_column(ForeignKey("listing.id"))
     slot: Mapped[int | None] = mapped_column(default=1)
     participant_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
+    participant: Mapped[User] = relationship(lazy="joined", innerjoin=True)
+
+    @property
+    def participant_name(self) -> str:
+        return f"{self.participant.first_name} {self.participant.last_name}"
+
     status: Mapped[str] = mapped_column(String(16), default=InteractionStatus.PENDING)
 
     stage: Mapped[str | None] = mapped_column(String(32))

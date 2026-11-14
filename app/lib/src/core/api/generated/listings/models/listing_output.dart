@@ -7,6 +7,7 @@ import 'visibility.dart';
 class ListingOutput {
   const ListingOutput({
     required this.id,
+    required this.authorName,
     required this.authorId,
     required this.kind,
     required this.title,
@@ -43,6 +44,7 @@ class ListingOutput {
     }
     return ListingOutput(
       id: json["id"] as String,
+      authorName: json["author_name"] as String,
       authorId: json["author_id"] as String,
       kind: json["kind"] as String,
       title: json["title"] as String,
@@ -68,6 +70,8 @@ class ListingOutput {
   }
 
   final String id;
+
+  final String authorName;
 
   final String authorId;
 
@@ -101,6 +105,7 @@ class ListingOutput {
 
   static const _knownKeys = <String>{
     "id",
+    "author_name",
     "author_id",
     "kind",
     "title",
@@ -124,6 +129,7 @@ class ListingOutput {
     for (final entry in additionalProperties.entries)
       if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
     "id": this.id,
+    "author_name": this.authorName,
     "author_id": this.authorId,
     "kind": this.kind,
     "title": this.title,

@@ -34,7 +34,7 @@ void main() {
     await setNetwork(tester, available: false);
     expect(find.text('Нет подключения к сети'), findsOneWidget);
     // The app stays usable under the strip.
-    expect(find.text('Добро пожаловать в Кампус'), findsOneWidget);
+    expect(find.text('Пока ничего нет'), findsOneWidget);
 
     await setNetwork(tester, available: true);
     expect(find.text('Нет подключения к сети'), findsNothing);

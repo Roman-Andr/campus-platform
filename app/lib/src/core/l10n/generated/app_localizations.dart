@@ -547,6 +547,228 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'{course} курс'**
   String profileCourseValue(int course);
+
+  /// listingsCity
+  ///
+  /// In ru, this message translates to:
+  /// **'Город'**
+  String get listingsCity;
+
+  /// listingsEmpty
+  ///
+  /// In ru, this message translates to:
+  /// **'Пока ничего нет'**
+  String get listingsEmpty;
+
+  /// listingsMore
+  ///
+  /// In ru, this message translates to:
+  /// **'Загрузить ещё'**
+  String get listingsMore;
+
+  /// listingsFirst
+  ///
+  /// In ru, this message translates to:
+  /// **'В начало'**
+  String get listingsFirst;
+
+  /// listingDetails
+  ///
+  /// In ru, this message translates to:
+  /// **'Объявление'**
+  String get listingDetails;
+
+  /// listingAuthor
+  ///
+  /// In ru, this message translates to:
+  /// **'Автор: {name}'**
+  String listingAuthor(String name);
+
+  /// listingReserve
+  ///
+  /// In ru, this message translates to:
+  /// **'Забронировать'**
+  String get listingReserve;
+
+  /// listingCreate
+  ///
+  /// In ru, this message translates to:
+  /// **'Отдам вещь'**
+  String get listingCreate;
+
+  /// listingTitle
+  ///
+  /// In ru, this message translates to:
+  /// **'Название'**
+  String get listingTitle;
+
+  /// listingDescription
+  ///
+  /// In ru, this message translates to:
+  /// **'Описание'**
+  String get listingDescription;
+
+  /// listingScope
+  ///
+  /// In ru, this message translates to:
+  /// **'Область видимости'**
+  String get listingScope;
+
+  /// listingAudience
+  ///
+  /// In ru, this message translates to:
+  /// **'Аудитория'**
+  String get listingAudience;
+
+  /// listingStudents
+  ///
+  /// In ru, this message translates to:
+  /// **'Студенты'**
+  String get listingStudents;
+
+  /// listingCommunity
+  ///
+  /// In ru, this message translates to:
+  /// **'Все участники'**
+  String get listingCommunity;
+
+  /// listingPublish
+  ///
+  /// In ru, this message translates to:
+  /// **'Опубликовать'**
+  String get listingPublish;
+
+  /// listingsMine
+  ///
+  /// In ru, this message translates to:
+  /// **'Мои объявления и брони'**
+  String get listingsMine;
+
+  /// listingsOwn
+  ///
+  /// In ru, this message translates to:
+  /// **'Мои объявления'**
+  String get listingsOwn;
+
+  /// listingsReservations
+  ///
+  /// In ru, this message translates to:
+  /// **'Мои брони'**
+  String get listingsReservations;
+
+  /// listingIncoming
+  ///
+  /// In ru, this message translates to:
+  /// **'Входящие заявки'**
+  String get listingIncoming;
+
+  /// reservationPending
+  ///
+  /// In ru, this message translates to:
+  /// **'Ожидает решения'**
+  String get reservationPending;
+
+  /// reservationAccepted
+  ///
+  /// In ru, this message translates to:
+  /// **'Принята'**
+  String get reservationAccepted;
+
+  /// reservationRejected
+  ///
+  /// In ru, this message translates to:
+  /// **'Отклонена'**
+  String get reservationRejected;
+
+  /// reservationCancelled
+  ///
+  /// In ru, this message translates to:
+  /// **'Отменена'**
+  String get reservationCancelled;
+
+  /// reservationAccept
+  ///
+  /// In ru, this message translates to:
+  /// **'Принять'**
+  String get reservationAccept;
+
+  /// reservationReject
+  ///
+  /// In ru, this message translates to:
+  /// **'Отклонить'**
+  String get reservationReject;
+
+  /// listingActive
+  ///
+  /// In ru, this message translates to:
+  /// **'Доступно'**
+  String get listingActive;
+
+  /// listingBusy
+  ///
+  /// In ru, this message translates to:
+  /// **'Уже забронировано'**
+  String get listingBusy;
+
+  /// listingExpired
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок истёк'**
+  String get listingExpired;
+
+  /// listingConflict
+  ///
+  /// In ru, this message translates to:
+  /// **'Вещь уже забронирована или больше недоступна. Обновите объявление.'**
+  String get listingConflict;
+
+  /// listingForbidden
+  ///
+  /// In ru, this message translates to:
+  /// **'Это действие недоступно для вашего аккаунта.'**
+  String get listingForbidden;
+
+  /// listingCategory
+  ///
+  /// In ru, this message translates to:
+  /// **'Категория'**
+  String get listingCategory;
+
+  /// listingCategoriesEmpty
+  ///
+  /// In ru, this message translates to:
+  /// **'Категории пока недоступны. Попробуйте позже.'**
+  String get listingCategoriesEmpty;
+
+  /// listingDraft
+  ///
+  /// In ru, this message translates to:
+  /// **'Черновик'**
+  String get listingDraft;
+
+  /// listingCompleted
+  ///
+  /// In ru, this message translates to:
+  /// **'Завершено'**
+  String get listingCompleted;
+
+  /// listingHidden
+  ///
+  /// In ru, this message translates to:
+  /// **'Скрыто'**
+  String get listingHidden;
+
+  /// reservationNoShow
+  ///
+  /// In ru, this message translates to:
+  /// **'Неявка'**
+  String get reservationNoShow;
+
+  /// listingStatusUnknown
+  ///
+  /// In ru, this message translates to:
+  /// **'Статус недоступен'**
+  String get listingStatusUnknown;
 }
 
 class _AppLocalizationsDelegate

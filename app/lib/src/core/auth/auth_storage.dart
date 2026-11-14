@@ -16,10 +16,12 @@ class AuthStorage implements TokenStorage<AuthToken> {
 
   static const refreshTokenKey = 'auth.refresh_token';
   static const deviceIdKey = 'auth.device_id';
+  static const cacheNamespaceKey = 'auth.cache_namespace';
 
   final FlutterSecureStorage _storage;
   final String Function() _newDeviceId;
   Future<String>? _deviceId;
+  Future<String>? _cacheNamespace;
 
   @override
   Future<AuthToken?> read() async {
@@ -28,11 +30,33 @@ class AuthStorage implements TokenStorage<AuthToken> {
   }
 
   @override
-  Future<void> write(AuthToken token) =>
-      _storage.write(key: refreshTokenKey, value: token.refresh);
+  Future<void> write(AuthToken token) async {
+    await cacheNamespace();
+    await _storage.write(key: refreshTokenKey, value: token.refresh);
+  }
 
   @override
-  Future<void> delete() => _storage.delete(key: refreshTokenKey);
+  Future<void> delete() async {
+    await _storage.delete(key: refreshTokenKey);
+    await _storage.delete(key: cacheNamespaceKey);
+    _cacheNamespace = null;
+  }
+
+  /// Random local session identity, stable across refresh-token rotations.
+  /// Deleting credentials also detaches all cached data of that session.
+  Future<String> cacheNamespace() =>
+      _cacheNamespace ??= _loadCacheNamespace().catchError((Object error) {
+        _cacheNamespace = null;
+        throw error;
+      });
+
+  Future<String> _loadCacheNamespace() async {
+    final saved = await _storage.read(key: cacheNamespaceKey);
+    if (saved != null) return saved;
+    final created = const Uuid().v7();
+    await _storage.write(key: cacheNamespaceKey, value: created);
+    return created;
+  }
 
   /// Identifier of this installation that the server binds sessions to.
   ///

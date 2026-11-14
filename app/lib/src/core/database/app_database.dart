@@ -11,18 +11,21 @@ part 'app_database.g.dart';
 ///
 /// Schema changes must bump [schemaVersion], add a step to [migration] and
 /// be exported with `dart run drift_dev make-migrations` (see README).
-@DriftDatabase(tables: [Preferences])
+@DriftDatabase(tables: [Preferences, ListingFeeds])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openDefault());
 
   static const databaseName = 'campus';
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      if (from < 2) await m.createTable(listingFeeds);
+    },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
     },

@@ -86,6 +86,7 @@ class ListingEdit(BaseModel):
 class ListingOutput(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
+    author_name: str
     author_id: UUID
     kind: str
     title: str
@@ -107,6 +108,7 @@ class InteractionOutput(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
     listing_id: UUID
+    participant_name: str
     participant_id: UUID
     status: InteractionStatus
     stage: str | None
@@ -184,6 +186,7 @@ async def publish_giveaway(
         await publication_quota(session, user.id, settings)
     assert user.city_id is not None  # noqa: S101 - ProfiledUser
     listing = Listing(
+        author=user,
         author_id=user.id,
         kind="giveaway",
         title=data.title,
@@ -290,6 +293,42 @@ async def my_listings(
     return await paginate(session, query, page, ListingOutput)
 
 
+@router.get("/reservations/mine")
+async def my_reservations(
+    session: DbSession,
+    principal: CurrentUser,
+    page: PageQuery,
+) -> Page[InteractionOutput]:
+    query = sort_by(
+        select(Interaction).where(Interaction.participant_id == principal.user_id),
+        "-created_at",
+        {"created_at": Interaction.created_at},
+        Interaction.id,
+    )
+    return await paginate(session, query, page, InteractionOutput)
+
+
+@router.get("/{listing_id}/interactions")
+async def listing_interactions(
+    listing_id: UUID,
+    session: DbSession,
+    principal: CurrentUser,
+    page: PageQuery,
+) -> Page[InteractionOutput]:
+    listing = await session.get(Listing, listing_id)
+    if listing is None:
+        raise ProblemError(NOT_FOUND)
+    if listing.author_id != principal.user_id:
+        raise ProblemError(FORBIDDEN)
+    query = sort_by(
+        select(Interaction).where(Interaction.listing_id == listing_id),
+        "-created_at",
+        {"created_at": Interaction.created_at},
+        Interaction.id,
+    )
+    return await paginate(session, query, page, InteractionOutput)
+
+
 @router.get("/{listing_id}")
 async def get_listing(
     listing_id: UUID,
@@ -389,6 +428,7 @@ async def reserve_giveaway(
     interaction = Interaction(
         listing_id=listing.id,
         participant_id=user.id,
+        participant=user,
         response_due_at=clock.now() + settings.listing_response_timeout
         if TYPE_POLICIES[listing.kind].author_response_deadline
         else None,

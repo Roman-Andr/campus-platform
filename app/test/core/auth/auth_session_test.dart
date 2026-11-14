@@ -345,4 +345,25 @@ void main() {
     expect(logged.toString(), isNot(contains('refresh-')));
     expect(logged.toString(), isNot(contains(testRefreshToken)));
   });
+
+  test(
+    'cache namespace survives token rotation and is detached on sign-out',
+    () async {
+      FlutterSecureStorage.setMockInitialValues({});
+      final storage = AuthStorage(const FlutterSecureStorage());
+      final namespace = await storage.cacheNamespace();
+      await storage.write(
+        const AuthToken(accessToken: 'access', refreshToken: 'first'),
+      );
+      await storage.write(
+        const AuthToken(accessToken: 'new-access', refreshToken: 'second'),
+      );
+      expect(
+        await AuthStorage(const FlutterSecureStorage()).cacheNamespace(),
+        namespace,
+      );
+      await storage.delete();
+      expect(await storage.cacheNamespace(), isNot(namespace));
+    },
+  );
 }

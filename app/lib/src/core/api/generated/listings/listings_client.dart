@@ -10,6 +10,9 @@ import 'models/interaction_output.dart' as models show InteractionOutput;
 import 'models/listing_edit.dart' as models show ListingEdit;
 import 'models/listing_output.dart' as models show ListingOutput;
 import 'models/page_event_output.dart' as models show PageEventOutput;
+import 'models/page_interaction_output.dart'
+    as models
+    show PageInteractionOutput;
 import 'models/page_listing_output.dart' as models show PageListingOutput;
 import 'models/transition_input.dart' as models show TransitionInput;
 import 'models/visibility.dart' as models show Visibility;
@@ -156,6 +159,90 @@ class ListingsClient {
       cancelToken: cancelToken,
     );
     return models.PageListingOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// My Reservations
+  Future<models.PageInteractionOutput> myReservations({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+
+    /// Number of items; the default (20) and the maximum (100) are set in the server configuration.
+    int? size,
+
+    /// `next_page` of the previous page.
+    String? cursor,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/reservations/mine",
+      options: _options,
+      queryParameters: <String, Object?>{
+        if (size != null) "size": size,
+        if (cursor != null) "cursor": cursor,
+      },
+      cancelToken: cancelToken,
+    );
+    return models.PageInteractionOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Listing Interactions
+  Future<models.PageInteractionOutput> listingInteractions({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+
+    /// Number of items; the default (20) and the maximum (100) are set in the server configuration.
+    int? size,
+
+    /// `next_page` of the previous page.
+    String? cursor,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/interactions",
+      options: _options,
+      queryParameters: <String, Object?>{
+        if (size != null) "size": size,
+        if (cursor != null) "cursor": cursor,
+      },
+      cancelToken: cancelToken,
+    );
+    return models.PageInteractionOutput.fromJson(
       response.data as Map<String, Object?>,
     );
   }

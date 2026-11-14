@@ -559,3 +559,37 @@ async def test_wrong_transition_actor(owner: Account, borrower: Account) -> None
     assert (await move(borrower, listing, interaction, "rejected")).status_code == 403
     assert (await move(owner, listing, interaction, "cancelled")).status_code == 403
     assert (await request(owner, "GET", f"/{uuid4()}/events")).status_code == 404
+
+
+async def test_private_client_views(
+    owner: Account, borrower: Account, staff: Account
+) -> None:
+    listing = await publish(owner, audience="community")
+    reservation = (await reserve(borrower, listing)).json()
+    own = (await request(owner, "GET", "/mine")).json()
+    assert [item["id"] for item in own["items"]] == [listing["id"]]
+    assert listing["author_name"]
+    assert (await request(borrower, "GET", "/mine")).json()["items"] == []
+    incoming = (await request(owner, "GET", f"/{listing['id']}/interactions")).json()
+    assert incoming["items"][0]["id"] == reservation["id"]
+    assert incoming["items"][0]["participant_name"]
+    for account in (borrower, staff):
+        response = await request(account, "GET", f"/{listing['id']}/interactions")
+        assert response.status_code == 403
+    assert (await request(owner, "GET", "/reservations/mine")).json()["items"] == []
+    assert (await request(staff, "GET", "/reservations/mine")).json()["items"] == []
+    mine = (await request(borrower, "GET", "/reservations/mine")).json()["items"]
+    assert mine[0]["id"] == reservation["id"]
+    assert (await move(owner, listing, reservation, "accepted")).status_code == 200
+    mine = (await request(borrower, "GET", "/reservations/mine")).json()["items"]
+    assert mine[0]["status"] == "accepted"
+    missing = await request(owner, "GET", f"/{uuid4()}/interactions")
+    assert missing.status_code == 404
+
+
+async def test_own_listings_include_archived(owner: Account) -> None:
+    listing = await publish(owner)
+    assert (await request(owner, "POST", f"/{listing['id']}/cancel")).status_code == 200
+    assert (await request(owner, "GET")).json()["items"] == []
+    page = (await request(owner, "GET", "/mine")).json()
+    assert page["items"][0]["status"] == "cancelled"

@@ -25,6 +25,7 @@ export 'listings/models/listing_edit.dart';
 export 'listings/models/listing_output.dart';
 export 'listings/models/listing_status.dart';
 export 'listings/models/page_event_output.dart';
+export 'listings/models/page_interaction_output.dart';
 export 'listings/models/page_listing_output.dart';
 export 'listings/models/transition_input.dart';
 export 'listings/models/visibility.dart';

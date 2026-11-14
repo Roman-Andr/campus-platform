@@ -152,7 +152,7 @@ void main() {
       'course': 3,
     });
     expect(location(container), AppRoutes.home);
-    expect(find.text('Добро пожаловать в Кампус'), findsOneWidget);
+    expect(find.text('Пока ничего нет'), findsOneWidget);
     expect(container.read(myProfileProvider).value!.profileComplete, isTrue);
   });
 

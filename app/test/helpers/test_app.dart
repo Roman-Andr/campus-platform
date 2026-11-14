@@ -6,6 +6,7 @@ import 'package:campus/src/core/api/network_status.dart';
 import 'package:campus/src/core/auth/auth_session.dart';
 import 'package:campus/src/core/auth/auth_storage.dart';
 import 'package:campus/src/core/database/app_database.dart';
+import 'package:campus/src/features/listings/data/listings_repository.dart';
 import 'package:campus/src/features/settings/application/settings_controller.dart';
 import 'package:campus/src/features/settings/data/settings_repository.dart';
 import 'package:campus/src/features/settings/domain/app_settings.dart';
@@ -41,6 +42,7 @@ const testRefreshToken = 'refresh-token-secret';
 /// Contents of the secure storage of a device with a signed-in user.
 const signedInStorage = {
   AuthStorage.refreshTokenKey: testRefreshToken,
+  AuthStorage.cacheNamespaceKey: 'test-session-cache',
   AuthStorage.deviceIdKey: '01890a5d-ac96-774b-bcce-b302099a8057',
 };
 
@@ -50,19 +52,22 @@ const signedInStorage = {
 /// with [secure] (no session by default).
 List<Override> apiOverrides({
   FakeHttpAdapter? adapter,
+  ListingsCache? cache,
   Stream<bool>? network,
   SettingsRepository? settings,
   Map<String, String> secure = const {},
 }) {
   FlutterSecureStorage.setMockInitialValues(Map.of(secure));
-  return _overrides(adapter, network, settings);
+  return _overrides(adapter, network, settings, cache);
 }
 
 List<Override> _overrides(
   FakeHttpAdapter? adapter,
   Stream<bool>? network,
   SettingsRepository? settings,
+  ListingsCache? cache,
 ) => [
+  listingsCacheProvider.overrideWithValue(cache ?? InMemoryListingsCache()),
   settingsRepositoryProvider.overrideWithValue(
     settings ?? InMemorySettingsRepository(),
   ),
@@ -95,6 +100,7 @@ extension PumpCampusApp on WidgetTester {
   Future<ProviderContainer> pumpCampusApp(
     SettingsRepository repository, {
     FakeHttpAdapter? adapter,
+    ListingsCache? cache,
     Stream<bool>? network,
     Map<String, String> secure = signedInStorage,
     List<Override> overrides = const [],
@@ -103,6 +109,7 @@ extension PumpCampusApp on WidgetTester {
       overrides: [
         ...apiOverrides(
           adapter: adapter,
+          cache: cache,
           network: network,
           settings: repository,
           secure: secure,
@@ -119,4 +126,23 @@ extension PumpCampusApp on WidgetTester {
     await pumpAndSettle();
     return container;
   }
+}
+
+/// Cache double for widget tests; real Drift is exercised in unit tests.
+class InMemoryListingsCache implements ListingsCache {
+  final pages = <String, PageListingOutput>{};
+  @override
+  Future<PageListingOutput?> load(String owner, Visibility area) async =>
+      pages['$owner/${area.toJson()}'];
+  @override
+  Future<void> save(
+    String owner,
+    Visibility area,
+    PageListingOutput page,
+  ) async {
+    pages['$owner/${area.toJson()}'] = page;
+  }
+
+  @override
+  Future<void> clear() async => pages.clear();
 }

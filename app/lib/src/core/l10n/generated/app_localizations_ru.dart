@@ -263,4 +263,119 @@ class AppLocalizationsRu extends AppLocalizations {
   String profileCourseValue(int course) {
     return '$course курс';
   }
+
+  @override
+  String get listingsCity => 'Город';
+
+  @override
+  String get listingsEmpty => 'Пока ничего нет';
+
+  @override
+  String get listingsMore => 'Загрузить ещё';
+
+  @override
+  String get listingsFirst => 'В начало';
+
+  @override
+  String get listingDetails => 'Объявление';
+
+  @override
+  String listingAuthor(String name) {
+    return 'Автор: $name';
+  }
+
+  @override
+  String get listingReserve => 'Забронировать';
+
+  @override
+  String get listingCreate => 'Отдам вещь';
+
+  @override
+  String get listingTitle => 'Название';
+
+  @override
+  String get listingDescription => 'Описание';
+
+  @override
+  String get listingScope => 'Область видимости';
+
+  @override
+  String get listingAudience => 'Аудитория';
+
+  @override
+  String get listingStudents => 'Студенты';
+
+  @override
+  String get listingCommunity => 'Все участники';
+
+  @override
+  String get listingPublish => 'Опубликовать';
+
+  @override
+  String get listingsMine => 'Мои объявления и брони';
+
+  @override
+  String get listingsOwn => 'Мои объявления';
+
+  @override
+  String get listingsReservations => 'Мои брони';
+
+  @override
+  String get listingIncoming => 'Входящие заявки';
+
+  @override
+  String get reservationPending => 'Ожидает решения';
+
+  @override
+  String get reservationAccepted => 'Принята';
+
+  @override
+  String get reservationRejected => 'Отклонена';
+
+  @override
+  String get reservationCancelled => 'Отменена';
+
+  @override
+  String get reservationAccept => 'Принять';
+
+  @override
+  String get reservationReject => 'Отклонить';
+
+  @override
+  String get listingActive => 'Доступно';
+
+  @override
+  String get listingBusy => 'Уже забронировано';
+
+  @override
+  String get listingExpired => 'Срок истёк';
+
+  @override
+  String get listingConflict =>
+      'Вещь уже забронирована или больше недоступна. Обновите объявление.';
+
+  @override
+  String get listingForbidden => 'Это действие недоступно для вашего аккаунта.';
+
+  @override
+  String get listingCategory => 'Категория';
+
+  @override
+  String get listingCategoriesEmpty =>
+      'Категории пока недоступны. Попробуйте позже.';
+
+  @override
+  String get listingDraft => 'Черновик';
+
+  @override
+  String get listingCompleted => 'Завершено';
+
+  @override
+  String get listingHidden => 'Скрыто';
+
+  @override
+  String get reservationNoShow => 'Неявка';
+
+  @override
+  String get listingStatusUnknown => 'Статус недоступен';
 }

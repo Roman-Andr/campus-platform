@@ -139,6 +139,7 @@ void main() {
       expect(saved.keys, {
         AuthStorage.refreshTokenKey,
         AuthStorage.deviceIdKey,
+        AuthStorage.cacheNamespaceKey,
       });
 
       // An expired access token is refreshed, which rotates the refresh
