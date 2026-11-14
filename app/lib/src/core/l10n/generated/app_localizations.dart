@@ -773,7 +773,7 @@ abstract class AppLocalizations {
   /// listingsMine
   ///
   /// In ru, this message translates to:
-  /// **'Мои объявления и брони'**
+  /// **'Мои объявления и участие'**
   String get listingsMine;
 
   /// listingsOwn
@@ -785,7 +785,7 @@ abstract class AppLocalizations {
   /// listingsReservations
   ///
   /// In ru, this message translates to:
-  /// **'Мои брони'**
+  /// **'Моё участие'**
   String get listingsReservations;
 
   /// listingIncoming
@@ -1195,6 +1195,72 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Срок объявления продлён.'**
   String get listingExtended;
+
+  /// Own listings filter: drafts.
+  ///
+  /// In ru, this message translates to:
+  /// **'Черновики'**
+  String get mySectionDrafts;
+
+  /// Own listings filter: active listings.
+  ///
+  /// In ru, this message translates to:
+  /// **'Активные'**
+  String get mySectionActive;
+
+  /// Own listings filter: reserved (busy) listings.
+  ///
+  /// In ru, this message translates to:
+  /// **'Занятые'**
+  String get mySectionBusy;
+
+  /// Listing kind name: giveaway.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отдам даром'**
+  String get listingKindGiveaway;
+
+  /// Favorites screen title and entry point.
+  ///
+  /// In ru, this message translates to:
+  /// **'Избранное'**
+  String get favoritesTitle;
+
+  /// Favorites screen without bookmarks.
+  ///
+  /// In ru, this message translates to:
+  /// **'В избранном пока ничего нет'**
+  String get favoritesEmpty;
+
+  /// Bookmark toggle tooltip when not bookmarked.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить в избранное'**
+  String get favoriteAdd;
+
+  /// Bookmark toggle tooltip when bookmarked.
+  ///
+  /// In ru, this message translates to:
+  /// **'Убрать из избранного'**
+  String get favoriteRemove;
+
+  /// A bookmarked listing that can no longer be shown.
+  ///
+  /// In ru, this message translates to:
+  /// **'Объявление недоступно'**
+  String get favoriteUnavailable;
+
+  /// Private lists shown from the device cache while offline.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет сети: показаны сохранённые данные'**
+  String get savedCopy;
+
+  /// Scenario stage of own participation.
+  ///
+  /// In ru, this message translates to:
+  /// **'Этап: {stage}'**
+  String participationStage(String stage);
 }
 
 class _AppLocalizationsDelegate

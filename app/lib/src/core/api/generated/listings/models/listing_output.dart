@@ -28,6 +28,9 @@ class ListingOutput {
     required this.expiresAt,
     required this.categoryId,
     required this.hiddenReason,
+
+    /// Whether the current user bookmarked it.
+    this.favorite = false,
     this.additionalProperties = const {},
   });
 
@@ -68,6 +71,7 @@ class ListingOutput {
           : DateTime.parse(json["expires_at"] as String).toUtc(),
       categoryId: json["category_id"] as String?,
       hiddenReason: json["hidden_reason"] as String?,
+      favorite: json.containsKey("favorite") ? json["favorite"] as bool : false,
       additionalProperties: {
         for (final entry in json.entries)
           if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
@@ -113,6 +117,9 @@ class ListingOutput {
 
   final String? hiddenReason;
 
+  /// Whether the current user bookmarked it.
+  final bool favorite;
+
   static const _knownKeys = <String>{
     "id",
     "author_name",
@@ -132,6 +139,7 @@ class ListingOutput {
     "expires_at",
     "category_id",
     "hidden_reason",
+    "favorite",
   };
 
   final Map<String, Object?> additionalProperties;
@@ -157,5 +165,6 @@ class ListingOutput {
     "expires_at": this.expiresAt?.toUtc().toIso8601String(),
     "category_id": this.categoryId,
     "hidden_reason": this.hiddenReason,
+    "favorite": this.favorite,
   };
 }
