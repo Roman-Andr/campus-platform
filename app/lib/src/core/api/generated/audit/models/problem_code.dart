@@ -12,6 +12,8 @@ enum ProblemCodeValue {
   emailNotFound("email_not_found"),
   eventCapacityConflict("event_capacity_conflict"),
   eventTimeInvalid("event_time_invalid"),
+  exchangeOfferDuplicate("exchange_offer_duplicate"),
+  exchangeOfferInvalid("exchange_offer_invalid"),
   forbidden("forbidden"),
   helpDeadlineInvalid("help_deadline_invalid"),
   httpError("http_error"),
@@ -94,6 +96,12 @@ sealed class ProblemCode {
   );
   static const eventTimeInvalid = ProblemCodeKnown(
     ProblemCodeValue.eventTimeInvalid,
+  );
+  static const exchangeOfferDuplicate = ProblemCodeKnown(
+    ProblemCodeValue.exchangeOfferDuplicate,
+  );
+  static const exchangeOfferInvalid = ProblemCodeKnown(
+    ProblemCodeValue.exchangeOfferInvalid,
   );
   static const forbidden = ProblemCodeKnown(ProblemCodeValue.forbidden);
   static const helpDeadlineInvalid = ProblemCodeKnown(

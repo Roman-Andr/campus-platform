@@ -8,6 +8,8 @@ import 'package:dio/dio.dart'
 import 'models/category_list.dart' as models show CategoryList;
 import 'models/event_edit.dart' as models show EventEdit;
 import 'models/event_input.dart' as models show EventInput;
+import 'models/exchange_offer_input.dart' as models show ExchangeOfferInput;
+import 'models/exchange_offer_list.dart' as models show ExchangeOfferList;
 import 'models/giveaway_input.dart' as models show GiveawayInput;
 import 'models/help_request_input.dart' as models show HelpRequestInput;
 import 'models/lesson_accept_input.dart' as models show LessonAcceptInput;
@@ -117,6 +119,44 @@ class ListingsClient {
     );
     final response = await _transport.request<dynamic>(
       "/api/v1/listings/help-requests",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.ListingOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Publish Exchange
+  ///
+  /// Publish an item to exchange: participants offer their own items.
+  Future<models.ListingOutput> publishExchange({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required models.GiveawayInput body,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 201),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/exchanges",
       options: _options,
       data: convert.jsonEncode(body),
       cancelToken: cancelToken,
@@ -693,6 +733,86 @@ class ListingsClient {
     final response = await _transport.request<dynamic>(
       "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/reservations",
       options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.InteractionOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Exchange Offers
+  ///
+  /// Every offer for the author; only the caller's own offer otherwise.
+  Future<models.ExchangeOfferList> exchangeOffers({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/exchange-offers",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.ExchangeOfferList.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Offer Exchange
+  ///
+  /// Offer an item for exchange; the author later chooses one offer.
+  Future<models.InteractionOutput> offerExchange({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required models.ExchangeOfferInput body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 201),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/exchange-offers",
+      options: _options,
+      data: convert.jsonEncode(body),
       cancelToken: cancelToken,
     );
     return models.InteractionOutput.fromJson(

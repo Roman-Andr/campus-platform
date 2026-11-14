@@ -3697,6 +3697,171 @@
         }
       }
     },
+    "/api/v1/listings/exchanges": {
+      "post": {
+        "tags": [
+          "Listings"
+        ],
+        "summary": "Publish Exchange",
+        "description": "Publish an item to exchange: participants offer their own items.",
+        "operationId": "publish_exchange",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GiveawayInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListingOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "401": {
+            "description": "Invalid, expired or revoked authentication (unauthorized).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/listings/skills": {
       "post": {
         "tags": [
@@ -6102,6 +6267,332 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/InteractionOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "401": {
+            "description": "Invalid, expired or revoked authentication (unauthorized).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/listings/{listing_id}/exchange-offers": {
+      "post": {
+        "tags": [
+          "Listings"
+        ],
+        "summary": "Offer Exchange",
+        "description": "Offer an item for exchange; the author later chooses one offer.",
+        "operationId": "offer_exchange",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExchangeOfferInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InteractionOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "401": {
+            "description": "Invalid, expired or revoked authentication (unauthorized).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Listings"
+        ],
+        "summary": "Exchange Offers",
+        "description": "Every offer for the author; only the caller's own offer otherwise.",
+        "operationId": "exchange_offers",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExchangeOfferList"
                 }
               }
             }
@@ -13139,6 +13630,37 @@
         ],
         "title": "EventOutput"
       },
+      "ExchangeOfferInput": {
+        "properties": {
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "description"
+        ],
+        "title": "ExchangeOfferInput",
+        "description": "What a participant offers in exchange for the author's item."
+      },
+      "ExchangeOfferList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/InteractionOutput"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "ExchangeOfferList"
+      },
       "FavoriteOutput": {
         "properties": {
           "listing_id": {
@@ -13405,6 +13927,23 @@
             "type": "boolean",
             "title": "Executor",
             "description": "Whether this application is the selected help executor."
+          },
+          "reservation_due_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When an accepted item reservation ends; extended to the meeting time once a meeting is scheduled.",
+            "title": "Reservation Due At"
+          },
+          "offer_description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Offer Description",
+            "description": "The item a participant offers for an exchange; null otherwise."
           },
           "meeting": {
             "oneOf": [
@@ -14454,6 +14993,23 @@
             "title": "Executor",
             "description": "Whether this application is the selected help executor."
           },
+          "reservation_due_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When an accepted item reservation ends; extended to the meeting time once a meeting is scheduled.",
+            "title": "Reservation Due At"
+          },
+          "offer_description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Offer Description",
+            "description": "The item a participant offers for an exchange; null otherwise."
+          },
           "meeting": {
             "oneOf": [
               {
@@ -14625,6 +15181,8 @@
               "email_not_found",
               "event_capacity_conflict",
               "event_time_invalid",
+              "exchange_offer_duplicate",
+              "exchange_offer_invalid",
               "forbidden",
               "help_deadline_invalid",
               "http_error",

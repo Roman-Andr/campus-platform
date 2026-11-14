@@ -481,6 +481,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/listings/exchanges': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Publish Exchange
+     * @description Publish an item to exchange: participants offer their own items.
+     */
+    post: operations['publish_exchange'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/listings/skills': {
     parameters: {
       query?: never;
@@ -735,6 +755,30 @@ export interface paths {
     put?: never;
     /** Reserve Giveaway */
     post: operations['reserve_giveaway'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{listing_id}/exchange-offers': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Exchange Offers
+     * @description Every offer for the author; only the caller's own offer otherwise.
+     */
+    get: operations['exchange_offers'];
+    put?: never;
+    /**
+     * Offer Exchange
+     * @description Offer an item for exchange; the author later chooses one offer.
+     */
+    post: operations['offer_exchange'];
     delete?: never;
     options?: never;
     head?: never;
@@ -1746,6 +1790,19 @@ export interface components {
       /** Offline Qr */
       offline_qr: boolean;
     };
+    /**
+     * ExchangeOfferInput
+     * @description What a participant offers in exchange for the author's item.
+     */
+    ExchangeOfferInput: {
+      /** Description */
+      description: string;
+    };
+    /** ExchangeOfferList */
+    ExchangeOfferList: {
+      /** Items */
+      items: components['schemas']['InteractionOutput'][];
+    };
     /** FavoriteOutput */
     FavoriteOutput: {
       /**
@@ -1905,6 +1962,16 @@ export interface components {
        * @description Whether this application is the selected help executor.
        */
       executor: boolean;
+      /**
+       * Reservation Due At
+       * @description When an accepted item reservation ends; extended to the meeting time once a meeting is scheduled.
+       */
+      reservation_due_at?: string | null;
+      /**
+       * Offer Description
+       * @description The item a participant offers for an exchange; null otherwise.
+       */
+      offer_description?: string | null;
       meeting: components['schemas']['MeetingOutput'] | null;
       /**
        * Options
@@ -2382,6 +2449,16 @@ export interface components {
        * @description Whether this application is the selected help executor.
        */
       executor: boolean;
+      /**
+       * Reservation Due At
+       * @description When an accepted item reservation ends; extended to the meeting time once a meeting is scheduled.
+       */
+      reservation_due_at?: string | null;
+      /**
+       * Offer Description
+       * @description The item a participant offers for an exchange; null otherwise.
+       */
+      offer_description?: string | null;
       meeting: components['schemas']['MeetingOutput'] | null;
       /**
        * Options
@@ -2470,6 +2547,8 @@ export interface components {
         | 'email_not_found'
         | 'event_capacity_conflict'
         | 'event_time_invalid'
+        | 'exchange_offer_duplicate'
+        | 'exchange_offer_invalid'
         | 'forbidden'
         | 'help_deadline_invalid'
         | 'http_error'
@@ -5520,6 +5599,118 @@ export interface operations {
       };
     };
   };
+  publish_exchange: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['GiveawayInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ListingOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
   publish_skill: {
     parameters: {
       query?: never;
@@ -7090,6 +7281,228 @@ export interface operations {
       cookie?: never;
     };
     requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['InteractionOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  exchange_offers: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path: {
+        listing_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ExchangeOfferList'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  offer_exchange: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ExchangeOfferInput'];
+      };
+    };
     responses: {
       /** @description Successful Response */
       201: {
