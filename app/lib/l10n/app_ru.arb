@@ -47,5 +47,71 @@
   "settingsThemeDark": "Тёмная",
   "@settingsThemeDark": {
     "description": "Dark theme option."
+  },
+  "errorNetwork": "Нет связи с сервером. Проверьте подключение к интернету и попробуйте ещё раз.",
+  "@errorNetwork": {
+    "description": "Request failed because the server could not be reached or did not answer in time."
+  },
+  "errorServer": "На сервере что-то пошло не так. Попробуйте позже.",
+  "@errorServer": {
+    "description": "Request failed because of an error on the server."
+  },
+  "errorRequest": "Не удалось выполнить действие. Попробуйте ещё раз.",
+  "@errorRequest": {
+    "description": "Request was rejected by the server for a reason without its own message."
+  },
+  "errorNotFound": "Не найдено: возможно, это уже удалили.",
+  "@errorNotFound": {
+    "description": "The requested object does not exist on the server."
+  },
+  "errorValidation": "Проверьте введённые данные.",
+  "@errorValidation": {
+    "description": "The server rejected some fields of a form."
+  },
+  "errorListChanged": "Список изменился. Обновите его.",
+  "@errorListChanged": {
+    "description": "A paged list can no longer be continued and must be reloaded."
+  },
+  "errorUpdateRequired": "Эта версия приложения устарела. Обновите приложение.",
+  "@errorUpdateRequired": {
+    "description": "Request failed because the app version is no longer supported."
+  },
+  "errorUnexpected": "Что-то пошло не так. Попробуйте ещё раз.",
+  "@errorUnexpected": {
+    "description": "Request failed for an unexpected reason, e.g. an unreadable response."
+  },
+  "errorRetry": "Повторить",
+  "@errorRetry": {
+    "description": "Button that repeats a failed request."
+  },
+  "offlineBanner": "Нет подключения к сети",
+  "@offlineBanner": {
+    "description": "Strip at the top of the screen while the app is offline."
+  },
+  "updateTitle": "Требуется обновление",
+  "@updateTitle": {
+    "description": "Title of the screen shown when the server no longer supports this app version."
+  },
+  "updateBody": "Эта версия приложения больше не поддерживается. Чтобы продолжить, установите новую версию.",
+  "@updateBody": {
+    "description": "Explanation on the update screen when the minimum version is unknown."
+  },
+  "updateBodyVersion": "Эта версия приложения больше не поддерживается. Чтобы продолжить, установите версию {version} или новее.",
+  "@updateBodyVersion": {
+    "description": "Explanation on the update screen with the oldest supported version.",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.2.0"
+      }
+    }
+  },
+  "updateDownload": "Скачать обновление",
+  "@updateDownload": {
+    "description": "Button on the update screen that opens the download page."
+  },
+  "updateDownloadFailed": "Не удалось открыть страницу загрузки.",
+  "@updateDownloadFailed": {
+    "description": "Message when the download page could not be opened."
   }
 }

@@ -50,6 +50,8 @@ jobs:
             app:
               - *ci
               - app/**
+              # Backend changes may change the OpenAPI schema.
+              - backend/**
             admin:
               - *ci
               - admin/**
@@ -160,7 +162,13 @@ jobs:
       run:
         working-directory: app
     steps:
+      # The backend is needed to export and check the OpenAPI schema.
       - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          version: "0.13.8"
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
@@ -184,6 +192,7 @@ jobs:
       # Generated code is committed: regenerate it and fail on any change.
       - name: Generated code is up to date
         run: |
+          tool/generate_api.sh --check
           flutter gen-l10n
           dart run build_runner build --delete-conflicting-outputs
           dart run drift_dev make-migrations

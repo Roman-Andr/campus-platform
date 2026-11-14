@@ -1,0 +1,19 @@
+# Generates the API client from the server schema; see README, "API client".
+swagger_parser:
+  schema_path: openapi/openapi.json
+  output_directory: lib/src/core/api/generated
+  generation:
+    root_api_class_name: CampusApi
+    http_client: dio
+    serializer: plain
+    # New enum values on the server (e.g. problem codes) must not break
+    # older clients.
+    unknown_enum_values: preserve
+    # Sent by the interceptors of the shared Dio instance (api_client.dart).
+    exclude_parameters:
+      - name: X-Client-Platform
+        in: header
+      - name: X-Client-Version
+        in: header
+      - name: Idempotency-Key
+        in: header

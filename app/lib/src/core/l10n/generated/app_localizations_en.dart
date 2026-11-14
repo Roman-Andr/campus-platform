@@ -45,4 +45,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsThemeDark => 'Dark';
+
+  @override
+  String get errorNetwork =>
+      'Can\'t reach the server. Check your internet connection and try again.';
+
+  @override
+  String get errorServer =>
+      'Something went wrong on the server. Please try again later.';
+
+  @override
+  String get errorRequest => 'Couldn\'t complete the action. Please try again.';
+
+  @override
+  String get errorNotFound => 'Not found: it may have been deleted.';
+
+  @override
+  String get errorValidation => 'Please check the information you entered.';
+
+  @override
+  String get errorListChanged => 'The list has changed. Please refresh it.';
+
+  @override
+  String get errorUpdateRequired =>
+      'This version of the app is out of date. Please update the app.';
+
+  @override
+  String get errorUnexpected => 'Something went wrong. Please try again.';
+
+  @override
+  String get errorRetry => 'Try again';
+
+  @override
+  String get offlineBanner => 'You\'re offline';
+
+  @override
+  String get updateTitle => 'Update required';
+
+  @override
+  String get updateBody =>
+      'This version of the app is no longer supported. Install the new version to continue.';
+
+  @override
+  String updateBodyVersion(String version) {
+    return 'This version of the app is no longer supported. Install version $version or newer to continue.';
+  }
+
+  @override
+  String get updateDownload => 'Download update';
+
+  @override
+  String get updateDownloadFailed => 'Couldn\'t open the download page.';
 }

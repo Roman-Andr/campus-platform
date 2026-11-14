@@ -1,4 +1,8 @@
 import 'package:campus/src/app.dart';
+import 'package:campus/src/core/api/api_client.dart';
+import 'package:campus/src/core/api/api_config.dart';
+import 'package:campus/src/core/api/client_info.dart';
+import 'package:campus/src/core/api/network_status.dart';
 import 'package:campus/src/core/database/app_database.dart';
 import 'package:campus/src/features/settings/application/settings_controller.dart';
 import 'package:campus/src/features/settings/data/settings_repository.dart';
@@ -6,7 +10,10 @@ import 'package:campus/src/features/settings/domain/app_settings.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+
+import 'fake_api.dart';
 
 /// Creates an in-memory database closed at the end of the test.
 AppDatabase createTestDatabase() {
@@ -25,6 +32,25 @@ ProviderContainer createTestContainer(AppDatabase database) {
   return container;
 }
 
+/// Replaces the server, the device network and the settings storage:
+/// requests go to [adapter], network changes come from [network] (none by
+/// default), settings are kept in [settings].
+List<Override> apiOverrides({
+  FakeHttpAdapter? adapter,
+  Stream<bool>? network,
+  SettingsRepository? settings,
+}) => [
+  settingsRepositoryProvider.overrideWithValue(
+    settings ?? InMemorySettingsRepository(),
+  ),
+  apiConfigProvider.overrideWithValue(testApiConfig),
+  clientInfoProvider.overrideWithValue(testClientInfo),
+  apiHttpAdapterProvider.overrideWithValue(adapter ?? FakeHttpAdapter()),
+  networkAvailabilityProvider.overrideWith(
+    (ref) => network ?? const Stream.empty(),
+  ),
+];
+
 /// Keeps settings in memory: widget tests run in a fake-async zone where
 /// real database I/O does not complete. Drift storage is covered by unit
 /// tests.
@@ -42,9 +68,17 @@ class InMemorySettingsRepository implements SettingsRepository {
 
 extension PumpCampusApp on WidgetTester {
   /// Starts the app the way `main` does: settings are loaded first.
-  Future<ProviderContainer> pumpCampusApp(SettingsRepository repository) async {
+  Future<ProviderContainer> pumpCampusApp(
+    SettingsRepository repository, {
+    FakeHttpAdapter? adapter,
+    Stream<bool>? network,
+  }) async {
     final container = ProviderContainer(
-      overrides: [settingsRepositoryProvider.overrideWithValue(repository)],
+      overrides: apiOverrides(
+        adapter: adapter,
+        network: network,
+        settings: repository,
+      ),
     );
     addTearDown(container.dispose);
     await container.read(settingsControllerProvider.future);

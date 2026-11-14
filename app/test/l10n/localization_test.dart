@@ -13,7 +13,8 @@ void main() {
           .whereType<File>()
           .where((file) => file.path.endsWith('.dart'))
           .where((file) => !file.path.endsWith('.g.dart'))
-          .where((file) => !file.path.contains('/l10n/generated/'));
+          .where((file) => !file.path.contains('/l10n/generated/'))
+          .where((file) => !file.path.contains('/api/generated/'));
 
       final found = [
         for (final file in sources)

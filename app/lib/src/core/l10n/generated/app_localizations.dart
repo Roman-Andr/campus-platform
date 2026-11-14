@@ -169,6 +169,96 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Тёмная'**
   String get settingsThemeDark;
+
+  /// Request failed because the server could not be reached or did not answer in time.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет связи с сервером. Проверьте подключение к интернету и попробуйте ещё раз.'**
+  String get errorNetwork;
+
+  /// Request failed because of an error on the server.
+  ///
+  /// In ru, this message translates to:
+  /// **'На сервере что-то пошло не так. Попробуйте позже.'**
+  String get errorServer;
+
+  /// Request was rejected by the server for a reason without its own message.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось выполнить действие. Попробуйте ещё раз.'**
+  String get errorRequest;
+
+  /// The requested object does not exist on the server.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не найдено: возможно, это уже удалили.'**
+  String get errorNotFound;
+
+  /// The server rejected some fields of a form.
+  ///
+  /// In ru, this message translates to:
+  /// **'Проверьте введённые данные.'**
+  String get errorValidation;
+
+  /// A paged list can no longer be continued and must be reloaded.
+  ///
+  /// In ru, this message translates to:
+  /// **'Список изменился. Обновите его.'**
+  String get errorListChanged;
+
+  /// Request failed because the app version is no longer supported.
+  ///
+  /// In ru, this message translates to:
+  /// **'Эта версия приложения устарела. Обновите приложение.'**
+  String get errorUpdateRequired;
+
+  /// Request failed for an unexpected reason, e.g. an unreadable response.
+  ///
+  /// In ru, this message translates to:
+  /// **'Что-то пошло не так. Попробуйте ещё раз.'**
+  String get errorUnexpected;
+
+  /// Button that repeats a failed request.
+  ///
+  /// In ru, this message translates to:
+  /// **'Повторить'**
+  String get errorRetry;
+
+  /// Strip at the top of the screen while the app is offline.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет подключения к сети'**
+  String get offlineBanner;
+
+  /// Title of the screen shown when the server no longer supports this app version.
+  ///
+  /// In ru, this message translates to:
+  /// **'Требуется обновление'**
+  String get updateTitle;
+
+  /// Explanation on the update screen when the minimum version is unknown.
+  ///
+  /// In ru, this message translates to:
+  /// **'Эта версия приложения больше не поддерживается. Чтобы продолжить, установите новую версию.'**
+  String get updateBody;
+
+  /// Explanation on the update screen with the oldest supported version.
+  ///
+  /// In ru, this message translates to:
+  /// **'Эта версия приложения больше не поддерживается. Чтобы продолжить, установите версию {version} или новее.'**
+  String updateBodyVersion(String version);
+
+  /// Button on the update screen that opens the download page.
+  ///
+  /// In ru, this message translates to:
+  /// **'Скачать обновление'**
+  String get updateDownload;
+
+  /// Message when the download page could not be opened.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось открыть страницу загрузки.'**
+  String get updateDownloadFailed;
 }
 
 class _AppLocalizationsDelegate
