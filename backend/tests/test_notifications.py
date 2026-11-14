@@ -180,9 +180,12 @@ async def test_permissions_pagination_read_cursor_and_idempotency(
     page = await feed(owner, size=1, ascending=True)
     assert page["next_page"]
     assert len(page["items"]) == 1
+    # The count covers all three pages, not only the returned one.
+    assert page["unread_count"] == 3
     second = await feed(owner, size=1, ascending=True, cursor=page["next_page"])
     third = await feed(owner, size=1, ascending=True, cursor=second["next_page"])
     assert [p["items"][0]["sequence"] for p in (page, second, third)] == [1, 2, 3]
+    assert [p["unread_count"] for p in (page, second, third)] == [3, 3, 3]
     assert third["next_page"] is None
     assert (await feed(borrower))["items"] == []
     for headers, expected in [({}, 401), (borrower.headers, 404)]:
@@ -204,6 +207,7 @@ async def test_permissions_pagination_read_cursor_and_idempotency(
     headers = {**owner.headers, "Idempotency-Key": key}
     result = await auth.client.post(ROOT + "/read", json=body, headers=headers)
     assert result.status_code == 200
+    assert result.json()["unread_count"] == 1
     replay = await auth.client.post(ROOT + "/read", json=body, headers=headers)
     assert replay.json() == result.json()
     assert replay.headers["Idempotent-Replayed"] == "true"
@@ -216,8 +220,9 @@ async def test_permissions_pagination_read_cursor_and_idempotency(
         json={"through_id": page["items"][0]["id"]},
         headers={**owner.headers, "Idempotency-Key": str(uuid4())},
     )
-    items = (await feed(owner, ascending=True))["items"]
-    assert [item["read"] for item in items] == [True, True, False]
+    final_feed = await feed(owner, ascending=True)
+    assert [item["read"] for item in final_feed["items"]] == [True, True, False]
+    assert final_feed["unread_count"] == 1
 
 
 @pytest.mark.parametrize("category", ["event", "return"])

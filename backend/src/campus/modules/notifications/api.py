@@ -62,6 +62,19 @@ class NotificationOutput(BaseModel):
     read: bool = False
 
 
+class NotificationPage(Page[NotificationOutput]):
+    """One page of the inbox and the exact number of unread notifications.
+
+    The count covers every page, not only the returned one, so a client
+    shows the same badge after a cold start and on another device.
+    """
+
+    unread_count: int = Field(
+        description="Unread notifications of the user; they are exactly the ones"
+        " after the read cursor."
+    )
+
+
 class ReadInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     through_id: UUID = Field(
@@ -71,6 +84,9 @@ class ReadInput(BaseModel):
 
 class ReadCursor(BaseModel):
     sequence: int
+    unread_count: int = Field(
+        description="Unread notifications left after the cursor moved."
+    )
 
 
 @router.get("")
@@ -81,7 +97,7 @@ async def notification_feed(  # noqa: PLR0913, PLR0917 - request dependencies
     page: PageQuery,
     after_sequence: Annotated[int, Query(ge=0)] = 0,
     ascending: bool = False,
-) -> Page[NotificationOutput]:
+) -> NotificationPage:
     """Recover from realtime gaps with ascending=true and after_sequence.
 
     Sequence follows inbox commit order, regardless of source event time.
@@ -103,9 +119,21 @@ async def notification_feed(  # noqa: PLR0913, PLR0917 - request dependencies
     read_sequence = await session.scalar(
         select(Inbox.read_sequence).where(Inbox.user_id == principal.user_id)
     )
+    unread_count = await session.scalar(
+        select(func.count())
+        .select_from(Notification)
+        .where(
+            Notification.recipient_id == principal.user_id,
+            Notification.sequence > (read_sequence or 0),
+        )
+    )
     for item in result.items:
         item.read = item.sequence <= (read_sequence or 0)
-    return result
+    return NotificationPage(
+        items=result.items,
+        next_page=result.next_page,
+        unread_count=unread_count or 0,
+    )
 
 
 @router.post("/read")
@@ -136,7 +164,15 @@ async def read_notifications(
         ).returning(Inbox.read_sequence)
     )
     assert sequence is not None  # noqa: S101 - INSERT RETURNING
-    return ReadCursor(sequence=sequence)
+    unread_count = await session.scalar(
+        select(func.count())
+        .select_from(Notification)
+        .where(
+            Notification.recipient_id == principal.user_id,
+            Notification.sequence > sequence,
+        )
+    )
+    return ReadCursor(sequence=sequence, unread_count=unread_count or 0)
 
 
 SETTINGS_VERSION_CONFLICT = ProblemType(

@@ -135,6 +135,42 @@ void main() {
       notificationRoute('listing.waitlist_joined', {'listing_id': 'listing-1'}),
       '/listings/listing-1',
     );
+    expect(
+      notificationRoute('listing.activity', {
+        'listing_id': 'listing-1',
+        'interaction_id': 'request-1',
+      }),
+      '/listings/listing-1/interactions/request-1',
+    );
+    expect(
+      notificationRoute('listing.activity', {'listing_id': 'listing-1'}),
+      '/listings/listing-1',
+    );
+    expect(
+      notificationRoute('listing.activity', {
+        'listing_id': 'a b',
+        'interaction_id': 'i d',
+      }),
+      '/listings/a%20b/interactions/i%20d',
+    );
+    for (final type in [
+      'listing.meeting.proposed',
+      'listing.meeting.scheduled',
+      'listing.meeting.rescheduled',
+      'listing.meeting.reminder',
+    ]) {
+      expect(
+        notificationRoute(type, {
+          'listing_id': 'listing-1',
+          'interaction_id': 'request-1',
+        }),
+        '/listings/listing-1/interactions/request-1/meeting',
+      );
+      expect(
+        notificationRoute(type, {'listing_id': 'listing-1'}),
+        '/listings/listing-1',
+      );
+    }
     expect(notificationRoute('listing.offer', const {}), isNull);
     expect(notificationRoute('listing.offer', {'listing_id': 1}), isNull);
     expect(

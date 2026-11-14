@@ -11641,7 +11641,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Page_NotificationOutput_"
+                  "$ref": "#/components/schemas/NotificationPage"
                 }
               }
             }
@@ -13810,6 +13810,38 @@
         ],
         "title": "NotificationOutput"
       },
+      "NotificationPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NotificationOutput"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_page": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Next Page",
+            "description": "Cursor of the next page; null on the last page."
+          },
+          "unread_count": {
+            "type": "integer",
+            "title": "Unread Count",
+            "description": "Unread notifications of the user; they are exactly the ones after the read cursor."
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "next_page",
+          "unread_count"
+        ],
+        "title": "NotificationPage",
+        "description": "One page of the inbox and the exact number of unread notifications.\n\nThe count covers every page, not only the returned one, so a client\nshows the same badge after a cold start and on another device."
+      },
       "NotificationSettingsOutput": {
         "properties": {
           "version": {
@@ -14028,31 +14060,6 @@
           "next_page"
         ],
         "title": "Page[ListingOutput]"
-      },
-      "Page_NotificationOutput_": {
-        "properties": {
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/NotificationOutput"
-            },
-            "type": "array",
-            "title": "Items"
-          },
-          "next_page": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "title": "Next Page",
-            "description": "Cursor of the next page; null on the last page."
-          }
-        },
-        "type": "object",
-        "required": [
-          "items",
-          "next_page"
-        ],
-        "title": "Page[NotificationOutput]"
       },
       "Page_ParticipationOutput_": {
         "properties": {
@@ -14684,11 +14691,17 @@
           "sequence": {
             "type": "integer",
             "title": "Sequence"
+          },
+          "unread_count": {
+            "type": "integer",
+            "title": "Unread Count",
+            "description": "Unread notifications left after the cursor moved."
           }
         },
         "type": "object",
         "required": [
-          "sequence"
+          "sequence",
+          "unread_count"
         ],
         "title": "ReadCursor"
       },

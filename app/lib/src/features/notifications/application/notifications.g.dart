@@ -51,7 +51,7 @@ final class NotificationsFeedProvider
   NotificationsFeed create() => NotificationsFeed();
 }
 
-String _$notificationsFeedHash() => r'ca0800c9e6c62839acad3d4711ab90284ac589f8';
+String _$notificationsFeedHash() => r'954505bd498d6b77834bea9ab376e5062fa8ea01';
 
 /// Inbox of the signed-in user: newest first, cursor pages, the read cursor
 /// of the server and realtime wakeups.

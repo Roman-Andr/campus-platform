@@ -60,7 +60,11 @@ class FakeHttpAdapter implements HttpClientAdapter {
       ],
     },
     this.feed = const {'items': <Object?>[], 'next_page': null},
-    this.notifications = const {'items': <Object?>[], 'next_page': null},
+    this.notifications = const {
+      'items': <Object?>[],
+      'next_page': null,
+      'unread_count': 0,
+    },
     this.photos = const {'items': <Object?>[]},
     this.skills = const {'can': <Object?>[], 'wants': <Object?>[]},
     this.photo,

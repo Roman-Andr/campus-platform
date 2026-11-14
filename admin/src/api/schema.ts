@@ -2163,6 +2163,27 @@ export interface components {
       read: boolean;
     };
     /**
+     * NotificationPage
+     * @description One page of the inbox and the exact number of unread notifications.
+     *
+     *     The count covers every page, not only the returned one, so a client
+     *     shows the same badge after a cold start and on another device.
+     */
+    NotificationPage: {
+      /** Items */
+      items: components['schemas']['NotificationOutput'][];
+      /**
+       * Next Page
+       * @description Cursor of the next page; null on the last page.
+       */
+      next_page: string | null;
+      /**
+       * Unread Count
+       * @description Unread notifications of the user; they are exactly the ones after the read cursor.
+       */
+      unread_count: number;
+    };
+    /**
      * NotificationSettingsOutput
      * @description Current settings of the signed-in user, with defaults filled in.
      */
@@ -2259,16 +2280,6 @@ export interface components {
     Page_ListingOutput_: {
       /** Items */
       items: components['schemas']['ListingOutput'][];
-      /**
-       * Next Page
-       * @description Cursor of the next page; null on the last page.
-       */
-      next_page: string | null;
-    };
-    /** Page[NotificationOutput] */
-    Page_NotificationOutput_: {
-      /** Items */
-      items: components['schemas']['NotificationOutput'][];
       /**
        * Next Page
        * @description Cursor of the next page; null on the last page.
@@ -2627,6 +2638,11 @@ export interface components {
     ReadCursor: {
       /** Sequence */
       sequence: number;
+      /**
+       * Unread Count
+       * @description Unread notifications left after the cursor moved.
+       */
+      unread_count: number;
     };
     /** ReadInput */
     ReadInput: {
@@ -10696,7 +10712,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['Page_NotificationOutput_'];
+          'application/json': components['schemas']['NotificationPage'];
         };
       };
       /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */

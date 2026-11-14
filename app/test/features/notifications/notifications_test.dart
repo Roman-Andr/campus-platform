@@ -25,6 +25,10 @@ class _Inbox {
   final int pageSize;
   final rows = <Map<String, Object?>>[];
   int readThrough = 0;
+
+  /// The whole-inbox count the server reports, not just the returned page.
+  int get unreadCount =>
+      rows.where((row) => (row['sequence']! as int) > readThrough).length;
   int readCalls = 0;
   int? readFailureStatus;
   bool failFirstReadWithNetwork = false;
@@ -84,7 +88,10 @@ class _Inbox {
     final next = start + pageSize < matching.length
         ? 'offset-${start + pageSize}'
         : null;
-    return jsonBody(200, notificationPage(page, next: next));
+    return jsonBody(
+      200,
+      notificationPage(page, next: next, unread: unreadCount),
+    );
   }
 
   ResponseBody _read(RequestOptions options) {
@@ -101,7 +108,10 @@ class _Inbox {
     final sequence =
         rows.firstWhere((row) => row['id'] == id)['sequence']! as int;
     readThrough = math.max(readThrough, sequence);
-    return jsonBody(200, {'sequence': readThrough});
+    return jsonBody(200, {
+      'sequence': readThrough,
+      'unread_count': unreadCount,
+    });
   }
 }
 
@@ -192,6 +202,24 @@ void main() {
         'offset-2',
       );
       expect(container.read(unreadNotificationsProvider), 3);
+    });
+
+    test('the unread count covers pages that are not loaded yet', () async {
+      inbox = _Inbox(pageSize: 20)
+        ..rows.addAll([
+          for (var sequence = 1; sequence <= 25; sequence++)
+            notificationJson(id: 'n$sequence', sequence: sequence),
+        ]);
+      server.route(inbox.answer);
+      final container = await start();
+
+      final feed = await container.read(notificationsFeedProvider.future);
+
+      // The badge does not page through the inbox: the server reports the
+      // exact count over all pages.
+      expect(feed.items, hasLength(20));
+      expect(feed.unreadCount, 25);
+      expect(container.read(unreadNotificationsProvider), 25);
     });
 
     test('sync() loads notifications missed during a gap', () async {
@@ -305,6 +333,21 @@ void main() {
             .every((row) => row.read),
         isTrue,
       );
+    });
+
+    test('refresh() picks up the read cursor of another device', () async {
+      final container = await start();
+      await container.read(notificationsFeedProvider.future);
+
+      // Another device read both notifications: no new record is created,
+      // only the server-side read cursor moves.
+      inbox.readThrough = 2;
+      await container.read(notificationsFeedProvider.notifier).refresh();
+
+      final feed = container.read(notificationsFeedProvider).requireValue;
+      expect(feed.items.every((row) => row.read), isTrue);
+      expect(feed.unreadCount, 0);
+      expect(container.read(unreadNotificationsProvider), 0);
     });
 
     test('marking all read uses the newest loaded notification', () async {

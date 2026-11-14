@@ -27,7 +27,8 @@ class NotificationsScreen extends ConsumerStatefulWidget {
       _NotificationsScreenState();
 }
 
-class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
+    with WidgetsBindingObserver {
   final _scroll = ScrollController();
   late final NotificationsFeed _feed;
 
@@ -36,14 +37,23 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     super.initState();
     _feed = ref.read(notificationsFeedProvider.notifier);
     _scroll.addListener(_onScroll);
+    WidgetsBinding.instance.addObserver(this);
     unawaited(_feed.watchRealtime());
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scroll.dispose();
     unawaited(_feed.unwatchRealtime());
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // The other device may have marked notifications read: realtime only
+    // tells about new records, so the inbox reloads when it becomes visible.
+    if (state == AppLifecycleState.resumed) unawaited(_feed.reconcile());
   }
 
   void _onScroll() {

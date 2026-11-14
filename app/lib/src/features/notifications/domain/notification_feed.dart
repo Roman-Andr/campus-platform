@@ -5,6 +5,7 @@ class NotificationFeedState {
   const NotificationFeedState({
     this.items = const <NotificationOutput>[],
     this.nextPage,
+    this.unreadCount = 0,
   });
 
   /// Notifications, newest first: by `sequence`, not by event time.
@@ -13,12 +14,14 @@ class NotificationFeedState {
   /// Cursor of the next page; null on the last one.
   final String? nextPage;
 
-  /// Unread notifications among the loaded pages.
+  /// Unread notifications of the user, counted by the server over the whole
+  /// inbox.
   ///
   /// The server flags every notification against its monotone read cursor,
   /// so the count comes from the server after every reload and matches
-  /// other devices of the user.
-  int get unreadCount => items.where((row) => !row.read).length;
+  /// other devices of the user even when the inbox has more pages than the
+  /// loaded ones.
+  final int unreadCount;
 }
 
 /// Combines [loaded] and [next] without repeats, newest first.

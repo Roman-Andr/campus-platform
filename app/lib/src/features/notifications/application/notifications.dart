@@ -74,6 +74,7 @@ class NotificationsFeed extends _$NotificationsFeed {
         NotificationFeedState(
           items: mergeNotifications(latest.items, page.items),
           nextPage: page.nextPage,
+          unreadCount: page.unreadCount,
         ),
       );
     } finally {
@@ -94,7 +95,7 @@ class NotificationsFeed extends _$NotificationsFeed {
     _syncing = true;
     try {
       final page = current.items.isEmpty
-          ? await ref.read(campusApiProvider).notifications.notificationFeed()
+          ? await _firstPage()
           : await _newerThan(current.items.first.sequence);
       if (!ref.mounted) return;
       final latest = state.value ?? current;
@@ -102,6 +103,7 @@ class NotificationsFeed extends _$NotificationsFeed {
         NotificationFeedState(
           items: mergeNotifications(latest.items, page.items),
           nextPage: latest.nextPage ?? page.nextPage,
+          unreadCount: page.unreadCount,
         ),
       );
     } on Object {
@@ -127,6 +129,7 @@ class NotificationsFeed extends _$NotificationsFeed {
       NotificationFeedState(
         items: applyReadCursor(current.items, cursor.sequence),
         nextPage: current.nextPage,
+        unreadCount: cursor.unreadCount,
       ),
     );
   }
@@ -138,6 +141,21 @@ class NotificationsFeed extends _$NotificationsFeed {
       return;
     }
     await markRead(current.items.first);
+  }
+
+  /// Reloads the first page without surfacing a failure.
+  ///
+  /// Another device advances the read cursor without creating a
+  /// notification, so neither a realtime wakeup nor [sync] sees it. The
+  /// screen reconciles when it returns to the foreground, and the realtime
+  /// subscription does it before its first subscribe and after a recovery.
+  /// A failed reload keeps the loaded feed: the next focus or wakeup retries.
+  Future<void> reconcile() async {
+    try {
+      await refresh();
+    } on Object {
+      // Kept as is; see the doc comment.
+    }
   }
 
   /// Starts live updates of the inbox while the notification screen is open.
@@ -159,7 +177,7 @@ class NotificationsFeed extends _$NotificationsFeed {
       }
       final subscription = ref
           .read(realtimeServiceProvider.notifier)
-          .subscribe(RealtimeChannel.personal(user.id), reload: sync);
+          .subscribe(RealtimeChannel.personal(user.id), reload: reconcile);
       if (!ref.mounted || generation != _realtimeGeneration) {
         await subscription.close();
         return;
@@ -197,13 +215,15 @@ class NotificationsFeed extends _$NotificationsFeed {
     return NotificationFeedState(
       items: mergeNotifications(const [], page.items),
       nextPage: page.nextPage,
+      unreadCount: page.unreadCount,
     );
   }
 
   /// Every notification after [sequence], in commit order, over all pages.
-  Future<PageNotificationOutput> _newerThan(int sequence) async {
+  Future<NotificationFeedState> _newerThan(int sequence) async {
     final api = ref.read(campusApiProvider).notifications;
     final items = <NotificationOutput>[];
+    var unreadCount = 0;
     String? cursor;
     do {
       final page = await api.notificationFeed(
@@ -212,9 +232,10 @@ class NotificationsFeed extends _$NotificationsFeed {
         cursor: cursor,
       );
       items.addAll(page.items);
+      unreadCount = page.unreadCount;
       cursor = page.nextPage;
     } while (cursor != null);
-    return PageNotificationOutput(items: items, nextPage: null);
+    return NotificationFeedState(items: items, unreadCount: unreadCount);
   }
 
   /// The current feed, or the one being loaded; null when it failed.
