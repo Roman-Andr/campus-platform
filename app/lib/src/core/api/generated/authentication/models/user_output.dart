@@ -71,7 +71,7 @@ class UserOutput {
       cityTimezone: json["city_timezone"] as String?,
       dormitoryId: json["dormitory_id"] as String?,
       facultyId: json["faculty_id"] as String?,
-      course: json["course"] as int?,
+      course: json["course"] == null ? null : _readJsonInteger(json["course"]),
       profileComplete: json["profile_complete"] as bool,
       nameChangeAvailableAt: json["name_change_available_at"] == null
           ? null
@@ -155,4 +155,14 @@ class UserOutput {
         ?.toUtc()
         .toIso8601String(),
   };
+}
+
+int _readJsonInteger(Object? value) {
+  if (value is int) {
+    return value;
+  }
+  if (value is double && value.isFinite && value == value.toInt()) {
+    return value.toInt();
+  }
+  throw FormatException('Expected a JSON integer.', value);
 }

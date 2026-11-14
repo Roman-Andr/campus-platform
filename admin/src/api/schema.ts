@@ -260,75 +260,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/me/name': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    /**
-     * Change Name
-     * @description Change the real name; it is recorded in the name history.
-     *
-     *     A change sooner than ``name_change_interval`` after the previous one
-     *     answers ``409 name_change_too_soon`` with ``available_at``. Giving the
-     *     current name changes nothing.
-     */
-    put: operations['change_name'];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/skill-tags': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List Skill Tags
-     * @description Skill tags by name in the request language.
-     */
-    get: operations['list_skill_tags'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/me/skills': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get My Skills
-     * @description Skills of the signed-in user's profile.
-     */
-    get: operations['get_my_skills'];
-    /**
-     * Set My Skills
-     * @description Replace both skill lists; a tag outside the reference answers
-     *     ``validation_failed`` (code ``not_found``).
-     */
-    put: operations['set_my_skills'];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/api/v1/me/sessions': {
     parameters: {
       query?: never;
@@ -687,6 +618,46 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/listings/{listing_id}/interactions/{interaction_id}/meeting/proposals': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Propose Meeting
+     * @description Propose a time and place; a counter-proposal replaces the pending one.
+     */
+    post: operations['propose_meeting'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{listing_id}/interactions/{interaction_id}/meeting/accept': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Accept Meeting
+     * @description Accept the current proposal; a stale one is rejected with 409.
+     */
+    post: operations['accept_meeting'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/listings/{listing_id}/events': {
     parameters: {
       query?: never;
@@ -828,37 +799,6 @@ export interface paths {
     put: operations['set_listing_photos'];
     post?: never;
     delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/me/photo': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get My Photo
-     * @description The profile photo with fresh signed links; ``404`` without a photo.
-     */
-    get: operations['get_my_photo'];
-    /**
-     * Set My Photo
-     * @description Set or replace the profile photo; the previous one is deleted.
-     *
-     *     ``404`` for a file of someone else, ``409`` for a file that is not ready
-     *     or is attached to a listing.
-     */
-    put: operations['set_my_photo'];
-    post?: never;
-    /**
-     * Delete My Photo
-     * @description Remove the profile photo, if any; it is deleted from the storage.
-     */
-    delete: operations['delete_my_photo'];
     options?: never;
     head?: never;
     patch?: never;
@@ -1114,6 +1054,10 @@ export interface components {
       reason: string | null;
       /** Stage */
       stage: string | null;
+      /** Details */
+      details: {
+        [key: string]: unknown;
+      } | null;
       /** Via Assistant */
       via_assistant: boolean;
       /** Offline Qr */
@@ -1251,6 +1195,7 @@ export interface components {
       stage: string | null;
       /** Response Due At */
       response_due_at: string | null;
+      meeting: components['schemas']['MeetingOutput'] | null;
     };
     /**
      * InteractionStatus
@@ -1332,16 +1277,54 @@ export interface components {
      * @enum {string}
      */
     ListingStatus: 'draft' | 'completed' | 'hidden' | 'active' | 'busy' | 'cancelled' | 'expired';
-    /**
-     * NameInput
-     * @description The new real name.
-     */
-    NameInput: {
-      /** First Name */
-      first_name: string;
-      /** Last Name */
-      last_name: string;
+    /** MeetingAcceptInput */
+    MeetingAcceptInput: {
+      /** Version */
+      version: number;
     };
+    /**
+     * MeetingOutput
+     * @description The effective meeting plus the proposal awaiting an answer, if any.
+     */
+    MeetingOutput: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Version */
+      version: number;
+      status: components['schemas']['MeetingStatus'];
+      /** Scheduled At */
+      scheduled_at: string | null;
+      /** Location */
+      location: string | null;
+      /** Scheduled By Id */
+      scheduled_by_id: string | null;
+      /** Proposed At */
+      proposed_at: string | null;
+      /** Proposed Location */
+      proposed_location: string | null;
+      /** Proposed By Id */
+      proposed_by_id: string | null;
+    };
+    /** MeetingProposalInput */
+    MeetingProposalInput: {
+      /**
+       * Time
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      time: string;
+      /** Location */
+      location: string;
+    };
+    /**
+     * MeetingStatus
+     * @description The current proposal of a meeting: pending or already in force.
+     * @enum {string}
+     */
+    MeetingStatus: 'proposed' | 'scheduled';
     /** Page[EventOutput] */
     Page_EventOutput_: {
       /** Items */
@@ -1521,10 +1504,12 @@ export interface components {
         | 'listing_forbidden'
         | 'listing_rate_limited'
         | 'listing_version_conflict'
+        | 'meeting_place_invalid'
+        | 'meeting_stale'
+        | 'meeting_state_conflict'
+        | 'meeting_time_invalid'
         | 'method_not_allowed'
-        | 'name_change_too_soon'
         | 'not_found'
-        | 'photo_unavailable'
         | 'profile_incomplete'
         | 'rate_limited'
         | 'refresh_token_invalid'
@@ -1552,11 +1537,6 @@ export interface components {
        * @description Oldest supported client version (client_update_required).
        */
       min_version?: string | null;
-      /**
-       * Available At
-       * @description When the refused action becomes possible, e.g. the next name change; RFC 3339 in UTC.
-       */
-      available_at?: string | null;
     };
     /**
      * ProfileInput
@@ -1583,39 +1563,6 @@ export interface components {
        * @description Year of study: required for students, absent for employees.
        */
       course?: number | null;
-    };
-    /** ProfilePhoto */
-    ProfilePhoto: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /**
-       * Url
-       * @description Signed link to the photo; expires.
-       */
-      url: string;
-      /**
-       * Preview Url
-       * @description Signed link to the preview; expires.
-       */
-      preview_url: string;
-      /**
-       * Expires At
-       * Format: date-time
-       * @description RFC 3339 instant with an explicit offset; returned in UTC.
-       */
-      expires_at: string;
-    };
-    /** ProfilePhotoInput */
-    ProfilePhotoInput: {
-      /**
-       * File Id
-       * Format: uuid
-       * @description A ready photo uploaded by the user.
-       */
-      file_id: string;
     };
     /** PublicationInput */
     PublicationInput: {
@@ -1717,59 +1664,6 @@ export interface components {
       /** Last Name */
       last_name?: string | null;
     };
-    /** SkillTagList */
-    SkillTagList: {
-      /** Items */
-      items: components['schemas']['SkillTagOutput'][];
-    };
-    /**
-     * SkillTagOutput
-     * @description A skill tag of the reference.
-     */
-    SkillTagOutput: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /**
-       * Code
-       * @example guitar
-       */
-      code: string;
-      /**
-       * Name
-       * @description In the request language.
-       * @example Guitar
-       */
-      name: string;
-    };
-    /**
-     * SkillsInput
-     * @description Both lists of the profile; each replaces the current one whole.
-     */
-    SkillsInput: {
-      /**
-       * Can
-       * @description Tags of what the user can do.
-       */
-      can: string[];
-      /**
-       * Wants
-       * @description Tags of what the user wants to learn.
-       */
-      wants: string[];
-    };
-    /**
-     * SkillsOutput
-     * @description Skills of the profile, each list by name.
-     */
-    SkillsOutput: {
-      /** Can */
-      can: components['schemas']['SkillTagOutput'][];
-      /** Wants */
-      wants: components['schemas']['SkillTagOutput'][];
-    };
     /** Tokens */
     Tokens: {
       /** Access Token */
@@ -1857,11 +1751,6 @@ export interface components {
        * @description Whether the profile is filled in; publishing and responding need it.
        */
       profile_complete: boolean;
-      /**
-       * Name Change Available At
-       * @description When the name may change next; empty: now.
-       */
-      name_change_available_at: string | null;
     };
     /**
      * Visibility
@@ -2949,347 +2838,6 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['UserOutput'];
-        };
-      };
-      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Not signed in. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Unprocessable Content */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description The client version is too old (client_update_required). */
-      426: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Internal error (internal_error). */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-    };
-  };
-  change_name: {
-    parameters: {
-      query?: never;
-      header: {
-        /** @description Client application. */
-        'X-Client-Platform': components['schemas']['ClientPlatform'];
-        /** @description Client version, e.g. 1.4.0. */
-        'X-Client-Version': string;
-        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
-        'Idempotency-Key': string;
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['NameInput'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['UserOutput'];
-        };
-      };
-      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Not signed in. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Conflict */
-      409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Unprocessable Content */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description The client version is too old (client_update_required). */
-      426: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Internal error (internal_error). */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-    };
-  };
-  list_skill_tags: {
-    parameters: {
-      query?: {
-        /** @description Only tags whose name in the request language starts with this text, case-insensitively. */
-        q?: string | null;
-        limit?: number | null;
-      };
-      header: {
-        /** @description Client application. */
-        'X-Client-Platform': components['schemas']['ClientPlatform'];
-        /** @description Client version, e.g. 1.4.0. */
-        'X-Client-Version': string;
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['SkillTagList'];
-        };
-      };
-      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Not signed in. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description The client version is too old (client_update_required). */
-      426: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Internal error (internal_error). */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-    };
-  };
-  get_my_skills: {
-    parameters: {
-      query?: never;
-      header: {
-        /** @description Client application. */
-        'X-Client-Platform': components['schemas']['ClientPlatform'];
-        /** @description Client version, e.g. 1.4.0. */
-        'X-Client-Version': string;
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['SkillsOutput'];
-        };
-      };
-      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Not signed in. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description The client version is too old (client_update_required). */
-      426: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Internal error (internal_error). */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-    };
-  };
-  set_my_skills: {
-    parameters: {
-      query?: never;
-      header: {
-        /** @description Client application. */
-        'X-Client-Platform': components['schemas']['ClientPlatform'];
-        /** @description Client version, e.g. 1.4.0. */
-        'X-Client-Version': string;
-        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
-        'Idempotency-Key': string;
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SkillsInput'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['SkillsOutput'];
         };
       };
       /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
@@ -5783,6 +5331,236 @@ export interface operations {
       };
     };
   };
+  propose_meeting: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+        interaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MeetingProposalInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MeetingOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  accept_meeting: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+        interaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MeetingAcceptInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MeetingOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
   listing_events: {
     parameters: {
       query?: {
@@ -6695,276 +6473,6 @@ export interface operations {
       };
       /** @description Conflict */
       409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description The client version is too old (client_update_required). */
-      426: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Internal error (internal_error). */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-    };
-  };
-  get_my_photo: {
-    parameters: {
-      query?: never;
-      header: {
-        /** @description Client application. */
-        'X-Client-Platform': components['schemas']['ClientPlatform'];
-        /** @description Client version, e.g. 1.4.0. */
-        'X-Client-Version': string;
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProfilePhoto'];
-        };
-      };
-      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Not signed in. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description No photo. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description The client version is too old (client_update_required). */
-      426: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Internal error (internal_error). */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-    };
-  };
-  set_my_photo: {
-    parameters: {
-      query?: never;
-      header: {
-        /** @description Client application. */
-        'X-Client-Platform': components['schemas']['ClientPlatform'];
-        /** @description Client version, e.g. 1.4.0. */
-        'X-Client-Version': string;
-        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
-        'Idempotency-Key': string;
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ProfilePhotoInput'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProfilePhoto'];
-        };
-      };
-      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Not signed in. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Not Found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Conflict */
-      409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description The client version is too old (client_update_required). */
-      426: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Internal error (internal_error). */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-    };
-  };
-  delete_my_photo: {
-    parameters: {
-      query?: never;
-      header: {
-        /** @description Client application. */
-        'X-Client-Platform': components['schemas']['ClientPlatform'];
-        /** @description Client version, e.g. 1.4.0. */
-        'X-Client-Version': string;
-        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
-        'Idempotency-Key': string;
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Not signed in. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/problem+json': components['schemas']['Problem'];
-        };
-      };
-      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
-      403: {
         headers: {
           [name: string]: unknown;
         };

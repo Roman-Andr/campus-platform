@@ -1,5 +1,4 @@
-#, python-brace-format
-msgid "At most {max} skills."
+msgid "A meeting time and place were proposed."
 msgstr ""
 
 msgid "Authentication required"
@@ -72,6 +71,12 @@ msgid "Invalid cursor"
 msgstr ""
 
 msgid "Invalid idempotency key"
+msgstr ""
+
+msgid "Invalid meeting place"
+msgstr ""
+
+msgid "Invalid meeting time"
 msgstr ""
 
 msgid "Invalid refresh token"
@@ -156,22 +161,17 @@ msgstr ""
 msgid "Must have at most {max_length} items."
 msgstr ""
 
-msgid "Name changed recently"
-msgstr ""
-
 msgid "No such campus city."
-msgstr ""
-
-msgid "No such skill tag."
 msgstr ""
 
 msgid "Not found"
 msgstr ""
 
-msgid "Photo unavailable"
+msgid "Profile incomplete"
 msgstr ""
 
-msgid "Profile incomplete"
+#, python-brace-format
+msgid "Reload the interaction. The current meeting version is {version}."
 msgstr ""
 
 #, python-brace-format
@@ -211,6 +211,9 @@ msgstr ""
 msgid "The client platform or version is not recognized."
 msgstr ""
 
+msgid "The interaction must be accepted and have a current meeting proposal."
+msgstr ""
+
 msgid "The listing state has changed."
 msgstr ""
 
@@ -220,14 +223,25 @@ msgstr ""
 msgid "The listing was edited."
 msgstr ""
 
-#, python-brace-format
-msgid "The name can be changed once in {days} days; see available_at."
+msgid "The meeting cannot be changed."
+msgstr ""
+
+msgid "The meeting has been rescheduled."
+msgstr ""
+
+msgid "The meeting is scheduled."
+msgstr ""
+
+msgid "The meeting place must not be empty or too long."
+msgstr ""
+
+msgid "The meeting proposal has changed."
+msgstr ""
+
+msgid "The meeting time must be in the future."
 msgstr ""
 
 msgid "The page cursor is invalid or belongs to another list; start over."
-msgstr ""
-
-msgid "The photo is not processed yet, has expired or is used by a listing."
 msgstr ""
 
 msgid "The request body is not valid JSON."
@@ -281,6 +295,9 @@ msgstr ""
 msgid ""
 "Your account e-mail addresses have changed. If this was not you, contact "
 "support."
+msgstr ""
+
+msgid "Your meeting starts soon."
 msgstr ""
 
 #, python-brace-format

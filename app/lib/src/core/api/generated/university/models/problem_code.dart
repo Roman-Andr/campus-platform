@@ -24,6 +24,10 @@ enum ProblemCodeValue {
   listingForbidden("listing_forbidden"),
   listingRateLimited("listing_rate_limited"),
   listingVersionConflict("listing_version_conflict"),
+  meetingPlaceInvalid("meeting_place_invalid"),
+  meetingStale("meeting_stale"),
+  meetingStateConflict("meeting_state_conflict"),
+  meetingTimeInvalid("meeting_time_invalid"),
   methodNotAllowed("method_not_allowed"),
   nameChangeTooSoon("name_change_too_soon"),
   notFound("not_found"),
@@ -99,6 +103,16 @@ sealed class ProblemCode {
   );
   static const listingVersionConflict = ProblemCodeKnown(
     ProblemCodeValue.listingVersionConflict,
+  );
+  static const meetingPlaceInvalid = ProblemCodeKnown(
+    ProblemCodeValue.meetingPlaceInvalid,
+  );
+  static const meetingStale = ProblemCodeKnown(ProblemCodeValue.meetingStale);
+  static const meetingStateConflict = ProblemCodeKnown(
+    ProblemCodeValue.meetingStateConflict,
+  );
+  static const meetingTimeInvalid = ProblemCodeKnown(
+    ProblemCodeValue.meetingTimeInvalid,
   );
   static const methodNotAllowed = ProblemCodeKnown(
     ProblemCodeValue.methodNotAllowed,

@@ -20,7 +20,7 @@ class Tokens {
     tokenType: json.containsKey("token_type")
         ? json["token_type"] as String
         : "bearer",
-    expiresIn: json["expires_in"] as int,
+    expiresIn: _readJsonInteger(json["expires_in"]),
     user: UserOutput.fromJson(json["user"] as Map<String, Object?>),
     additionalProperties: {
       for (final entry in json.entries)
@@ -58,4 +58,14 @@ class Tokens {
     "expires_in": this.expiresIn,
     "user": this.user.toJson(),
   };
+}
+
+int _readJsonInteger(Object? value) {
+  if (value is int) {
+    return value;
+  }
+  if (value is double && value.isFinite && value == value.toInt()) {
+    return value.toInt();
+  }
+  throw FormatException('Expected a JSON integer.', value);
 }

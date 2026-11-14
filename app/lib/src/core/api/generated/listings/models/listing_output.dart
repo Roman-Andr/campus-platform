@@ -67,7 +67,7 @@ class ListingOutput {
       dormitoryId: json["dormitory_id"] as String?,
       facultyId: json["faculty_id"] as String?,
       status: ListingStatus.fromJson(json["status"]),
-      version: json["version"] as int,
+      version: _readJsonInteger(json["version"]),
       createdAt: DateTime.parse(json["created_at"] as String).toUtc(),
       expiresAt: json["expires_at"] == null
           ? null
@@ -181,4 +181,14 @@ class ListingOutput {
     "hidden_reason": this.hiddenReason,
     "favorite": this.favorite,
   };
+}
+
+int _readJsonInteger(Object? value) {
+  if (value is int) {
+    return value;
+  }
+  if (value is double && value.isFinite && value == value.toInt()) {
+    return value.toInt();
+  }
+  throw FormatException('Expected a JSON integer.', value);
 }

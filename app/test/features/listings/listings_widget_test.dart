@@ -162,6 +162,7 @@ void main() {
       'stage': null,
       'response_due_at': null,
       'status': status,
+      'meeting': null,
     };
     final server = FakeHttpAdapter()
       ..route((options) {
@@ -301,6 +302,7 @@ void main() {
                   'status': 'busy',
                   'city_timezone': 'Europe/Moscow',
                 },
+                'meeting': null,
               },
             ]),
           );

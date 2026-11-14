@@ -14,6 +14,7 @@ class EventOutput {
     required this.createdAt,
     required this.reason,
     required this.stage,
+    required this.details,
     required this.viaAssistant,
     required this.offlineQr,
     this.additionalProperties = const {},
@@ -35,6 +36,9 @@ class EventOutput {
     if (!json.containsKey("stage")) {
       throw ArgumentError("Missing required property: stage");
     }
+    if (!json.containsKey("details")) {
+      throw ArgumentError("Missing required property: details");
+    }
     return EventOutput(
       id: json["id"] as String,
       interactionId: json["interaction_id"] as String?,
@@ -42,10 +46,15 @@ class EventOutput {
       action: json["action"] as String,
       previousStatus: json["previous_status"] as String?,
       status: json["status"] as String,
-      version: json["version"] as int,
+      version: _readJsonInteger(json["version"]),
       createdAt: DateTime.parse(json["created_at"] as String).toUtc(),
       reason: json["reason"] as String?,
       stage: json["stage"] as String?,
+      details: json["details"] == null
+          ? null
+          : (json["details"] as Map<String, Object?>).map(
+              (key, item) => MapEntry(key, item),
+            ),
       viaAssistant: json["via_assistant"] as bool,
       offlineQr: json["offline_qr"] as bool,
       additionalProperties: {
@@ -76,6 +85,8 @@ class EventOutput {
 
   final String? stage;
 
+  final Map<String, Object?>? details;
+
   final bool viaAssistant;
 
   final bool offlineQr;
@@ -91,6 +102,7 @@ class EventOutput {
     "created_at",
     "reason",
     "stage",
+    "details",
     "via_assistant",
     "offline_qr",
   };
@@ -110,7 +122,18 @@ class EventOutput {
     "created_at": this.createdAt.toUtc().toIso8601String(),
     "reason": this.reason,
     "stage": this.stage,
+    "details": this.details?.map((key, item) => MapEntry(key, item)),
     "via_assistant": this.viaAssistant,
     "offline_qr": this.offlineQr,
   };
+}
+
+int _readJsonInteger(Object? value) {
+  if (value is int) {
+    return value;
+  }
+  if (value is double && value.isFinite && value == value.toInt()) {
+    return value.toInt();
+  }
+  throw FormatException('Expected a JSON integer.', value);
 }

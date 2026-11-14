@@ -29,6 +29,7 @@ Map<String, Object?> interactionJson(String status) => {
     'status': 'busy',
     'city_timezone': 'Europe/Moscow',
   },
+  'meeting': null,
 };
 
 void english(WidgetTester tester) {
@@ -390,6 +391,7 @@ void main() {
                   'created_at': '2026-11-14T00:00:00Z',
                   'reason': more ? entry.key : 'listing_cancelled',
                   'stage': null,
+                  'details': null,
                   'via_assistant': false,
                   'offline_qr': false,
                 },

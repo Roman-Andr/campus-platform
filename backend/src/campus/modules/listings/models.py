@@ -1,10 +1,14 @@
 """Shared listing, type-specific item and interaction persistence."""
 
+from __future__ import annotations
+
 from datetime import datetime
 from enum import StrEnum
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import CheckConstraint, ForeignKey, Index, Integer, String, Text, text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from campus.core import clock
@@ -30,6 +34,13 @@ class InteractionStatus(StrEnum):
     ACCEPTED = "accepted"
     REJECTED = "rejected"
     CANCELLED = "cancelled"
+
+
+class MeetingStatus(StrEnum):
+    """The current proposal of a meeting: pending or already in force."""
+
+    PROPOSED = "proposed"
+    SCHEDULED = "scheduled"
 
 
 class Visibility(StrEnum):
@@ -165,6 +176,55 @@ class Interaction(Entity):
     stage: Mapped[str | None] = mapped_column(String(32))
     response_due_at: Mapped[datetime | None]
 
+    meeting: Mapped[Meeting | None] = relationship(
+        lazy="joined", uselist=False, cascade="all, delete-orphan"
+    )
+
+
+class Meeting(Entity):
+    """Time and place of an accepted interaction, agreed or only proposed.
+
+    One row per interaction holds the effective meeting (``scheduled_*``)
+    and the current pending proposal (``proposed_*``). A counter-proposal
+    replaces the pending one; it takes effect only when accepted, and
+    ``version`` rejects acceptance of a proposal that has been replaced.
+    """
+
+    __tablename__ = "listing_meeting"
+    __table_args__ = (
+        CheckConstraint("version >= 1", name="version_positive"),
+        CheckConstraint(
+            "(scheduled_at IS NULL AND location IS NULL "
+            "AND scheduled_by_id IS NULL) OR (scheduled_at IS NOT NULL "
+            "AND location IS NOT NULL AND scheduled_by_id IS NOT NULL)",
+            name="scheduled_complete",
+        ),
+        CheckConstraint(
+            "(proposed_at IS NULL AND proposed_location IS NULL "
+            "AND proposed_by_id IS NULL) OR (proposed_at IS NOT NULL "
+            "AND proposed_location IS NOT NULL AND proposed_by_id IS NOT NULL)",
+            name="proposal_complete",
+        ),
+        CheckConstraint(
+            "scheduled_at IS NOT NULL OR proposed_at IS NOT NULL",
+            name="has_values",
+        ),
+    )
+    interaction_id: Mapped[UUID] = mapped_column(
+        ForeignKey("listing_interaction.id"), unique=True
+    )
+    scheduled_at: Mapped[datetime | None]
+    location: Mapped[str | None] = mapped_column(Text)
+    scheduled_by_id: Mapped[UUID | None] = mapped_column(ForeignKey("identity_user.id"))
+    proposed_at: Mapped[datetime | None]
+    proposed_location: Mapped[str | None] = mapped_column(Text)
+    proposed_by_id: Mapped[UUID | None] = mapped_column(ForeignKey("identity_user.id"))
+    version: Mapped[int] = mapped_column(default=1)
+
+    @property
+    def status(self) -> MeetingStatus:
+        return MeetingStatus.PROPOSED if self.proposed_at else MeetingStatus.SCHEDULED
+
 
 class ListingEvent(Entity):
     """Append-only history, enforced by a database trigger in the migration."""
@@ -186,6 +246,7 @@ class ListingEvent(Entity):
 
     reason: Mapped[str | None] = mapped_column(Text)
     stage: Mapped[str | None] = mapped_column(String(32))
+    details: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     via_assistant: Mapped[bool] = mapped_column(default=False)
     offline_qr: Mapped[bool] = mapped_column(default=False)
 

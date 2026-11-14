@@ -2,14 +2,16 @@
 
 import math
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from campus.core import clock
-from campus.core.deadlines import deadline_handlers
+from campus.core.config import Settings
+from campus.core.deadlines import cancel_deadline, deadline_handlers, schedule_deadline
 from campus.core.i18n import N_
 from campus.core.jobs import JobInfo
 from campus.core.web import ProblemError, ProblemType
@@ -22,6 +24,7 @@ from campus.modules.listings.models import (
     Listing,
     ListingEvent,
     ListingStatus,
+    Meeting,
     Visibility,
 )
 from campus.modules.notifications import notify
@@ -44,6 +47,35 @@ INVALID_CATEGORY = ProblemType(
 RATE_LIMIT = ProblemType(
     "listing_rate_limited", 429, N_("Too many listing actions. Try again later.")
 )
+MEETING_TIME_INVALID = ProblemType(
+    "meeting_time_invalid",
+    422,
+    N_("Invalid meeting time"),
+    N_("The meeting time must be in the future."),
+)
+MEETING_PLACE_INVALID = ProblemType(
+    "meeting_place_invalid",
+    422,
+    N_("Invalid meeting place"),
+    N_("The meeting place must not be empty or too long."),
+)
+MEETING_STATE = ProblemType(
+    "meeting_state_conflict",
+    409,
+    N_("The meeting cannot be changed."),
+    N_("The interaction must be accepted and have a current meeting proposal."),
+)
+MEETING_STALE = ProblemType(
+    "meeting_stale",
+    409,
+    N_("The meeting proposal has changed."),
+    N_("Reload the interaction. The current meeting version is {version}."),
+)
+
+MEETING_PROPOSED = N_("A meeting time and place were proposed.")
+MEETING_SCHEDULED = N_("The meeting is scheduled.")
+MEETING_RESCHEDULED = N_("The meeting has been rescheduled.")
+MEETING_REMINDER = N_("Your meeting starts soon.")
 
 # Completion and no-show are service-only transitions, called by the QR module.
 TRANSITIONS = {
@@ -118,7 +150,7 @@ async def locked(session: AsyncSession, listing_id: UUID) -> Listing:
     return listing
 
 
-def record(  # noqa: PLR0913, PLR0917 - event fields
+def append_event(  # noqa: PLR0913, PLR0917 - event fields
     session: AsyncSession,
     listing: Listing,
     actor_id: UUID | None,
@@ -127,9 +159,11 @@ def record(  # noqa: PLR0913, PLR0917 - event fields
     interaction: Interaction | None = None,
     *,
     reason: str | None = None,
+    details: dict[str, Any] | None = None,
     via_assistant: bool = False,
     offline_qr: bool = False,
 ) -> None:
+    """Append a journal entry without notification; callers notify themselves."""
     session.add(
         ListingEvent(
             listing_id=listing.id,
@@ -141,9 +175,37 @@ def record(  # noqa: PLR0913, PLR0917 - event fields
             version=listing.version,
             reason=reason,
             stage=interaction.stage if interaction else None,
+            details=details,
             via_assistant=via_assistant,
             offline_qr=offline_qr,
         )
+    )
+
+
+def record(  # noqa: PLR0913, PLR0917 - event fields
+    session: AsyncSession,
+    listing: Listing,
+    actor_id: UUID | None,
+    action: str,
+    previous: str | None,
+    interaction: Interaction | None = None,
+    *,
+    reason: str | None = None,
+    details: dict[str, Any] | None = None,
+    via_assistant: bool = False,
+    offline_qr: bool = False,
+) -> None:
+    append_event(
+        session,
+        listing,
+        actor_id,
+        action,
+        previous,
+        interaction,
+        reason=reason,
+        details=details,
+        via_assistant=via_assistant,
+        offline_qr=offline_qr,
     )
     recipients = {listing.author_id}
     if interaction:
@@ -284,6 +346,9 @@ async def transition(
         if target == InteractionStatus.ACCEPTED
         else None
     )
+    if previous == InteractionStatus.ACCEPTED:
+        # Reminders belong to an accepted interaction only.
+        await cancel_meeting_reminders(session, interaction.id)
     if (
         target
         in (
@@ -325,6 +390,121 @@ def change_stage(
     interaction.stage = target
     listing.version += 1
     record(session, listing, actor_id, "stage_changed", interaction.status, interaction)
+
+
+def validate_meeting(time: datetime, place: str, settings: Settings) -> str:
+    """Return the normalized place; reject a past time and a bad place."""
+    if time <= clock.now():
+        raise ProblemError(MEETING_TIME_INVALID)
+    normalized = place.strip()
+    if not normalized or len(normalized) > settings.meeting_place_max_length:
+        raise ProblemError(MEETING_PLACE_INVALID)
+    return normalized
+
+
+def record_meeting(  # noqa: PLR0913, PLR0917 - event fields
+    session: AsyncSession,
+    listing: Listing,
+    interaction: Interaction,
+    actor_id: UUID,
+    action: str,
+    details: dict[str, Any],
+) -> None:
+    """Journal a meeting action; the endpoint notifies the other participant."""
+    previous = interaction.status
+    listing.version += 1
+    append_event(
+        session,
+        listing,
+        actor_id,
+        action,
+        previous,
+        interaction,
+        details=details,
+    )
+
+
+MEETING_REMINDER_TOPIC = "listing.meeting_reminder"
+MEETING_REMINDER_KINDS = ("long", "short")
+
+
+def meeting_reminder_key(interaction_id: UUID, kind: str) -> str:
+    return f"meeting:{interaction_id}:{kind}"
+
+
+async def cancel_meeting_reminders(session: AsyncSession, interaction_id: UUID) -> None:
+    """Drop the pending reminders of a meeting, if any are still scheduled."""
+    for kind in MEETING_REMINDER_KINDS:
+        await cancel_deadline(session, meeting_reminder_key(interaction_id, kind))
+
+
+async def schedule_meeting_reminders(
+    session: AsyncSession,
+    settings: Settings,
+    listing: Listing,
+    interaction: Interaction,
+    meeting: Meeting,
+) -> None:
+    """Replace the reminders of a meeting with the ones of its current time.
+
+    A reminder whose time has already passed is not scheduled: a meeting
+    arranged less than 24 hours ahead gets only the reminders still ahead.
+    """
+    await cancel_meeting_reminders(session, interaction.id)
+    scheduled_at = meeting.scheduled_at
+    if scheduled_at is None:
+        return
+    offsets = {
+        "long": settings.meeting_reminder_long,
+        "short": settings.meeting_reminder_short,
+    }
+    for kind, offset in offsets.items():
+        due_at = scheduled_at - offset
+        if due_at <= clock.now():
+            continue
+        await schedule_deadline(
+            session,
+            MEETING_REMINDER_TOPIC,
+            due_at,
+            {
+                "listing_id": str(listing.id),
+                "interaction_id": str(interaction.id),
+                "version": meeting.version,
+                "kind": kind,
+                "time": scheduled_at.isoformat(),
+            },
+            key=meeting_reminder_key(interaction.id, kind),
+        )
+
+
+@deadline_handlers.register(MEETING_REMINDER_TOPIC)
+async def remind_meeting(session: AsyncSession, job: JobInfo) -> None:
+    listing = await locked(session, UUID(job.payload["listing_id"]))
+    interaction = await session.get(Interaction, UUID(job.payload["interaction_id"]))
+    if interaction is None or interaction.status != InteractionStatus.ACCEPTED:
+        return
+    meeting = await session.scalar(
+        select(Meeting).where(Meeting.interaction_id == interaction.id)
+    )
+    if (
+        meeting is None
+        or meeting.scheduled_at is None
+        or meeting.version != job.payload.get("version")
+    ):
+        return
+    notify(
+        session,
+        {listing.author_id, interaction.participant_id},
+        "listing.meeting.reminder",
+        {
+            "listing_id": str(listing.id),
+            "interaction_id": str(interaction.id),
+            "time": meeting.scheduled_at.isoformat(),
+            "location": meeting.location,
+            "kind": job.payload.get("kind"),
+        },
+        message=MEETING_REMINDER,
+    )
 
 
 async def hide(

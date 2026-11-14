@@ -18,7 +18,7 @@ class DocumentOutput {
   factory DocumentOutput.fromJson(Map<String, Object?> json) => DocumentOutput(
     id: json["id"] as String,
     kind: DocumentKind.fromJson(json["kind"]),
-    version: json["version"] as int,
+    version: _readJsonInteger(json["version"]),
     text: json["text"] as String,
     publishedAt: DateTime.parse(json["published_at"] as String).toUtc(),
     required2: json["required"] as bool,
@@ -62,4 +62,14 @@ class DocumentOutput {
     "published_at": this.publishedAt.toUtc().toIso8601String(),
     "required": this.required2,
   };
+}
+
+int _readJsonInteger(Object? value) {
+  if (value is int) {
+    return value;
+  }
+  if (value is double && value.isFinite && value == value.toInt()) {
+    return value.toInt();
+  }
+  throw FormatException('Expected a JSON integer.', value);
 }

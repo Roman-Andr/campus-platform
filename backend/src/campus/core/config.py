@@ -289,6 +289,17 @@ class Settings(BaseSettings):
     )
     listing_title_max_length: int = Field(default=100, ge=1)
     listing_description_max_length: int = Field(default=5000, ge=1)
+    meeting_place_max_length: int = Field(default=200, ge=1)
+    meeting_reminder_long: timedelta = Field(
+        default=timedelta(hours=24),
+        gt=timedelta(0),
+        description="First reminder before a scheduled meeting, e.g. 24 hours.",
+    )
+    meeting_reminder_short: timedelta = Field(
+        default=timedelta(hours=1),
+        gt=timedelta(0),
+        description="Last reminder before a scheduled meeting, e.g. 1 hour.",
+    )
 
     smtp_host: str | None = Field(
         default=None, description="Outgoing mail server; sending fails when empty."
@@ -328,6 +339,13 @@ class Settings(BaseSettings):
     def _check_page_sizes(self) -> Self:
         if self.page_size_default > self.page_size_max:
             msg = "page_size_default exceeds page_size_max"
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def _check_meeting_reminders(self) -> Self:
+        if self.meeting_reminder_long <= self.meeting_reminder_short:
+            msg = "meeting_reminder_long must be longer than meeting_reminder_short"
             raise ValueError(msg)
         return self
 

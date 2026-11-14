@@ -23,7 +23,11 @@ class ProfileInput {
           ? json["dormitory_id"] as String?
           : null,
       facultyId: json["faculty_id"] as String,
-      course: json.containsKey("course") ? json["course"] as int? : null,
+      course: json.containsKey("course")
+          ? json["course"] == null
+                ? null
+                : _readJsonInteger(json["course"])
+          : null,
     );
   }
 
@@ -50,4 +54,14 @@ class ProfileInput {
     "faculty_id": this.facultyId,
     if (this.course != null) "course": this.course,
   };
+}
+
+int _readJsonInteger(Object? value) {
+  if (value is int) {
+    return value;
+  }
+  if (value is double && value.isFinite && value == value.toInt()) {
+    return value.toInt();
+  }
+  throw FormatException('Expected a JSON integer.', value);
 }
