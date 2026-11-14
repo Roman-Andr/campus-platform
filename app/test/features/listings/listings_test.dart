@@ -6,6 +6,7 @@ import 'package:campus/src/core/auth/auth_session.dart';
 import 'package:campus/src/core/database/app_database.dart';
 import 'package:campus/src/features/listings/application/listings.dart';
 import 'package:campus/src/features/listings/data/listings_repository.dart';
+import 'package:campus/src/features/listings/domain/feed.dart';
 import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -40,7 +41,7 @@ void main() {
           );
       final restored = (await cache.load(
         'legacy',
-        Visibility.city,
+        feedCacheKey(Visibility.city, FeedFilters.none),
       ))!.items.single;
       expect(restored.categoryId, isNull);
       expect(restored.hiddenReason, isNull);
@@ -51,12 +52,12 @@ void main() {
       for (final status in ['draft', 'completed', 'hidden']) {
         await cache.save(
           'session',
-          Visibility.city,
+          feedCacheKey(Visibility.city, FeedFilters.none),
           PageListingOutput.fromJson(pageJson([listingJson(status: status)])),
         );
         final item = (await cache.load(
           'session',
-          Visibility.city,
+          feedCacheKey(Visibility.city, FeedFilters.none),
         ))!.items.single;
         expect(item.status.toJson(), status);
         if (status == 'draft') expect(item.expiresAt, isNull);
@@ -71,23 +72,52 @@ void main() {
       final page = PageListingOutput.fromJson(
         pageJson([listingJson()], next: 'cursor'),
       );
-      await cache.save('alice', Visibility.city, page);
-      expect(
-        (await DriftListingsCache(
-          db,
-        ).load('alice', Visibility.city))!.items.single.title,
-        'A desk',
-      );
-      expect(await cache.load('bob', Visibility.city), isNull);
-      expect(await cache.load('alice', Visibility.faculty), isNull);
       await cache.save(
         'alice',
-        Visibility.city,
+        feedCacheKey(Visibility.city, FeedFilters.none),
+        page,
+      );
+      expect(
+        (await DriftListingsCache(db).load(
+          'alice',
+          feedCacheKey(Visibility.city, FeedFilters.none),
+        ))!.items.single.title,
+        'A desk',
+      );
+      expect(
+        await cache.load(
+          'bob',
+          feedCacheKey(Visibility.city, FeedFilters.none),
+        ),
+        isNull,
+      );
+      expect(
+        await cache.load(
+          'alice',
+          feedCacheKey(Visibility.faculty, FeedFilters.none),
+        ),
+        isNull,
+      );
+      await cache.save(
+        'alice',
+        feedCacheKey(Visibility.city, FeedFilters.none),
         const PageListingOutput(items: [], nextPage: null),
       );
-      expect((await cache.load('alice', Visibility.city))!.items, isEmpty);
+      expect(
+        (await cache.load(
+          'alice',
+          feedCacheKey(Visibility.city, FeedFilters.none),
+        ))!.items,
+        isEmpty,
+      );
       await cache.clear();
-      expect(await cache.load('alice', Visibility.city), isNull);
+      expect(
+        await cache.load(
+          'alice',
+          feedCacheKey(Visibility.city, FeedFilters.none),
+        ),
+        isNull,
+      );
     },
   );
 
@@ -98,15 +128,16 @@ void main() {
     try {
       await DriftListingsCache(db).save(
         'session',
-        Visibility.city,
+        feedCacheKey(Visibility.city, FeedFilters.none),
         PageListingOutput.fromJson(pageJson([listingJson()])),
       );
       await db.close();
       db = AppDatabase(NativeDatabase(file));
       expect(
-        (await DriftListingsCache(
-          db,
-        ).load('session', Visibility.city))!.items.single.title,
+        (await DriftListingsCache(db).load(
+          'session',
+          feedCacheKey(Visibility.city, FeedFilters.none),
+        ))!.items.single.title,
         'A desk',
       );
     } finally {
@@ -186,7 +217,7 @@ void main() {
     final cache = InMemoryListingsCache();
     await cache.save(
       'test-session-cache',
-      Visibility.city,
+      feedCacheKey(Visibility.city, FeedFilters.none),
       PageListingOutput.fromJson(pageJson([listingJson()])),
     );
     final server = FakeHttpAdapter(feed: null)

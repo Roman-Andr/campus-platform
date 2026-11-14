@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart' hide Visibility;
@@ -7,12 +8,16 @@ import 'package:material_ui/material_ui.dart' hide Visibility;
 import '../../../core/api/api_client.dart';
 import '../../../core/api/api_failure_message.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/time/city_time.dart';
 import '../../profile/application/my_profile.dart';
+import '../application/feed_filters.dart';
 import '../application/listing_photo_draft.dart';
 import '../application/listings.dart';
+import '../domain/feed.dart';
 import 'interaction_timeline_screen.dart';
 import 'listing_photos.dart';
 import 'my_screens.dart';
+import 'publication_screen.dart';
 import 'status_labels.dart';
 
 export 'status_labels.dart';
@@ -97,90 +102,268 @@ class _FeedBodyState extends ConsumerState<FeedBody> {
   Visibility area = Visibility.city;
   String? error;
   bool loadingMore = false;
+
+  void _apply(FeedFilters filters) {
+    setState(() => error = null);
+    unawaited(ref.read(feedFilterSelectionProvider.notifier).apply(filters));
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final feed = ref.watch(listingFeedProvider(area));
-    return Column(
-      children: [
-        DropdownButton<Visibility>(
-          value: area,
-          onChanged: (value) => setState(() {
-            area = value!;
-            error = null;
-          }),
-          items: [
-            for (final scope in [
-              Visibility.city,
-              Visibility.faculty,
-              Visibility.dormitory,
-            ])
-              DropdownMenuItem(value: scope, child: Text(scopeName(l, scope))),
-          ],
-        ),
-        Expanded(
-          child: feed.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(apiFailureMessage(l, e)),
-                  TextButton(
-                    onPressed: () => ref.invalidate(listingFeedProvider(area)),
-                    child: Text(l.errorRetry),
-                  ),
-                ],
-              ),
+    return ref
+        .watch(feedFilterSelectionProvider)
+        .when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(apiFailureMessage(l, e)),
+                TextButton(
+                  onPressed: () => ref.invalidate(feedFilterSelectionProvider),
+                  child: Text(l.errorRetry),
+                ),
+              ],
             ),
-            data: (page) => RefreshIndicator(
-              onRefresh: () async {
-                ref.invalidate(listingFeedProvider(area));
-                await ref.read(listingFeedProvider(area).future);
-              },
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  if (page.items.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Text(l.listingsEmpty),
-                    ),
-                  for (final item in page.items) ListingTile(item: item),
-                  if (error != null) Text(error!),
-                  if (page.nextPage != null)
-                    TextButton(
-                      onPressed: loadingMore
-                          ? null
-                          : () async {
-                              setState(() {
-                                loadingMore = true;
-                                error = null;
-                              });
-                              try {
-                                await ref
-                                    .read(listingFeedProvider(area).notifier)
-                                    .more();
-                              } catch (e) {
-                                if (mounted) {
-                                  setState(
-                                    () => error = apiFailureMessage(l, e),
-                                  );
-                                }
-                              } finally {
-                                if (mounted) {
-                                  setState(() => loadingMore = false);
-                                }
-                              }
+          ),
+          data: (filters) {
+            final provider = listingFeedProvider(area);
+            return Column(
+              children: [
+                FeedFiltersBar(
+                  area: area,
+                  filters: filters,
+                  onAreaChanged: (value) => setState(() {
+                    area = value;
+                    error = null;
+                  }),
+                  onChanged: _apply,
+                ),
+                Expanded(
+                  child: ref
+                      .watch(provider)
+                      .when(
+                        loading: () =>
+                            const Center(child: CircularProgressIndicator()),
+                        error: (e, _) => Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(apiFailureMessage(l, e)),
+                              TextButton(
+                                onPressed: () => ref.invalidate(provider),
+                                child: Text(l.errorRetry),
+                              ),
+                            ],
+                          ),
+                        ),
+                        data: (page) {
+                          final split = splitPinned(page.items, clock.now());
+                          return RefreshIndicator(
+                            onRefresh: () async {
+                              ref.invalidate(provider);
+                              await ref.read(provider.future);
                             },
-                      child: Text(l.listingsMore),
-                    ),
-                ],
+                            child: ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: [
+                                if (split.pinned.isNotEmpty) ...[
+                                  Padding(
+                                    key: const Key('feed-pinned-header'),
+                                    padding: const EdgeInsets.fromLTRB(
+                                      16,
+                                      12,
+                                      16,
+                                      4,
+                                    ),
+                                    child: Text(
+                                      l.feedPinned,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium,
+                                    ),
+                                  ),
+                                  for (final item in split.pinned)
+                                    ListingTile(item: item),
+                                  const Divider(),
+                                ],
+                                if (page.items.isEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.all(24),
+                                    child: Text(l.listingsEmpty),
+                                  ),
+                                for (final item in split.ordinary)
+                                  ListingTile(item: item),
+                                if (error != null) Text(error!),
+                                if (page.nextPage != null)
+                                  TextButton(
+                                    onPressed: loadingMore
+                                        ? null
+                                        : () async {
+                                            setState(() {
+                                              loadingMore = true;
+                                              error = null;
+                                            });
+                                            try {
+                                              await ref
+                                                  .read(provider.notifier)
+                                                  .more();
+                                            } catch (e) {
+                                              if (mounted) {
+                                                setState(
+                                                  () => error =
+                                                      apiFailureMessage(l, e),
+                                                );
+                                              }
+                                            } finally {
+                                              if (mounted) {
+                                                setState(
+                                                  () => loadingMore = false,
+                                                );
+                                              }
+                                            }
+                                          },
+                                    child: Text(l.listingsMore),
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                ),
+              ],
+            );
+          },
+        );
+  }
+}
+
+/// Scope and filters above the feed; every change is kept for the next run.
+class FeedFiltersBar extends ConsumerWidget {
+  const FeedFiltersBar({
+    required this.area,
+    required this.filters,
+    required this.onAreaChanged,
+    required this.onChanged,
+    super.key,
+  });
+
+  /// Sentinel of the "all values" item of a dropdown.
+  static const _all = 'all';
+
+  final Visibility area;
+  final FeedFilters filters;
+  final ValueChanged<Visibility> onAreaChanged;
+  final ValueChanged<FeedFilters> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final categories =
+        ref.watch(listingCategoriesProvider).value ?? const <CategoryOutput>[];
+    final cityId = ref.watch(myProfileProvider).value?.cityId;
+    final dormitories = cityId == null
+        ? const <CityPlaceOut>[]
+        : ref.watch(dormitoriesProvider(cityId)).value ??
+              const <CityPlaceOut>[];
+    final kind = filters.kind?.apiValue ?? _all;
+    final category = categories.any((item) => item.id == filters.categoryId)
+        ? filters.categoryId!
+        : _all;
+    final dormitory = dormitories.any((item) => item.id == filters.dormitoryId)
+        ? filters.dormitoryId!
+        : _all;
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Row(
+        children: [
+          DropdownButton<Visibility>(
+            key: const Key('feed-filter-area'),
+            value: area,
+            items: [
+              for (final scope in const [
+                Visibility.city,
+                Visibility.faculty,
+                Visibility.dormitory,
+              ])
+                DropdownMenuItem(
+                  value: scope,
+                  child: Text(scopeName(l, scope)),
+                ),
+            ],
+            onChanged: (value) {
+              if (value != null) onAreaChanged(value);
+            },
+          ),
+          const SizedBox(width: 12),
+          DropdownButton<String>(
+            key: const Key('feed-filter-kind'),
+            value: kind,
+            items: [
+              DropdownMenuItem(value: _all, child: Text(l.feedFilterAllKinds)),
+              DropdownMenuItem(
+                value: FeedKind.giveaway.apiValue,
+                child: Text(l.listingKindGiveaway),
+              ),
+              DropdownMenuItem(
+                value: FeedKind.publication.apiValue,
+                child: Text(l.listingKindPublication),
+              ),
+            ],
+            onChanged: (value) => onChanged(
+              filters.withKind(
+                value == null || value == _all ? null : FeedKind.fromApi(value),
               ),
             ),
           ),
-        ),
-      ],
+          const SizedBox(width: 12),
+          DropdownButton<String>(
+            key: const Key('feed-filter-category'),
+            value: category,
+            items: [
+              DropdownMenuItem(
+                value: _all,
+                child: Text(l.feedFilterAllCategories),
+              ),
+              for (final item in categories)
+                DropdownMenuItem(value: item.id, child: Text(item.name)),
+            ],
+            onChanged: (value) => onChanged(
+              filters.withCategory(
+                value == null || value == _all ? null : value,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          DropdownButton<String>(
+            key: const Key('feed-filter-dormitory'),
+            value: dormitory,
+            items: [
+              DropdownMenuItem(
+                value: _all,
+                child: Text(l.feedFilterAllDormitories),
+              ),
+              for (final item in dormitories)
+                DropdownMenuItem(value: item.id, child: Text(item.name)),
+            ],
+            onChanged: (value) => onChanged(
+              filters.withDormitory(
+                value == null || value == _all ? null : value,
+              ),
+            ),
+          ),
+          if (!filters.isEmpty) ...[
+            const SizedBox(width: 8),
+            TextButton(
+              key: const Key('feed-filters-reset'),
+              onPressed: () => onChanged(FeedFilters.none),
+              child: Text(l.feedFiltersReset),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -189,23 +372,35 @@ class ListingTile extends ConsumerWidget {
   const ListingTile({required this.item, super.key});
   final ListingOutput item;
   @override
-  Widget build(BuildContext context, WidgetRef ref) => Column(
-    children: [
-      ListTile(
-        leading: ListingThumbnail(id: item.id),
-        title: Text(item.title),
-        subtitle: Text(
-          '${item.authorName} · ${listingName(context.l10n, item.status)}',
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final publication = item.kind == 'publication';
+    return Column(
+      children: [
+        ListTile(
+          leading: ListingThumbnail(id: item.id),
+          title: Text(item.title),
+          subtitle: Text(
+            '${item.authorName} · '
+            '${publication ? l.listingKindPublication : listingName(l, item.status)}',
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isPinnedAt(item, clock.now()))
+                Icon(Icons.push_pin, size: 18, semanticLabel: l.feedPinned),
+              FavoriteButton(listing: item),
+            ],
+          ),
+          onTap: () => context.push('/listings/${item.id}'),
         ),
-        trailing: FavoriteButton(listing: item),
-        onTap: () => context.push('/listings/${item.id}'),
-      ),
-      if (item.authorId == ref.watch(myProfileProvider).value?.id &&
-          (item.status == ListingStatus.draft ||
-              item.status == ListingStatus.expired))
-        ListingOwnerActions(item: item),
-    ],
-  );
+        if (item.authorId == ref.watch(myProfileProvider).value?.id &&
+            (item.status == ListingStatus.draft ||
+                item.status == ListingStatus.expired))
+          ListingOwnerActions(item: item),
+      ],
+    );
+  }
 }
 
 class ListingScreen extends ConsumerWidget {
@@ -233,45 +428,70 @@ class ListingScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            data: (item) => ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                ListingGallery(id: id),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        item.title,
-                        style: Theme.of(context).textTheme.headlineSmall,
+            data: (item) {
+              final publication = item.kind == 'publication';
+              final pinned = isPinnedAt(item, clock.now());
+              return ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  ListingGallery(id: id),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.title,
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                      ),
+                      FavoriteButton(listing: item),
+                    ],
+                  ),
+                  Text(l.listingAuthor(item.authorName)),
+                  if (publication)
+                    Text(listingKindName(l, item.kind))
+                  else
+                    Text(listingName(l, item.status)),
+                  if (publication && pinned) ...[
+                    Text(l.feedPinned),
+                    Text(
+                      l.feedPinnedUntil(
+                        formatCityTime(
+                          item.pinnedUntil!,
+                          timezone: item.cityTimezone,
+                          city: item.cityTimezone,
+                          l10n: l,
+                          includeDate: true,
+                        ),
                       ),
                     ),
-                    FavoriteButton(listing: item),
                   ],
-                ),
-                Text(l.listingAuthor(item.authorName)),
-                Text(listingName(l, item.status)),
-                Text(item.description),
-                if (item.hiddenReason != null)
-                  Text(l.listingHiddenReason(item.hiddenReason!)),
-                if (item.authorId == user?.id) ListingOwnerActions(item: item),
-                if (item.authorId != user?.id && user != null)
-                  if (item.status == ListingStatus.active)
-                    ListingAction(
-                      label: l.listingReserve,
-                      failureMessage: apiFailureMessage,
-                      run: () async {
-                        await ref
-                            .read(campusApiProvider)
-                            .listings
-                            .reserveGiveaway(listingId: id);
-                      },
-                      after: () => context.push('/my-listings'),
-                    ),
-                if (item.authorId == user?.id) IncomingList(id: id),
-                if (user != null && item.authorId != user.id)
-                  ListingParticipation(id: id),
-              ],
-            ),
+                  Text(item.description),
+                  if (item.hiddenReason != null)
+                    Text(l.listingHiddenReason(item.hiddenReason!)),
+                  if (publication && item.authorId == user?.id)
+                    PublicationActions(item: item),
+                  if (!publication && item.authorId == user?.id)
+                    ListingOwnerActions(item: item),
+                  if (!publication && item.authorId != user?.id && user != null)
+                    if (item.status == ListingStatus.active)
+                      ListingAction(
+                        label: l.listingReserve,
+                        failureMessage: apiFailureMessage,
+                        run: () async {
+                          await ref
+                              .read(campusApiProvider)
+                              .listings
+                              .reserveGiveaway(listingId: id);
+                        },
+                        after: () => context.push('/my-listings'),
+                      ),
+                  if (!publication && item.authorId == user?.id)
+                    IncomingList(id: id),
+                  if (!publication && user != null && item.authorId != user.id)
+                    ListingParticipation(id: id),
+                ],
+              );
+            },
           ),
     );
   }

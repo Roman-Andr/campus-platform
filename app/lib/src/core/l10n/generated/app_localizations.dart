@@ -794,6 +794,90 @@ abstract class AppLocalizations {
   /// **'Входящие заявки'**
   String get listingIncoming;
 
+  /// Heading of the pinned notices above the feed.
+  ///
+  /// In ru, this message translates to:
+  /// **'Закреплённые'**
+  String get feedPinned;
+
+  /// Pin deadline shown on a notice.
+  ///
+  /// In ru, this message translates to:
+  /// **'Закреплено до {date}'**
+  String feedPinnedUntil(String date);
+
+  /// Feed filter: every kind of entry.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все типы'**
+  String get feedFilterAllKinds;
+
+  /// Feed filter: every category.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все категории'**
+  String get feedFilterAllCategories;
+
+  /// Feed filter: every dormitory.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все общежития'**
+  String get feedFilterAllDormitories;
+
+  /// Clears all feed filters.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сбросить фильтры'**
+  String get feedFiltersReset;
+
+  /// Headman action and screen title for a pinned notice.
+  ///
+  /// In ru, this message translates to:
+  /// **'Разместить объявление'**
+  String get feedCreatePublication;
+
+  /// Edit action of a pinned notice.
+  ///
+  /// In ru, this message translates to:
+  /// **'Редактировать объявление'**
+  String get feedEditPublication;
+
+  /// Area of a pinned notice.
+  ///
+  /// In ru, this message translates to:
+  /// **'Где опубликовать'**
+  String get feedPublicationScope;
+
+  /// Label of the pin deadline picker.
+  ///
+  /// In ru, this message translates to:
+  /// **'Закрепить до'**
+  String get feedPinUntil;
+
+  /// Validation of a pin deadline in the past.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите будущие дату и время.'**
+  String get feedPinInFuture;
+
+  /// A headman without a dormitory or faculty scope.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет области для публикации.'**
+  String get feedNoScope;
+
+  /// Removes the pin but keeps the notice in the feed.
+  ///
+  /// In ru, this message translates to:
+  /// **'Снять закреп'**
+  String get feedUnpin;
+
+  /// Listing kind name: informational publication.
+  ///
+  /// In ru, this message translates to:
+  /// **'Объявление'**
+  String get listingKindPublication;
+
   /// reservationPending
   ///
   /// In ru, this message translates to:

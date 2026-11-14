@@ -116,6 +116,67 @@
   "listingsOwn": "My listings",
   "listingsReservations": "My participation",
   "listingIncoming": "Incoming requests",
+  "feedPinned": "Pinned",
+  "@feedPinned": {
+    "description": "Heading of the pinned notices above the feed."
+  },
+  "feedPinnedUntil": "Pinned until {date}",
+  "@feedPinnedUntil": {
+    "description": "Pin deadline shown on a notice.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "feedFilterAllKinds": "All types",
+  "@feedFilterAllKinds": {
+    "description": "Feed filter: every kind of entry."
+  },
+  "feedFilterAllCategories": "All categories",
+  "@feedFilterAllCategories": {
+    "description": "Feed filter: every category."
+  },
+  "feedFilterAllDormitories": "All dormitories",
+  "@feedFilterAllDormitories": {
+    "description": "Feed filter: every dormitory."
+  },
+  "feedFiltersReset": "Reset filters",
+  "@feedFiltersReset": {
+    "description": "Clears all feed filters."
+  },
+  "feedCreatePublication": "Post a notice",
+  "@feedCreatePublication": {
+    "description": "Headman action and screen title for a pinned notice."
+  },
+  "feedEditPublication": "Edit notice",
+  "@feedEditPublication": {
+    "description": "Edit action of a pinned notice."
+  },
+  "feedPublicationScope": "Publish in",
+  "@feedPublicationScope": {
+    "description": "Area of a pinned notice."
+  },
+  "feedPinUntil": "Pinned until",
+  "@feedPinUntil": {
+    "description": "Label of the pin deadline picker."
+  },
+  "feedPinInFuture": "Choose a future date and time.",
+  "@feedPinInFuture": {
+    "description": "Validation of a pin deadline in the past."
+  },
+  "feedNoScope": "You have no area to publish in.",
+  "@feedNoScope": {
+    "description": "A headman without a dormitory or faculty scope."
+  },
+  "feedUnpin": "Unpin",
+  "@feedUnpin": {
+    "description": "Removes the pin but keeps the notice in the feed."
+  },
+  "listingKindPublication": "Notice",
+  "@listingKindPublication": {
+    "description": "Listing kind name: informational publication."
+  },
   "reservationPending": "Pending",
   "reservationAccepted": "Accepted",
   "reservationRejected": "Rejected",

@@ -8,10 +8,13 @@ import '../../../core/api/api_client.dart';
 import '../../../core/auth/auth_session.dart';
 import '../../../core/database/app_database.dart';
 
-/// Cache is isolated by account and area; pagination is stored atomically.
+/// Cache is isolated by account and feed key; pagination is stored atomically.
+///
+/// A feed key is a scope plus the applied filters, so a filtered feed never
+/// shows the snapshot of another selection.
 abstract interface class ListingsCache {
-  Future<PageListingOutput?> load(String owner, Visibility area);
-  Future<void> save(String owner, Visibility area, PageListingOutput page);
+  Future<PageListingOutput?> load(String owner, String key);
+  Future<void> save(String owner, String key, PageListingOutput page);
   Future<void> clear();
 }
 
@@ -20,11 +23,10 @@ class DriftListingsCache implements ListingsCache {
   final AppDatabase db;
 
   @override
-  Future<PageListingOutput?> load(String owner, Visibility area) async {
+  Future<PageListingOutput?> load(String owner, String key) async {
     final row =
-        await (db.select(db.listingFeeds)..where(
-              (t) => t.owner.equals(owner) & t.area.equals(area.toJson()),
-            ))
+        await (db.select(db.listingFeeds)
+              ..where((t) => t.owner.equals(owner) & t.area.equals(key)))
             .getSingleOrNull();
     if (row == null) return null;
     final json = jsonDecode(row.payload) as Map<String, Object?>;
@@ -47,12 +49,12 @@ class DriftListingsCache implements ListingsCache {
   }
 
   @override
-  Future<void> save(String owner, Visibility area, PageListingOutput page) => db
+  Future<void> save(String owner, String key, PageListingOutput page) => db
       .into(db.listingFeeds)
       .insertOnConflictUpdate(
         ListingFeedsCompanion.insert(
           owner: owner,
-          area: area.toJson(),
+          area: key,
           payload: jsonEncode(page.toJson()),
         ),
       );
