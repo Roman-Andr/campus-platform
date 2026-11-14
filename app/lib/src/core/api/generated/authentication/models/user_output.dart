@@ -18,6 +18,7 @@ class UserOutput {
 
     /// Campus city; empty until filled in.
     required this.cityId,
+    required this.cityTimezone,
 
     /// Empty when the user does not live in a dormitory.
     required this.dormitoryId,
@@ -34,6 +35,9 @@ class UserOutput {
   factory UserOutput.fromJson(Map<String, Object?> json) {
     if (!json.containsKey("city_id")) {
       throw ArgumentError("Missing required property: city_id");
+    }
+    if (!json.containsKey("city_timezone")) {
+      throw ArgumentError("Missing required property: city_timezone");
     }
     if (!json.containsKey("dormitory_id")) {
       throw ArgumentError("Missing required property: dormitory_id");
@@ -58,6 +62,7 @@ class UserOutput {
       lastName: json["last_name"] as String,
       accountType: AccountType.fromJson(json["account_type"]),
       cityId: json["city_id"] as String?,
+      cityTimezone: json["city_timezone"] as String?,
       dormitoryId: json["dormitory_id"] as String?,
       facultyId: json["faculty_id"] as String?,
       course: json["course"] as int?,
@@ -87,6 +92,8 @@ class UserOutput {
   /// Campus city; empty until filled in.
   final String? cityId;
 
+  final String? cityTimezone;
+
   /// Empty when the user does not live in a dormitory.
   final String? dormitoryId;
 
@@ -107,6 +114,7 @@ class UserOutput {
     "last_name",
     "account_type",
     "city_id",
+    "city_timezone",
     "dormitory_id",
     "faculty_id",
     "course",
@@ -126,6 +134,7 @@ class UserOutput {
     "last_name": this.lastName,
     "account_type": this.accountType.toJson(),
     "city_id": this.cityId,
+    "city_timezone": this.cityTimezone,
     "dormitory_id": this.dormitoryId,
     "faculty_id": this.facultyId,
     "course": this.course,

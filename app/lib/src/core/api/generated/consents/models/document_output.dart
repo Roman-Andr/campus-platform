@@ -8,6 +8,8 @@ class DocumentOutput {
     required this.kind,
     required this.version,
     required this.text,
+
+    /// RFC 3339 instant with an explicit offset; returned in UTC.
     required this.publishedAt,
     required this.required2,
     this.additionalProperties = const {},
@@ -34,6 +36,7 @@ class DocumentOutput {
 
   final String text;
 
+  /// RFC 3339 instant with an explicit offset; returned in UTC.
   final DateTime publishedAt;
 
   final bool required2;

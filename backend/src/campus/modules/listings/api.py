@@ -1,6 +1,5 @@
 """Giveaway endpoints, using the shared listing aggregate."""
 
-from datetime import datetime
 from uuid import UUID
 
 from fastapi import Request, Response
@@ -20,6 +19,7 @@ from campus.core.web import (
     request_locale,
 )
 from campus.core.web.auth import CurrentUser
+from campus.core.web.datetimes import Instant
 from campus.core.web.pagination import paginate, sort_by
 from campus.core.web.problems import NOT_FOUND, ProblemResponse, problem_response
 from campus.modules.identity import ProfiledUser, User
@@ -51,7 +51,7 @@ from campus.modules.listings.service import (
     transition,
     visible,
 )
-from campus.modules.university import AccountType
+from campus.modules.university import AccountType, City
 
 router = api_router(
     prefix="/listings",
@@ -94,12 +94,13 @@ class ListingOutput(BaseModel):
     visibility: Visibility
     audience: Audience
     city_id: UUID
+    city_timezone: str
     dormitory_id: UUID | None
     faculty_id: UUID | None
     status: ListingStatus
     version: int
-    created_at: datetime
-    expires_at: datetime | None
+    created_at: Instant
+    expires_at: Instant | None
     category_id: UUID | None
     hidden_reason: str | None
 
@@ -112,7 +113,7 @@ class InteractionOutput(BaseModel):
     participant_id: UUID
     status: InteractionStatus
     stage: str | None
-    response_due_at: datetime | None
+    response_due_at: Instant | None
 
 
 class TransitionInput(BaseModel):
@@ -129,7 +130,7 @@ class EventOutput(BaseModel):
     previous_status: str | None
     status: str
     version: int
-    created_at: datetime
+    created_at: Instant
     reason: str | None
     stage: str | None
     via_assistant: bool
@@ -194,6 +195,7 @@ async def publish_giveaway(
         visibility=data.visibility,
         audience=data.audience,
         city_id=user.city_id,
+        city=await session.get(City, user.city_id),
         faculty_id=user.faculty_id if data.visibility == Visibility.FACULTY else None,
         dormitory_id=user.dormitory_id
         if data.visibility == Visibility.DORMITORY
@@ -559,6 +561,9 @@ async def publish_listing(
     ):
         raise ProblemError(FORBIDDEN)
     listing.city_id = user.city_id
+    city = await session.get(City, user.city_id)
+    assert city is not None  # noqa: S101 - the profile has a city foreign key
+    listing.city = city
     listing.faculty_id = (
         user.faculty_id if listing.visibility == Visibility.FACULTY else None
     )

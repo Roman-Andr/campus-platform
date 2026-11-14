@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from campus.core.db import Base, Entity, LocalizedName
 from campus.modules.identity import User
+from campus.modules.university import City
 
 
 class ListingStatus(StrEnum):
@@ -93,6 +94,12 @@ class Listing(Entity):
     visibility: Mapped[str] = mapped_column(String(16))
     audience: Mapped[str] = mapped_column(String(16), default=Audience.STUDENTS)
     city_id: Mapped[UUID] = mapped_column(ForeignKey("university_city.id"))
+    city: Mapped[City] = relationship(lazy="joined", innerjoin=True)
+
+    @property
+    def city_timezone(self) -> str:
+        return self.city.timezone
+
     faculty_id: Mapped[UUID | None] = mapped_column(ForeignKey("university_faculty.id"))
     dormitory_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("university_dormitory.id")
