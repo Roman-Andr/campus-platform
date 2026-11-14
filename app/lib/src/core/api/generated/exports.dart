@@ -3,6 +3,8 @@
 export 'authentication/authentication_client.dart';
 export 'authentication/models/email_input.dart';
 export 'authentication/models/refresh_input.dart';
+export 'authentication/models/role.dart';
+export 'authentication/models/role_output.dart';
 export 'authentication/models/sign_in_input.dart';
 export 'authentication/models/tokens.dart';
 export 'authentication/models/user_output.dart';

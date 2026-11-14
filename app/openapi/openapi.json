@@ -3042,6 +3042,7 @@
               "client_version_invalid",
               "client_version_missing",
               "email_domain_not_allowed",
+              "forbidden",
               "http_error",
               "idempotency_key_invalid",
               "idempotency_key_missing",
@@ -3172,6 +3173,45 @@
         ],
         "title": "RefreshInput"
       },
+      "Role": {
+        "type": "string",
+        "enum": [
+          "headman",
+          "moderator",
+          "administrator"
+        ],
+        "title": "Role"
+      },
+      "RoleOutput": {
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "dormitory_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "title": "Dormitory Id"
+          },
+          "faculty_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "title": "Faculty Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "dormitory_id",
+          "faculty_id"
+        ],
+        "title": "RoleOutput"
+      },
       "SignInInput": {
         "properties": {
           "email": {
@@ -3273,6 +3313,13 @@
       },
       "UserOutput": {
         "properties": {
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/RoleOutput"
+            },
+            "type": "array",
+            "title": "Roles"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -3335,6 +3382,7 @@
         },
         "type": "object",
         "required": [
+          "roles",
           "id",
           "email",
           "first_name",
