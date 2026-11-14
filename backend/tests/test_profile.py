@@ -19,7 +19,7 @@ from campus.api.app import create_app
 from campus.core.config import Settings
 from campus.core.db import create_engine, create_session_factory
 from campus.core.web import api_router
-from campus.modules.identity import ProfiledUser, User
+from campus.modules.identity import ProfiledUser, User, seed_documents
 from campus.modules.university import (
     AccountType,
     City,
@@ -99,6 +99,7 @@ async def auth(database_url: str, redis_url: str) -> AsyncIterator[Auth]:
                 EmailDomain(domain="staff.example", account_type=AccountType.EMPLOYEE),
             ]
         )
+        await seed_documents(db)
         await db.commit()
         app = create_app(settings)
         router = api_router()

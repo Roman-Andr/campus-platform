@@ -5,6 +5,8 @@ enum ProblemCodeValue {
   clientUpdateRequired("client_update_required"),
   clientVersionInvalid("client_version_invalid"),
   clientVersionMissing("client_version_missing"),
+  consentInvalid("consent_invalid"),
+  consentRequired("consent_required"),
   emailDomainNotAllowed("email_domain_not_allowed"),
   forbidden("forbidden"),
   httpError("http_error"),
@@ -44,6 +46,12 @@ sealed class ProblemCode {
   );
   static const clientVersionMissing = ProblemCodeKnown(
     ProblemCodeValue.clientVersionMissing,
+  );
+  static const consentInvalid = ProblemCodeKnown(
+    ProblemCodeValue.consentInvalid,
+  );
+  static const consentRequired = ProblemCodeKnown(
+    ProblemCodeValue.consentRequired,
   );
   static const emailDomainNotAllowed = ProblemCodeKnown(
     ProblemCodeValue.emailDomainNotAllowed,

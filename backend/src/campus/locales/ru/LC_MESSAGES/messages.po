@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-14 13:00+0300\n"
+"POT-Creation-Date: 2026-11-14 13:21+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -25,6 +25,9 @@ msgstr "Некорректный запрос"
 
 msgid "Client version missing"
 msgstr "Не указана версия клиента"
+
+msgid "Current documents must be accepted"
+msgstr "Необходимо принять актуальные документы"
 
 msgid "E-mail domain not allowed"
 msgstr "Домен почты не разрешён"
@@ -52,6 +55,9 @@ msgstr "Внутренняя ошибка"
 
 msgid "Invalid client version"
 msgstr "Неверная версия клиента"
+
+msgid "Invalid consent decision"
+msgstr "Недопустимое решение по согласию"
 
 msgid "Invalid cursor"
 msgstr "Неверный курсор"
