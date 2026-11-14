@@ -23,8 +23,9 @@ uv run campus-api            # http://127.0.0.1:8000/api/v1/docs
 меняет отредактированные; свой файл справочников —
 `campus-seed --university FILE.toml` (формат — `src/campus/modules/university/seed.toml`).
 
-Воркер и планировщик — `uv run campus-worker` и `uv run campus-scheduler`
-(пока заглушки: пишут в журнал о запуске и ждут сигнала остановки).
+Воркер и планировщик — `uv run campus-worker` и `uv run campus-scheduler`;
+им нужны PostgreSQL и Redis (`CAMPUS_DATABASE_URL`, `CAMPUS_REDIS_URL`),
+проще всего — из Docker Compose (см. «Фоновые задачи»).
 
 ## Проверки
 
@@ -40,6 +41,8 @@ uv run lint-imports          # границы модулей
 
 Тесты с базой данных поднимают PostgreSQL 18 с pgvector
 (`pgvector/pgvector:0.8.7-pg18-trixie`) через testcontainers, поэтому нужен Docker.
+Тесты воркера, планировщика и почты так же поднимают Redis и Mailpit
+(`tests/services.py`).
 С podman вместо Docker:
 
 ```sh
@@ -106,17 +109,62 @@ API отдаёт название на языке запроса (`request_local
 - `engine` — движок базы теста, например для параллельных сессий;
 - `database_url` — адрес базы теста.
 
+## Фоновые задачи
+
+Побочные эффекты и события по сроку (ТЗ, п. 4.3 и 5.2) хранятся в БД и
+выполняются фоновыми процессами; общая часть — `campus.core.jobs`.
+
+- **Outbox** (`campus.core.outbox`). Модуль пишет сообщение
+  `add_message(session, topic, payload)` в той же транзакции, что и
+  изменение: откат не оставляет сообщения. Воркер раз в
+  `CAMPUS_OUTBOX_POLL_INTERVAL` секунд выбирает готовые сообщения и
+  вызывает обработчик темы, зарегистрированный декоратором
+  `@outbox_handlers.register("module.action")`. Тема — одно действие
+  одного потребителя; событию с несколькими потребителями — несколько
+  сообщений.
+- **Сроки** (`campus.core.deadlines`). `schedule_deadline(session, topic,
+  due_at, payload, key=...)` записывает срок; срок с тем же `key`
+  переносится, `cancel_deadline(session, key)` отменяет его. Обработчики —
+  `@deadline_handlers.register(...)`. Планировщик раз в минуту
+  (`CAMPUS_DEADLINES_CRON`) и сразу при запуске ставит задачу обработки
+  наступивших сроков, поэтому сроки, пропущенные за время простоя,
+  обрабатываются после запуска.
+- **Гарантии.** Строка захватывается `SELECT … FOR UPDATE SKIP LOCKED`,
+  обработчик выполняется в той же транзакции, что и отметка
+  `processed_at`, поэтому несколько воркеров и планировщиков не
+  выполняют одно задание дважды, а изменения обработчика в БД
+  применяются ровно один раз. Ошибка откатывает изменения обработчика;
+  повтор — через `CAMPUS_JOB_RETRY_BASE_DELAY` с удвоением до
+  `CAMPUS_JOB_RETRY_MAX_DELAY`, после `CAMPUS_JOB_MAX_ATTEMPTS` попыток
+  задание помечается `failed_at`. Внешний эффект (письмо, push) может
+  повториться, если он прошёл, а фиксация — нет: для защиты обработчик
+  получает постоянный `job.id` (у писем он входит в `Message-ID`).
+- **Очистка.** По расписанию `CAMPUS_CLEANUP_CRON` удаляются завершённые
+  записи старше `CAMPUS_OUTBOX_RETENTION` и `CAMPUS_DEADLINE_RETENTION` и
+  просроченные ключи идемпотентности.
+- **Очередь задач** (`campus.core.tasks`) — Taskiq с брокером Redis
+  Streams (подтверждение доставки). Модули объявляют свои задачи
+  декоратором `campus.core.tasks.task`.
+- **Почта** (`campus.core.mail`). `queue_email(session, to=..., subject=...,
+  text=..., html=...)` ставит письмо в outbox, воркер отправляет его по
+  SMTP (`CAMPUS_SMTP_*`). В разработке письма ловит Mailpit:
+  `CAMPUS_SMTP_HOST=127.0.0.1`, `CAMPUS_SMTP_PORT=1025`,
+  `CAMPUS_SMTP_SECURITY=none`, веб-интерфейс — <http://127.0.0.1:8025>.
+
+Обработчики модулей регистрируются при импорте модуля; воркер
+импортирует все модули при запуске.
+
 ## Устройство
 
 | Пакет               | Назначение                                              |
 |---------------------|---------------------------------------------------------|
 | `campus.api`        | Процесс API: сборка приложения, health, журнал запросов |
-| `campus.worker`     | Процесс воркера                                         |
-| `campus.scheduler`  | Процесс планировщика                                    |
+| `campus.worker`     | Процесс воркера: outbox и очередь задач                 |
+| `campus.scheduler`  | Процесс планировщика: периодические задачи              |
 | `campus.migrations` | Миграции Alembic                                        |
 | `campus.seed`       | Команда `campus-seed`: начальные данные стенда          |
 | `campus.modules.*`  | Доменные модули (ТЗ, п. 4.1)                            |
-| `campus.core`       | Общее ядро: конфигурация, БД, часы, журналы, Sentry     |
+| `campus.core`       | Ядро: конфигурация, БД, часы, журналы, задачи, почта    |
 | `campus.core.web`   | Общие механизмы HTTP API (см. ниже)                     |
 | `campus.locales`    | Каталоги переводов сообщений (gettext)                  |
 
@@ -152,8 +200,8 @@ API отдаёт название на языке запроса (`request_local
   Повтор, в том числе параллельный, получает сохранённый ответ с
   заголовком `Idempotent-Replayed: true`; тот же ключ с другим запросом —
   `422 idempotency_key_reused`. Просроченные ключи удаляет
-  `delete_expired_idempotency_keys` (периодический запуск — задача
-  планировщика).
+  `delete_expired_idempotency_keys` в задаче очистки планировщика
+  (`CAMPUS_CLEANUP_CRON`).
 - **Ошибки** — Problem Details (`application/problem+json`): `type`,
   `title`, `status`, `detail`, машинный `code`, `request_id`; у ошибок
   проверки — `errors[]` с `pointer` (`#/поле` тела), `parameter` или

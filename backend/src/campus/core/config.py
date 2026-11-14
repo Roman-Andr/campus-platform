@@ -15,6 +15,7 @@ type Environment = Literal["development", "test", "staging", "production"]
 type LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 type LogFormat = Literal["json", "console"]
 type Locale = Literal["ru", "en"]
+type SmtpSecurity = Literal["none", "starttls", "tls"]
 
 
 class ClientPlatform(StrEnum):
@@ -88,6 +89,66 @@ class Settings(BaseSettings):
     )
     page_size_default: int = Field(default=20, ge=1)
     page_size_max: int = Field(default=100, ge=1)
+    redis_url: SecretStr | None = Field(
+        default=None,
+        description=(
+            "Redis URL of the task broker, e.g. redis://:password@host:6379/0;"
+            " required by the worker and the scheduler."
+        ),
+    )
+
+    # Background jobs: outbox messages and deadlines (specification, 4.3, 5.2).
+    outbox_poll_interval: float = Field(
+        default=1.0, gt=0, description="Seconds between outbox polls when idle."
+    )
+    job_batch_size: int = Field(
+        default=100, ge=1, description="Jobs run per pass before polling again."
+    )
+    job_max_attempts: int = Field(
+        default=10, ge=1, description="Attempts before a job is marked failed."
+    )
+    job_retry_base_delay: timedelta = Field(
+        default=timedelta(seconds=10),
+        gt=timedelta(0),
+        description="Delay before the first retry; doubles with every attempt.",
+    )
+    job_retry_max_delay: timedelta = Field(
+        default=timedelta(hours=1),
+        gt=timedelta(0),
+        description="Upper bound of the retry delay.",
+    )
+    outbox_retention: timedelta = Field(
+        default=timedelta(days=7),
+        gt=timedelta(0),
+        description="How long finished outbox messages are kept.",
+    )
+    deadline_retention: timedelta = Field(
+        default=timedelta(days=7),
+        gt=timedelta(0),
+        description="How long finished deadlines are kept.",
+    )
+    deadlines_cron: str = Field(
+        default="* * * * *", description="When due deadlines are processed (UTC)."
+    )
+    cleanup_cron: str = Field(
+        default="30 3 * * *", description="When expired records are deleted (UTC)."
+    )
+
+    smtp_host: str | None = Field(
+        default=None, description="Outgoing mail server; sending fails when empty."
+    )
+    smtp_port: int = Field(default=587, ge=1, le=65535)
+    smtp_security: SmtpSecurity = Field(
+        default="starttls",
+        description="'starttls' upgrades a plain connection, 'tls' is implicit TLS.",
+    )
+    smtp_username: str | None = None
+    smtp_password: SecretStr | None = None
+    smtp_timeout: float = Field(default=30.0, gt=0, description="Seconds.")
+    mail_from: str = Field(
+        default="Campus <noreply@campus.localhost>",
+        description="Sender of outgoing mail, 'Name <address>'.",
+    )
 
     sentry_dsn: SecretStr | None = Field(
         default=None, description="Error reporting is disabled when empty."
