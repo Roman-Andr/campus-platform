@@ -7,6 +7,9 @@ msgstr ""
 msgid "Client version missing"
 msgstr ""
 
+msgid "Current documents must be accepted"
+msgstr ""
+
 msgid "E-mail domain not allowed"
 msgstr ""
 
@@ -32,6 +35,9 @@ msgid "Internal error"
 msgstr ""
 
 msgid "Invalid client version"
+msgstr ""
+
+msgid "Invalid consent decision"
 msgstr ""
 
 msgid "Invalid cursor"
@@ -217,3 +223,6 @@ msgstr ""
 msgid "Your sign-in code: {code}. It expires in {minutes} minutes."
 msgstr ""
 
+
+msgid "Forbidden"
+msgstr ""

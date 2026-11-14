@@ -58,6 +58,27 @@ void main() {
     expect(requestsTo(mePath), 1);
   });
 
+  test(
+    'roles and their scopes come from the current server response',
+    () async {
+      server.me = {
+        ...userJson,
+        ...emptyProfileJson,
+        'roles': [
+          {'role': 'headman', 'dormitory_id': 'dorm-dubki', 'faculty_id': null},
+          {'role': 'moderator', 'dormitory_id': null, 'faculty_id': null},
+        ],
+      };
+      final container = await start();
+      final user = (await container.read(myProfileProvider.future))!;
+
+      expect(user.roles.first.role, Role.headman);
+      expect(user.roles.first.dormitoryId, 'dorm-dubki');
+      expect(user.roles.first.facultyId, isNull);
+      expect(user.roles.last.role, Role.moderator);
+    },
+  );
+
   test('a saved profile replaces the loaded one', () async {
     final container = await start();
     await container.read(myProfileProvider.future);

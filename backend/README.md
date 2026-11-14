@@ -173,6 +173,7 @@ API отдаёт название на языке запроса (`request_local
 | `campus.scheduler`  | Процесс планировщика: периодические задачи              |
 | `campus.migrations` | Миграции Alembic                                        |
 | `campus.seed`       | Команда `campus-seed`: начальные данные стенда          |
+| `campus.admin`      | Команда создания первого администратора                 |
 | `campus.modules.*`  | Доменные модули (ТЗ, п. 4.1)                            |
 | `campus.core`       | Ядро: конфигурация, БД, часы, журналы, задачи, почта    |
 | `campus.core.web`   | Общие механизмы HTTP API (см. ниже)                     |
@@ -440,3 +441,84 @@ Access — JWT HS256 на 15 минут; refresh — случайный непр
 Общая таблица `listing` содержит тип, область, аудиторию, статус и версию;
 `listing_item` — данные сценариев вещей. Новые типы добавляют таблицу деталей
 и используют общие взаимодействия, журнал и механизм сроков.
+
+## Первый администратор
+
+После миграций и загрузки разрешённых почтовых доменов выполните в
+окружении backend (с `CAMPUS_DATABASE_URL`):
+
+```sh
+uv run python -m campus.admin create-first-admin \
+  --email admin@hse.ru --first-name Иван --last-name Иванов
+```
+
+Команда создаёт аккаунт с типом разрешённого домена либо использует
+существующий, сохраняя его имя и профиль. Назначение администратора — без
+области. При существующем администраторе команда завершается с кодом 1 и
+ничего не меняет; одновременные запуски сериализуются транзакцией БД.
+
+## Проверки прав
+
+Публичный интерфейс `campus.modules.identity` предоставляет `Permissions`
+(тип аккаунта и роли из БД на каждый запрос), `require_roles(...)`
+и методы контекста `require_scope(dormitory_id=... / faculty_id=...)`,
+`require_author`, `require_owner`, `require_participant`. Идентификаторы
+объекта и его участников берутся из загруженного на сервере объекта.
+Проверки выполняются в зависимостях FastAPI до вызова обработчика:
+при повторе идемпотентного запроса зависимости выполняются заново, а
+обработчик заменяется сохранённым ответом. Так отзыв роли или изменение
+владельца действует и для повторов со старым ключом.
+Отказ — `403 forbidden` в формате Problem Details. Глобальные роли не
+обходят автоматически проверки области и прав на объект.
+
+Все маршруты веб-панели подключаются через `campus.api.admin.router`:
+он использует `identity.admin_router()` с одной зависимостью модератора
+или администратора, наследуемой вложенными роутерами. Маршруты старосты
+подключаются в обычном API приложения и проверяют точное совпадение области
+(общежитие или факультет). Тип аккаунта сам по себе не даёт роль.
+`GET /me` и обновление профиля возвращают массив `roles` с полями `role`,
+`dormitory_id`, `faculty_id`. Роли не записываются в access-токен.
+
+### Versioned consents
+
+`campus-seed` also adds the four initial legal documents, with RU/EN texts.
+These are demonstration texts for test data. Repeating the seed never
+replaces or republishes an existing version.
+
+`GET /api/v1/documents` is public and selects text by `Accept-Language`.
+Each item has an immutable version UUID, kind, version number, publication
+time and `required` flag. On registration, pass the three mandatory UUIDs
+in `accepted_document_ids` to `POST /api/v1/auth/sign-in`. Optional consent
+is separate: `cross_border_document_id`, omitted by default. Existing
+accounts can sign in without accepting documents again.
+
+When a current mandatory version has not been accepted, authenticated API
+requests return `403 consent_required`. The Problem Details `errors` list
+contains the missing document kinds in `code` and version UUIDs in `detail`.
+The gate runs before idempotent response replay. Reading documents,
+`POST /me/consents` (`document_ids` of mandatory versions),
+`PUT /me/consents/cross-border` (`document_id`, `accepted`) and sign-out
+remain available. All mutating requests need an `Idempotency-Key` UUID.
+Future export/deletion routes must use the names `export_my_data` and
+`delete_my_account` to remain available through the gate (#79, #76).
+
+`GET /me` and token responses include `cross_border_transfer_allowed`.
+The public domain functions `identity.publish_document` and
+`identity.cross_border_allowed` use the caller's database transaction.
+The admin API owns authorization of publication (#101); no public endpoint
+publishes documents. Publication serializes against protected requests and
+acceptances; concurrent decisions for one account are serialized too.
+A new optional version requires a fresh, explicit grant, without blocking
+core service access.
+
+`identity_consent_decision` records user, immutable document version,
+decision, controlled timestamp and session UUID. PostgreSQL triggers reject
+UPDATE, DELETE and TRUNCATE of decisions and published versions. The session
+UUID is an audit snapshot; credential cleanup can delete the session.
+Every cross-border permission change writes
+`identity.cross_border_consent_changed` to the transactional outbox with
+`user_id`, `document_id` and `allowed`. This includes invalidation of a
+previous grant by publication. Consumers (#86, Telegram, AI) must recheck
+`identity.cross_border_allowed` before sending: outbox retries may reorder
+events. Channel behavior and handlers are implemented with those consumers.
+Withdrawal of personal-data processing consent uses account deletion (#76).

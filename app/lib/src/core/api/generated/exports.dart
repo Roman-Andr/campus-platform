@@ -3,9 +3,16 @@
 export 'authentication/authentication_client.dart';
 export 'authentication/models/email_input.dart';
 export 'authentication/models/refresh_input.dart';
+export 'authentication/models/role.dart';
+export 'authentication/models/role_output.dart';
 export 'authentication/models/sign_in_input.dart';
 export 'authentication/models/tokens.dart';
 export 'authentication/models/user_output.dart';
+export 'consents/consents_client.dart';
+export 'consents/models/acceptance_input.dart';
+export 'consents/models/cross_border_input.dart';
+export 'consents/models/document_kind.dart';
+export 'consents/models/document_output.dart';
 export 'listings/listings_client.dart';
 export 'listings/models/audience.dart';
 export 'listings/models/event_output.dart';

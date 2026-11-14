@@ -5,7 +5,10 @@ enum ProblemCodeValue {
   clientUpdateRequired("client_update_required"),
   clientVersionInvalid("client_version_invalid"),
   clientVersionMissing("client_version_missing"),
+  consentInvalid("consent_invalid"),
+  consentRequired("consent_required"),
   emailDomainNotAllowed("email_domain_not_allowed"),
+  forbidden("forbidden"),
   httpError("http_error"),
   idempotencyKeyInvalid("idempotency_key_invalid"),
   idempotencyKeyMissing("idempotency_key_missing"),
@@ -44,9 +47,16 @@ sealed class ProblemCode {
   static const clientVersionMissing = ProblemCodeKnown(
     ProblemCodeValue.clientVersionMissing,
   );
+  static const consentInvalid = ProblemCodeKnown(
+    ProblemCodeValue.consentInvalid,
+  );
+  static const consentRequired = ProblemCodeKnown(
+    ProblemCodeValue.consentRequired,
+  );
   static const emailDomainNotAllowed = ProblemCodeKnown(
     ProblemCodeValue.emailDomainNotAllowed,
   );
+  static const forbidden = ProblemCodeKnown(ProblemCodeValue.forbidden);
   static const httpError = ProblemCodeKnown(ProblemCodeValue.httpError);
   static const idempotencyKeyInvalid = ProblemCodeKnown(
     ProblemCodeValue.idempotencyKeyInvalid,

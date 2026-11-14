@@ -20,6 +20,9 @@ The headers and error responses are added to the OpenAPI schema.
 
 import hashlib
 from collections.abc import Callable, Coroutine, Sequence
+from contextvars import ContextVar
+from functools import wraps
+from inspect import iscoroutinefunction
 from typing import Annotated, Any
 from uuid import UUID
 
@@ -27,6 +30,7 @@ from fastapi import APIRouter, Depends, Header, Request, Response
 from fastapi.params import Depends as DependsParam
 from fastapi.routing import APIRoute
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from starlette.concurrency import run_in_threadpool
 
 from campus.core import clock
 from campus.core.config import ClientPlatform, Settings, encryption_key
@@ -119,6 +123,10 @@ _ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
         " (client_version_missing, client_version_invalid,"
         " idempotency_key_missing, idempotency_key_invalid, ...)."
     ),
+    403: _problem(
+        "Current mandatory documents must be accepted (consent_required); "
+        "errors list document kinds and version IDs."
+    ),
     401: _problem("Invalid, expired or revoked authentication (unauthorized)."),
     422: _problem(
         "Invalid request (validation_failed) or Idempotency-Key used for a"
@@ -199,6 +207,26 @@ def _replay(stored: StoredResponse) -> Response:
     return response
 
 
+_replayed_response: ContextVar[Response | None] = ContextVar(
+    "replayed_response", default=None
+)
+
+
+def _with_replay(endpoint: Callable[..., Any]) -> Callable[..., Any]:
+    @wraps(endpoint)
+    async def invoke(*args: Any, **kwargs: Any) -> Any:
+        # FastAPI has resolved dependencies (including current permissions)
+        # before invoking this function. Replays skip only the endpoint.
+        replay = _replayed_response.get()
+        if replay is not None:
+            return replay
+        if iscoroutinefunction(endpoint):
+            return await endpoint(*args, **kwargs)
+        return await run_in_threadpool(endpoint, *args, **kwargs)
+
+    return invoke
+
+
 class ApiRoute(APIRoute):
     """API endpoint: client checks, idempotency and the request transaction."""
 
@@ -219,7 +247,7 @@ class ApiRoute(APIRoute):
             own.append(Depends(_idempotency_header))
         super().__init__(
             path,
-            endpoint,
+            _with_replay(endpoint) if self.mutating else endpoint,
             methods=methods,
             dependencies=[*own, *(dependencies or [])],
             responses={**_ERROR_RESPONSES, **(responses or {})},
@@ -245,6 +273,9 @@ class ApiRoute(APIRoute):
 
             async with sessions() as session:
                 request.state.db_session = session
+                gate = getattr(request.app.state, "consent_gate", None)
+                if principal is not None and gate is not None:
+                    await gate(request, session, principal)
                 scope = str(principal.user_id) if principal else ANONYMOUS_SCOPE
                 if key is not None:
                     keyring = _keyring(request)
@@ -261,7 +292,14 @@ class ApiRoute(APIRoute):
                     except IdempotencyKeyReusedError:
                         raise ProblemError(IDEMPOTENCY_KEY_REUSED) from None
                     if stored is not None:
-                        return _replay(stored)
+                        token = _replayed_response.set(_replay(stored))
+                        try:
+                            return await handler(request)
+                        finally:
+                            _replayed_response.reset(token)
+                            # Dependencies are read-only guards; never commit
+                            # any incidental writes on a replay.
+                            await session.rollback()
 
                 response = await handler(request)
                 if not 200 <= response.status_code < 300:  # noqa: PLR2004
