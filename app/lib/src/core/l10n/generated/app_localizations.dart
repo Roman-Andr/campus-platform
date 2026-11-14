@@ -2197,6 +2197,156 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Для этого уведомления в приложении пока нет экрана.'**
   String get notificationsNoScreen;
+
+  /// Listing kind name: event with seats.
+  ///
+  /// In ru, this message translates to:
+  /// **'Мероприятие'**
+  String get listingKindEvent;
+
+  /// Tooltip and title of the event creation screen.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новое мероприятие'**
+  String get eventCreate;
+
+  /// Title of the event edit screen and its action.
+  ///
+  /// In ru, this message translates to:
+  /// **'Редактировать мероприятие'**
+  String get eventEdit;
+
+  /// Label of the event start field.
+  ///
+  /// In ru, this message translates to:
+  /// **'Начало'**
+  String get eventStartsAt;
+
+  /// Label of the event end field.
+  ///
+  /// In ru, this message translates to:
+  /// **'Окончание'**
+  String get eventEndsAt;
+
+  /// Label of the event location field.
+  ///
+  /// In ru, this message translates to:
+  /// **'Место'**
+  String get eventLocation;
+
+  /// Event location on a card.
+  ///
+  /// In ru, this message translates to:
+  /// **'Место: {location}'**
+  String eventLocationValue(String location);
+
+  /// Label of the event seat limit field.
+  ///
+  /// In ru, this message translates to:
+  /// **'Лимит мест'**
+  String get eventCapacity;
+
+  /// Remaining seats of an event; zero reads as no seats left.
+  ///
+  /// In ru, this message translates to:
+  /// **'{count, plural, =0{Мест нет} one{Осталось {count} место} few{Осталось {count} места} many{Осталось {count} мест} other{Осталось {count} места}}'**
+  String eventSeatsLeft(int count);
+
+  /// The event has no free seats.
+  ///
+  /// In ru, this message translates to:
+  /// **'Мест нет'**
+  String get eventNoSeats;
+
+  /// Sign up for an event with a free seat.
+  ///
+  /// In ru, this message translates to:
+  /// **'Записаться'**
+  String get eventSignup;
+
+  /// The user is registered for the event.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы записаны'**
+  String get eventRegistered;
+
+  /// The user is waiting in the event queue.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы в очереди'**
+  String get eventQueued;
+
+  /// Join the event queue when no seats are left.
+  ///
+  /// In ru, this message translates to:
+  /// **'Встать в очередь'**
+  String get eventJoinQueue;
+
+  /// Cancel an event registration.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отменить запись'**
+  String get eventCancelSignup;
+
+  /// Registered participants list title.
+  ///
+  /// In ru, this message translates to:
+  /// **'Записавшиеся'**
+  String get eventParticipants;
+
+  /// Status of a registered participant in the event list.
+  ///
+  /// In ru, this message translates to:
+  /// **'Записан'**
+  String get eventParticipantRegistered;
+
+  /// Nobody has registered for the event yet.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пока никто не записался'**
+  String get eventParticipantsEmpty;
+
+  /// The event started, so signups are closed.
+  ///
+  /// In ru, this message translates to:
+  /// **'Запись закрыта'**
+  String get eventSignupClosed;
+
+  /// The event schedule is invalid.
+  ///
+  /// In ru, this message translates to:
+  /// **'Мероприятие должно начинаться в будущем и заканчиваться после начала.'**
+  String get eventTimeInvalid;
+
+  /// Event schedule range with formatted start and end.
+  ///
+  /// In ru, this message translates to:
+  /// **'{start} — {end}'**
+  String eventTimeRange(String start, String end);
+
+  /// The seat limit is below one.
+  ///
+  /// In ru, this message translates to:
+  /// **'Лимит мест должен быть не меньше 1.'**
+  String get eventCapacityInvalid;
+
+  /// The seat limit is below the registered participant count.
+  ///
+  /// In ru, this message translates to:
+  /// **'Лимит не может быть меньше числа записавшихся: {registered}.'**
+  String eventCapacityBelowRegistered(int registered);
+
+  /// The server refused a seat limit below the registered count.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нельзя уменьшить лимит мест ниже числа записавшихся.'**
+  String get eventCapacityConflict;
+
+  /// Menu of secondary actions of the home screen.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ещё'**
+  String get moreActions;
 }
 
 class _AppLocalizationsDelegate

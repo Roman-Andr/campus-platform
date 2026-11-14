@@ -47,7 +47,9 @@ void main() {
     await tester.pumpCampusApp(repository);
     expect(_brightness(tester), Brightness.light);
 
-    await tester.tap(find.byTooltip('Настройки'));
+    await tester.tap(find.byKey(const Key('home-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('home-settings')));
     await tester.pumpAndSettle();
     expect(find.text('Язык'), findsOneWidget);
 

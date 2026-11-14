@@ -5,7 +5,8 @@ import '../../../core/api/api_client.dart';
 /// Kinds of entries the feed can be filtered by (ТЗ п. 5.1.5).
 enum FeedKind {
   giveaway('giveaway'),
-  publication('publication');
+  publication('publication'),
+  event('event');
 
   const FeedKind(this.apiValue);
 

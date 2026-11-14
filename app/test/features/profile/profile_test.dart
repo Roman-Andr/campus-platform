@@ -331,6 +331,8 @@ void main() {
     saves = [accept];
     await start(tester);
 
+    await tester.tap(find.byKey(const Key('home-menu')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('home-profile')));
     await tester.pumpAndSettle();
     expect(find.text('Иван Иванов'), findsOneWidget);

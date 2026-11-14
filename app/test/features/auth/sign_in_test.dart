@@ -550,7 +550,9 @@ void main() {
           : jsonBody(204, null),
     );
 
-    await tester.tap(find.byTooltip('Настройки'));
+    await tester.tap(find.byKey(const Key('home-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('home-settings')));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.byKey(const Key('sign-out')), 200);
     await tester.tap(find.byKey(const Key('sign-out')));

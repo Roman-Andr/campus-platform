@@ -13,7 +13,9 @@ import '../../profile/application/my_profile.dart';
 import '../application/feed_filters.dart';
 import '../application/listing_photo_draft.dart';
 import '../application/listings.dart';
+import '../domain/event.dart';
 import '../domain/feed.dart';
+import 'event_screen.dart';
 import 'interaction_timeline_screen.dart';
 import 'listing_photos.dart';
 import 'meeting_screen.dart';
@@ -370,6 +372,10 @@ class FeedFiltersBar extends ConsumerWidget {
                 value: FeedKind.publication.apiValue,
                 child: Text(l.listingKindPublication),
               ),
+              DropdownMenuItem(
+                value: FeedKind.event.apiValue,
+                child: Text(l.listingKindEvent),
+              ),
             ],
             onChanged: (value) => onChanged(
               filters.withKind(
@@ -434,14 +440,24 @@ class ListingTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final publication = item.kind == 'publication';
+    final event = item.kind == 'event';
+    final seats = eventSeatsText(l, item.remainingPlaces);
     return Column(
       children: [
         ListTile(
           leading: ListingThumbnail(listing: item),
           title: Text(item.title),
           subtitle: Text(
-            '${item.authorName} · '
-            '${publication ? l.listingKindPublication : listingName(l, item.status)}',
+            [
+              item.authorName,
+              if (event) ...[
+                l.listingKindEvent,
+                if (seats.isNotEmpty) seats,
+              ] else if (publication)
+                l.listingKindPublication
+              else
+                listingName(l, item.status),
+            ].join(' · '),
           ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
@@ -489,6 +505,7 @@ class ListingScreen extends ConsumerWidget {
             ),
             data: (item) {
               final publication = item.kind == 'publication';
+              final event = item.kind == 'event';
               final pinned = isPinnedAt(item, clock.now());
               return ListView(
                 padding: const EdgeInsets.all(16),
@@ -506,7 +523,13 @@ class ListingScreen extends ConsumerWidget {
                     ],
                   ),
                   Text(l.listingAuthor(item.authorName)),
-                  if (publication)
+                  if (event) ...[
+                    Text(listingKindName(l, item.kind)),
+                    EventSummary(
+                      listing: item,
+                      showEmptySeats: item.authorId == user?.id,
+                    ),
+                  ] else if (publication)
                     Text(listingKindName(l, item.kind))
                   else
                     Text(listingName(l, item.status)),
@@ -529,13 +552,25 @@ class ListingScreen extends ConsumerWidget {
                     Text(l.listingHiddenReason(item.hiddenReason!)),
                   if (publication && item.authorId == user?.id)
                     PublicationActions(item: item),
-                  if (!publication && item.authorId == user?.id)
+                  if (!publication && !event && item.authorId == user?.id)
                     ListingOwnerActions(item: item),
-                  if (!publication && item.authorId != user?.id && user != null)
+                  if (event && item.authorId == user?.id)
+                    EventOwnerActions(item: item),
+                  if (event && item.authorId == user?.id)
+                    EventParticipantsList(listingId: id),
+                  if (event && item.authorId != user?.id && user != null)
+                    EventSeatSection(listing: item),
+                  if (!publication &&
+                      !event &&
+                      item.authorId != user?.id &&
+                      user != null)
                     ListingWaitlistSection(listing: item),
-                  if (!publication && item.authorId == user?.id)
+                  if (!publication && !event && item.authorId == user?.id)
                     IncomingList(id: id),
-                  if (!publication && user != null && item.authorId != user.id)
+                  if (!publication &&
+                      !event &&
+                      user != null &&
+                      item.authorId != user.id)
                     ListingParticipation(id: id),
                 ],
               );

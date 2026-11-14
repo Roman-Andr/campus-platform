@@ -1197,4 +1197,96 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notificationsNoScreen =>
       'There is no screen for this notification in the app yet.';
+
+  @override
+  String get listingKindEvent => 'Event';
+
+  @override
+  String get eventCreate => 'New event';
+
+  @override
+  String get eventEdit => 'Edit event';
+
+  @override
+  String get eventStartsAt => 'Starts at';
+
+  @override
+  String get eventEndsAt => 'Ends at';
+
+  @override
+  String get eventLocation => 'Location';
+
+  @override
+  String eventLocationValue(String location) {
+    return 'Location: $location';
+  }
+
+  @override
+  String get eventCapacity => 'Seat limit';
+
+  @override
+  String eventSeatsLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Seats left: $count',
+      one: 'Seats left: $count',
+      zero: 'No seats left',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get eventNoSeats => 'No seats left';
+
+  @override
+  String get eventSignup => 'Sign up';
+
+  @override
+  String get eventRegistered => 'You are registered';
+
+  @override
+  String get eventQueued => 'You are in the queue';
+
+  @override
+  String get eventJoinQueue => 'Join the queue';
+
+  @override
+  String get eventCancelSignup => 'Cancel signup';
+
+  @override
+  String get eventParticipants => 'Registered participants';
+
+  @override
+  String get eventParticipantRegistered => 'Registered';
+
+  @override
+  String get eventParticipantsEmpty => 'No one has signed up yet';
+
+  @override
+  String get eventSignupClosed => 'Signup closed';
+
+  @override
+  String get eventTimeInvalid =>
+      'The event must start in the future and end after its start.';
+
+  @override
+  String eventTimeRange(String start, String end) {
+    return '$start — $end';
+  }
+
+  @override
+  String get eventCapacityInvalid => 'The seat limit must be at least 1.';
+
+  @override
+  String eventCapacityBelowRegistered(int registered) {
+    return 'The seat limit cannot be lower than the number of registered participants: $registered.';
+  }
+
+  @override
+  String get eventCapacityConflict =>
+      'The seat limit cannot be lower than the number of registered participants.';
+
+  @override
+  String get moreActions => 'More';
 }

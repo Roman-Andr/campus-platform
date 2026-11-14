@@ -9,6 +9,7 @@ import '../../features/auth/presentation/sign_in_email_screen.dart';
 import '../../features/auth/presentation/sign_in_name_screen.dart';
 import '../../features/consents/presentation/consents_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/listings/presentation/event_screen.dart';
 import '../../features/listings/presentation/interaction_timeline_screen.dart';
 import '../../features/listings/presentation/listings_screens.dart';
 import '../../features/listings/presentation/meeting_screen.dart';
@@ -72,6 +73,15 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: '/publication/new',
         builder: (context, state) => const CreatePublicationScreen(),
+      ),
+      GoRoute(
+        path: '/event/new',
+        builder: (context, state) => const CreateEventScreen(),
+      ),
+      GoRoute(
+        path: '/event/:id/edit',
+        builder: (context, state) =>
+            EventEditScreen(id: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/my-listings',

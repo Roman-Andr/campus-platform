@@ -159,7 +159,9 @@ void main() {
       InMemorySettingsRepository(),
       adapter: server,
     );
-    await tester.tap(find.byIcon(Icons.inventory_2_outlined));
+    await tester.tap(find.byKey(const Key('home-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('home-my-listings')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('My participation'));
     await tester.pumpAndSettle();

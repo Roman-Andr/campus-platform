@@ -317,7 +317,9 @@ void main() {
         return jsonBody(200, listingJson());
       });
     await tester.pumpCampusApp(InMemorySettingsRepository(), adapter: server);
-    await tester.tap(find.byIcon(Icons.inventory_2_outlined));
+    await tester.tap(find.byKey(const Key('home-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('home-my-listings')));
     await tester.pumpAndSettle();
     expect(find.text('A desk'), findsOneWidget);
     await tester.tap(find.text('My participation'));

@@ -1532,5 +1532,128 @@
   "notificationsNoScreen": "Для этого уведомления в приложении пока нет экрана.",
   "@notificationsNoScreen": {
     "description": "The notification type has no known destination; the app does not open a wrong screen."
+  },
+  "listingKindEvent": "Мероприятие",
+  "@listingKindEvent": {
+    "description": "Listing kind name: event with seats."
+  },
+  "eventCreate": "Новое мероприятие",
+  "@eventCreate": {
+    "description": "Tooltip and title of the event creation screen."
+  },
+  "eventEdit": "Редактировать мероприятие",
+  "@eventEdit": {
+    "description": "Title of the event edit screen and its action."
+  },
+  "eventStartsAt": "Начало",
+  "@eventStartsAt": {
+    "description": "Label of the event start field."
+  },
+  "eventEndsAt": "Окончание",
+  "@eventEndsAt": {
+    "description": "Label of the event end field."
+  },
+  "eventLocation": "Место",
+  "@eventLocation": {
+    "description": "Label of the event location field."
+  },
+  "eventLocationValue": "Место: {location}",
+  "@eventLocationValue": {
+    "description": "Event location on a card.",
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "eventCapacity": "Лимит мест",
+  "@eventCapacity": {
+    "description": "Label of the event seat limit field."
+  },
+  "eventSeatsLeft": "{count, plural, =0{Мест нет} one{Осталось {count} место} few{Осталось {count} места} many{Осталось {count} мест} other{Осталось {count} места}}",
+  "@eventSeatsLeft": {
+    "description": "Remaining seats of an event; zero reads as no seats left.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventNoSeats": "Мест нет",
+  "@eventNoSeats": {
+    "description": "The event has no free seats."
+  },
+  "eventSignup": "Записаться",
+  "@eventSignup": {
+    "description": "Sign up for an event with a free seat."
+  },
+  "eventRegistered": "Вы записаны",
+  "@eventRegistered": {
+    "description": "The user is registered for the event."
+  },
+  "eventQueued": "Вы в очереди",
+  "@eventQueued": {
+    "description": "The user is waiting in the event queue."
+  },
+  "eventJoinQueue": "Встать в очередь",
+  "@eventJoinQueue": {
+    "description": "Join the event queue when no seats are left."
+  },
+  "eventCancelSignup": "Отменить запись",
+  "@eventCancelSignup": {
+    "description": "Cancel an event registration."
+  },
+  "eventParticipants": "Записавшиеся",
+  "@eventParticipants": {
+    "description": "Registered participants list title."
+  },
+  "eventParticipantRegistered": "Записан",
+  "@eventParticipantRegistered": {
+    "description": "Status of a registered participant in the event list."
+  },
+  "eventParticipantsEmpty": "Пока никто не записался",
+  "@eventParticipantsEmpty": {
+    "description": "Nobody has registered for the event yet."
+  },
+  "eventSignupClosed": "Запись закрыта",
+  "@eventSignupClosed": {
+    "description": "The event started, so signups are closed."
+  },
+  "eventTimeInvalid": "Мероприятие должно начинаться в будущем и заканчиваться после начала.",
+  "@eventTimeInvalid": {
+    "description": "The event schedule is invalid."
+  },
+  "eventTimeRange": "{start} — {end}",
+  "@eventTimeRange": {
+    "description": "Event schedule range with formatted start and end.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "eventCapacityInvalid": "Лимит мест должен быть не меньше 1.",
+  "@eventCapacityInvalid": {
+    "description": "The seat limit is below one."
+  },
+  "eventCapacityBelowRegistered": "Лимит не может быть меньше числа записавшихся: {registered}.",
+  "@eventCapacityBelowRegistered": {
+    "description": "The seat limit is below the registered participant count.",
+    "placeholders": {
+      "registered": {
+        "type": "int"
+      }
+    }
+  },
+  "eventCapacityConflict": "Нельзя уменьшить лимит мест ниже числа записавшихся.",
+  "@eventCapacityConflict": {
+    "description": "The server refused a seat limit below the registered count."
+  },
+  "moreActions": "Ещё",
+  "@moreActions": {
+    "description": "Menu of secondary actions of the home screen."
   }
 }
