@@ -349,6 +349,8 @@ msgid ""
 "The requested position is no longer in realtime history. Reload the "
 "channel state through the API."
 msgstr ""
+"Запрошенная позиция уже отсутствует в истории реального времени. "
+"Перезагрузите состояние канала через API."
 
 msgid "The requested resource does not exist."
 msgstr "Запрошенный ресурс не существует."
