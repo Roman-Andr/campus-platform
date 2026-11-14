@@ -134,7 +134,7 @@ PENDING = {
     "administrate": {
         "assign_role": 210,
         "reference_data": 99,
-        "domains": 98,
+        "domains": 99,
         "ai_settings": 117,
         "place_pages": 141,
     },
