@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, ForeignKey, Index, String, Text, text
+from sqlalchemy import CheckConstraint, ForeignKey, Index, Integer, String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from campus.core.db import Base, Entity, LocalizedName
@@ -141,7 +141,8 @@ class Interaction(Entity):
         ),
     )
     listing_id: Mapped[UUID] = mapped_column(ForeignKey("listing.id"))
-    slot: Mapped[int | None] = mapped_column(default=1)
+    # Preserve explicit None for unlimited capacity; only omission defaults to 1.
+    slot: Mapped[int | None] = mapped_column(Integer().evaluates_none(), default=1)
     participant_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
     participant: Mapped[User] = relationship(lazy="joined", innerjoin=True)
 

@@ -2,10 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../../../core/api/api_failure.dart';
+import '../../../core/api/api_client.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/router/app_router.dart';
+import '../../consents/application/consents.dart';
+import '../../consents/presentation/consent_documents.dart';
 import '../application/sign_in_flow.dart';
 import 'auth_failure_message.dart';
 import 'auth_layout.dart';
@@ -23,6 +25,8 @@ class _SignInNameScreenState extends ConsumerState<SignInNameScreen> {
   final _firstName = TextEditingController();
   final _lastName = TextEditingController();
   var _busy = false;
+  var _accepted = false;
+  var _crossBorder = false;
   String? _error;
 
   /// Fields the server rejected, by name.
@@ -38,6 +42,12 @@ class _SignInNameScreenState extends ConsumerState<SignInNameScreen> {
   Future<void> _submit() async {
     setState(() => _invalid = {});
     if (_busy || !_form.currentState!.validate()) return;
+    final documents = ref.read(documentsProvider).asData?.value;
+    if (!_accepted ||
+        documents == null ||
+        requiredDocumentIds(documents).isEmpty) {
+      return;
+    }
     final draft = ref.read(signInFlowProvider);
     setState(() {
       _busy = true;
@@ -51,10 +61,25 @@ class _SignInNameScreenState extends ConsumerState<SignInNameScreen> {
             code: draft.code!,
             firstName: _firstName.text.trim(),
             lastName: _lastName.text.trim(),
+            acceptedDocumentIds: requiredDocumentIds(documents),
+            crossBorderDocumentId: _crossBorder
+                ? crossBorderDocument(documents)?.id
+                : null,
           );
       ref.read(signInFlowProvider.notifier).reset();
     } on Object catch (error) {
       if (!mounted) return;
+      if (ApiFailure.from(error) case ProblemFailure(
+        code: ProblemCode.consentRequired || ProblemCode.consentInvalid,
+      )) {
+        ref.invalidate(documentsProvider);
+        setState(() {
+          _accepted = false;
+          _crossBorder = false;
+          _error = context.l10n.consentUpdateIntro;
+        });
+        return;
+      }
       final fields = switch (ApiFailure.from(error)) {
         ProblemFailure(:final fieldErrors) => {
           for (final field in fieldErrors) ?field.pointer?.split('/').last,
@@ -85,6 +110,11 @@ class _SignInNameScreenState extends ConsumerState<SignInNameScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final documents = ref.watch(documentsProvider).asData?.value;
+    final canDecide =
+        !_busy &&
+        documents != null &&
+        requiredDocumentIds(documents).isNotEmpty;
     return AuthLayout(
       title: l10n.signInNameTitle,
       leading: BackButton(onPressed: () => context.go(AppRoutes.signIn)),
@@ -120,6 +150,17 @@ class _SignInNameScreenState extends ConsumerState<SignInNameScreen> {
               ),
             ],
           ),
+        ),
+        const ConsentDocuments(),
+        ConsentCheckboxes(
+          requiredAccepted: _accepted,
+          crossBorderAccepted: _crossBorder,
+          onRequiredChanged: !canDecide
+              ? null
+              : (value) => setState(() => _accepted = value),
+          onCrossBorderChanged: !canDecide
+              ? null
+              : (value) => setState(() => _crossBorder = value),
         ),
         AuthError(_error),
         authGap,

@@ -13,6 +13,11 @@ String apiFailureMessage(AppLocalizations l10n, Object error) =>
       CancelledFailure() || UnexpectedFailure() => l10n.errorUnexpected,
       UpdateRequiredFailure() => l10n.errorUpdateRequired,
       ProblemFailure(:final code, :final status) => switch (code) {
+        ProblemCodeKnown(
+          value: ProblemCodeValue.consentRequired ||
+              ProblemCodeValue.consentInvalid,
+        ) =>
+          l10n.consentUpdateIntro,
         ProblemCodeKnown(value: ProblemCodeValue.notFound) =>
           l10n.errorNotFound,
         ProblemCodeKnown(value: ProblemCodeValue.validationFailed) =>

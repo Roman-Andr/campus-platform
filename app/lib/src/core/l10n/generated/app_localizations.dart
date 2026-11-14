@@ -794,6 +794,102 @@ abstract class AppLocalizations {
   /// **'Такого времени нет в часовом поясе города. Выберите другое время.'**
   String get cityTimeDoesNotExist;
 
+  /// Consents and documents
+  ///
+  /// In ru, this message translates to:
+  /// **'Согласия и документы'**
+  String get consentDocuments;
+
+  /// Community rules
+  ///
+  /// In ru, this message translates to:
+  /// **'Правила сообщества'**
+  String get consentRules;
+
+  /// Privacy policy
+  ///
+  /// In ru, this message translates to:
+  /// **'Политика обработки персональных данных'**
+  String get consentPrivacy;
+
+  /// Personal data processing consent
+  ///
+  /// In ru, this message translates to:
+  /// **'Согласие на обработку персональных данных'**
+  String get consentProcessing;
+
+  /// Cross-border data transfer
+  ///
+  /// In ru, this message translates to:
+  /// **'Трансграничная передача данных'**
+  String get consentCrossBorder;
+
+  /// I accept the community rules, privacy policy and personal data processing consent (required).
+  ///
+  /// In ru, this message translates to:
+  /// **'Я принимаю правила сообщества, политику и согласие на обработку персональных данных (обязательно).'**
+  String get consentAcceptRequired;
+
+  /// I consent to cross-border data transfer (optional).
+  ///
+  /// In ru, this message translates to:
+  /// **'Я согласен на трансграничную передачу данных (необязательно).'**
+  String get consentCrossBorderOptional;
+
+  /// Enables full push notification text, the Telegram bot and AI features.
+  ///
+  /// In ru, this message translates to:
+  /// **'Разрешает полный текст push-уведомлений, Telegram-бота и ИИ-функции.'**
+  String get consentCrossBorderEffects;
+
+  /// Updated documents
+  ///
+  /// In ru, this message translates to:
+  /// **'Обновление документов'**
+  String get consentUpdateTitle;
+
+  /// Read and accept the current document versions to continue.
+  ///
+  /// In ru, this message translates to:
+  /// **'Для продолжения прочитайте и примите текущие версии документов.'**
+  String get consentUpdateIntro;
+
+  /// Accept and continue
+  ///
+  /// In ru, this message translates to:
+  /// **'Принять и продолжить'**
+  String get consentContinue;
+
+  /// Close
+  ///
+  /// In ru, this message translates to:
+  /// **'Закрыть'**
+  String get consentClose;
+
+  /// Cancel
+  ///
+  /// In ru, this message translates to:
+  /// **'Отмена'**
+  String get consentCancel;
+
+  /// Revoke consent
+  ///
+  /// In ru, this message translates to:
+  /// **'Отозвать согласие'**
+  String get consentRevoke;
+
+  /// Revoke data transfer consent?
+  ///
+  /// In ru, this message translates to:
+  /// **'Отозвать согласие на передачу данных?'**
+  String get consentRevokeTitle;
+
+  /// Push notifications will contain no names or message text. The Telegram bot and AI features will be disabled.
+  ///
+  /// In ru, this message translates to:
+  /// **'Push-уведомления будут без имён и текста. Telegram-бот и ИИ-функции будут отключены.'**
+  String get consentRevokeEffects;
+
   /// devicesTitle
   ///
   /// In ru, this message translates to:

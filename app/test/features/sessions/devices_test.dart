@@ -58,7 +58,7 @@ void main() {
     matching: find.byType(IconButton),
   );
 
-  testWidgets('settings links to devices', (tester) async {
+  testWidgets('settings links to consents and devices', (tester) async {
     final container = await tester.pumpCampusApp(
       InMemorySettingsRepository(
         const AppSettings(language: AppLanguage.english),
@@ -66,6 +66,12 @@ void main() {
       adapter: server,
     );
     container.read(appRouterProvider).go(AppRoutes.settings);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.byKey(const Key('consents')), 200);
+    await tester.tap(find.byKey(const Key('consents')));
+    await tester.pumpAndSettle();
+    expect(find.text('Consents and documents'), findsWidgets);
+    container.read(appRouterProvider).pop();
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.byKey(const Key('devices')), 200);
     await tester.tap(find.byKey(const Key('devices')));

@@ -74,6 +74,12 @@ class SettingsScreen extends ConsumerWidget {
               onTap: () => context.push(AppRoutes.devices),
             ),
             ListTile(
+              key: const Key('consents'),
+              title: Text(l10n.consentDocuments),
+              leading: const Icon(Icons.description_outlined),
+              onTap: () => context.push(AppRoutes.consents),
+            ),
+            ListTile(
               key: const Key('sign-out'),
               leading: const Icon(Icons.logout),
               title: Text(l10n.signOut),

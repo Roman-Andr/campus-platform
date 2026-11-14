@@ -103,7 +103,7 @@ final class ApiDioProvider extends $FunctionalProvider<Dio, Dio, Dio>
   }
 }
 
-String _$apiDioHash() => r'c2260a73994ae1af5cd7f873ef77f1b4401b5f04';
+String _$apiDioHash() => r'eddb1d4c52052c75bf4bae4f5d41eedb71980335';
 
 /// Client without authentication: refreshes tokens and repeats the
 /// request that the expired access token failed.

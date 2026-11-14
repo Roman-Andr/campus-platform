@@ -397,6 +397,59 @@ class AppLocalizationsEn extends AppLocalizations {
       'This time does not exist in the city time zone. Choose another time.';
 
   @override
+  String get consentDocuments => 'Consents and documents';
+
+  @override
+  String get consentRules => 'Community rules';
+
+  @override
+  String get consentPrivacy => 'Privacy policy';
+
+  @override
+  String get consentProcessing => 'Personal data processing consent';
+
+  @override
+  String get consentCrossBorder => 'Cross-border data transfer';
+
+  @override
+  String get consentAcceptRequired =>
+      'I accept the community rules, privacy policy and personal data processing consent (required).';
+
+  @override
+  String get consentCrossBorderOptional =>
+      'I consent to cross-border data transfer (optional).';
+
+  @override
+  String get consentCrossBorderEffects =>
+      'Enables full push notification text, the Telegram bot and AI features.';
+
+  @override
+  String get consentUpdateTitle => 'Updated documents';
+
+  @override
+  String get consentUpdateIntro =>
+      'Read and accept the current document versions to continue.';
+
+  @override
+  String get consentContinue => 'Accept and continue';
+
+  @override
+  String get consentClose => 'Close';
+
+  @override
+  String get consentCancel => 'Cancel';
+
+  @override
+  String get consentRevoke => 'Revoke consent';
+
+  @override
+  String get consentRevokeTitle => 'Revoke data transfer consent?';
+
+  @override
+  String get consentRevokeEffects =>
+      'Push notifications will contain no names or message text. The Telegram bot and AI features will be disabled.';
+
+  @override
   String get devicesTitle => 'Devices';
 
   @override
