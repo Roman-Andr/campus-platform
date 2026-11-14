@@ -1,0 +1,35 @@
+# The squash-merge commit takes its message from the pull request title,
+# so the title must be a Conventional Commit (see CLAUDE.md): a known type,
+# an imperative lower-case subject and at most 50 characters in total.
+# A required check (`pr-title`).
+name: PR title
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  pr-title:
+    name: pr-title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          subjectPattern: ^[^A-Z].*[^.]$
+          subjectPatternError: >-
+            The subject "{subject}" must start with a lower-case letter and
+            must not end with a period.
+      - name: At most 50 characters
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          length=${#TITLE}
+          if [ "$length" -gt 50 ]; then
+            echo "::error::The title is $length characters long; the limit is 50."
+            exit 1
+          fi

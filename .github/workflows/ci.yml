@@ -1,0 +1,279 @@
+# Checks of every layer (specification, 4.4 and 9.2). Layer jobs run only
+# when their files change; the `ci` job sums them up and is the single
+# required check, so a pull request that skips a layer can still be merged.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  # Cancel superseded pull request runs; main and tag runs always finish.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  FORCE_COLOR: "1"
+
+jobs:
+  changes:
+    name: Changed layers
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      # Tags and manual runs check every layer.
+      backend: ${{ steps.filter.outputs.backend == 'true' || github.ref_type == 'tag' || github.event_name == 'workflow_dispatch' }}
+      app: ${{ steps.filter.outputs.app == 'true' || github.ref_type == 'tag' || github.event_name == 'workflow_dispatch' }}
+      admin: ${{ steps.filter.outputs.admin == 'true' || github.ref_type == 'tag' || github.event_name == 'workflow_dispatch' }}
+      infra: ${{ steps.filter.outputs.infra == 'true' || github.ref_type == 'tag' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          # Changes to CI itself re-run every layer.
+          filters: |
+            ci: &ci
+              - .github/workflows/ci.yml
+              - .pre-commit-config.yaml
+            backend:
+              - *ci
+              - backend/**
+            app:
+              - *ci
+              - app/**
+            admin:
+              - *ci
+              - admin/**
+            infra:
+              - *ci
+              - infra/**
+
+  # Repository-wide pre-commit hooks (whitespace, YAML, keys, ...). The
+  # language hooks are skipped here: the layer jobs below run the same tools.
+  repo:
+    name: Repository hooks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - uses: pre-commit/action@v3.0.1
+        env:
+          SKIP: >-
+            backend-uv-lock,backend-ruff-check,backend-ruff-format,backend-mypy,
+            backend-import-linter,admin-prettier,admin-eslint,admin-typecheck,
+            app-dart-format,app-flutter-analyze
+
+  backend:
+    name: Backend
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          version: "0.13.8"
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - name: Install dependencies
+        run: uv sync --locked
+      - name: Ruff
+        run: |
+          uv run --frozen ruff check --output-format=github .
+          uv run --frozen ruff format --check .
+      - name: Mypy
+        run: uv run --frozen mypy
+      - name: Module boundaries
+        run: uv run --frozen lint-imports
+      # PostgreSQL 18 with pgvector comes from testcontainers (the image is
+      # pinned in tests/database.py). The suite includes `alembic check`
+      # (test_models_match_migrations) and the migration round trip.
+      - name: Tests
+        run: uv run --frozen pytest
+      - name: Domain module coverage >= 80 %
+        run: uv run --frozen coverage report --include='src/campus/modules/*' --fail-under=80
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: backend-coverage
+          path: backend/coverage.xml
+          if-no-files-found: ignore
+
+  # The server image: built on every backend change, pushed to GHCR from
+  # main (tags `main`, `sha-<commit>`) and from release tags (`X.Y.Z`).
+  backend-image:
+    name: Backend image
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      PUSH: ${{ github.event_name == 'push' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        if: env.PUSH == 'true'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - uses: docker/metadata-action@v6
+        id: meta
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/campus-backend
+          tags: |
+            type=ref,event=branch
+            type=sha,format=long
+            type=semver,pattern={{version}}
+      - uses: docker/build-push-action@v7
+        with:
+          context: backend
+          push: ${{ env.PUSH == 'true' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,scope=backend,mode=max
+
+  app:
+    name: Client
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      # Only app/: the Gradle cache globs the whole checkout and stops at
+      # unreadable paths elsewhere in the repository.
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: app
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+          cache-dependency-path: |
+            app/android/*.gradle*
+            app/android/gradle/wrapper/gradle-wrapper.properties
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: "3.50.0"
+          cache: true
+          pub-cache: true
+      - name: Install dependencies
+        run: flutter pub get --enforce-lockfile
+      - name: Format
+        run: dart format --output=none --set-exit-if-changed .
+      - name: Analyze
+        run: flutter analyze --no-pub
+      # Generated code is committed: regenerate it and fail on any change.
+      - name: Generated code is up to date
+        run: |
+          flutter gen-l10n
+          dart run build_runner build --delete-conflicting-outputs
+          dart run drift_dev make-migrations
+          if [ -n "$(git status --porcelain -- .)" ]; then
+            echo "::error::Generated code is stale; run flutter gen-l10n, dart run build_runner build and dart run drift_dev make-migrations in app/ and commit the result."
+            git status --porcelain -- .
+            git diff --stat -- .
+            exit 1
+          fi
+      - name: Tests
+        run: flutter test --no-pub
+      - name: Build APK
+        run: flutter build apk --release --no-pub
+      - uses: actions/upload-artifact@v7
+        with:
+          name: campus-apk
+          path: app/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+
+  admin:
+    name: Admin panel
+    needs: changes
+    if: needs.changes.outputs.admin == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: admin/.nvmrc
+          cache: npm
+          cache-dependency-path: admin/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Prettier
+        run: npm run format:check
+      - name: ESLint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Tests with coverage
+        run: npm run test:coverage
+      - name: Build
+        run: npm run build
+      - name: Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: End-to-end tests
+        run: npm run e2e
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: admin-playwright-report
+          path: admin/playwright-report
+          if-no-files-found: ignore
+
+  infra:
+    name: Infrastructure
+    needs: changes
+    if: needs.changes.outputs.infra == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra
+    steps:
+      - uses: actions/checkout@v7
+      - name: Compose files
+        run: |
+          docker compose --env-file .env.example -f compose.yaml config --quiet
+          docker compose --env-file .env.example config --quiet
+      - name: Caddyfile
+        run: >-
+          docker compose --env-file .env.example -f compose.yaml
+          run --rm --no-deps -T caddy
+          caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+
+  # The single required check. Skipped layer jobs count as passed; a failed
+  # or cancelled one fails the check.
+  ci:
+    name: ci
+    if: always()
+    needs: [changes, repo, backend, backend-image, app, admin, infra]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: re-actors/alls-green@v1.3.0
+        with:
+          allowed-skips: backend, backend-image, app, admin, infra
+          jobs: ${{ toJSON(needs) }}
