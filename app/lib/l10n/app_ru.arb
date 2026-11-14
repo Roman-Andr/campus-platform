@@ -747,5 +747,117 @@
   },
   "@devicesEmpty": {
     "description": "devicesEmpty"
+  },
+  "photoCount": "Фото: {count} из {limit}",
+  "@photoCount": {
+    "description": "photoCount",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "photoChoose": "Выбрать фото",
+  "@photoChoose": {
+    "description": "photoChoose"
+  },
+  "photoTake": "Сделать фото",
+  "@photoTake": {
+    "description": "photoTake"
+  },
+  "photoUploading": "Загружается: {percent}%",
+  "@photoUploading": {
+    "description": "photoUploading",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "photoProcessing": "Обрабатывается…",
+  "@photoProcessing": {
+    "description": "photoProcessing"
+  },
+  "photoRejected": "Отклонено: {reason}",
+  "@photoRejected": {
+    "description": "photoRejected",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "photoRejectedTooLarge": "файл больше {megabytes} МБ",
+  "@photoRejectedTooLarge": {
+    "description": "photoRejectedTooLarge",
+    "placeholders": {
+      "megabytes": {
+        "type": "int"
+      }
+    }
+  },
+  "photoRejectedUnsupported": "формат не поддерживается, нужен JPEG, PNG, WebP или HEIC",
+  "@photoRejectedUnsupported": {
+    "description": "photoRejectedUnsupported"
+  },
+  "photoRejectedTooManyPixels": "слишком большое разрешение",
+  "@photoRejectedTooManyPixels": {
+    "description": "photoRejectedTooManyPixels"
+  },
+  "photoRejectedInvalidImage": "файл повреждён или не является изображением",
+  "@photoRejectedInvalidImage": {
+    "description": "photoRejectedInvalidImage"
+  },
+  "photoRejectedOther": "фото нельзя использовать",
+  "@photoRejectedOther": {
+    "description": "photoRejectedOther"
+  },
+  "photoRemove": "Удалить фото",
+  "@photoRemove": {
+    "description": "photoRemove"
+  },
+  "photoMoveEarlier": "Переместить левее",
+  "@photoMoveEarlier": {
+    "description": "photoMoveEarlier"
+  },
+  "photoLimit": "Можно добавить не больше {limit} фото",
+  "@photoLimit": {
+    "description": "photoLimit",
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "photoTooLarge": "{name}: файл больше {megabytes} МБ",
+  "@photoTooLarge": {
+    "description": "photoTooLarge",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "megabytes": {
+        "type": "int"
+      }
+    }
+  },
+  "photoWait": "Дождитесь окончания загрузки фото",
+  "@photoWait": {
+    "description": "photoWait"
+  },
+  "photoOf": "Фото {index} из {count}",
+  "@photoOf": {
+    "description": "photoOf",
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

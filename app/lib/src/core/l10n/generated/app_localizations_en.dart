@@ -575,4 +575,70 @@ class AppLocalizationsEn extends AppLocalizations {
     });
     return '$_temp0';
   }
+
+  @override
+  String photoCount(int count, int limit) {
+    return 'Photos: $count of $limit';
+  }
+
+  @override
+  String get photoChoose => 'Choose photos';
+
+  @override
+  String get photoTake => 'Take a photo';
+
+  @override
+  String photoUploading(int percent) {
+    return 'Uploading: $percent%';
+  }
+
+  @override
+  String get photoProcessing => 'Processing…';
+
+  @override
+  String photoRejected(String reason) {
+    return 'Rejected: $reason';
+  }
+
+  @override
+  String photoRejectedTooLarge(int megabytes) {
+    return 'the file is larger than $megabytes MB';
+  }
+
+  @override
+  String get photoRejectedUnsupported =>
+      'unsupported format, use JPEG, PNG, WebP or HEIC';
+
+  @override
+  String get photoRejectedTooManyPixels => 'the resolution is too high';
+
+  @override
+  String get photoRejectedInvalidImage => 'the file is damaged or not an image';
+
+  @override
+  String get photoRejectedOther => 'the photo can\'t be used';
+
+  @override
+  String get photoRemove => 'Remove photo';
+
+  @override
+  String get photoMoveEarlier => 'Move earlier';
+
+  @override
+  String photoLimit(int limit) {
+    return 'You can add up to $limit photos';
+  }
+
+  @override
+  String photoTooLarge(String name, int megabytes) {
+    return '$name: the file is larger than $megabytes MB';
+  }
+
+  @override
+  String get photoWait => 'Wait until the photos finish uploading';
+
+  @override
+  String photoOf(int index, int count) {
+    return 'Photo $index of $count';
+  }
 }

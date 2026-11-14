@@ -168,11 +168,10 @@ class ListingPhotoDraft extends _$ListingPhotoDraft {
     ];
   }
 
-  /// Moves a photo, with [ReorderableListView] index semantics.
+  /// Moves the photo at [from] so that it ends up at index [to].
   void move(int from, int to) {
     final slots = [...state];
-    final slot = slots.removeAt(from);
-    slots.insert(to > from ? to - 1 : to, slot);
+    slots.insert(to, slots.removeAt(from));
     state = slots;
   }
 

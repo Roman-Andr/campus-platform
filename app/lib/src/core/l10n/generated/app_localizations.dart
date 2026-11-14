@@ -1087,6 +1087,108 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'{platform, select, android{Android} web{Браузер} desktop{Компьютер} telegram{Telegram} admin{Панель администратора} other{Другая платформа}}'**
   String devicesPlatform(String platform);
+
+  /// photoCount
+  ///
+  /// In ru, this message translates to:
+  /// **'Фото: {count} из {limit}'**
+  String photoCount(int count, int limit);
+
+  /// photoChoose
+  ///
+  /// In ru, this message translates to:
+  /// **'Выбрать фото'**
+  String get photoChoose;
+
+  /// photoTake
+  ///
+  /// In ru, this message translates to:
+  /// **'Сделать фото'**
+  String get photoTake;
+
+  /// photoUploading
+  ///
+  /// In ru, this message translates to:
+  /// **'Загружается: {percent}%'**
+  String photoUploading(int percent);
+
+  /// photoProcessing
+  ///
+  /// In ru, this message translates to:
+  /// **'Обрабатывается…'**
+  String get photoProcessing;
+
+  /// photoRejected
+  ///
+  /// In ru, this message translates to:
+  /// **'Отклонено: {reason}'**
+  String photoRejected(String reason);
+
+  /// photoRejectedTooLarge
+  ///
+  /// In ru, this message translates to:
+  /// **'файл больше {megabytes} МБ'**
+  String photoRejectedTooLarge(int megabytes);
+
+  /// photoRejectedUnsupported
+  ///
+  /// In ru, this message translates to:
+  /// **'формат не поддерживается, нужен JPEG, PNG, WebP или HEIC'**
+  String get photoRejectedUnsupported;
+
+  /// photoRejectedTooManyPixels
+  ///
+  /// In ru, this message translates to:
+  /// **'слишком большое разрешение'**
+  String get photoRejectedTooManyPixels;
+
+  /// photoRejectedInvalidImage
+  ///
+  /// In ru, this message translates to:
+  /// **'файл повреждён или не является изображением'**
+  String get photoRejectedInvalidImage;
+
+  /// photoRejectedOther
+  ///
+  /// In ru, this message translates to:
+  /// **'фото нельзя использовать'**
+  String get photoRejectedOther;
+
+  /// photoRemove
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить фото'**
+  String get photoRemove;
+
+  /// photoMoveEarlier
+  ///
+  /// In ru, this message translates to:
+  /// **'Переместить левее'**
+  String get photoMoveEarlier;
+
+  /// photoLimit
+  ///
+  /// In ru, this message translates to:
+  /// **'Можно добавить не больше {limit} фото'**
+  String photoLimit(int limit);
+
+  /// photoTooLarge
+  ///
+  /// In ru, this message translates to:
+  /// **'{name}: файл больше {megabytes} МБ'**
+  String photoTooLarge(String name, int megabytes);
+
+  /// photoWait
+  ///
+  /// In ru, this message translates to:
+  /// **'Дождитесь окончания загрузки фото'**
+  String get photoWait;
+
+  /// photoOf
+  ///
+  /// In ru, this message translates to:
+  /// **'Фото {index} из {count}'**
+  String photoOf(int index, int count);
 }
 
 class _AppLocalizationsDelegate

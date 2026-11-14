@@ -6,7 +6,9 @@ import '../../../core/api/api_client.dart';
 import '../../../core/api/api_failure_message.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../profile/application/my_profile.dart';
+import '../application/listing_photo_draft.dart';
 import '../application/listings.dart';
+import 'listing_photos.dart';
 
 String scopeName(AppLocalizations l, Visibility scope) => switch (scope) {
   VisibilityKnown(value: VisibilityValue.city) => l.listingsCity,
@@ -202,6 +204,7 @@ class ListingTile extends StatelessWidget {
   final ListingOutput item;
   @override
   Widget build(BuildContext context) => ListTile(
+    leading: ListingThumbnail(id: item.id),
     title: Text(item.title),
     subtitle: Text(
       '${item.authorName} · ${listingName(context.l10n, item.status)}',
@@ -238,6 +241,7 @@ class ListingScreen extends ConsumerWidget {
             data: (item) => ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                ListingGallery(id: id),
                 Text(
                   item.title,
                   style: Theme.of(context).textTheme.headlineSmall,
@@ -279,6 +283,9 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   Visibility scope = Visibility.city;
   Audience audience = Audience.students;
   String? categoryId;
+
+  /// Set once the listing exists, so a retry only attaches the photos.
+  ListingOutput? published;
   @override
   void dispose() {
     title.dispose();
@@ -291,6 +298,9 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
     final l = context.l10n;
     final user = ref.watch(myProfileProvider).value;
     final categories = ref.watch(listingCategoriesProvider);
+    final photosBusy = ref.watch(
+      listingPhotoDraftProvider.select((slots) => slots.any((s) => s.busy)),
+    );
     return Scaffold(
       appBar: AppBar(title: Text(l.listingCreate)),
       body: Form(
@@ -377,14 +387,16 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
               ],
               onChanged: (v) => setState(() => audience = v!),
             ),
+            const ListingPhotosField(),
+            if (photosBusy) Text(l.photoWait),
             ListingAction(
               label: l.listingPublish,
-              enabled: categories.value?.isNotEmpty ?? false,
+              enabled: (categories.value?.isNotEmpty ?? false) && !photosBusy,
               run: () async {
                 if (!form.currentState!.validate()) {
                   throw const InvalidListingForm();
                 }
-                await ref
+                final listing = published ??= await ref
                     .read(campusApiProvider)
                     .listings
                     .publishGiveaway(
@@ -396,6 +408,19 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                         categoryId: categoryId,
                       ),
                     );
+                // Rejected and failed photos are left out; the rest attach.
+                final photos = ref
+                    .read(listingPhotoDraftProvider.notifier)
+                    .readyIds;
+                if (photos.isNotEmpty) {
+                  await ref
+                      .read(campusApiProvider)
+                      .photos
+                      .setListingPhotos(
+                        listingId: listing.id,
+                        body: PhotoOrder(fileIds: photos),
+                      );
+                }
               },
               after: () => context.pop(),
             ),

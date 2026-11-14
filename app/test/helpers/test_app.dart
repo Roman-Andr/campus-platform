@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:campus/src/app.dart';
 import 'package:campus/src/core/api/api_client.dart';
 import 'package:campus/src/core/api/api_config.dart';
@@ -6,6 +8,7 @@ import 'package:campus/src/core/api/network_status.dart';
 import 'package:campus/src/core/auth/auth_session.dart';
 import 'package:campus/src/core/auth/auth_storage.dart';
 import 'package:campus/src/core/database/app_database.dart';
+import 'package:campus/src/core/photos/photo_image.dart';
 import 'package:campus/src/features/listings/data/listings_repository.dart';
 import 'package:campus/src/features/settings/application/settings_controller.dart';
 import 'package:campus/src/features/settings/data/settings_repository.dart';
@@ -16,6 +19,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart' show MemoryImage;
 
 import 'fake_api.dart';
 
@@ -72,6 +76,9 @@ List<Override> _overrides(
     settings ?? InMemorySettingsRepository(),
   ),
   apiConfigProvider.overrideWithValue(testApiConfig),
+  photoImageProvider.overrideWithValue(
+    (url, {required cacheKey}) => MemoryImage(transparentPng),
+  ),
   clientInfoProvider.overrideWithValue(testClientInfo),
   apiHttpAdapterProvider.overrideWithValue(adapter ?? FakeHttpAdapter()),
   networkAvailabilityProvider.overrideWith(
@@ -146,3 +153,9 @@ class InMemoryListingsCache implements ListingsCache {
   @override
   Future<void> clear() async => pages.clear();
 }
+
+/// A 1×1 transparent PNG: network photos are not fetched in widget tests.
+final transparentPng = base64Decode(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA'
+  '60e6kgAAAABJRU5ErkJggg==',
+);
