@@ -1,1 +1,2 @@
-/root/projects/mentor-bot/.work/.course_work_2/data.typ
+// Reuse the shared project data without machine-specific paths.
+#import "../data.typ": data

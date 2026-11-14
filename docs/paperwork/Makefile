@@ -6,6 +6,8 @@ TYPST := TYPST_FONT_PATHS=fonts typst
 DOCS := ТЗ РО ПЗ ПМИ ТП ПЗ_Титульный_лист
 
 PDF_DIR := pdf
+PDFS := $(foreach doc,$(DOCS),$(PDF_DIR)/$(doc)_$(STUDENT_NAME).pdf)
+SOURCES := $(wildcard *.typ */*.typ */sections/*.typ fonts/* images/*)
 
 define compile_doc
 	$(TYPST) compile --root . $(1)/main.typ $(PDF_DIR)/$(1)_$(STUDENT_NAME).pdf
@@ -23,26 +25,14 @@ help:
 	@echo "  clean   - Remove all compiled PDFs"
 	@echo "  help    - Show this help message"
 
-compile: $(foreach doc,$(DOCS),$(PDF_DIR)/$(doc)_$(STUDENT_NAME).pdf)
+compile: $(PDFS)
 	@echo "All PDFs compiled successfully"
 
-$(PDF_DIR)/ТЗ_$(STUDENT_NAME).pdf:
-	$(call compile_doc,ТЗ)
+$(PDFS): $(PDF_DIR)/%_$(STUDENT_NAME).pdf: $(SOURCES) Makefile | $(PDF_DIR)
+	$(call compile_doc,$*)
 
-$(PDF_DIR)/РО_$(STUDENT_NAME).pdf:
-	$(call compile_doc,РО)
-
-$(PDF_DIR)/ПЗ_$(STUDENT_NAME).pdf:
-	$(call compile_doc,ПЗ)
-
-$(PDF_DIR)/ПМИ_$(STUDENT_NAME).pdf:
-	$(call compile_doc,ПМИ)
-
-$(PDF_DIR)/ТП_$(STUDENT_NAME).pdf:
-	$(call compile_doc,ТП)
-
-$(PDF_DIR)/ПЗ_Титульный_лист_$(STUDENT_NAME).pdf:
-	$(call compile_doc,ПЗ_Титульный_лист)
+$(PDF_DIR):
+	mkdir -p $@
 
 clean:
 	rm -f $(PDF_DIR)/*.pdf
