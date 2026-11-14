@@ -249,6 +249,14 @@ async def continue_interaction(case: Case, actor: Account, owner: Account) -> No
     assert response.json()["status"] == "cancelled"
 
 
+async def audit_journal(case: Case, actor: Account, owner: Account) -> None:
+    del owner
+    response = await actor.auth.client.get("/api/v1/admin/audit", headers=actor.headers)
+    assert_status(response, 200 if case.grant == Grant.YES else 403)
+    if case.grant == Grant.YES:
+        assert response.json()["items"] == []
+
+
 @pytest.mark.parametrize(
     "case",
     [
@@ -275,5 +283,6 @@ async def test_role_action(case: Case, actor: Account, owner: Account) -> None:
         "publish_respond": publish_respond,
         "student_feed": student_feed,
         "finish_review": continue_interaction,
+        "audit_dashboard_export": audit_journal,
     }
     await probes[case.action](case, actor, owner)

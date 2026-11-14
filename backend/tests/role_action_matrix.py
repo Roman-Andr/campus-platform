@@ -138,7 +138,7 @@ PENDING = {
         "ai_settings": 117,
         "place_pages": 141,
     },
-    "audit_dashboard_export": {"audit": 89, "dashboard": 139, "export": 140},
+    "audit_dashboard_export": {"dashboard": 139, "export": 140},
 }
 LIVE = {
     "publish_respond": (
@@ -149,6 +149,7 @@ LIVE = {
         "respond_students",
     ),
     "finish_review": ("continue",),
+    "audit_dashboard_export": ("audit",),
     "student_feed": (
         "feed_students",
         "feed_dormitory",
