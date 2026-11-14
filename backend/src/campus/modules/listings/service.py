@@ -543,6 +543,8 @@ async def claim_offer(
         response_due_at=clock.now() + settings.listing_response_timeout
         if TYPE_POLICIES[listing.kind].author_response_deadline
         else None,
+        # The relationship is unloaded for a new row; validation reads it.
+        meeting=None,
     )
     session.add(interaction)
     await session.flush()
