@@ -8,6 +8,9 @@ import 'package:dio/dio.dart'
 import 'models/category_list.dart' as models show CategoryList;
 import 'models/giveaway_input.dart' as models show GiveawayInput;
 import 'models/interaction_output.dart' as models show InteractionOutput;
+import 'models/lesson_accept_input.dart' as models show LessonAcceptInput;
+import 'models/lesson_input.dart' as models show LessonInput;
+import 'models/lesson_slot_input.dart' as models show LessonSlotInput;
 import 'models/listing_edit.dart' as models show ListingEdit;
 import 'models/listing_output.dart' as models show ListingOutput;
 import 'models/listing_status.dart' as models show ListingStatus;
@@ -27,6 +30,7 @@ import 'models/page_waitlist_entry_output.dart'
     show PageWaitlistEntryOutput;
 import 'models/participation_output_meeting.dart' as models show MeetingOutput;
 import 'models/publication_input.dart' as models show PublicationInput;
+import 'models/skill_input.dart' as models show SkillInput;
 import 'models/transition_input.dart' as models show TransitionInput;
 import 'models/visibility.dart' as models show Visibility;
 import 'models/waitlist_entry_output.dart' as models show WaitlistEntryOutput;
@@ -66,6 +70,44 @@ class ListingsClient {
     );
     final response = await _transport.request<dynamic>(
       "/api/v1/listings/giveaways",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.ListingOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Publish Skill
+  ///
+  /// Publish a permanent offer to teach or a request to learn a skill.
+  Future<models.ListingOutput> publishSkill({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required models.SkillInput body,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 201),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/skills",
       options: _options,
       data: convert.jsonEncode(body),
       cancelToken: cancelToken,
@@ -604,6 +646,206 @@ class ListingsClient {
     final response = await _transport.request<dynamic>(
       "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/reservations",
       options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.InteractionOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Propose Lesson
+  ///
+  /// Propose a lesson with its time options; the author answers in 24 hours.
+  Future<models.InteractionOutput> proposeLesson({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required models.LessonInput body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 201),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/lessons",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.InteractionOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Accept Lesson
+  ///
+  /// The author selects one responder option; the responder accepts a counter.
+  Future<models.InteractionOutput> acceptLesson({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required String interactionId,
+    required models.LessonAcceptInput body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(interactionId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/interactions/" +
+          Uri.encodeComponent(interactionId) +
+          "/lesson/accept",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.InteractionOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Counter Propose Lesson
+  ///
+  /// The author offers a time instead of selecting one of the options.
+  Future<models.InteractionOutput> counterProposeLesson({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required String interactionId,
+    required models.LessonSlotInput body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(interactionId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/interactions/" +
+          Uri.encodeComponent(interactionId) +
+          "/lesson/counter-proposals",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.InteractionOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Repeat Lesson
+  ///
+  /// Create the next lesson with the same participant and listing.
+  Future<models.InteractionOutput> repeatLesson({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required String interactionId,
+    required models.LessonInput body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(interactionId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 201),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/interactions/" +
+          Uri.encodeComponent(interactionId) +
+          "/repeat",
+      options: _options,
+      data: convert.jsonEncode(body),
       cancelToken: cancelToken,
     );
     return models.InteractionOutput.fromJson(

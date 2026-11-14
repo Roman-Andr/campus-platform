@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-14 20:42+0300\n"
+"POT-Creation-Date: 2026-11-14 20:54+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -16,6 +16,10 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
+
+#, python-brace-format
+msgid "A lesson has from {min} to {max} time options."
+msgstr "В занятии должно быть от {min} до {max} вариантов времени."
 
 msgid "A meeting time and place were proposed."
 msgstr "Второй участник предложил время и место встречи."
@@ -113,6 +117,9 @@ msgstr "Неверный курсор"
 
 msgid "Invalid idempotency key"
 msgstr "Неверный ключ идемпотентности"
+
+msgid "Invalid lesson time options"
+msgstr "Неверные варианты времени занятия"
 
 msgid "Invalid meeting place"
 msgstr "Неверное место встречи"

@@ -8,7 +8,7 @@ import json
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Annotated, Any
+from typing import Annotated, Any, Self
 from uuid import UUID
 
 from fastapi import Query, Request, Response
@@ -18,6 +18,7 @@ from pydantic import (
     Field,
     SerializerFunctionWrapHandler,
     model_serializer,
+    model_validator,
 )
 from sqlalchemy import and_, case, delete, func, or_, select
 from sqlalchemy.dialects.postgresql import insert
@@ -48,17 +49,22 @@ from campus.core.web.pagination import (
 from campus.core.web.problems import NOT_FOUND, ProblemResponse, problem_response
 from campus.modules.identity import Permissions, ProfiledUser, Role, User
 from campus.modules.listings.models import (
+    PERMANENT_KINDS,
     Audience,
     Category,
     Favorite,
     Interaction,
     InteractionStatus,
     Item,
+    LessonOption,
+    LessonOptionStatus,
     Listing,
     ListingEvent,
     ListingStatus,
     Meeting,
     MeetingStatus,
+    Skill,
+    SkillDirection,
     Visibility,
     WaitlistEntry,
     WaitlistStatus,
@@ -68,6 +74,7 @@ from campus.modules.listings.service import (
     FORBIDDEN,
     INVALID_CATEGORY,
     INVALID_CONTENT,
+    INVALID_LESSON_OPTIONS,
     MEETING_PROPOSED,
     MEETING_RESCHEDULED,
     MEETING_SCHEDULED,
@@ -77,6 +84,7 @@ from campus.modules.listings.service import (
     RATE_LIMIT,
     STALE,
     TYPE_POLICIES,
+    accept_lesson_option,
     active_offer,
     active_waitlist,
     change_listing,
@@ -87,6 +95,7 @@ from campus.modules.listings.service import (
     leave_waitlist,
     locked,
     offer_timing,
+    propose_lesson_counter,
     rate_limit,
     record,
     record_meeting,
@@ -94,6 +103,7 @@ from campus.modules.listings.service import (
     require_live,
     schedule_meeting_reminders,
     transition,
+    validate_lesson_slot,
     validate_meeting,
     visible,
     waitlist_position,
@@ -124,6 +134,41 @@ class GiveawayInput(BaseModel):
     draft: bool = False
 
 
+class SkillInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    title: str
+    description: str
+    direction: SkillDirection
+    visibility: Visibility = Visibility.CITY
+    audience: Audience = Audience.STUDENTS
+    category_id: UUID
+
+
+class LessonSlotInput(BaseModel):
+    """One proposed lesson time with a place or an online flag."""
+
+    model_config = ConfigDict(extra="forbid")
+    time: Instant
+    location: str | None = None
+    online: bool = False
+
+    @model_validator(mode="after")
+    def _exactly_one_place(self) -> Self:
+        if self.online == (self.location is not None):
+            raise ValueError("give a place or set online, but not both")
+        return self
+
+
+class LessonInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    options: list[LessonSlotInput]
+
+
+class LessonAcceptInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    option_id: UUID
+
+
 class ListingEdit(BaseModel):
     model_config = ConfigDict(extra="forbid")
     title: str
@@ -152,6 +197,9 @@ class ListingOutput(BaseModel):
     created_at: Instant
     expires_at: Instant | None
     category_id: UUID | None
+    direction: SkillDirection | None = Field(
+        default=None, description="Direction of a skill listing; null otherwise."
+    )
     pinned_until: Instant | None = None
     hidden_reason: str | None
     favorite: bool = Field(
@@ -243,10 +291,22 @@ class MeetingOutput(BaseModel):
     status: MeetingStatus
     scheduled_at: Instant | None
     location: str | None
+    online: bool
     scheduled_by_id: UUID | None
     proposed_at: Instant | None
     proposed_location: str | None
     proposed_by_id: UUID | None
+
+
+class LessonOptionOutput(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    position: int
+    time: Instant
+    location: str | None
+    online: bool
+    proposed_by_id: UUID
+    status: LessonOptionStatus
 
 
 class InteractionOutput(BaseModel):
@@ -259,6 +319,10 @@ class InteractionOutput(BaseModel):
     stage: str | None
     response_due_at: Instant | None
     meeting: MeetingOutput | None
+    options: list[LessonOptionOutput] = Field(
+        default_factory=list,
+        description="Time options of a skill lesson; empty for other types.",
+    )
 
 
 class ParticipationListing(BaseModel):
@@ -395,6 +459,88 @@ def check_text(title: str, description: str, settings: Settings) -> None:
         raise ProblemError(INVALID_CONTENT)
 
 
+def lesson_slots(
+    data: LessonInput, settings: Settings
+) -> list[tuple[datetime, str | None, bool]]:
+    """Validate the option count, times and places of a lesson request."""
+    if not (
+        settings.lesson_options_min <= len(data.options) <= settings.lesson_options_max
+    ):
+        raise ProblemError(
+            INVALID_LESSON_OPTIONS,
+            min=settings.lesson_options_min,
+            max=settings.lesson_options_max,
+        )
+    return [
+        validate_lesson_slot(option.time, option.location, option.online, settings)
+        for option in data.options
+    ]
+
+
+def add_lesson_slots(
+    interaction: Interaction,
+    slots: Sequence[tuple[datetime, str | None, bool]],
+    proposer_id: UUID,
+) -> None:
+    """Attach validated options in their request order."""
+    for position, (time, location, online) in enumerate(slots):
+        interaction.options.append(
+            LessonOption(
+                position=position,
+                time=time,
+                location=location,
+                online=online,
+                proposed_by_id=proposer_id,
+                status=LessonOptionStatus.PROPOSED,
+            )
+        )
+
+
+def lesson_details(
+    slots: Sequence[tuple[datetime, str | None, bool]],
+) -> list[dict[str, Any]]:
+    return [
+        {"time": time.isoformat(), "location": location, "online": online}
+        for time, location, online in slots
+    ]
+
+
+def new_lesson(
+    listing: Listing,
+    participant_id: UUID,
+    settings: Settings,
+    proposer_id: UUID,
+) -> Interaction:
+    """An unlimited-capacity application with an author response deadline."""
+    now = clock.now()
+    return Interaction(
+        listing_id=listing.id,
+        participant_id=participant_id,
+        slot=None,
+        response_due_at=(
+            now + settings.listing_response_timeout
+            if proposer_id != listing.author_id
+            else None
+        ),
+        meeting=None,
+        options=[],
+    )
+
+
+async def schedule_author_response(
+    session: DbSession, listing: Listing, interaction: Interaction
+) -> None:
+    if interaction.response_due_at is None:
+        return
+    await schedule_deadline(
+        session,
+        "listing.author_response",
+        interaction.response_due_at,
+        {"listing_id": str(listing.id), "interaction_id": str(interaction.id)},
+        key=f"interaction:{interaction.id}",
+    )
+
+
 async def user_for(session: DbSession, principal: CurrentUser) -> User:
     user = await session.get(User, principal.user_id)
     assert user is not None  # noqa: S101 - authenticated accounts persist
@@ -516,6 +662,59 @@ def feed_snapshot(page: PageParams, settings: Settings) -> tuple[datetime, PageP
         raise ProblemError(INVALID_CURSOR) from None
 
 
+@router.post("/skills", status_code=201)
+async def publish_skill(
+    data: SkillInput,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> ListingOutput:
+    """Publish a permanent offer to teach or a request to learn a skill."""
+    user = await user_for(session, principal)
+    settings: Settings = request.app.state.settings
+    check_text(data.title, data.description, settings)
+    if data.visibility == Visibility.UNIVERSITY:
+        raise ProblemError(FORBIDDEN)
+    if user.account_type not in (AccountType.STUDENT, AccountType.EMPLOYEE):
+        raise ProblemError(FORBIDDEN)
+    if (
+        user.account_type == AccountType.EMPLOYEE
+        and data.audience != Audience.COMMUNITY
+    ):
+        raise ProblemError(FORBIDDEN)
+    if data.visibility == Visibility.DORMITORY and (
+        user.dormitory_id is None or user.account_type == AccountType.EMPLOYEE
+    ):
+        raise ProblemError(FORBIDDEN)
+    await check_category(session, data.category_id)
+    await publication_quota(session, user.id, settings)
+    assert user.city_id is not None  # noqa: S101 - ProfiledUser
+    listing = Listing(
+        author=user,
+        author_id=user.id,
+        author_dormitory_id=user.dormitory_id,
+        kind="skill",
+        title=data.title,
+        description=data.description,
+        visibility=data.visibility,
+        audience=data.audience,
+        city_id=user.city_id,
+        city=await session.get(City, user.city_id),
+        faculty_id=user.faculty_id if data.visibility == Visibility.FACULTY else None,
+        dormitory_id=user.dormitory_id
+        if data.visibility == Visibility.DORMITORY
+        else None,
+        status=ListingStatus.ACTIVE,
+        category_id=data.category_id,
+        expires_at=None,
+        skill=Skill(direction=data.direction),
+    )
+    session.add(listing)
+    await session.flush()
+    record(session, listing, user.id, "published", None)
+    return ListingOutput.model_validate(listing)
+
+
 @router.get("")
 async def listing_feed(  # noqa: PLR0913, PLR0917 - independent feed filters
     request: Request,
@@ -568,7 +767,10 @@ async def listing_feed(  # noqa: PLR0913, PLR0917 - independent feed filters
         Listing.status.in_([ListingStatus.ACTIVE, ListingStatus.BUSY]),
         or_(
             Listing.expires_at > snapshot,
-            and_(Listing.kind == "publication", Listing.expires_at.is_(None)),
+            and_(
+                Listing.kind.in_(PERMANENT_KINDS),
+                Listing.expires_at.is_(None),
+            ),
         ),
         Listing.created_at <= snapshot,
     )
@@ -653,7 +855,7 @@ def available(listing: Listing, user: User) -> bool:
     return (
         listing.status in (ListingStatus.ACTIVE, ListingStatus.BUSY)
         and (
-            (listing.kind == "publication" and listing.expires_at is None)
+            (listing.kind in PERMANENT_KINDS and listing.expires_at is None)
             or (listing.expires_at is not None and listing.expires_at > clock.now())
         )
         and visible(listing, user)
@@ -1057,6 +1259,7 @@ async def reserve_giveaway(
         if TYPE_POLICIES[listing.kind].author_response_deadline
         else None,
         meeting=None,
+        options=[],
     )
     session.add(interaction)
     await session.flush()
@@ -1070,6 +1273,178 @@ async def reserve_giveaway(
             {"listing_id": str(listing.id), "interaction_id": str(interaction.id)},
             key=f"interaction:{interaction.id}",
         )
+    return InteractionOutput.model_validate(interaction)
+
+
+@router.post("/{listing_id}/lessons", status_code=201)
+async def propose_lesson(
+    listing_id: UUID,
+    data: LessonInput,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> InteractionOutput:
+    """Propose a lesson with its time options; the author answers in 24 hours."""
+    listing = await locked(session, listing_id)
+    user = await user_for(session, principal)
+    check_participant(listing, user)
+    if not visible(listing, user):
+        raise ProblemError(NOT_FOUND)
+    require_live(listing)
+    if listing.kind != "skill" or listing.status != ListingStatus.ACTIVE:
+        raise ProblemError(CONFLICT)
+    settings: Settings = request.app.state.settings
+    slots = lesson_slots(data, settings)
+    retry = await rate_limit(
+        session,
+        user.id,
+        "requested",
+        settings.listing_response_limit,
+        settings.listing_response_window,
+    )
+    if retry is not None:
+        raise ProblemError(RATE_LIMIT, headers={"Retry-After": str(retry)})
+    interaction = new_lesson(listing, user.id, settings, user.id)
+    add_lesson_slots(interaction, slots, user.id)
+    session.add(interaction)
+    await session.flush()
+    listing.version += 1
+    record(
+        session,
+        listing,
+        user.id,
+        "requested",
+        None,
+        interaction,
+        details={"options": lesson_details(slots)},
+    )
+    await schedule_author_response(session, listing, interaction)
+    await session.flush()
+    return InteractionOutput.model_validate(interaction)
+
+
+async def lesson_context(
+    session: DbSession, listing_id: UUID, interaction_id: UUID
+) -> tuple[Listing, Interaction]:
+    listing = await locked(session, listing_id)
+    interaction = await session.get(Interaction, interaction_id)
+    if interaction is None or interaction.listing_id != listing.id:
+        raise ProblemError(NOT_FOUND)
+    return listing, interaction
+
+
+@router.post(
+    "/{listing_id}/interactions/{interaction_id}/lesson/accept",
+)
+async def accept_lesson(  # noqa: PLR0913, PLR0917 - request context
+    listing_id: UUID,
+    interaction_id: UUID,
+    data: LessonAcceptInput,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> InteractionOutput:
+    """The author selects one responder option; the responder accepts a counter."""
+    listing, interaction = await lesson_context(session, listing_id, interaction_id)
+    option = await session.get(LessonOption, data.option_id)
+    if option is None or option.interaction_id != interaction.id:
+        raise ProblemError(NOT_FOUND)
+    await accept_lesson_option(
+        session,
+        listing,
+        interaction,
+        option,
+        principal.user_id,
+        request.app.state.settings,
+    )
+    return InteractionOutput.model_validate(interaction)
+
+
+@router.post(
+    "/{listing_id}/interactions/{interaction_id}/lesson/counter-proposals",
+)
+async def counter_propose_lesson(  # noqa: PLR0913, PLR0917 - request context
+    listing_id: UUID,
+    interaction_id: UUID,
+    data: LessonSlotInput,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> InteractionOutput:
+    """The author offers a time instead of selecting one of the options."""
+    listing, interaction = await lesson_context(session, listing_id, interaction_id)
+    await propose_lesson_counter(
+        session,
+        listing,
+        interaction,
+        principal.user_id,
+        data.time,
+        data.location,
+        data.online,
+        request.app.state.settings,
+    )
+    return InteractionOutput.model_validate(interaction)
+
+
+@router.post(
+    "/{listing_id}/interactions/{interaction_id}/repeat",
+    status_code=201,
+)
+async def repeat_lesson(  # noqa: PLR0913, PLR0917 - request context
+    listing_id: UUID,
+    interaction_id: UUID,
+    data: LessonInput,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> InteractionOutput:
+    """Create the next lesson with the same participant and listing."""
+    listing, original = await lesson_context(session, listing_id, interaction_id)
+    if principal.user_id not in (listing.author_id, original.participant_id):
+        raise ProblemError(FORBIDDEN)
+    if listing.kind != "skill":
+        raise ProblemError(CONFLICT)
+    if original.status not in (
+        InteractionStatus.ACCEPTED,
+        InteractionStatus.COMPLETED,
+    ):
+        raise ProblemError(CONFLICT)
+    require_live(listing)
+    settings: Settings = request.app.state.settings
+    slots = lesson_slots(data, settings)
+    retry = await rate_limit(
+        session,
+        principal.user_id,
+        "requested",
+        settings.listing_response_limit,
+        settings.listing_response_window,
+    )
+    if retry is not None:
+        raise ProblemError(RATE_LIMIT, headers={"Retry-After": str(retry)})
+    interaction = new_lesson(
+        listing,
+        original.participant_id,
+        settings,
+        principal.user_id,
+    )
+    add_lesson_slots(interaction, slots, principal.user_id)
+    session.add(interaction)
+    await session.flush()
+    listing.version += 1
+    record(
+        session,
+        listing,
+        principal.user_id,
+        "requested",
+        None,
+        interaction,
+        details={
+            "source_interaction_id": str(original.id),
+            "options": lesson_details(slots),
+        },
+    )
+    await schedule_author_response(session, listing, interaction)
+    await session.flush()
     return InteractionOutput.model_validate(interaction)
 
 
@@ -1346,7 +1721,7 @@ async def publish_listing(
     listing = await locked(session, listing_id)
     if listing.author_id != principal.user_id:
         raise ProblemError(FORBIDDEN)
-    if listing.kind == "publication":
+    if listing.kind in PERMANENT_KINDS:
         raise ProblemError(CONFLICT)
     if (
         listing.status not in (ListingStatus.DRAFT, ListingStatus.EXPIRED)
@@ -1409,7 +1784,7 @@ async def extend_listing(
     listing = await locked(session, listing_id)
     if listing.author_id != principal.user_id:
         raise ProblemError(FORBIDDEN)
-    if listing.kind == "publication":
+    if listing.kind in PERMANENT_KINDS:
         raise ProblemError(CONFLICT)
     require_live(listing)
     listing.expires_at = clock.now() + request.app.state.settings.listing_lifetime

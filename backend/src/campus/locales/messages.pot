@@ -1,3 +1,7 @@
+#, python-brace-format
+msgid "A lesson has from {min} to {max} time options."
+msgstr ""
+
 msgid "A meeting time and place were proposed."
 msgstr ""
 
@@ -89,6 +93,9 @@ msgid "Invalid cursor"
 msgstr ""
 
 msgid "Invalid idempotency key"
+msgstr ""
+
+msgid "Invalid lesson time options"
 msgstr ""
 
 msgid "Invalid meeting place"
