@@ -22,7 +22,13 @@ String interactionName(AppLocalizations l, InteractionStatus status) =>
         l.reservationAccepted,
       InteractionStatusKnown(value: InteractionStatusValue.rejected) =>
         l.reservationRejected,
-      _ => l.reservationCancelled,
+      InteractionStatusKnown(value: InteractionStatusValue.cancelled) =>
+        l.reservationCancelled,
+      InteractionStatusKnown(value: InteractionStatusValue.completed) =>
+        l.listingCompleted,
+      InteractionStatusKnown(value: InteractionStatusValue.noShow) =>
+        l.reservationNoShow,
+      _ => l.listingStatusUnknown,
     };
 
 String listingName(AppLocalizations l, ListingStatus status) =>
@@ -30,7 +36,13 @@ String listingName(AppLocalizations l, ListingStatus status) =>
       ListingStatusKnown(value: ListingStatusValue.active) => l.listingActive,
       ListingStatusKnown(value: ListingStatusValue.busy) => l.listingBusy,
       ListingStatusKnown(value: ListingStatusValue.expired) => l.listingExpired,
-      _ => l.reservationCancelled,
+      ListingStatusKnown(value: ListingStatusValue.cancelled) =>
+        l.reservationCancelled,
+      ListingStatusKnown(value: ListingStatusValue.draft) => l.listingDraft,
+      ListingStatusKnown(value: ListingStatusValue.completed) =>
+        l.listingCompleted,
+      ListingStatusKnown(value: ListingStatusValue.hidden) => l.listingHidden,
+      _ => l.listingStatusUnknown,
     };
 
 /// Mutations keep the current page visible and explain Problem Details locally.
@@ -39,9 +51,11 @@ class ListingAction extends ConsumerStatefulWidget {
     required this.label,
     required this.run,
     this.after,
+    this.enabled = true,
     super.key,
   });
   final String label;
+  final bool enabled;
   final Future<void> Function() run;
   final VoidCallback? after;
   @override
@@ -57,7 +71,7 @@ class _ListingActionState extends ConsumerState<ListingAction> {
     children: [
       if (error != null) Text(error!, key: const Key('listing-error')),
       FilledButton(
-        onPressed: busy
+        onPressed: busy || !widget.enabled
             ? null
             : () async {
                 setState(() {
@@ -264,6 +278,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   final description = TextEditingController();
   Visibility scope = Visibility.city;
   Audience audience = Audience.students;
+  String? categoryId;
   @override
   void dispose() {
     title.dispose();
@@ -275,6 +290,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final user = ref.watch(myProfileProvider).value;
+    final categories = ref.watch(listingCategoriesProvider);
     return Scaffold(
       appBar: AppBar(title: Text(l.listingCreate)),
       body: Form(
@@ -282,6 +298,39 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            categories.when(
+              loading: () => const LinearProgressIndicator(),
+              error: (error, _) => Column(
+                children: [
+                  Text(apiFailureMessage(l, error)),
+                  TextButton(
+                    onPressed: () => ref.invalidate(listingCategoriesProvider),
+                    child: Text(l.errorRetry),
+                  ),
+                ],
+              ),
+              data: (items) => items.isEmpty
+                  ? Text(l.listingCategoriesEmpty)
+                  : DropdownButtonFormField<String>(
+                      key: const Key('listing-category'),
+                      initialValue: items.any((item) => item.id == categoryId)
+                          ? categoryId
+                          : null,
+                      decoration: InputDecoration(labelText: l.listingCategory),
+                      items: [
+                        for (final item in items)
+                          DropdownMenuItem(
+                            value: item.id,
+                            child: Text(item.name),
+                          ),
+                      ],
+                      validator: (value) =>
+                          items.any((item) => item.id == value)
+                          ? null
+                          : l.profileChoose,
+                      onChanged: (value) => setState(() => categoryId = value),
+                    ),
+            ),
             TextFormField(
               key: const Key('listing-title'),
               controller: title,
@@ -330,6 +379,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
             ),
             ListingAction(
               label: l.listingPublish,
+              enabled: categories.value?.isNotEmpty ?? false,
               run: () async {
                 if (!form.currentState!.validate()) {
                   throw const InvalidListingForm();
@@ -343,6 +393,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                         description: description.text.trim(),
                         visibility: scope,
                         audience: audience,
+                        categoryId: categoryId,
                       ),
                     );
               },

@@ -356,4 +356,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get listingForbidden => 'This action is unavailable for your account.';
+
+  @override
+  String get listingCategory => 'Category';
+
+  @override
+  String get listingCategoriesEmpty =>
+      'Categories are unavailable. Please try again later.';
+
+  @override
+  String get listingDraft => 'Draft';
+
+  @override
+  String get listingCompleted => 'Completed';
+
+  @override
+  String get listingHidden => 'Hidden';
+
+  @override
+  String get reservationNoShow => 'No show';
+
+  @override
+  String get listingStatusUnknown => 'Status unavailable';
 }

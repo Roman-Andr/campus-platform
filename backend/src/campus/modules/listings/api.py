@@ -3,7 +3,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from fastapi import Request
+from fastapi import Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import and_, or_, select
 
@@ -17,6 +17,7 @@ from campus.core.web import (
     Problem,
     ProblemError,
     api_router,
+    request_locale,
 )
 from campus.core.web.auth import CurrentUser
 from campus.core.web.pagination import paginate, sort_by
@@ -24,6 +25,7 @@ from campus.core.web.problems import NOT_FOUND, ProblemResponse, problem_respons
 from campus.modules.identity import ProfiledUser, User
 from campus.modules.listings.models import (
     Audience,
+    Category,
     Interaction,
     InteractionStatus,
     Item,
@@ -35,11 +37,16 @@ from campus.modules.listings.models import (
 from campus.modules.listings.service import (
     CONFLICT,
     FORBIDDEN,
+    INVALID_CATEGORY,
     INVALID_CONTENT,
+    RATE_LIMIT,
     STALE,
+    TYPE_POLICIES,
     change_listing,
     locked,
+    rate_limit,
     record,
+    reject_pending,
     require_live,
     transition,
     visible,
@@ -53,6 +60,7 @@ router = api_router(
         403: {"model": Problem},
         404: {"model": Problem},
         409: {"model": Problem},
+        429: {"model": Problem},
     },
 )
 
@@ -63,6 +71,8 @@ class GiveawayInput(BaseModel):
     description: str
     visibility: Visibility = Visibility.CITY
     audience: Audience = Audience.STUDENTS
+    category_id: UUID | None = None
+    draft: bool = False
 
 
 class ListingEdit(BaseModel):
@@ -70,6 +80,7 @@ class ListingEdit(BaseModel):
     title: str
     description: str
     version: int = Field(ge=1)
+    category_id: UUID | None = None
 
 
 class ListingOutput(BaseModel):
@@ -88,7 +99,9 @@ class ListingOutput(BaseModel):
     status: ListingStatus
     version: int
     created_at: datetime
-    expires_at: datetime
+    expires_at: datetime | None
+    category_id: UUID | None
+    hidden_reason: str | None
 
 
 class InteractionOutput(BaseModel):
@@ -98,6 +111,8 @@ class InteractionOutput(BaseModel):
     participant_name: str
     participant_id: UUID
     status: InteractionStatus
+    stage: str | None
+    response_due_at: datetime | None
 
 
 class TransitionInput(BaseModel):
@@ -115,6 +130,10 @@ class EventOutput(BaseModel):
     status: str
     version: int
     created_at: datetime
+    reason: str | None
+    stage: str | None
+    via_assistant: bool
+    offline_qr: bool
 
 
 def check_text(title: str, description: str, settings: Settings) -> None:
@@ -152,10 +171,19 @@ async def publish_giveaway(
     check_text(data.title, data.description, settings)
     if user.account_type not in (AccountType.STUDENT, AccountType.EMPLOYEE):
         raise ProblemError(FORBIDDEN)
+    if (
+        user.account_type == AccountType.EMPLOYEE
+        and data.audience != Audience.COMMUNITY
+    ):
+        raise ProblemError(FORBIDDEN)
     if data.visibility == Visibility.DORMITORY and (
         user.dormitory_id is None or user.account_type == AccountType.EMPLOYEE
     ):
         raise ProblemError(FORBIDDEN)
+    if data.category_id is not None or not data.draft:
+        await check_category(session, data.category_id)
+    if not data.draft:
+        await publication_quota(session, user.id, settings)
     assert user.city_id is not None  # noqa: S101 - ProfiledUser
     listing = Listing(
         author=user,
@@ -170,19 +198,18 @@ async def publish_giveaway(
         dormitory_id=user.dormitory_id
         if data.visibility == Visibility.DORMITORY
         else None,
-        expires_at=clock.now() + settings.listing_lifetime,
+        status=ListingStatus.DRAFT if data.draft else ListingStatus.ACTIVE,
+        category_id=data.category_id,
+        expires_at=None if data.draft else clock.now() + settings.listing_lifetime,
     )
     session.add(listing)
     await session.flush()
     session.add(Item(listing_id=listing.id, mode="giveaway"))
-    record(session, listing, user.id, "published", None)
-    await schedule_deadline(
-        session,
-        "listing.expire",
-        listing.expires_at,
-        {"listing_id": str(listing.id)},
-        key=f"listing:{listing.id}",
+    record(
+        session, listing, user.id, "draft_created" if data.draft else "published", None
     )
+    if not data.draft:
+        await expiry_deadline(session, listing)
     return ListingOutput.model_validate(listing)
 
 
@@ -225,13 +252,38 @@ async def listing_feed(
     return await paginate(session, query, page, ListingOutput)
 
 
+class CategoryOutput(BaseModel):
+    id: UUID
+    code: str
+    name: str
+
+
+class CategoryList(BaseModel):
+    items: list[CategoryOutput]
+
+
+@router.get("/categories")
+async def categories(
+    request: Request, response: Response, session: DbSession
+) -> CategoryList:
+    locale = request_locale(request)
+    response.headers["Content-Language"] = locale
+    response.headers["Vary"] = "Accept-Language"
+    rows = await session.scalars(
+        select(Category).order_by(Category.name_column(locale), Category.id)
+    )
+    return CategoryList(
+        items=[
+            CategoryOutput(id=row.id, code=row.code, name=row.name_in(locale))
+            for row in rows
+        ]
+    )
+
+
 @router.get("/mine")
 async def my_listings(
-    session: DbSession,
-    principal: CurrentUser,
-    page: PageQuery,
+    session: DbSession, principal: CurrentUser, page: PageQuery
 ) -> Page[ListingOutput]:
-    """All own listings, including those no longer in the public feed."""
     query = sort_by(
         select(Listing).where(Listing.author_id == principal.user_id),
         "-created_at",
@@ -294,7 +346,7 @@ async def edit_listing(
     data: ListingEdit,
     request: Request,
     session: DbSession,
-    principal: CurrentUser,
+    principal: ProfiledUser,
 ) -> ListingOutput | ProblemResponse:
     listing = await locked(session, listing_id)
     if listing.author_id != principal.user_id:
@@ -306,7 +358,11 @@ async def edit_listing(
             params={"version": listing.version},
             current_version=listing.version,
         )
-    require_live(listing)
+    if listing.status != ListingStatus.DRAFT:
+        require_live(listing)
+    if data.category_id is not None:
+        await check_category(session, data.category_id)
+        listing.category_id = data.category_id
     check_text(data.title, data.description, request.app.state.settings)
     listing.title, listing.description = data.title, data.description
     listing.version += 1
@@ -319,18 +375,18 @@ async def edit_listing(
 async def cancel_listing(
     listing_id: UUID,
     session: DbSession,
-    principal: CurrentUser,
+    principal: ProfiledUser,
 ) -> ListingOutput:
-    """Only an unoccupied active listing can be cancelled in this slice."""
+    """Closing rejects pending applications and preserves accepted interactions."""
     listing = await locked(session, listing_id)
     if listing.author_id != principal.user_id:
         raise ProblemError(FORBIDDEN)
-    require_live(listing)
-    if listing.status != ListingStatus.ACTIVE:
-        raise ProblemError(CONFLICT)
+    if listing.status != ListingStatus.DRAFT:
+        require_live(listing)
     change_listing(
         session, listing, ListingStatus.CANCELLED, principal.user_id, "cancelled"
     )
+    await reject_pending(session, listing, "listing_cancelled")
     await session.flush()
     return ListingOutput.model_validate(listing)
 
@@ -338,11 +394,17 @@ async def cancel_listing(
 @router.post("/{listing_id}/reservations", status_code=201)
 async def reserve_giveaway(
     listing_id: UUID,
+    request: Request,
     session: DbSession,
     principal: ProfiledUser,
 ) -> InteractionOutput:
     listing = await locked(session, listing_id)
     user = await user_for(session, principal)
+    if (
+        user.account_type == AccountType.EMPLOYEE
+        and listing.audience == Audience.STUDENTS
+    ):
+        raise ProblemError(FORBIDDEN)
     if not visible(listing, user):
         raise ProblemError(NOT_FOUND)
     if user.id == listing.author_id or user.account_type not in (
@@ -353,13 +415,36 @@ async def reserve_giveaway(
     require_live(listing)
     if listing.status != ListingStatus.ACTIVE or listing.kind != "giveaway":
         raise ProblemError(CONFLICT)
+    settings: Settings = request.app.state.settings
+    retry = await rate_limit(
+        session,
+        user.id,
+        "requested",
+        settings.listing_response_limit,
+        settings.listing_response_window,
+    )
+    if retry is not None:
+        raise ProblemError(RATE_LIMIT, headers={"Retry-After": str(retry)})
     interaction = Interaction(
-        listing_id=listing.id, participant_id=user.id, participant=user
+        listing_id=listing.id,
+        participant_id=user.id,
+        participant=user,
+        response_due_at=clock.now() + settings.listing_response_timeout
+        if TYPE_POLICIES[listing.kind].author_response_deadline
+        else None,
     )
     session.add(interaction)
     await session.flush()
     change_listing(session, listing, ListingStatus.BUSY, user.id, "reserved")
     record(session, listing, user.id, "requested", None, interaction)
+    if interaction.response_due_at is not None:
+        await schedule_deadline(
+            session,
+            "listing.author_response",
+            interaction.response_due_at,
+            {"listing_id": str(listing.id), "interaction_id": str(interaction.id)},
+            key=f"interaction:{interaction.id}",
+        )
     return InteractionOutput.model_validate(interaction)
 
 
@@ -369,7 +454,7 @@ async def transition_interaction(
     interaction_id: UUID,
     data: TransitionInput,
     session: DbSession,
-    principal: CurrentUser,
+    principal: ProfiledUser,
 ) -> InteractionOutput:
     listing = await locked(session, listing_id)
     interaction = await session.get(Interaction, interaction_id)
@@ -400,8 +485,138 @@ async def listing_events(
     )
     if listing.author_id != principal.user_id and participant is None:
         raise ProblemError(FORBIDDEN)
+    query = select(ListingEvent).where(ListingEvent.listing_id == listing_id)
+    if listing.author_id != principal.user_id:
+        own_interactions = select(Interaction.id).where(
+            Interaction.listing_id == listing.id,
+            Interaction.participant_id == principal.user_id,
+        )
+        query = query.where(
+            or_(
+                ListingEvent.interaction_id.is_(None),
+                ListingEvent.interaction_id.in_(own_interactions),
+            )
+        )
     query = sort_by(
-        select(ListingEvent).where(ListingEvent.listing_id == listing_id),
+        query, "created_at", {"created_at": ListingEvent.created_at}, ListingEvent.id
+    )
+    return await paginate(session, query, page, EventOutput)
+
+
+async def check_category(session: DbSession, category_id: UUID | None) -> None:
+    if category_id is None or await session.get(Category, category_id) is None:
+        raise ProblemError(INVALID_CATEGORY)
+
+
+async def publication_quota(
+    session: DbSession, user_id: UUID, settings: Settings
+) -> None:
+    retry = await rate_limit(
+        session,
+        user_id,
+        "published",
+        settings.listing_publication_limit,
+        settings.listing_publication_window,
+    )
+    if retry is not None:
+        raise ProblemError(RATE_LIMIT, headers={"Retry-After": str(retry)})
+
+
+async def expiry_deadline(session: DbSession, listing: Listing) -> None:
+    assert listing.expires_at is not None  # noqa: S101 - published listing
+    await schedule_deadline(
+        session,
+        "listing.expire",
+        listing.expires_at,
+        {"listing_id": str(listing.id)},
+        key=f"listing:{listing.id}",
+    )
+
+
+@router.post("/{listing_id}/publish")
+async def publish_listing(
+    listing_id: UUID, request: Request, session: DbSession, principal: ProfiledUser
+) -> ListingOutput:
+    listing = await locked(session, listing_id)
+    if listing.author_id != principal.user_id:
+        raise ProblemError(FORBIDDEN)
+    if listing.status not in (ListingStatus.DRAFT, ListingStatus.EXPIRED):
+        raise ProblemError(CONFLICT)
+    user = await user_for(session, principal)
+    if (
+        user.account_type == AccountType.EMPLOYEE
+        and listing.audience != Audience.COMMUNITY
+    ):
+        raise ProblemError(FORBIDDEN)
+    settings: Settings = request.app.state.settings
+    await check_category(session, listing.category_id)
+    check_text(listing.title, listing.description, settings)
+    await publication_quota(session, user.id, settings)
+    # Snapshot the current profile when publishing/re-publishing.
+    assert user.city_id is not None  # noqa: S101 - ProfiledUser
+    if listing.visibility == Visibility.DORMITORY and (
+        user.dormitory_id is None or user.account_type == AccountType.EMPLOYEE
+    ):
+        raise ProblemError(FORBIDDEN)
+    listing.city_id = user.city_id
+    listing.faculty_id = (
+        user.faculty_id if listing.visibility == Visibility.FACULTY else None
+    )
+    listing.dormitory_id = (
+        user.dormitory_id if listing.visibility == Visibility.DORMITORY else None
+    )
+    # A still accepted single-item interaction keeps the republished item occupied.
+    occupied = await session.scalar(
+        select(Interaction.id).where(
+            Interaction.listing_id == listing.id,
+            Interaction.status == InteractionStatus.ACCEPTED,
+        )
+    )
+    listing.expires_at = clock.now() + settings.listing_lifetime
+    change_listing(
+        session,
+        listing,
+        ListingStatus.BUSY if occupied else ListingStatus.ACTIVE,
+        user.id,
+        "published",
+    )
+    await expiry_deadline(session, listing)
+    await session.flush()
+    return ListingOutput.model_validate(listing)
+
+
+@router.post("/{listing_id}/extend")
+async def extend_listing(
+    listing_id: UUID, request: Request, session: DbSession, principal: ProfiledUser
+) -> ListingOutput:
+    listing = await locked(session, listing_id)
+    if listing.author_id != principal.user_id:
+        raise ProblemError(FORBIDDEN)
+    require_live(listing)
+    listing.expires_at = clock.now() + request.app.state.settings.listing_lifetime
+    listing.version += 1
+    record(session, listing, principal.user_id, "extended", listing.status)
+    await expiry_deadline(session, listing)
+    await session.flush()
+    return ListingOutput.model_validate(listing)
+
+
+@router.get("/{listing_id}/interactions/{interaction_id}/events")
+async def interaction_events(
+    listing_id: UUID,
+    interaction_id: UUID,
+    session: DbSession,
+    principal: CurrentUser,
+    page: PageQuery,
+) -> Page[EventOutput]:
+    listing = await session.get(Listing, listing_id)
+    interaction = await session.get(Interaction, interaction_id)
+    if listing is None or interaction is None or interaction.listing_id != listing_id:
+        raise ProblemError(NOT_FOUND)
+    if principal.user_id not in (listing.author_id, interaction.participant_id):
+        raise ProblemError(FORBIDDEN)
+    query = sort_by(
+        select(ListingEvent).where(ListingEvent.interaction_id == interaction_id),
         "created_at",
         {"created_at": ListingEvent.created_at},
         ListingEvent.id,

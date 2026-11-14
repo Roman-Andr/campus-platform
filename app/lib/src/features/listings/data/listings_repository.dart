@@ -26,11 +26,18 @@ class DriftListingsCache implements ListingsCache {
               (t) => t.owner.equals(owner) & t.area.equals(area.toJson()),
             ))
             .getSingleOrNull();
-    return row == null
-        ? null
-        : PageListingOutput.fromJson(
-            jsonDecode(row.payload) as Map<String, Object?>,
-          );
+    if (row == null) return null;
+    final json = jsonDecode(row.payload) as Map<String, Object?>;
+    // Snapshots written before shared mechanics lack the new nullable fields.
+    final items = (json['items']! as List<Object?>)
+        .cast<Map<String, Object?>>();
+    return PageListingOutput.fromJson({
+      ...json,
+      'items': [
+        for (final item in items)
+          {'category_id': null, 'hidden_reason': null, ...item},
+      ],
+    });
   }
 
   @override

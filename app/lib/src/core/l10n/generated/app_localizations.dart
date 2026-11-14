@@ -727,6 +727,48 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Это действие недоступно для вашего аккаунта.'**
   String get listingForbidden;
+
+  /// listingCategory
+  ///
+  /// In ru, this message translates to:
+  /// **'Категория'**
+  String get listingCategory;
+
+  /// listingCategoriesEmpty
+  ///
+  /// In ru, this message translates to:
+  /// **'Категории пока недоступны. Попробуйте позже.'**
+  String get listingCategoriesEmpty;
+
+  /// listingDraft
+  ///
+  /// In ru, this message translates to:
+  /// **'Черновик'**
+  String get listingDraft;
+
+  /// listingCompleted
+  ///
+  /// In ru, this message translates to:
+  /// **'Завершено'**
+  String get listingCompleted;
+
+  /// listingHidden
+  ///
+  /// In ru, this message translates to:
+  /// **'Скрыто'**
+  String get listingHidden;
+
+  /// reservationNoShow
+  ///
+  /// In ru, this message translates to:
+  /// **'Неявка'**
+  String get reservationNoShow;
+
+  /// listingStatusUnknown
+  ///
+  /// In ru, this message translates to:
+  /// **'Статус недоступен'**
+  String get listingStatusUnknown;
 }
 
 class _AppLocalizationsDelegate

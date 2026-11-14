@@ -4,6 +4,7 @@ import 'dart:convert' as convert;
 
 import 'package:dio/dio.dart' show Dio, Options, ResponseType, CancelToken;
 
+import 'models/category_list.dart' as models show CategoryList;
 import 'models/giveaway_input.dart' as models show GiveawayInput;
 import 'models/interaction_output.dart' as models show InteractionOutput;
 import 'models/listing_edit.dart' as models show ListingEdit;
@@ -101,9 +102,28 @@ class ListingsClient {
     );
   }
 
+  /// Categories
+  Future<models.CategoryList> categories({
+    Map<String, Object?> extra = const {},
+    CancelToken? cancelToken,
+    Options? options,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/categories",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.CategoryList.fromJson(response.data as Map<String, Object?>);
+  }
+
   /// My Listings
-  ///
-  /// All own listings, including those no longer in the public feed.
   Future<models.PageListingOutput> myListings({
     Map<String, Object?> extra = const {
       "openapi.security": [
@@ -301,7 +321,7 @@ class ListingsClient {
 
   /// Cancel Listing
   ///
-  /// Only an unoccupied active listing can be cancelled in this slice.
+  /// Closing rejects pending applications and preserves accepted interactions.
   Future<models.ListingOutput> cancelListing({
     Map<String, Object?> extra = const {
       "openapi.security": [
@@ -451,6 +471,122 @@ class ListingsClient {
     );
     final response = await _transport.request<dynamic>(
       "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/events",
+      options: _options,
+      queryParameters: <String, Object?>{
+        if (size != null) "size": size,
+        if (cursor != null) "cursor": cursor,
+      },
+      cancelToken: cancelToken,
+    );
+    return models.PageEventOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Publish Listing
+  Future<models.ListingOutput> publishListing({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/publish",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.ListingOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Extend Listing
+  Future<models.ListingOutput> extendListing({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/extend",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.ListingOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Interaction Events
+  Future<models.PageEventOutput> interactionEvents({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required String interactionId,
+
+    /// Number of items; the default (20) and the maximum (100) are set in the server configuration.
+    int? size,
+
+    /// `next_page` of the previous page.
+    String? cursor,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(interactionId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/interactions/" +
+          Uri.encodeComponent(interactionId) +
+          "/events",
       options: _options,
       queryParameters: <String, Object?>{
         if (size != null) "size": size,

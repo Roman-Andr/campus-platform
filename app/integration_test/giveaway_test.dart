@@ -76,6 +76,12 @@ void main() {
         find.byKey(const Key('listing-description')),
         'Collect on campus',
       );
+      await until(find.byKey(const Key('listing-category')));
+      await tester.tap(find.byKey(const Key('listing-category')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(DropdownMenuItem<String>).last);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Publish'));
       await tester.tap(find.text('Publish'));
       await until(find.text('Integration desk'));
       ownerRefresh = (await storage.read(key: AuthStorage.refreshTokenKey))!;

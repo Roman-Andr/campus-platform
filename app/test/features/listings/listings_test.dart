@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:campus/src/core/api/api_client.dart';
@@ -16,6 +17,46 @@ import 'fixtures.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test(
+    'Drift restores legacy snapshots and every new listing status',
+    () async {
+      final db = createTestDatabase();
+      final cache = DriftListingsCache(db);
+      final legacy = listingJson()
+        ..remove('category_id')
+        ..remove('hidden_reason');
+      await db
+          .into(db.listingFeeds)
+          .insert(
+            ListingFeedsCompanion.insert(
+              owner: 'legacy',
+              area: 'city',
+              payload: jsonEncode(pageJson([legacy])),
+            ),
+          );
+      final restored = (await cache.load(
+        'legacy',
+        Visibility.city,
+      ))!.items.single;
+      expect(restored.categoryId, isNull);
+      expect(restored.hiddenReason, isNull);
+      expect(restored.title, 'A desk');
+      for (final status in ['draft', 'completed', 'hidden']) {
+        await cache.save(
+          'session',
+          Visibility.city,
+          PageListingOutput.fromJson(pageJson([listingJson(status: status)])),
+        );
+        final item = (await cache.load(
+          'session',
+          Visibility.city,
+        ))!.items.single;
+        expect(item.status.toJson(), status);
+        if (status == 'draft') expect(item.expiresAt, isNull);
+      }
+    },
+  );
   test(
     'Drift persists pages, replaces snapshots and isolates session and area',
     () async {

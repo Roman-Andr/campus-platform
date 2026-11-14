@@ -4,6 +4,9 @@ msgstr ""
 msgid "Bad request"
 msgstr ""
 
+msgid "Choose a listing category."
+msgstr ""
+
 msgid "Client version missing"
 msgstr ""
 
@@ -20,6 +23,9 @@ msgid "Fill in your profile first: campus city, faculty and course."
 msgstr ""
 
 msgid "First and last names are required"
+msgstr ""
+
+msgid "Forbidden"
 msgstr ""
 
 msgid "Has an invalid format."
@@ -192,6 +198,9 @@ msgstr ""
 msgid "The resource does not support this method."
 msgstr ""
 
+msgid "There is an update to your listing."
+msgstr ""
+
 msgid "This Idempotency-Key was already used for a different request."
 msgstr ""
 
@@ -210,6 +219,9 @@ msgid ""
 "{version} or newer."
 msgstr ""
 
+msgid "Too many listing actions. Try again later."
+msgstr ""
+
 msgid "Too many requests"
 msgstr ""
 
@@ -221,8 +233,4 @@ msgstr ""
 
 #, python-brace-format
 msgid "Your sign-in code: {code}. It expires in {minutes} minutes."
-msgstr ""
-
-
-msgid "Forbidden"
 msgstr ""

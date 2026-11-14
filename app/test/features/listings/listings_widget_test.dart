@@ -1,15 +1,84 @@
 import 'dart:async';
 
+import 'package:campus/src/core/api/api_client.dart';
+import 'package:campus/src/core/l10n/generated/app_localizations_en.dart';
+import 'package:campus/src/core/l10n/generated/app_localizations_ru.dart';
 import 'package:campus/src/core/router/app_router.dart';
 import 'package:campus/src/features/listings/application/listings.dart';
+import 'package:campus/src/features/listings/presentation/listings_screens.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:material_ui/material_ui.dart' hide Visibility;
 
 import '../../helpers/fake_api.dart';
 import '../../helpers/test_app.dart';
 import 'fixtures.dart';
 
 void main() {
+  test('new and unknown statuses have distinct RU/EN labels', () {
+    final en = AppLocalizationsEn();
+    final ru = AppLocalizationsRu();
+    for (final entry in {
+      'draft': ['Draft', 'Черновик'],
+      'completed': ['Completed', 'Завершено'],
+      'hidden': ['Hidden', 'Скрыто'],
+      'future': ['Status unavailable', 'Статус недоступен'],
+    }.entries) {
+      expect(
+        listingName(en, ListingStatus.fromJson(entry.key)),
+        entry.value[0],
+      );
+      expect(
+        listingName(ru, ListingStatus.fromJson(entry.key)),
+        entry.value[1],
+      );
+    }
+    expect(interactionName(en, InteractionStatus.completed), 'Completed');
+    expect(interactionName(ru, InteractionStatus.completed), 'Завершено');
+    expect(interactionName(en, InteractionStatus.noShow), 'No show');
+    expect(interactionName(ru, InteractionStatus.noShow), 'Неявка');
+    expect(
+      interactionName(en, InteractionStatus.fromJson('future')),
+      'Status unavailable',
+    );
+  });
+
+  testWidgets('category failure prevents publishing and can be retried', (
+    tester,
+  ) async {
+    tester.platformDispatcher.localesTestValue = const [Locale('en')];
+    addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+    var available = false;
+    final server = FakeHttpAdapter(categories: null)
+      ..route((options) {
+        if (options.path.endsWith('/token/refresh')) {
+          return jsonBody(200, tokensJson(1));
+        }
+        return available
+            ? jsonBody(200, {
+                'items': [
+                  {'id': 'category-items', 'code': 'items', 'name': 'Items'},
+                ],
+              })
+            : problemBody(503, 'internal_error');
+      });
+    await tester.pumpCampusApp(InMemorySettingsRepository(), adapter: server);
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Something went wrong on the server. Please try again later.'),
+      findsOneWidget,
+    );
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, 'Publish'))
+          .onPressed,
+      isNull,
+    );
+    available = true;
+    await tester.tap(find.text('Try again'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('listing-category')), findsOneWidget);
+  });
   testWidgets('feed opens a card and explains an already reserved item', (
     tester,
   ) async {
@@ -62,6 +131,10 @@ void main() {
       find.byKey(const Key('listing-description')),
       'Collect on campus',
     );
+    await tester.tap(find.byKey(const Key('listing-category')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Items').last);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Publish'));
     await tester.pumpAndSettle();
     final sent = server.sent.singleWhere((r) => r.path.endsWith('/giveaways'));
@@ -70,6 +143,8 @@ void main() {
       'description': 'Collect on campus',
       'visibility': 'city',
       'audience': 'students',
+      'category_id': 'category-items',
+      'draft': false,
     });
   });
 
@@ -84,6 +159,8 @@ void main() {
       'listing_id': 'listing-1',
       'participant_id': 'other',
       'participant_name': 'Boris',
+      'stage': null,
+      'response_due_at': null,
       'status': status,
     };
     final server = FakeHttpAdapter()
@@ -213,6 +290,8 @@ void main() {
                 'listing_id': 'listing-1',
                 'participant_id': userJson['id'],
                 'participant_name': 'Ivan',
+                'stage': null,
+                'response_due_at': null,
                 'status': 'accepted',
               },
             ]),

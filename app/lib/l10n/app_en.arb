@@ -104,5 +104,12 @@
   "listingBusy": "Reserved",
   "listingExpired": "Expired",
   "listingConflict": "This item is already reserved or no longer available. Refresh the listing.",
-  "listingForbidden": "This action is unavailable for your account."
+  "listingForbidden": "This action is unavailable for your account.",
+  "listingCategory": "Category",
+  "listingCategoriesEmpty": "Categories are unavailable. Please try again later.",
+  "listingDraft": "Draft",
+  "listingCompleted": "Completed",
+  "listingHidden": "Hidden",
+  "reservationNoShow": "No show",
+  "listingStatusUnknown": "Status unavailable"
 }

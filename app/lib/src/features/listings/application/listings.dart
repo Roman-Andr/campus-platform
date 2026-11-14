@@ -64,6 +64,10 @@ class ListingFeed extends _$ListingFeed {
 }
 
 @Riverpod(retry: listingRetry)
+Future<List<CategoryOutput>> listingCategories(Ref ref) async =>
+    (await ref.watch(campusApiProvider).listings.categories()).items;
+
+@Riverpod(retry: listingRetry)
 Future<ListingOutput> listing(Ref ref, String id) =>
     ref.watch(campusApiProvider).listings.getListing(listingId: id);
 

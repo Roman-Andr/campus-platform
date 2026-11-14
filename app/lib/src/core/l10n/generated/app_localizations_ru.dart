@@ -356,4 +356,26 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get listingForbidden => 'Это действие недоступно для вашего аккаунта.';
+
+  @override
+  String get listingCategory => 'Категория';
+
+  @override
+  String get listingCategoriesEmpty =>
+      'Категории пока недоступны. Попробуйте позже.';
+
+  @override
+  String get listingDraft => 'Черновик';
+
+  @override
+  String get listingCompleted => 'Завершено';
+
+  @override
+  String get listingHidden => 'Скрыто';
+
+  @override
+  String get reservationNoShow => 'Неявка';
+
+  @override
+  String get listingStatusUnknown => 'Статус недоступен';
 }

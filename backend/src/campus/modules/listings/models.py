@@ -7,11 +7,14 @@ from uuid import UUID
 from sqlalchemy import CheckConstraint, ForeignKey, Index, String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from campus.core.db import Base, Entity
+from campus.core.db import Base, Entity, LocalizedName
 from campus.modules.identity import User
 
 
 class ListingStatus(StrEnum):
+    DRAFT = "draft"
+    COMPLETED = "completed"
+    HIDDEN = "hidden"
     ACTIVE = "active"
     BUSY = "busy"
     CANCELLED = "cancelled"
@@ -19,6 +22,8 @@ class ListingStatus(StrEnum):
 
 
 class InteractionStatus(StrEnum):
+    COMPLETED = "completed"
+    NO_SHOW = "no_show"
     PENDING = "pending"
     ACCEPTED = "accepted"
     REJECTED = "rejected"
@@ -36,6 +41,13 @@ class Audience(StrEnum):
     COMMUNITY = "community"
 
 
+class Category(LocalizedName, Entity):
+    """Stable localized listing categories, managed by the reference API."""
+
+    __tablename__ = "listing_category"
+    code: Mapped[str] = mapped_column(String(64), unique=True)
+
+
 class Listing(Entity):
     """Common aggregate root; other scenarios add their own detail table.
 
@@ -48,7 +60,9 @@ class Listing(Entity):
     __table_args__ = (
         CheckConstraint("version >= 1", name="version_positive"),
         CheckConstraint(
-            "status IN ('active','busy','cancelled','expired')", name="status"
+            "status IN ('draft','active','busy','completed',"
+            "'cancelled','expired','hidden')",
+            name="status",
         ),
         CheckConstraint(
             "visibility IN ('city','faculty','dormitory')", name="visibility"
@@ -84,7 +98,9 @@ class Listing(Entity):
         ForeignKey("university_dormitory.id")
     )
     version: Mapped[int] = mapped_column(default=1)
-    expires_at: Mapped[datetime]
+    expires_at: Mapped[datetime | None]
+    category_id: Mapped[UUID | None] = mapped_column(ForeignKey("listing_category.id"))
+    hidden_reason: Mapped[str | None] = mapped_column(Text)
 
 
 class Item(Base):
@@ -105,7 +121,9 @@ class Interaction(Entity):
     __tablename__ = "listing_interaction"
     __table_args__ = (
         CheckConstraint(
-            "status IN ('pending','accepted','rejected','cancelled')", name="status"
+            "status IN ('pending','accepted','rejected','cancelled',"
+            "'completed','no_show')",
+            name="status",
         ),
         Index(
             "uq_listing_one_active_interaction",
@@ -126,6 +144,9 @@ class Interaction(Entity):
 
     status: Mapped[str] = mapped_column(String(16), default=InteractionStatus.PENDING)
 
+    stage: Mapped[str | None] = mapped_column(String(32))
+    response_due_at: Mapped[datetime | None]
+
 
 class ListingEvent(Entity):
     """Append-only history, enforced by a database trigger in the migration."""
@@ -133,6 +154,7 @@ class ListingEvent(Entity):
     __tablename__ = "listing_event"
     __table_args__ = (
         Index("ix_listing_event_history", "listing_id", "created_at", "id"),
+        Index("ix_listing_event_quota", "actor_id", "action", "created_at"),
     )
     listing_id: Mapped[UUID] = mapped_column(ForeignKey("listing.id"))
     interaction_id: Mapped[UUID | None] = mapped_column(
@@ -143,3 +165,8 @@ class ListingEvent(Entity):
     previous_status: Mapped[str | None] = mapped_column(String(16))
     status: Mapped[str] = mapped_column(String(16))
     version: Mapped[int]
+
+    reason: Mapped[str | None] = mapped_column(Text)
+    stage: Mapped[str | None] = mapped_column(String(32))
+    via_assistant: Mapped[bool] = mapped_column(default=False)
+    offline_qr: Mapped[bool] = mapped_column(default=False)

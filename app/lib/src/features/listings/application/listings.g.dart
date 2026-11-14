@@ -99,6 +99,47 @@ abstract class _$ListingFeed extends $AsyncNotifier<PageListingOutput> {
   }
 }
 
+@ProviderFor(listingCategories)
+final listingCategoriesProvider = ListingCategoriesProvider._();
+
+final class ListingCategoriesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<CategoryOutput>>,
+          List<CategoryOutput>,
+          FutureOr<List<CategoryOutput>>
+        >
+    with
+        $FutureModifier<List<CategoryOutput>>,
+        $FutureProvider<List<CategoryOutput>> {
+  ListingCategoriesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: listingRetry,
+        name: r'listingCategoriesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$listingCategoriesHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<CategoryOutput>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<CategoryOutput>> create(Ref ref) {
+    return listingCategories(ref);
+  }
+}
+
+String _$listingCategoriesHash() => r'f37a678c15e994bee91872249da31a32a7f3fac9';
+
 @ProviderFor(listing)
 final listingProvider = ListingFamily._();
 

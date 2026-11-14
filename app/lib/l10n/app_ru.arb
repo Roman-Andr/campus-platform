@@ -463,5 +463,33 @@
   },
   "@listingForbidden": {
     "description": "listingForbidden"
+  },
+  "listingCategory": "Категория",
+  "@listingCategory": {
+    "description": "listingCategory"
+  },
+  "listingCategoriesEmpty": "Категории пока недоступны. Попробуйте позже.",
+  "@listingCategoriesEmpty": {
+    "description": "listingCategoriesEmpty"
+  },
+  "listingDraft": "Черновик",
+  "@listingDraft": {
+    "description": "listingDraft"
+  },
+  "listingCompleted": "Завершено",
+  "@listingCompleted": {
+    "description": "listingCompleted"
+  },
+  "listingHidden": "Скрыто",
+  "@listingHidden": {
+    "description": "listingHidden"
+  },
+  "reservationNoShow": "Неявка",
+  "@reservationNoShow": {
+    "description": "reservationNoShow"
+  },
+  "listingStatusUnknown": "Статус недоступен",
+  "@listingStatusUnknown": {
+    "description": "listingStatusUnknown"
   }
 }

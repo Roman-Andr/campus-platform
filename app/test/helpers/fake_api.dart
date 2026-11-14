@@ -49,10 +49,16 @@ typedef Reply = ResponseBody Function(RequestOptions options);
 class FakeHttpAdapter implements HttpClientAdapter {
   FakeHttpAdapter({
     this.me = const {...userJson, ...filledProfileJson},
+    this.categories = const {
+      'items': [
+        {'id': 'category-items', 'code': 'items', 'name': 'Items'},
+      ],
+    },
     this.feed = const {'items': <Object?>[], 'next_page': null},
   });
 
   Map<String, Object?>? feed;
+  Map<String, Object?>? categories;
 
   /// The signed-in user as `GET /api/v1/me` returns it.
   Map<String, Object?>? me;
@@ -111,6 +117,9 @@ class FakeHttpAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     sent.add(SentRequest(options));
+    if (categories != null && options.path == '/api/v1/listings/categories') {
+      return jsonBody(200, categories);
+    }
     if (feed != null &&
         options.method == 'GET' &&
         options.path == '/api/v1/listings') {
