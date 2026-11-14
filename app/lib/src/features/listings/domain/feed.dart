@@ -109,3 +109,9 @@ bool isPinnedAt(ListingOutput item, DateTime now) =>
   }
   return (pinned: pinned, ordinary: ordinary);
 }
+
+/// Isolates search snapshots from the ordinary feed and other queries.
+String searchCacheKey(Visibility area, FeedFilters filters, String query) =>
+    query.isEmpty
+    ? feedCacheKey(area, filters)
+    : '${feedCacheKey(area, filters)}|q=${Uri.encodeComponent(query)}';

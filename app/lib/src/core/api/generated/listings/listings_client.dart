@@ -81,6 +81,8 @@ class ListingsClient {
   /// records between pages; a fresh first page reflects current pin deadlines.
   /// Dormitory filters apply in city and faculty feeds without widening access.
   /// A cursor expires after CAMPUS_FEED_SNAPSHOT_TTL.
+  /// With q, title and description match Russian or English morphology and
+  /// relevance replaces pin ordering. Blank searches return an empty page.
   Future<models.PageListingOutput> listingFeed({
     Map<String, Object?> extra = const {
       "openapi.security": [
@@ -96,6 +98,9 @@ class ListingsClient {
     String? kind,
     String? categoryId,
     String? dormitoryId,
+
+    /// RU/EN full-text search; blank returns no matches.
+    String? q,
 
     /// Number of items; the default (20) and the maximum (100) are set in the server configuration.
     int? size,
@@ -118,6 +123,7 @@ class ListingsClient {
         if (kind != null) "kind": kind,
         if (categoryId != null) "category_id": categoryId,
         if (dormitoryId != null) "dormitory_id": dormitoryId,
+        if (q != null) "q": q,
         if (size != null) "size": size,
         if (cursor != null) "cursor": cursor,
       },

@@ -1036,4 +1036,13 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get profileDone => 'Готово';
+
+  @override
+  String get feedSearch => 'Поиск объявлений';
+
+  @override
+  String get feedSearchClear => 'Сбросить поиск';
+
+  @override
+  String get feedSearchEmpty => 'Объявления не найдены';
 }

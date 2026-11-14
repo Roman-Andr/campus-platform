@@ -19,18 +19,30 @@ part 'listings.g.dart';
 // must reach the UI immediately, with an explicit retry action.
 Duration? listingRetry(int retryCount, Object error) => null;
 
+final feedSearchProvider = NotifierProvider<FeedSearch, String>(FeedSearch.new);
+
+class FeedSearch extends Notifier<String> {
+  @override
+  String build() => '';
+  void search(String value) => state = value.trim();
+}
+
 @Riverpod(retry: listingRetry)
 class ListingFeed extends _$ListingFeed {
   bool _loading = false;
+  Object? _generation;
 
   @override
   Future<PageListingOutput> build(Visibility area) async {
+    _generation = null;
+    _loading = false;
     ref.watch(authStatusProvider.select((s) => s.value));
+    final search = ref.watch(feedSearchProvider);
     final online = ref.watch(networkStatusProvider);
     final filters = await ref.watch(feedFilterSelectionProvider.future);
     final owner = await ref.read(authStorageProvider).cacheNamespace();
     final cache = ref.read(listingsCacheProvider);
-    final key = feedCacheKey(area, filters);
+    final key = searchCacheKey(area, filters, search);
     final cached = await cache.load(owner, key);
     if (!online && cached != null) return cached;
     try {
@@ -39,6 +51,7 @@ class ListingFeed extends _$ListingFeed {
           .listings
           .listingFeed(
             area: area,
+            q: search.isEmpty ? null : search,
             kind: filters.kind?.apiValue,
             categoryId: filters.categoryId,
             dormitoryId: filters.dormitoryId,
@@ -57,6 +70,9 @@ class ListingFeed extends _$ListingFeed {
     final previous = state.value;
     if (_loading || previous == null || previous.nextPage == null) return;
     _loading = true;
+    final search = ref.read(feedSearchProvider);
+    final generation = Object();
+    _generation = generation;
     try {
       final filters =
           ref.read(feedFilterSelectionProvider).value ?? FeedFilters.none;
@@ -65,11 +81,13 @@ class ListingFeed extends _$ListingFeed {
           .listings
           .listingFeed(
             area: area,
+            q: search.isEmpty ? null : search,
             kind: filters.kind?.apiValue,
             categoryId: filters.categoryId,
             dormitoryId: filters.dormitoryId,
             cursor: previous.nextPage,
           );
+      if (!ref.mounted || _generation != generation) return;
       final combined = PageListingOutput(
         items: {
           for (final item in [...previous.items, ...page.items]) item.id: item,
@@ -79,10 +97,10 @@ class ListingFeed extends _$ListingFeed {
       final owner = await ref.read(authStorageProvider).cacheNamespace();
       await ref
           .read(listingsCacheProvider)
-          .save(owner, feedCacheKey(area, filters), combined);
-      state = AsyncData(combined);
+          .save(owner, searchCacheKey(area, filters, search), combined);
+      if (ref.mounted && _generation == generation) state = AsyncData(combined);
     } finally {
-      _loading = false;
+      if (_generation == generation) _loading = false;
     }
   }
 }

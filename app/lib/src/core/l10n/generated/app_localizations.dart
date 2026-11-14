@@ -1915,6 +1915,24 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Готово'**
   String get profileDone;
+
+  /// Listing search field label
+  ///
+  /// In ru, this message translates to:
+  /// **'Поиск объявлений'**
+  String get feedSearch;
+
+  /// Clear the listing search
+  ///
+  /// In ru, this message translates to:
+  /// **'Сбросить поиск'**
+  String get feedSearchClear;
+
+  /// No full-text search matches
+  ///
+  /// In ru, this message translates to:
+  /// **'Объявления не найдены'**
+  String get feedSearchEmpty;
 }
 
 class _AppLocalizationsDelegate

@@ -1335,5 +1335,11 @@
   "profileDone": "Готово",
   "@profileDone": {
     "description": "Finishes filling in the profile."
-  }
+  },
+  "@feedSearch": {"description": "Listing search field label"},
+  "@feedSearchClear": {"description": "Clear the listing search"},
+  "@feedSearchEmpty": {"description": "No full-text search matches"},
+  "feedSearch": "Поиск объявлений",
+  "feedSearchClear": "Сбросить поиск",
+  "feedSearchEmpty": "Объявления не найдены"
 }

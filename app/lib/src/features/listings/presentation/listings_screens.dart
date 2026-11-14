@@ -103,6 +103,30 @@ class _FeedBodyState extends ConsumerState<FeedBody> {
   Visibility area = Visibility.city;
   String? error;
   bool loadingMore = false;
+  final search = TextEditingController();
+  Timer? debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    search.text = ref.read(feedSearchProvider);
+  }
+
+  @override
+  void dispose() {
+    debounce?.cancel();
+    search.dispose();
+    super.dispose();
+  }
+
+  void _search(String value) {
+    debounce?.cancel();
+    debounce = Timer(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      setState(() => error = null);
+      ref.read(feedSearchProvider.notifier).search(value);
+    });
+  }
 
   void _apply(FeedFilters filters) {
     setState(() => error = null);
@@ -130,8 +154,32 @@ class _FeedBodyState extends ConsumerState<FeedBody> {
           ),
           data: (filters) {
             final provider = listingFeedProvider(area);
+            final query = ref.watch(feedSearchProvider);
             return Column(
               children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: TextField(
+                    key: const Key('feed-search'),
+                    controller: search,
+                    onChanged: _search,
+                    decoration: InputDecoration(
+                      labelText: l.feedSearch,
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: IconButton(
+                        key: const Key('feed-search-clear'),
+                        tooltip: l.feedSearchClear,
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          debounce?.cancel();
+                          search.clear();
+                          setState(() => error = null);
+                          ref.read(feedSearchProvider.notifier).search('');
+                        },
+                      ),
+                    ),
+                  ),
+                ),
                 FeedFiltersBar(
                   area: area,
                   filters: filters,
@@ -160,7 +208,12 @@ class _FeedBodyState extends ConsumerState<FeedBody> {
                           ),
                         ),
                         data: (page) {
-                          final split = splitPinned(page.items, clock.now());
+                          final split = query.isEmpty
+                              ? splitPinned(page.items, clock.now())
+                              : (
+                                  pinned: <ListingOutput>[],
+                                  ordinary: page.items,
+                                );
                           return RefreshIndicator(
                             onRefresh: () async {
                               ref.invalidate(provider);
@@ -192,7 +245,11 @@ class _FeedBodyState extends ConsumerState<FeedBody> {
                                 if (page.items.isEmpty)
                                   Padding(
                                     padding: const EdgeInsets.all(24),
-                                    child: Text(l.listingsEmpty),
+                                    child: Text(
+                                      query.isEmpty
+                                          ? l.listingsEmpty
+                                          : l.feedSearchEmpty,
+                                    ),
                                   ),
                                 for (final item in split.ordinary)
                                   ListingTile(item: item),
