@@ -12,7 +12,7 @@ from campus.core.config import ClientPlatform, Settings, get_settings
 from tests.logging_state import preserved_logging
 from tests.web_app import ENCRYPTION_KEY, create_test_app, serve
 
-pytest_plugins = ["tests.database", "tests.services"]
+pytest_plugins = ["tests.database", "tests.services", "tests.matrix_summary"]
 
 
 @pytest.fixture(autouse=True)
