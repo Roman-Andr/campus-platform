@@ -10,6 +10,10 @@ class EventOutput {
     required this.status,
     required this.version,
     required this.createdAt,
+    required this.reason,
+    required this.stage,
+    required this.viaAssistant,
+    required this.offlineQr,
     this.additionalProperties = const {},
   });
 
@@ -23,6 +27,12 @@ class EventOutput {
     if (!json.containsKey("previous_status")) {
       throw ArgumentError("Missing required property: previous_status");
     }
+    if (!json.containsKey("reason")) {
+      throw ArgumentError("Missing required property: reason");
+    }
+    if (!json.containsKey("stage")) {
+      throw ArgumentError("Missing required property: stage");
+    }
     return EventOutput(
       id: json["id"] as String,
       interactionId: json["interaction_id"] as String?,
@@ -32,6 +42,10 @@ class EventOutput {
       status: json["status"] as String,
       version: json["version"] as int,
       createdAt: DateTime.parse(json["created_at"] as String).toUtc(),
+      reason: json["reason"] as String?,
+      stage: json["stage"] as String?,
+      viaAssistant: json["via_assistant"] as bool,
+      offlineQr: json["offline_qr"] as bool,
       additionalProperties: {
         for (final entry in json.entries)
           if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
@@ -55,6 +69,14 @@ class EventOutput {
 
   final DateTime createdAt;
 
+  final String? reason;
+
+  final String? stage;
+
+  final bool viaAssistant;
+
+  final bool offlineQr;
+
   static const _knownKeys = <String>{
     "id",
     "interaction_id",
@@ -64,6 +86,10 @@ class EventOutput {
     "status",
     "version",
     "created_at",
+    "reason",
+    "stage",
+    "via_assistant",
+    "offline_qr",
   };
 
   final Map<String, Object?> additionalProperties;
@@ -79,5 +105,9 @@ class EventOutput {
     "status": this.status,
     "version": this.version,
     "created_at": this.createdAt.toUtc().toIso8601String(),
+    "reason": this.reason,
+    "stage": this.stage,
+    "via_assistant": this.viaAssistant,
+    "offline_qr": this.offlineQr,
   };
 }

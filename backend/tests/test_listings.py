@@ -53,11 +53,13 @@ async def request(
 
 
 async def publish(account: Account, **overrides: Any) -> dict[str, Any]:
+    category = (await request(account, "GET", "/categories")).json()["items"][0]["id"]
     response = await request(
         account,
         "POST",
         "/giveaways",
         {
+            "category_id": category,
             "title": "A desk",
             "description": "Collect on campus",
             **overrides,
@@ -144,11 +146,9 @@ async def test_cancel_races_reserve(
     responses = await asyncio.gather(
         request(owner, "POST", f"/{listing['id']}/cancel"), reserve(borrower, listing)
     )
-    assert sorted(r.status_code for r in responses) in ([200, 409], [201, 409])
+    assert sorted(r.status_code for r in responses) in ([200, 409], [200, 201])
     current = (await request(owner, "GET", f"/{listing['id']}")).json()
-    assert current["status"] == (
-        "cancelled" if responses[0].status_code == 200 else "busy"
-    )
+    assert current["status"] == "cancelled"
 
 
 @pytest.mark.parametrize("source", list(InteractionStatus))
@@ -171,13 +171,20 @@ async def test_every_interaction_edge(
     }
     actor = borrower if target == "cancelled" else owner
     response = await move(actor, listing, interaction, target)
-    assert response.status_code == (200 if (source, target) in allowed else 409)
+    service_only = source == "accepted" and target in ("completed", "no_show")
+    assert response.status_code == (
+        200 if (source, target) in allowed else 403 if service_only else 409
+    )
     events = (await request(owner, "GET", f"/{listing['id']}/events")).json()["items"]
     if response.status_code == 200:
         assert events[-1]["previous_status"] == source
         assert events[-1]["status"] == target
         assert events[-1]["actor_id"] == actor.tokens["user"]["id"]
     else:
+        assert response.headers["content-type"] == "application/problem+json"
+        assert response.json()["code"] == (
+            "listing_forbidden" if service_only else "listing_conflict"
+        )
         assert len(events) == 3
 
 
@@ -203,8 +210,14 @@ async def test_listing_states(
             f"/{listing['id']}",
             {"version": 1, "title": "New", "description": "New description"},
         )
-    allowed = status == "active" or (status == "busy" and action == "edit")
+    allowed = (
+        status == "active"
+        or (status == "busy" and action in ("edit", "cancel"))
+        or (status == "draft" and action in ("edit", "cancel"))
+    )
     expected = (201 if action == "reserve" else 200) if allowed else 409
+    if action == "reserve" and status in ("draft", "hidden"):
+        expected = 404
     assert response.status_code == expected
 
 
@@ -235,7 +248,9 @@ async def test_visibility_and_area_switch(
     assert {x["id"] for x in response.json()["items"]} == {city["id"], faculty["id"]}
     for hidden in (students, dorm):
         assert (await request(staff, "GET", f"/{hidden['id']}")).status_code == 404
-        assert (await reserve(staff, hidden)).status_code == 404
+        assert (await reserve(staff, hidden)).status_code == (
+            403 if hidden == students else 404
+        )
     assert [
         x["id"]
         for x in (await request(borrower, "GET", "?area=dormitory")).json()["items"]
@@ -356,7 +371,8 @@ async def test_release_reopens_item(owner: Account, borrower: Account) -> None:
 
 async def test_idempotency(owner: Account, borrower: Account) -> None:
     key = str(uuid4())
-    data = {"title": "x", "description": "y"}
+    category = (await request(owner, "GET", "/categories")).json()["items"][0]["id"]
+    data = {"title": "x", "description": "y", "category_id": category}
     first = await request(owner, "POST", "/giveaways", data, key)
     replay = await request(owner, "POST", "/giveaways", data, key)
     assert replay.json() == first.json()
@@ -386,7 +402,9 @@ async def test_deadline_catch_up(owner: Account, borrower: Account, state: str) 
     with time_machine.travel(
         now + owner.auth.settings.listing_lifetime + timedelta(days=2), tick=False
     ):
-        assert await process_due_deadlines(sessions, owner.auth.settings) == 1
+        assert await process_due_deadlines(sessions, owner.auth.settings) == (
+            2 if interaction else 1
+        )
         assert await process_due_deadlines(sessions, owner.auth.settings) == 0
         owner.auth.db.expire_all()
         row = await owner.auth.db.get(Listing, UUID(listing["id"]))
@@ -401,9 +419,7 @@ async def test_deadline_catch_up(owner: Account, borrower: Account, state: str) 
                 select(ListingEvent).where(ListingEvent.action == "expired")
             )
         )
-        assert len(events) == (
-            0 if state == "cancelled" else 2 if state == "pending" else 1
-        )
+        assert len(events) == (0 if state == "cancelled" else 1)
 
 
 async def test_database_invariants(owner: Account, borrower: Account) -> None:

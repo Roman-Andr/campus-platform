@@ -248,6 +248,17 @@ class Settings(BaseSettings):
     )
 
     listing_lifetime: timedelta = Field(default=timedelta(days=30), gt=timedelta(0))
+    listing_response_timeout: timedelta = Field(
+        default=timedelta(hours=24), gt=timedelta(0)
+    )
+    listing_publication_limit: int = Field(default=10, ge=1)
+    listing_publication_window: timedelta = Field(
+        default=timedelta(days=1), gt=timedelta(0)
+    )
+    listing_response_limit: int = Field(default=30, ge=1)
+    listing_response_window: timedelta = Field(
+        default=timedelta(hours=1), gt=timedelta(0)
+    )
     listing_title_max_length: int = Field(default=100, ge=1)
     listing_description_max_length: int = Field(default=5000, ge=1)
 

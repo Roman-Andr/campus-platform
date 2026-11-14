@@ -9,6 +9,8 @@ class GiveawayInput {
     required this.description,
     this.visibility = Visibility.city,
     this.audience = Audience.students,
+    this.categoryId,
+    this.draft = false,
   });
 
   factory GiveawayInput.fromJson(Map<String, Object?> json) {
@@ -24,6 +26,10 @@ class GiveawayInput {
       audience: json.containsKey("audience")
           ? Audience.fromJson(json["audience"])
           : Audience.students,
+      categoryId: json.containsKey("category_id")
+          ? json["category_id"] as String?
+          : null,
+      draft: json.containsKey("draft") ? json["draft"] as bool : false,
     );
   }
 
@@ -35,11 +41,17 @@ class GiveawayInput {
 
   final Audience audience;
 
+  final String? categoryId;
+
+  final bool draft;
+
   static const _knownKeys = <String>{
     "title",
     "description",
     "visibility",
     "audience",
+    "category_id",
+    "draft",
   };
 
   Map<String, Object?> toJson() => {
@@ -47,5 +59,7 @@ class GiveawayInput {
     "description": this.description,
     "visibility": this.visibility.toJson(),
     "audience": this.audience.toJson(),
+    if (this.categoryId != null) "category_id": this.categoryId,
+    "draft": this.draft,
   };
 }

@@ -15,9 +15,11 @@ enum ProblemCodeValue {
   idempotencyKeyReused("idempotency_key_reused"),
   internalError("internal_error"),
   invalidCursor("invalid_cursor"),
+  listingCategoryInvalid("listing_category_invalid"),
   listingConflict("listing_conflict"),
   listingContentInvalid("listing_content_invalid"),
   listingForbidden("listing_forbidden"),
+  listingRateLimited("listing_rate_limited"),
   listingVersionConflict("listing_version_conflict"),
   methodNotAllowed("method_not_allowed"),
   notFound("not_found"),
@@ -69,6 +71,9 @@ sealed class ProblemCode {
   );
   static const internalError = ProblemCodeKnown(ProblemCodeValue.internalError);
   static const invalidCursor = ProblemCodeKnown(ProblemCodeValue.invalidCursor);
+  static const listingCategoryInvalid = ProblemCodeKnown(
+    ProblemCodeValue.listingCategoryInvalid,
+  );
   static const listingConflict = ProblemCodeKnown(
     ProblemCodeValue.listingConflict,
   );
@@ -77,6 +82,9 @@ sealed class ProblemCode {
   );
   static const listingForbidden = ProblemCodeKnown(
     ProblemCodeValue.listingForbidden,
+  );
+  static const listingRateLimited = ProblemCodeKnown(
+    ProblemCodeValue.listingRateLimited,
   );
   static const listingVersionConflict = ProblemCodeKnown(
     ProblemCodeValue.listingVersionConflict,

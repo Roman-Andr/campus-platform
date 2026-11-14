@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-14 13:21+0300\n"
+"POT-Creation-Date: 2026-11-14 13:41+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -22,6 +22,9 @@ msgstr "Требуется вход в аккаунт"
 
 msgid "Bad request"
 msgstr "Некорректный запрос"
+
+msgid "Choose a listing category."
+msgstr "Выберите категорию объявления."
 
 msgid "Client version missing"
 msgstr "Не указана версия клиента"
@@ -40,6 +43,9 @@ msgstr "Сначала заполните профиль: город-кампу�
 
 msgid "First and last names are required"
 msgstr "Укажите имя и фамилию"
+
+msgid "Forbidden"
+msgstr "Доступ запрещён"
 
 msgid "Has an invalid format."
 msgstr "Неверный формат."
@@ -211,6 +217,9 @@ msgstr "Запрошенный ресурс не существует."
 msgid "The resource does not support this method."
 msgstr "Ресурс не поддерживает этот метод."
 
+msgid "There is an update to your listing."
+msgstr "Появилось обновление вашего объявления."
+
 msgid "This Idempotency-Key was already used for a different request."
 msgstr "Этот Idempotency-Key уже использован для другого запроса."
 
@@ -231,6 +240,9 @@ msgstr ""
 "Эта версия приложения больше не поддерживается. Обновите его до версии "
 "{version} или новее."
 
+msgid "Too many listing actions. Try again later."
+msgstr "Слишком много действий с объявлениями. Попробуйте позже."
+
 msgid "Too many requests"
 msgstr "Слишком много запросов"
 
@@ -243,7 +255,3 @@ msgstr "Ваш код входа в Кампус"
 #, python-brace-format
 msgid "Your sign-in code: {code}. It expires in {minutes} minutes."
 msgstr "Ваш код входа: {code}. Он действует {minutes} минут."
-
-
-msgid "Forbidden"
-msgstr "Доступ запрещён"
