@@ -574,6 +574,73 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String photoCount(int count, int limit) {
+    return 'Фото: $count из $limit';
+  }
+
+  @override
+  String get photoChoose => 'Выбрать фото';
+
+  @override
+  String get photoTake => 'Сделать фото';
+
+  @override
+  String photoUploading(int percent) {
+    return 'Загружается: $percent%';
+  }
+
+  @override
+  String get photoProcessing => 'Обрабатывается…';
+
+  @override
+  String photoRejected(String reason) {
+    return 'Отклонено: $reason';
+  }
+
+  @override
+  String photoRejectedTooLarge(int megabytes) {
+    return 'файл больше $megabytes МБ';
+  }
+
+  @override
+  String get photoRejectedUnsupported =>
+      'формат не поддерживается, нужен JPEG, PNG, WebP или HEIC';
+
+  @override
+  String get photoRejectedTooManyPixels => 'слишком большое разрешение';
+
+  @override
+  String get photoRejectedInvalidImage =>
+      'файл повреждён или не является изображением';
+
+  @override
+  String get photoRejectedOther => 'фото нельзя использовать';
+
+  @override
+  String get photoRemove => 'Удалить фото';
+
+  @override
+  String get photoMoveEarlier => 'Переместить левее';
+
+  @override
+  String photoLimit(int limit) {
+    return 'Можно добавить не больше $limit фото';
+  }
+
+  @override
+  String photoTooLarge(String name, int megabytes) {
+    return '$name: файл больше $megabytes МБ';
+  }
+
+  @override
+  String get photoWait => 'Дождитесь окончания загрузки фото';
+
+  @override
+  String photoOf(int index, int count) {
+    return 'Фото $index из $count';
+  }
+
+  @override
   String get listingSaveDraft => 'Сохранить черновик';
 
   @override

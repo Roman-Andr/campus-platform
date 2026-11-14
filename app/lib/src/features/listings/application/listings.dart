@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -79,6 +82,28 @@ Future<PageInteractionOutput> incoming(Ref ref, String id, String? cursor) =>
         .listings
         .listingInteractions(listingId: id, cursor: cursor);
 
+/// Processed photos of a listing in their order. Their links are signed
+/// and short-lived, so the list refreshes itself shortly before they expire.
+@Riverpod(retry: listingRetry)
+Future<List<PhotoOutput>> listingPhotos(Ref ref, String id) async {
+  final photos =
+      (await ref.watch(campusApiProvider).photos.listingPhotos(listingId: id))
+          .items;
+  if (photos.isNotEmpty) {
+    final expires = photos
+        .map((photo) => photo.expiresAt)
+        .reduce((a, b) => a.isBefore(b) ? a : b);
+    // A skewed device clock may see the links as expired already; refetching
+    // would not help then, so the list stays until the next refresh.
+    final left = expires.difference(clock.now()) * 0.9;
+    if (left > Duration.zero) {
+      final timer = Timer(left, ref.invalidateSelf);
+      ref.onDispose(timer.cancel);
+    }
+  }
+  return photos;
+}
+
 /// A participation row as the plain interaction shared with other views.
 InteractionOutput asInteraction(ParticipationOutput item) =>
     InteractionOutput.fromJson(item.toJson());
@@ -91,6 +116,7 @@ void refreshListings(WidgetRef ref) {
   ref.invalidate(myParticipationProvider);
   ref.invalidate(favoritesProvider);
   ref.invalidate(incomingProvider);
+  ref.invalidate(listingPhotosProvider);
   ref.invalidate(interactionRejectionProvider);
   ref.invalidate(listingParticipationProvider);
 }

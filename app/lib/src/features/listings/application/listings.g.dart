@@ -295,3 +295,94 @@ final class IncomingFamily extends $Family
   @override
   String toString() => r'incomingProvider';
 }
+
+/// Processed photos of a listing in their order. Their links are signed
+/// and short-lived, so the list refreshes itself shortly before they expire.
+
+@ProviderFor(listingPhotos)
+final listingPhotosProvider = ListingPhotosFamily._();
+
+/// Processed photos of a listing in their order. Their links are signed
+/// and short-lived, so the list refreshes itself shortly before they expire.
+
+final class ListingPhotosProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<PhotoOutput>>,
+          List<PhotoOutput>,
+          FutureOr<List<PhotoOutput>>
+        >
+    with
+        $FutureModifier<List<PhotoOutput>>,
+        $FutureProvider<List<PhotoOutput>> {
+  /// Processed photos of a listing in their order. Their links are signed
+  /// and short-lived, so the list refreshes itself shortly before they expire.
+  ListingPhotosProvider._({
+    required ListingPhotosFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: listingRetry,
+         name: r'listingPhotosProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$listingPhotosHash();
+
+  @override
+  String toString() {
+    return r'listingPhotosProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<PhotoOutput>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<PhotoOutput>> create(Ref ref) {
+    final argument = this.argument as String;
+    return listingPhotos(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ListingPhotosProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$listingPhotosHash() => r'e1d8cb0399a22e57e90a3ea44f4490fcbe0da0e3';
+
+/// Processed photos of a listing in their order. Their links are signed
+/// and short-lived, so the list refreshes itself shortly before they expire.
+
+final class ListingPhotosFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<PhotoOutput>>, String> {
+  ListingPhotosFamily._()
+    : super(
+        retry: listingRetry,
+        name: r'listingPhotosProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Processed photos of a listing in their order. Their links are signed
+  /// and short-lived, so the list refreshes itself shortly before they expire.
+
+  ListingPhotosProvider call(String id) =>
+      ListingPhotosProvider._(argument: id, from: this);
+
+  @override
+  String toString() => r'listingPhotosProvider';
+}

@@ -252,12 +252,14 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('my-section-archive')));
     await tester.pumpAndSettle();
-    expect(server.sent.last.uri.queryParametersAll['status'], [
-      'expired',
-      'completed',
-      'cancelled',
-      'hidden',
-    ]);
+    // Thumbnails may fetch photos after the list request, so look it up.
+    expect(
+      server.sent
+          .lastWhere((r) => r.path.endsWith('/mine'))
+          .uri
+          .queryParametersAll['status'],
+      ['expired', 'completed', 'cancelled', 'hidden'],
+    );
     expect(find.textContaining('Expired'), findsOneWidget);
     await tester.tap(find.text('Publish again'));
     await tester.pumpAndSettle();

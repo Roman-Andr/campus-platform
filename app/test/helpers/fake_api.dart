@@ -58,7 +58,12 @@ class FakeHttpAdapter implements HttpClientAdapter {
       ],
     },
     this.feed = const {'items': <Object?>[], 'next_page': null},
+    this.photos = const {'items': <Object?>[]},
   });
+
+  /// Answer to every `GET /api/v1/listings/{id}/photos`; `null` passes
+  /// those requests to the queued replies.
+  Map<String, Object?>? photos;
 
   List<Map<String, Object?>>? documents;
 
@@ -129,6 +134,12 @@ class FakeHttpAdapter implements HttpClientAdapter {
         options.method == 'GET' &&
         options.path == '/api/v1/listings') {
       return jsonBody(200, feed);
+    }
+    if (photos != null &&
+        options.method == 'GET' &&
+        options.path.startsWith('/api/v1/listings/') &&
+        options.path.endsWith('/photos')) {
+      return jsonBody(200, photos);
     }
     if (documents != null && options.path == '/api/v1/documents') {
       return jsonBody(200, documents);

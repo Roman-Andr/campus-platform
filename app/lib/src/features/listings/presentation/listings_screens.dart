@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart' hide Visibility;
@@ -6,7 +8,9 @@ import '../../../core/api/api_client.dart';
 import '../../../core/api/api_failure_message.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../profile/application/my_profile.dart';
+import '../application/listing_photo_draft.dart';
 import '../application/listings.dart';
+import 'listing_photos.dart';
 import 'my_screens.dart';
 import 'status_labels.dart';
 
@@ -187,6 +191,7 @@ class ListingTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) => Column(
     children: [
       ListTile(
+        leading: ListingThumbnail(id: item.id),
         title: Text(item.title),
         subtitle: Text(
           '${item.authorName} · ${listingName(context.l10n, item.status)}',
@@ -230,6 +235,7 @@ class ListingScreen extends ConsumerWidget {
             data: (item) => ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                ListingGallery(id: id),
                 Row(
                   children: [
                     Expanded(
@@ -287,6 +293,10 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   String? categoryId;
   bool saving = false;
   bool savingDraft = false;
+
+  /// Set once the listing exists, so a retry only attaches the photos.
+  ListingOutput? saved;
+
   @override
   void initState() {
     super.initState();
@@ -297,6 +307,18 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
       scope = item.visibility;
       audience = item.audience;
       categoryId = item.categoryId;
+      unawaited(_showAttachedPhotos(item.id));
+    }
+  }
+
+  /// Shows the photos already attached to the listing being edited.
+  Future<void> _showAttachedPhotos(String id) async {
+    try {
+      final photos = await ref.read(listingPhotosProvider(id).future);
+      if (!mounted || ref.read(listingPhotoDraftProvider).isNotEmpty) return;
+      ref.read(listingPhotoDraftProvider.notifier).attached(photos);
+    } catch (_) {
+      // The gallery simply starts empty; the form still works without it.
     }
   }
 
@@ -305,15 +327,17 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
     if (!form.currentState!.validate()) throw const InvalidListingForm();
     setState(() => saving = true);
     try {
-      final api = ref.read(campusApiProvider).listings;
+      final api = ref.read(campusApiProvider);
       final item = widget.initial;
+      final ListingOutput listing;
       if (item != null) {
-        await api.editListing(
-          listingId: item.id,
+        final current = saved ?? item;
+        listing = saved = await api.listings.editListing(
+          listingId: current.id,
           body: ListingEdit(
             title: title.text.trim(),
             description: description.text.trim(),
-            version: item.version,
+            version: current.version,
             categoryId: categoryId,
           ),
         );
@@ -321,7 +345,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
         final employee =
             ref.read(myProfileProvider).value?.accountType ==
             UserOutputAccountType.employee;
-        await api.publishGiveaway(
+        listing = saved ??= await api.listings.publishGiveaway(
           body: GiveawayInput(
             title: title.text.trim(),
             description: description.text.trim(),
@@ -330,6 +354,14 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
             categoryId: categoryId,
             draft: draft,
           ),
+        );
+      }
+      // Rejected and failed photos are left out; the rest attach in order.
+      final photos = ref.read(listingPhotoDraftProvider.notifier).readyIds;
+      if (photos.isNotEmpty) {
+        await api.photos.setListingPhotos(
+          listingId: listing.id,
+          body: PhotoOrder(fileIds: photos),
         );
       }
     } finally {
@@ -349,6 +381,9 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
     final l = context.l10n;
     final user = ref.watch(myProfileProvider).value;
     final categories = ref.watch(listingCategoriesProvider);
+    final photosBusy = ref.watch(
+      listingPhotoDraftProvider.select((slots) => slots.any((s) => s.busy)),
+    );
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -455,11 +490,14 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                   ? null
                   : (v) => setState(() => audience = v!),
             ),
+            const ListingPhotosField(),
+            if (photosBusy) Text(l.photoWait),
             if (widget.initial == null)
               ListingAction(
                 label: l.listingPublish,
                 enabled:
                     !saving &&
+                    !photosBusy &&
                     user != null &&
                     (categories.value?.isNotEmpty ?? false),
                 run: () => save(draft: false),
@@ -469,7 +507,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
               label: widget.initial == null
                   ? l.listingSaveDraft
                   : l.listingSaveChanges,
-              enabled: !saving && user != null,
+              enabled: !saving && !photosBusy && user != null,
               run: () => save(draft: true),
               after: () => context.pop(),
             ),
