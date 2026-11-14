@@ -8,9 +8,11 @@ import '../../../core/l10n/l10n.dart';
 import '../../profile/application/my_profile.dart';
 import '../application/listings.dart';
 import '../application/my_listings.dart';
+import '../application/waitlist.dart';
 import 'interaction_timeline_screen.dart';
 import 'listings_screens.dart';
 import 'meeting_screen.dart';
+import 'waitlist_widgets.dart';
 
 String mySectionName(AppLocalizations l, MySection section) =>
     switch (section) {
@@ -27,14 +29,15 @@ String listingKindName(AppLocalizations l, String kind) => switch (kind) {
 };
 
 /// "Мои объявления и взаимодействия" (ТЗ п. 5.1.5): own listings grouped by
-/// status and own participation in listings of every kind.
+/// status, own participation in listings of every kind, and active queues and
+/// place offers (ТЗ п. 5.1.1, модуль 4, пп. 9, 14).
 class MyListingsScreen extends StatelessWidget {
   const MyListingsScreen({super.key});
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: Text(l.listingsMine),
@@ -42,11 +45,12 @@ class MyListingsScreen extends StatelessWidget {
             tabs: [
               Tab(text: l.listingsOwn),
               Tab(text: l.listingsReservations),
+              Tab(text: l.listingsQueue),
             ],
           ),
         ),
         body: const TabBarView(
-          children: [OwnListingsTab(), ParticipationTab()],
+          children: [OwnListingsTab(), ParticipationTab(), WaitlistTab()],
         ),
       ),
     );
@@ -109,6 +113,64 @@ class ParticipationTab extends ConsumerWidget {
     hasMore: (page) => page.nextPage != null,
     more: () => ref.read(myParticipationProvider.notifier).more(),
     reload: () => ref.invalidate(myParticipationProvider),
+  );
+}
+
+/// Active queues and place offers of the user, offers first.
+class WaitlistTab extends ConsumerWidget {
+  const WaitlistTab({super.key});
+
+  static int _order(WaitlistStatus status) =>
+      status == WaitlistStatus.offered ? 0 : 1;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    return PagedSnapshot(
+      snapshot: ref.watch(myWaitlistProvider),
+      empty: l.waitlistEmpty,
+      rows: (page) {
+        final active = page.items.where(
+          (item) => waitlistIsActive(item.status),
+        );
+        final entries = active.toList()
+          ..sort((a, b) {
+            final byStatus = _order(a.status).compareTo(_order(b.status));
+            return byStatus != 0
+                ? byStatus
+                : b.createdAt.compareTo(a.createdAt);
+          });
+        final offers = [
+          for (final item in entries)
+            if (item.status == WaitlistStatus.offered) item,
+        ];
+        final queues = [
+          for (final item in entries)
+            if (item.status == WaitlistStatus.waiting) item,
+        ];
+        return [
+          if (offers.isNotEmpty) _MySectionHeader(text: l.offerSection),
+          for (final item in offers) WaitlistEntryTile(entry: item),
+          if (queues.isNotEmpty) _MySectionHeader(text: l.waitlistSection),
+          for (final item in queues) WaitlistEntryTile(entry: item),
+        ];
+      },
+      hasMore: (page) => page.nextPage != null,
+      more: () => ref.read(myWaitlistProvider.notifier).more(),
+      reload: () => ref.invalidate(myWaitlistProvider),
+    );
+  }
+}
+
+class _MySectionHeader extends StatelessWidget {
+  const _MySectionHeader({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+    child: Text(text, style: Theme.of(context).textTheme.titleMedium),
   );
 }
 

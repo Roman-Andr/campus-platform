@@ -13,6 +13,7 @@ import '../../features/listings/presentation/interaction_timeline_screen.dart';
 import '../../features/listings/presentation/listings_screens.dart';
 import '../../features/listings/presentation/meeting_screen.dart';
 import '../../features/listings/presentation/my_screens.dart';
+import '../../features/listings/presentation/place_offer_screen.dart';
 import '../../features/listings/presentation/publication_screen.dart';
 import '../../features/profile/application/my_profile.dart';
 import '../../features/profile/presentation/profile_form_screen.dart';
@@ -40,6 +41,13 @@ abstract final class AppRoutes {
   static const profileEdit = '/profile/edit';
   static const profileEmails = '/profile/emails';
   static const profileSkills = '/profile/skills';
+
+  /// The place offer opened by a notification; the path keeps the listing id.
+  static const placeOfferPath = '/offers/:listingId';
+
+  /// Location of the place offer of [listingId].
+  static String placeOfferOf(String listingId) =>
+      '/offers/${Uri.encodeComponent(listingId)}';
 
   /// Filling in the profile after the first sign-in.
   static const profileSetup = '/welcome';
@@ -70,6 +78,11 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: '/favorites',
         builder: (context, state) => const FavoritesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.placeOfferPath,
+        builder: (context, state) =>
+            PlaceOfferScreen(listingId: state.pathParameters['listingId']!),
       ),
       GoRoute(
         path: '/listings/:id',

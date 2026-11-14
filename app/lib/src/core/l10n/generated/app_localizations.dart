@@ -1933,6 +1933,162 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Объявления не найдены'**
   String get feedSearchEmpty;
+
+  /// Tab of own queues and place offers.
+  ///
+  /// In ru, this message translates to:
+  /// **'Очереди и предложения'**
+  String get listingsQueue;
+
+  /// Joins the queue of an occupied listing.
+  ///
+  /// In ru, this message translates to:
+  /// **'Встать в очередь'**
+  String get waitlistJoin;
+
+  /// Leaves the own place in a listing queue.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выйти из очереди'**
+  String get waitlistLeave;
+
+  /// Own one-based place in the listing queue.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ваше место в очереди: {position}'**
+  String waitlistPosition(int position);
+
+  /// Re-reads the own place in the queue.
+  ///
+  /// In ru, this message translates to:
+  /// **'Обновить позицию'**
+  String get waitlistRefresh;
+
+  /// Queue entry without a place yet.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ожидание в очереди'**
+  String get waitlistWaiting;
+
+  /// The queues and offers tab without active entries.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы не стоите в очередях, предложений места нет'**
+  String get waitlistEmpty;
+
+  /// Heading of active queues in the My tab.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ваши очереди'**
+  String get waitlistSection;
+
+  /// The listing has a free place, so a queue is not available.
+  ///
+  /// In ru, this message translates to:
+  /// **'Место уже свободно: забронируйте вещь.'**
+  String get waitlistFree;
+
+  /// The user already has an active queue entry.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы уже стоите в этой очереди.'**
+  String get waitlistDuplicate;
+
+  /// A participant cannot join the queue of their own application.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы уже участвуете в этом объявлении.'**
+  String get waitlistParticipating;
+
+  /// The listing type has no limited places to wait for.
+  ///
+  /// In ru, this message translates to:
+  /// **'У этого объявления нет очереди.'**
+  String get waitlistUnavailable;
+
+  /// A place offer is already active for another participant.
+  ///
+  /// In ru, this message translates to:
+  /// **'Место предложено другому участнику.'**
+  String get waitlistOfferPending;
+
+  /// The own place offer is no longer active.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложение места больше не действует.'**
+  String get waitlistOfferMissing;
+
+  /// The own place offer expired before confirmation.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок предложения места истёк.'**
+  String get waitlistOfferExpired;
+
+  /// Heading of place offers in the My tab.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложения места'**
+  String get offerSection;
+
+  /// Screen opened by the place offer notification.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложение места'**
+  String get offerTitle;
+
+  /// Heading of the place offer card.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вам предложили место'**
+  String get offerOffered;
+
+  /// Remaining offer time counted from the server expiry.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложение истекает через {time}'**
+  String offerCountdown(String time);
+
+  /// The countdown reached the server expiry instant.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок предложения истёк.'**
+  String get offerExpired;
+
+  /// Confirms the place offer and creates an application.
+  ///
+  /// In ru, this message translates to:
+  /// **'Подтвердить'**
+  String get offerAccept;
+
+  /// Declines the place offer; it goes to the next member.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отказаться'**
+  String get offerDecline;
+
+  /// The place offer was confirmed.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложение подтверждено. Заявка ждёт ответа автора.'**
+  String get offerConfirmed;
+
+  /// The place offer was declined.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы отказались от предложения.'**
+  String get offerDeclined;
+
+  /// The notification opens a place offer that is already gone.
+  ///
+  /// In ru, this message translates to:
+  /// **'Это предложение больше не действует.'**
+  String get offerUnavailable;
+
+  /// Opens the listing of an unavailable place offer.
+  ///
+  /// In ru, this message translates to:
+  /// **'Открыть объявление'**
+  String get offerOpenListing;
 }
 
 class _AppLocalizationsDelegate

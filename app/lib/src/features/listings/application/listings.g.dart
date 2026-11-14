@@ -50,7 +50,7 @@ final class ListingFeedProvider
   }
 }
 
-String _$listingFeedHash() => r'1851103a101e97f22f314bd325cae77d4ec0f94e';
+String _$listingFeedHash() => r'10e64a591b1c93515ff319a24134f536c790fa24';
 
 final class ListingFeedFamily extends $Family
     with

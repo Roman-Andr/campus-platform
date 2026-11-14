@@ -88,6 +88,8 @@ void main() {
         FakeHttpAdapter(feed: pageJson([listingJson(author: 'other')]))..route(
           (options) => options.path.endsWith('/token/refresh')
               ? jsonBody(200, tokensJson(1))
+              : options.path.endsWith('/waitlist/me')
+              ? problemBody(404, 'not_found')
               : options.method == 'POST'
               ? problemBody(409, 'listing_conflict')
               : jsonBody(200, listingJson(author: 'other')),
