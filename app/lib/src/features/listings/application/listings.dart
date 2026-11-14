@@ -8,6 +8,7 @@ import '../../../core/api/api_client.dart';
 import '../../../core/api/network_status.dart';
 import '../../../core/auth/auth_session.dart';
 import '../data/listings_repository.dart';
+import 'interaction_timeline.dart';
 import 'my_listings.dart';
 
 part 'listings.g.dart';
@@ -119,6 +120,7 @@ void refreshListings(WidgetRef ref) {
   ref.invalidate(listingPhotosProvider);
   ref.invalidate(interactionRejectionProvider);
   ref.invalidate(listingParticipationProvider);
+  ref.invalidate(interactionTimelineProvider);
 }
 
 /// Events are ascending and paginated. Keep the latest rejection only.

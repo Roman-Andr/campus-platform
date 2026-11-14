@@ -349,5 +349,22 @@
         "type": "String"
       }
     }
-  }
+  },
+  "timelineTitle": "Interaction history",
+  "timelineOpen": "History",
+  "timelineEmpty": "No events yet",
+  "timelineForbidden": "Only the listing author and the participant can see this history.",
+  "timelineSystem": "System",
+  "timelineYou": "You",
+  "timelineParticipant": "Participant",
+  "timelineRequested": "Request sent",
+  "timelineTransition": "Status changed",
+  "timelineAutoRejected": "Request rejected automatically",
+  "timelineStageChanged": "Stage changed",
+  "timelineOther": "Action",
+  "timelineStatusChange": "{from} → {to}",
+  "timelineReason": "Reason: {reason}",
+  "timelineReasonHidden": "The listing was hidden by moderation.",
+  "timelineViaAssistant": "Via assistant",
+  "timelineOfflineQr": "Offline QR"
 }

@@ -1363,6 +1363,108 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Этап: {stage}'**
   String participationStage(String stage);
+
+  /// No description provided for @timelineTitle.
+  ///
+  /// In ru, this message translates to:
+  /// **'История взаимодействия'**
+  String get timelineTitle;
+
+  /// No description provided for @timelineOpen.
+  ///
+  /// In ru, this message translates to:
+  /// **'История'**
+  String get timelineOpen;
+
+  /// No description provided for @timelineEmpty.
+  ///
+  /// In ru, this message translates to:
+  /// **'Событий пока нет'**
+  String get timelineEmpty;
+
+  /// No description provided for @timelineForbidden.
+  ///
+  /// In ru, this message translates to:
+  /// **'История доступна только автору объявления и участнику.'**
+  String get timelineForbidden;
+
+  /// No description provided for @timelineSystem.
+  ///
+  /// In ru, this message translates to:
+  /// **'Система'**
+  String get timelineSystem;
+
+  /// No description provided for @timelineYou.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы'**
+  String get timelineYou;
+
+  /// No description provided for @timelineParticipant.
+  ///
+  /// In ru, this message translates to:
+  /// **'Участник'**
+  String get timelineParticipant;
+
+  /// No description provided for @timelineRequested.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заявка отправлена'**
+  String get timelineRequested;
+
+  /// No description provided for @timelineTransition.
+  ///
+  /// In ru, this message translates to:
+  /// **'Статус изменён'**
+  String get timelineTransition;
+
+  /// No description provided for @timelineAutoRejected.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заявка отклонена автоматически'**
+  String get timelineAutoRejected;
+
+  /// No description provided for @timelineStageChanged.
+  ///
+  /// In ru, this message translates to:
+  /// **'Этап изменён'**
+  String get timelineStageChanged;
+
+  /// No description provided for @timelineOther.
+  ///
+  /// In ru, this message translates to:
+  /// **'Действие'**
+  String get timelineOther;
+
+  /// No description provided for @timelineStatusChange.
+  ///
+  /// In ru, this message translates to:
+  /// **'{from} → {to}'**
+  String timelineStatusChange(String from, String to);
+
+  /// No description provided for @timelineReason.
+  ///
+  /// In ru, this message translates to:
+  /// **'Причина: {reason}'**
+  String timelineReason(String reason);
+
+  /// No description provided for @timelineReasonHidden.
+  ///
+  /// In ru, this message translates to:
+  /// **'Объявление скрыто модерацией.'**
+  String get timelineReasonHidden;
+
+  /// No description provided for @timelineViaAssistant.
+  ///
+  /// In ru, this message translates to:
+  /// **'Через ассистента'**
+  String get timelineViaAssistant;
+
+  /// No description provided for @timelineOfflineQr.
+  ///
+  /// In ru, this message translates to:
+  /// **'Офлайн-QR'**
+  String get timelineOfflineQr;
 }
 
 class _AppLocalizationsDelegate

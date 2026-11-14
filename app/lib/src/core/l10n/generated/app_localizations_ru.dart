@@ -735,4 +735,60 @@ class AppLocalizationsRu extends AppLocalizations {
   String participationStage(String stage) {
     return 'Этап: $stage';
   }
+
+  @override
+  String get timelineTitle => 'История взаимодействия';
+
+  @override
+  String get timelineOpen => 'История';
+
+  @override
+  String get timelineEmpty => 'Событий пока нет';
+
+  @override
+  String get timelineForbidden =>
+      'История доступна только автору объявления и участнику.';
+
+  @override
+  String get timelineSystem => 'Система';
+
+  @override
+  String get timelineYou => 'Вы';
+
+  @override
+  String get timelineParticipant => 'Участник';
+
+  @override
+  String get timelineRequested => 'Заявка отправлена';
+
+  @override
+  String get timelineTransition => 'Статус изменён';
+
+  @override
+  String get timelineAutoRejected => 'Заявка отклонена автоматически';
+
+  @override
+  String get timelineStageChanged => 'Этап изменён';
+
+  @override
+  String get timelineOther => 'Действие';
+
+  @override
+  String timelineStatusChange(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String timelineReason(String reason) {
+    return 'Причина: $reason';
+  }
+
+  @override
+  String get timelineReasonHidden => 'Объявление скрыто модерацией.';
+
+  @override
+  String get timelineViaAssistant => 'Через ассистента';
+
+  @override
+  String get timelineOfflineQr => 'Офлайн-QR';
 }
