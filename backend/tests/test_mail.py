@@ -91,7 +91,10 @@ async def test_email_queued_through_outbox_is_delivered_to_mailpit(
     assert message["Text"].strip() == "Ваш код: 123456"
     assert "<b>123456</b>" in message["HTML"]
     async with sessions() as session:
-        outbox_id = await session.scalar(select(OutboxMessage.id))
+        outbox = (await session.scalars(select(OutboxMessage))).one()
+        outbox_id = outbox.id
+        assert outbox.payload == {}
+        assert outbox.processed_at is not None
     assert summary["MessageID"] == f"{outbox_id}@campus.test"
 
 

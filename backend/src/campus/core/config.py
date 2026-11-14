@@ -5,6 +5,7 @@ from enum import StrEnum
 from functools import lru_cache
 from typing import Literal, Self
 
+from limits import parse_many
 from packaging.version import InvalidVersion, Version
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -96,6 +97,21 @@ class Settings(BaseSettings):
             " required by the worker and the scheduler."
         ),
     )
+
+    auth_secret_key: SecretStr | None = Field(default=None, min_length=32)
+    access_token_ttl: timedelta = Field(default=timedelta(minutes=15), gt=timedelta(0))
+    refresh_token_ttl: timedelta = Field(default=timedelta(days=30), gt=timedelta(0))
+    sign_in_code_ttl: timedelta = Field(default=timedelta(minutes=10), gt=timedelta(0))
+    sign_in_code_max_attempts: int = Field(default=5, ge=1)
+    sign_in_email_limits: str = "3/15 minutes;10/day"
+    sign_in_ip_limits: str = "60/minute"
+
+    @field_validator("sign_in_email_limits", "sign_in_ip_limits")
+    @classmethod
+    def _check_rate_limits(cls, value: str) -> str:
+        if not parse_many(value):
+            raise ValueError("At least one rate limit is required")
+        return value
 
     # Background jobs: outbox messages and deadlines (specification, 4.3, 5.2).
     outbox_poll_interval: float = Field(

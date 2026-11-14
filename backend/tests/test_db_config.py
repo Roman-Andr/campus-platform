@@ -41,9 +41,10 @@ def test_non_postgresql_url_is_rejected(
 
 
 def test_database_password_is_hidden_from_repr(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("CAMPUS_DATABASE_URL", URL)
+    password = "database-password-sentinel"  # noqa: S105 - test value
+    monkeypatch.setenv("CAMPUS_DATABASE_URL", URL.replace("secret", password))
 
-    assert "secret" not in repr(Settings())
+    assert password not in repr(Settings())
 
 
 def test_engine_requires_database_url() -> None:

@@ -5,6 +5,7 @@ requests in a request transaction, and cursor pagination. Domain modules
 build their routers with :func:`api_router`.
 """
 
+from campus.core.web.auth import CurrentUser, Principal
 from campus.core.web.pagination import Page, PageParams, PageQuery, paginate, sort_by
 from campus.core.web.problems import (
     FieldError,
@@ -19,11 +20,13 @@ from campus.core.web.routing import ApiRoute, DbSession, api_router
 
 __all__ = [
     "ApiRoute",
+    "CurrentUser",
     "DbSession",
     "FieldError",
     "Page",
     "PageParams",
     "PageQuery",
+    "Principal",
     "Problem",
     "ProblemError",
     "ProblemType",

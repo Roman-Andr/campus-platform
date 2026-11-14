@@ -37,6 +37,7 @@ from campus.core.idempotency import (
     claim_idempotency_key,
     store_response,
 )
+from campus.core.web.auth import authenticate
 from campus.core.web.clients import (
     PLATFORM_HEADER,
     VERSION_HEADER,
@@ -115,6 +116,7 @@ _ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
         " (client_version_missing, client_version_invalid,"
         " idempotency_key_missing, idempotency_key_invalid, ...)."
     ),
+    401: _problem("Invalid, expired or revoked authentication (unauthorized)."),
     422: _problem(
         "Invalid request (validation_failed) or Idempotency-Key used for a"
         " different request (idempotency_key_reused)."
@@ -216,6 +218,7 @@ class ApiRoute(APIRoute):
         async def route_handler(request: Request) -> Response:
             settings: Settings = request.app.state.settings
             check_client_version(request, settings)
+            principal = await authenticate(request)
             key = _idempotency_key(request) if mutating else None
 
             sessions = _session_factory(request)
@@ -226,8 +229,7 @@ class ApiRoute(APIRoute):
 
             async with sessions() as session:
                 request.state.db_session = session
-                # Replaced by the user id once requests are authenticated.
-                scope = ANONYMOUS_SCOPE
+                scope = str(principal.user_id) if principal else ANONYMOUS_SCOPE
                 if key is not None:
                     try:
                         stored = await claim_idempotency_key(
