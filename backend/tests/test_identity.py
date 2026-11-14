@@ -501,6 +501,9 @@ async def test_mail_localization_and_non_disclosure(auth: Auth) -> None:
         )
         assert message is not None
         assert ("Your" if locale == "en" else "Ваш") in message.payload["subject"]
+        minutes = int(auth.settings.sign_in_code_ttl.total_seconds() // 60)
+        assert f" {minutes} " in message.payload["text"]
+        assert f"{minutes}.0" not in message.payload["text"]
         await auth.db.rollback()
     assert responses[0] == responses[1]
 

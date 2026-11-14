@@ -161,7 +161,7 @@ async def request_sign_in_code(
             MAIL_TEXT,
             locale,
             code=code,
-            minutes=settings.sign_in_code_ttl.total_seconds() / 60,
+            minutes=int(settings.sign_in_code_ttl.total_seconds() // 60),
         ),
     )
 
