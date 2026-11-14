@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Squash-merges a pull request only if its required checks are green on
-# the current head commit, which must not change before the merge. Stands
-# in for the required status checks of a ruleset (.github/rulesets/).
+# the current head commit, which must not change before the merge. The
+# main ruleset (.github/rulesets/main.json) enforces the same thing on the
+# server; this script fails earlier with a readable message and merges
+# exactly the commit it verified.
 # Usage: .github/scripts/merge-pr.sh <pr-number>
 set -euo pipefail
 

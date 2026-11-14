@@ -83,22 +83,27 @@ GitHub Actions (`.github/workflows/`):
   новый коммит — squash-мерж PR с зелёными `ci` и `pr-title` и что push
   не принудительный; иначе падает и заводит issue с меткой `bug`.
 
-Обязательные проверки — `ci` и `pr-title`. Репозиторий приватный, без
-GitHub Pro rulesets и branch protection недоступны (API отвечает 403),
-поэтому до их появления действует замена:
+Обязательные проверки — `ci` и `pr-title`. `main` защищён серверным
+правилом из [`.github/rulesets/main.json`](.github/rulesets/main.json)
+(ruleset `main`, принудительно, без обхода): изменение только через PR,
+только squash, обязательные `ci` и `pr-title` на головном коммите,
+запрещены force push и удаление ветки. То есть красный PR не сольётся ни
+кнопкой, ни `gh pr merge`, а прямой `git push origin HEAD:main` сервер
+отклоняет с `GH013`.
 
-1. PR сливается только скриптом, который проверяет `ci` и `pr-title` на
-   последнем коммите PR и сливает именно его:
-   `.github/scripts/merge-pr.sh <номер PR>`;
-2. хук pre-push отклоняет push в `main` (обходится `--no-verify` — такой
-   push ловит `main-guard.yml`);
-3. `main-guard.yml` сообщает о любом изменении `main` в обход п. 1.
-
-Когда rulesets станут доступны (GitHub Pro или публичный репозиторий),
-правило для `main` включается одной командой — PR обязателен, только
-squash, обязательные `ci` и `pr-title`, без force push и удаления:
+Правило применяется одной командой (rulesets доступны, потому что
+репозиторий публичный):
 
 ```sh
 gh api -X POST repos/Roman-Andr/campus-platform/rulesets \
   --input .github/rulesets/main.json
 ```
+
+Мерж идёт скриптом `.github/scripts/merge-pr.sh <номер PR>`: он заранее
+проверяет те же `ci` и `pr-title` и сливает именно проверенный коммит,
+поэтому нарушение видно как понятная ошибка скрипта, а не как отказ API.
+
+Второй рубеж оставлен намеренно: хук pre-push отклоняет push в `main`
+локально, а `main-guard.yml` после push в `main` проверяет, что
+изменение пришло squash-мержем PR с зелёными проверками, и иначе падает
+и заводит issue с меткой `bug`.
