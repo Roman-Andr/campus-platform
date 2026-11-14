@@ -1,3 +1,4 @@
+import { ClientUpdateNotice } from './ClientUpdateNotice';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import type { ReactNode } from 'react';
 import { Layout as RaLayout, Menu as RaMenu } from 'react-admin';
@@ -15,5 +16,8 @@ const Menu = () => (
 );
 
 export const Layout = ({ children }: { children: ReactNode }) => (
-  <RaLayout menu={Menu}>{children}</RaLayout>
+  <RaLayout menu={Menu}>
+    <ClientUpdateNotice />
+    {children}
+  </RaLayout>
 );

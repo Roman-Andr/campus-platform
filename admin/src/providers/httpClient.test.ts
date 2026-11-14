@@ -1,4 +1,5 @@
 import { HttpError } from 'react-admin';
+import { config } from '../config';
 import { createHttpClient } from './httpClient';
 
 const fetchMock = vi.fn<typeof fetch>();
@@ -30,6 +31,8 @@ describe('createHttpClient', () => {
 
     expect(json).toEqual({ ok: true });
     expect(sentHeaders().get('Accept-Language')).toBe('en');
+    expect(sentHeaders().get('X-Client-Platform')).toBe('admin');
+    expect(sentHeaders().get('X-Client-Version')).toBe(config.clientVersion);
     expect(sentHeaders().get('Accept')).toContain('application/problem+json');
     expect(sentHeaders().has('Idempotency-Key')).toBe(false);
   });
@@ -67,7 +70,7 @@ describe('createHttpClient', () => {
           status: 422,
           detail: 'Check the highlighted fields',
           code: 'validation_failed',
-          errors: [{ pointer: '/title', detail: 'Required' }],
+          errors: [{ pointer: '#/title', detail: 'Required', code: 'missing' }],
         },
         422,
         'application/problem+json',
@@ -95,4 +98,42 @@ describe('createHttpClient', () => {
     expect((error as HttpError).status).toBe(502);
     expect((error as HttpError).message).toBe('Bad');
   });
+});
+
+it.each(['POST', 'PUT', 'PATCH', 'DELETE'])(
+  'retries %s with the same UUID after connection loss',
+  async (method) => {
+    const newKey = vi.fn(() => crypto.randomUUID());
+    fetchMock
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(jsonResponse({ id: 1 }));
+    await createHttpClient({ getLocale: () => 'ru', newIdempotencyKey: newKey })('/api/v1/items', {
+      method,
+      body: '{}',
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(newKey).toHaveBeenCalledTimes(1);
+    const keys = fetchMock.mock.calls.map(([, init]) =>
+      new Headers(init?.headers).get('Idempotency-Key'),
+    );
+    expect(keys[0]).toMatch(/^[0-9a-f-]{36}$/);
+    expect(keys[1]).toBe(keys[0]);
+    expect(fetchMock.mock.calls[1]?.[1]?.body).toBe('{}');
+  },
+);
+
+it('stops after one network retry', async () => {
+  fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
+  await expect(client('/api/v1/items', { method: 'POST' })).rejects.toThrow('Failed to fetch');
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+});
+
+it('does not retry an aborted request', async () => {
+  const controller = new AbortController();
+  controller.abort();
+  fetchMock.mockRejectedValue(new DOMException('Aborted', 'AbortError'));
+  await expect(
+    client('/api/v1/items', { method: 'POST', signal: controller.signal }),
+  ).rejects.toThrow('Aborted');
+  expect(fetchMock).toHaveBeenCalledTimes(1);
 });

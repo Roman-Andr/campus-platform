@@ -1,5 +1,6 @@
 import type { DataProvider, GetListParams } from 'react-admin';
 import { createDataProvider, type CursorPage } from './dataProvider';
+import type { components } from '../api/schema';
 import type { HttpClient, HttpResponse } from './httpClient';
 
 const API = 'https://api.test/api/v1';
@@ -108,12 +109,26 @@ describe('getList', () => {
     expect(requested(2).query.get('cursor')).toBe('c2');
   });
 
-  it('defaults to page 1 and passes the total through when the API counts', async () => {
-    httpClient.mockResolvedValueOnce(response({ items: [{ id: 1 }], total: 1 }));
+  it('accepts the unpaginated university response and defaults to page 1', async () => {
+    const cities: components['schemas']['CityList'] = {
+      items: [
+        {
+          id: 'f9342dee-182e-4260-bd71-70ccdf51fb33',
+          code: 'moscow',
+          name: 'Moscow',
+          timezone: 'Europe/Moscow',
+        },
+      ],
+    };
+    httpClient.mockResolvedValueOnce(response(cities));
 
-    const result = await provider.getList('users', { filter: {} });
+    const result = await provider.getList<components['schemas']['CityOut']>('university/cities', {
+      filter: {},
+    });
 
-    expect(result.total).toBe(1);
+    expect(result.data[0]?.id).toBe('f9342dee-182e-4260-bd71-70ccdf51fb33');
+    expect(result.pageInfo?.hasNextPage).toBe(false);
+    expect(result.total).toBeUndefined();
     expect(requested(0).query.get('size')).toBe('25');
   });
 

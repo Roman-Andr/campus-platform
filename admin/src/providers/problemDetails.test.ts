@@ -1,51 +1,38 @@
+import type { ProblemDetails } from './problemDetails';
 import { fieldErrors, isProblemDetails, problemMessage } from './problemDetails';
 
-describe('isProblemDetails', () => {
-  it('accepts objects with standard or code members', () => {
-    expect(isProblemDetails({ title: 'Not Found', status: 404 })).toBe(true);
-    expect(isProblemDetails({ code: 'item_reserved' })).toBe(true);
-    expect(isProblemDetails({ type: 'about:blank' })).toBe(true);
-  });
+const problem: ProblemDetails = {
+  type: 'urn:problem:campus:validation_failed',
+  title: 'Invalid request',
+  status: 422,
+  code: 'validation_failed',
+  detail: null,
+};
 
-  it('rejects anything else', () => {
-    expect(isProblemDetails(undefined)).toBe(false);
-    expect(isProblemDetails('error')).toBe(false);
-    expect(isProblemDetails([])).toBe(false);
-    expect(isProblemDetails({ message: 'oops' })).toBe(false);
-  });
+it('recognizes the server Problem envelope', () => {
+  expect(isProblemDetails(problem)).toBe(true);
+  for (const value of [undefined, 'error', [], { message: 'oops' }, { code: 'bad_request' }]) {
+    expect(isProblemDetails(value)).toBe(false);
+  }
 });
 
-describe('problemMessage', () => {
-  it('prefers detail, then title, then the fallback', () => {
-    expect(problemMessage({ title: 'Conflict', detail: 'Item already booked' }, 'x')).toBe(
-      'Item already booked',
-    );
-    expect(problemMessage({ title: 'Conflict' }, 'x')).toBe('Conflict');
-    expect(problemMessage({ code: 'conflict' }, 'x')).toBe('x');
-  });
+it('uses detail, then title', () => {
+  expect(problemMessage({ ...problem, detail: 'Check fields' })).toBe('Check fields');
+  expect(problemMessage(problem)).toBe('Invalid request');
 });
 
-describe('fieldErrors', () => {
-  it('maps invalid-params and JSON pointers to react-admin field names', () => {
-    expect(
-      fieldErrors({
-        'invalid-params': [{ name: 'email', reason: 'Invalid address' }],
-        errors: [
-          { pointer: '#/name', detail: 'Required' },
-          { pointer: '/body/address/city', detail: 'Too long' },
-          { field: 'age', message: 'Must be positive' },
-        ],
-      }),
-    ).toEqual({
-      email: 'Invalid address',
-      name: 'Required',
-      'address.city': 'Too long',
-      age: 'Must be positive',
-    });
-  });
-
-  it('returns undefined when there are no usable field errors', () => {
-    expect(fieldErrors({ title: 'Bad Request' })).toBeUndefined();
-    expect(fieldErrors({ errors: [{ pointer: '/name' }] })).toBeUndefined();
-  });
+it('decodes server pointers and ignores parameter and header errors for forms', () => {
+  expect(
+    fieldErrors({
+      ...problem,
+      errors: [
+        { pointer: '#/address/city', code: 'missing', detail: 'Required' },
+        { pointer: '#/a~1b/~0name', code: 'missing', detail: 'Required' },
+        { parameter: 'size', code: 'greater_than', detail: 'Too small' },
+        { header: 'Idempotency-Key', code: 'missing', detail: 'Required' },
+      ],
+    }),
+  ).toEqual({ 'address.city': 'Required', 'a/b.~name': 'Required' });
+  expect(fieldErrors(problem)).toBeUndefined();
+  expect(fieldErrors({ ...problem, errors: null })).toBeUndefined();
 });

@@ -1,3 +1,5 @@
+import { config } from '../config';
+import { reportClientUpdate } from './clientUpdate';
 import { fetchUtils, HttpError } from 'react-admin';
 import { fieldErrors, isProblemDetails, problemMessage } from './problemDetails';
 
@@ -32,16 +34,28 @@ export const createHttpClient =
     const headers = new Headers(options.headers);
     headers.set('Accept', 'application/json, application/problem+json');
     headers.set('Accept-Language', getLocale());
+    headers.set('X-Client-Platform', 'admin');
+    headers.set('X-Client-Version', config.clientVersion);
     const method = (options.method ?? 'GET').toUpperCase();
     if (MUTATING_METHODS.has(method) && !headers.has('Idempotency-Key')) {
       headers.set('Idempotency-Key', newIdempotencyKey());
     }
     try {
-      return await fetchUtils.fetchJson(url, { ...options, headers });
+      try {
+        return await fetchUtils.fetchJson(url, { ...options, headers });
+      } catch (error) {
+        // A fetch network failure has no HTTP response. Retry once, keeping
+        // the prepared headers and body, including the operation's UUID.
+        if (!(error instanceof TypeError) || options.signal?.aborted) throw error;
+        return await fetchUtils.fetchJson(url, { ...options, headers });
+      }
     } catch (error) {
       if (error instanceof HttpError && isProblemDetails(error.body)) {
         const problem = error.body;
-        throw new HttpError(problemMessage(problem, error.message), error.status, {
+        if (error.status === 426 && problem.code === 'client_update_required') {
+          reportClientUpdate(problem.min_version ?? null);
+        }
+        throw new HttpError(problemMessage(problem), error.status, {
           ...problem,
           errors: fieldErrors(problem),
         });
