@@ -4,6 +4,7 @@ class EventOutput {
   const EventOutput({
     required this.id,
     required this.interactionId,
+    required this.waitlistEntryId,
     required this.actorId,
     required this.action,
     required this.previousStatus,
@@ -24,6 +25,9 @@ class EventOutput {
     if (!json.containsKey("interaction_id")) {
       throw ArgumentError("Missing required property: interaction_id");
     }
+    if (!json.containsKey("waitlist_entry_id")) {
+      throw ArgumentError("Missing required property: waitlist_entry_id");
+    }
     if (!json.containsKey("actor_id")) {
       throw ArgumentError("Missing required property: actor_id");
     }
@@ -42,6 +46,7 @@ class EventOutput {
     return EventOutput(
       id: json["id"] as String,
       interactionId: json["interaction_id"] as String?,
+      waitlistEntryId: json["waitlist_entry_id"] as String?,
       actorId: json["actor_id"] as String?,
       action: json["action"] as String,
       previousStatus: json["previous_status"] as String?,
@@ -67,6 +72,8 @@ class EventOutput {
   final String id;
 
   final String? interactionId;
+
+  final String? waitlistEntryId;
 
   final String? actorId;
 
@@ -94,6 +101,7 @@ class EventOutput {
   static const _knownKeys = <String>{
     "id",
     "interaction_id",
+    "waitlist_entry_id",
     "actor_id",
     "action",
     "previous_status",
@@ -114,6 +122,7 @@ class EventOutput {
       if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
     "id": this.id,
     "interaction_id": this.interactionId,
+    "waitlist_entry_id": this.waitlistEntryId,
     "actor_id": this.actorId,
     "action": this.action,
     "previous_status": this.previousStatus,

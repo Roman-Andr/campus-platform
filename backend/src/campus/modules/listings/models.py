@@ -238,6 +238,71 @@ class Meeting(Entity):
         return MeetingStatus.PROPOSED if self.proposed_at else MeetingStatus.SCHEDULED
 
 
+class WaitlistStatus(StrEnum):
+    WAITING = "waiting"
+    OFFERED = "offered"
+    CLAIMED = "claimed"
+    DECLINED = "declined"
+    EXPIRED = "expired"
+    LEFT = "left"
+    REMOVED = "removed"
+
+
+class WaitlistEntry(Entity):
+    """One active queue position per participant and listing.
+
+    Released places are offered to the first waiting entry for a limited
+    time; accepting an offer creates a regular pending interaction, so the
+    author still accepts the application. A partial unique index keeps one
+    active position per participant and one active offer per listing.
+    """
+
+    __tablename__ = "listing_waitlist"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('waiting','offered','claimed','declined','expired',"
+            "'left','removed')",
+            name="status",
+        ),
+        CheckConstraint(
+            "(offered_at IS NULL) = (offer_expires_at IS NULL)", name="offer_times"
+        ),
+        Index(
+            "uq_listing_waitlist_participant",
+            "listing_id",
+            "participant_id",
+            unique=True,
+            postgresql_where=text("status IN ('waiting', 'offered')"),
+        ),
+        Index(
+            "uq_listing_waitlist_offer",
+            "listing_id",
+            unique=True,
+            postgresql_where=text("status = 'offered'"),
+        ),
+        Index(
+            "ix_listing_waitlist_queue",
+            "listing_id",
+            "created_at",
+            "id",
+            postgresql_where=text("status IN ('waiting', 'offered')"),
+        ),
+    )
+    listing_id: Mapped[UUID] = mapped_column(ForeignKey("listing.id"))
+    participant_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
+    participant: Mapped[User] = relationship(lazy="joined", innerjoin=True)
+    status: Mapped[str] = mapped_column(String(16), default=WaitlistStatus.WAITING)
+    offered_at: Mapped[datetime | None]
+    offer_expires_at: Mapped[datetime | None]
+    interaction_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("listing_interaction.id")
+    )
+
+    @property
+    def participant_name(self) -> str:
+        return f"{self.participant.first_name} {self.participant.last_name}"
+
+
 class ListingEvent(Entity):
     """Append-only history, enforced by a database trigger in the migration."""
 
@@ -249,6 +314,9 @@ class ListingEvent(Entity):
     listing_id: Mapped[UUID] = mapped_column(ForeignKey("listing.id"))
     interaction_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("listing_interaction.id")
+    )
+    waitlist_entry_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("listing_waitlist.id")
     )
     actor_id: Mapped[UUID | None] = mapped_column(ForeignKey("identity_user.id"))
     action: Mapped[str] = mapped_column(String(32))
