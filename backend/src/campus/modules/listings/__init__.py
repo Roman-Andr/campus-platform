@@ -1,5 +1,25 @@
-"""Listings and interactions between students.
+"""Public listing API and aggregate persistence."""
 
-Public interface of the module. Other modules import only this package,
-never its submodules (enforced by import-linter).
-"""
+from campus.modules.listings.api import router
+from campus.modules.listings.models import (
+    Audience,
+    Interaction,
+    InteractionStatus,
+    Item,
+    Listing,
+    ListingEvent,
+    ListingStatus,
+    Visibility,
+)
+
+__all__ = [
+    "Audience",
+    "Interaction",
+    "InteractionStatus",
+    "Item",
+    "Listing",
+    "ListingEvent",
+    "ListingStatus",
+    "Visibility",
+    "router",
+]

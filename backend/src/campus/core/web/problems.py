@@ -111,6 +111,9 @@ class Problem(BaseModel):
         default=None, description="X-Request-ID of the request, for support."
     )
     errors: list[FieldError] | None = None
+    current_version: int | None = Field(
+        default=None, description="Current aggregate version after a stale edit."
+    )
     min_version: str | None = Field(
         default=None,
         description="Oldest supported client version (client_update_required).",
@@ -163,6 +166,7 @@ def problem_response(  # noqa: PLR0913 - the members of a problem
     min_version: str | None = None,
     headers: Mapping[str, str] | None = None,
     params: Mapping[str, object] | None = None,
+    current_version: int | None = None,
 ) -> ProblemResponse:
     """Render ``problem_type`` in the language of ``request``."""
     locale = request_locale(request)
@@ -180,6 +184,7 @@ def problem_response(  # noqa: PLR0913 - the members of a problem
         request_id=correlation_id.get(),
         errors=list(errors) or None,
         min_version=min_version,
+        current_version=current_version,
     )
     return ProblemResponse(
         problem.model_dump(mode="json", exclude_none=True),

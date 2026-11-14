@@ -247,6 +247,10 @@ class Settings(BaseSettings):
         "before cancelling them; below the stop grace period of the container.",
     )
 
+    listing_lifetime: timedelta = Field(default=timedelta(days=30), gt=timedelta(0))
+    listing_title_max_length: int = Field(default=100, ge=1)
+    listing_description_max_length: int = Field(default=5000, ge=1)
+
     smtp_host: str | None = Field(
         default=None, description="Outgoing mail server; sending fails when empty."
     )
