@@ -152,8 +152,8 @@ class InteractionOutputMeetingNull implements InteractionOutputMeeting {
 sealed class ParticipationOutputMeeting {
   factory ParticipationOutputMeeting.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches18(json)) "MeetingOutput",
-      if (_matches19(json)) "Null",
+      if (_matches24(json)) "MeetingOutput",
+      if (_matches25(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -238,8 +238,8 @@ bool _matches10(Object? value) => ((value is String) || (value == null));
 bool _matches11(Object? value) => ((value is String) || (value == null));
 bool _matches12(Object? value) => ((value is String) || (value == null));
 bool _matches14(Object? value) => ((value == null));
-bool _matches18(Object? value) => (_matches2(value));
-bool _matches19(Object? value) => ((value == null));
+bool _matches24(Object? value) => (_matches2(value));
+bool _matches25(Object? value) => ((value == null));
 int _readJsonInteger(Object? value) {
   if (value is int) {
     return value;

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-14 23:14+0300\n"
+"POT-Creation-Date: 2026-11-15 01:29+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -58,6 +58,9 @@ msgstr "Нельзя удалить последний корпоративны�
 
 msgid "Channel is not available"
 msgstr "Канал недоступен"
+
+msgid "Chat not available"
+msgstr "Чат недоступен"
 
 msgid "Choose a listing category."
 msgstr "Выберите категорию объявления."
@@ -138,6 +141,9 @@ msgstr "Неверное время встречи"
 
 msgid "Invalid offer"
 msgstr "Неверное предложение"
+
+msgid "Invalid quiet hours"
+msgstr "Неверные параметры тихих часов"
 
 msgid "Invalid realtime channel"
 msgstr "Неверный канал реального времени"
@@ -248,6 +254,9 @@ msgstr "Места открыты для всех; бронируйте сейч
 msgid "Profile incomplete"
 msgstr "Профиль не заполнен"
 
+msgid "Quiet hours must start and end at different times."
+msgstr "Начало и конец тихих часов должны различаться."
+
 msgid "Realtime history expired"
 msgstr "История реального времени устарела"
 
@@ -262,11 +271,18 @@ msgstr "Обновите взаимодействие. Текущая верси
 msgid "Reload the listing. Its current version is {version}."
 msgstr "Обновите объявление. Его текущая версия: {version}."
 
+#, python-brace-format
+msgid "Reload the settings. Their current version is {version}."
+msgstr "Обновите настройки. Их текущая версия: {version}."
+
 msgid "Request failed"
 msgstr "Запрос не выполнен"
 
 msgid "Requests that change data need an Idempotency-Key header."
 msgstr "Изменяющему запросу нужен заголовок Idempotency-Key."
+
+msgid "Send the current settings version to replace muted chats."
+msgstr "Укажите текущую версию настроек, чтобы заменить список отключённых чатов."
 
 msgid "Session not found"
 msgstr "Сессия не найдена"
@@ -362,6 +378,13 @@ msgstr "Время встречи должно быть в будущем."
 msgid "The name can be changed once in {days} days; see available_at."
 msgstr "Имя можно менять раз в {days} дней; ближайшая дата — в available_at."
 
+msgid "The notification settings were changed."
+msgstr "Настройки уведомлений были изменены."
+
+#, python-brace-format
+msgid "The notification type {type} is not supported."
+msgstr "Тип уведомления {type} не поддерживается."
+
 msgid "The offer of a place has expired."
 msgstr "Срок предложения места истёк."
 
@@ -425,11 +448,17 @@ msgstr "Слишком много действий с объявлениями. 
 msgid "Too many requests"
 msgstr "Слишком много запросов"
 
+msgid "Unknown notification type"
+msgstr "Неизвестный тип уведомления"
+
 msgid "Update required"
 msgstr "Требуется обновление"
 
 msgid "Use RFC 3339 with an explicit UTC offset."
 msgstr "Используйте RFC 3339 с явно указанным смещением UTC."
+
+msgid "Use a wall time without a UTC offset."
+msgstr "Укажите время без смещения часового пояса."
 
 msgid "Wait for the author's decision."
 msgstr "Дождитесь решения автора."
@@ -448,6 +477,12 @@ msgstr "Вы уже стоите в очереди."
 
 msgid "You are not a member of this channel."
 msgstr "Вы не участник этого канала."
+
+msgid "You are not a member of this chat."
+msgstr "Вы не участник этого чата."
+
+msgid "You have a new notification."
+msgstr "У вас новое уведомление."
 
 msgid "You have no offer of a place."
 msgstr "У вас нет предложения места."

@@ -1,7 +1,7 @@
 """Add the item reservation deadline and exchange offers.
 
 Revision ID: 49a1b2c3d4e5
-Revises: 51a1b2c3d4e5
+Revises: 86a000000001
 """
 
 from collections.abc import Sequence
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "49a1b2c3d4e5"
-down_revision: str | Sequence[str] | None = "51a1b2c3d4e5"
+down_revision: str | Sequence[str] | None = "86a000000001"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
