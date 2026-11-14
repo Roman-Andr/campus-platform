@@ -34,6 +34,12 @@ class ListingOutput {
 
     /// Whether the current user bookmarked it.
     this.favorite = false,
+
+    /// When the listing entered the archive; null outside it.
+    required this.archivedAt,
+
+    /// When archive cleanup removed the description and photos; a purged listing cannot be published again.
+    required this.purgedAt,
     this.additionalProperties = const {},
   });
 
@@ -52,6 +58,12 @@ class ListingOutput {
     }
     if (!json.containsKey("hidden_reason")) {
       throw ArgumentError("Missing required property: hidden_reason");
+    }
+    if (!json.containsKey("archived_at")) {
+      throw ArgumentError("Missing required property: archived_at");
+    }
+    if (!json.containsKey("purged_at")) {
+      throw ArgumentError("Missing required property: purged_at");
     }
     return ListingOutput(
       id: json["id"] as String,
@@ -80,6 +92,12 @@ class ListingOutput {
           : null,
       hiddenReason: json["hidden_reason"] as String?,
       favorite: json.containsKey("favorite") ? json["favorite"] as bool : false,
+      archivedAt: json["archived_at"] == null
+          ? null
+          : DateTime.parse(json["archived_at"] as String).toUtc(),
+      purgedAt: json["purged_at"] == null
+          ? null
+          : DateTime.parse(json["purged_at"] as String).toUtc(),
       additionalProperties: {
         for (final entry in json.entries)
           if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
@@ -131,6 +149,12 @@ class ListingOutput {
   /// Whether the current user bookmarked it.
   final bool favorite;
 
+  /// When the listing entered the archive; null outside it.
+  final DateTime? archivedAt;
+
+  /// When archive cleanup removed the description and photos; a purged listing cannot be published again.
+  final DateTime? purgedAt;
+
   static const _knownKeys = <String>{
     "id",
     "author_name",
@@ -152,6 +176,8 @@ class ListingOutput {
     "pinned_until",
     "hidden_reason",
     "favorite",
+    "archived_at",
+    "purged_at",
   };
 
   final Map<String, Object?> additionalProperties;
@@ -180,6 +206,8 @@ class ListingOutput {
       "pinned_until": this.pinnedUntil?.toUtc().toIso8601String(),
     "hidden_reason": this.hiddenReason,
     "favorite": this.favorite,
+    "archived_at": this.archivedAt?.toUtc().toIso8601String(),
+    "purged_at": this.purgedAt?.toUtc().toIso8601String(),
   };
 }
 

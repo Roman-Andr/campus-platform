@@ -138,6 +138,8 @@ async def set_listing_photos(
     listing = await locked(session, listing_id)
     if listing.author_id != principal.user_id:
         raise ProblemError(FORBIDDEN)
+    if listing.purged_at is not None:
+        raise ProblemError(CONFLICT)
     settings = request.app.state.settings
     if len(data.file_ids) > settings.photo_listing_limit or len(
         set(data.file_ids)

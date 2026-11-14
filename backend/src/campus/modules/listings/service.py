@@ -111,6 +111,12 @@ LISTING_TRANSITIONS = {
     ListingStatus.HIDDEN: set(),
 }
 
+# Closed listings that only history refers to; archive cleanup counts the
+# retention period from the moment a listing entered one of them.
+ARCHIVED = frozenset(
+    {ListingStatus.EXPIRED, ListingStatus.COMPLETED, ListingStatus.CANCELLED}
+)
+
 
 @dataclass(frozen=True)
 class TypePolicy:
@@ -237,6 +243,7 @@ def change_listing(
     previous = listing.status
     listing.status = target
     listing.version += 1
+    listing.archived_at = clock.now() if target in ARCHIVED else None
     record(session, listing, actor_id, action, previous, reason=listing.hidden_reason)
 
 
