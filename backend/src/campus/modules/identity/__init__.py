@@ -2,6 +2,11 @@
 
 from campus.modules.identity.api import router
 from campus.modules.identity.bootstrap import FirstAdminInput, create_first_admin
+from campus.modules.identity.consent_events import (
+    ConsentChange,
+    consent_consumers,
+    replay_consent_events,
+)
 from campus.modules.identity.consent_seed import seed_documents
 from campus.modules.identity.consents import (
     ConsentDecision,
@@ -27,6 +32,7 @@ from campus.modules.identity.roles import (
 from campus.modules.identity.sessions import router as sessions_router
 
 __all__ = [
+    "ConsentChange",
     "ConsentDecision",
     "DocumentKind",
     "DocumentVersion",
@@ -42,12 +48,14 @@ __all__ = [
     "User",
     "admin_router",
     "check_consents",
+    "consent_consumers",
     "consent_router",
     "create_first_admin",
     "cross_border_allowed",
     "delete_expired_credentials",
     "profile_router",
     "publish_document",
+    "replay_consent_events",
     "require_roles",
     "router",
     "seed_documents",
