@@ -21,6 +21,14 @@ Map<String, Object?> interactionJson(String status) => {
   'stage': null,
   'response_due_at': null,
   'status': status,
+  'created_at': '2026-11-14T00:00:00Z',
+  'listing': {
+    'id': 'listing-1',
+    'kind': 'giveaway',
+    'title': 'A desk',
+    'status': 'busy',
+    'city_timezone': 'Europe/Moscow',
+  },
 };
 
 void english(WidgetTester tester) {
@@ -147,7 +155,9 @@ void main() {
     );
     unawaited(container.read(appRouterProvider).push('/my-listings'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('Draft'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('my-section-drafts')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Draft'), findsWidgets);
     await tester.tap(find.text('Edit draft'));
     await tester.pumpAndSettle();
     expect(find.text('A desk'), findsOneWidget);
@@ -240,11 +250,18 @@ void main() {
     );
     unawaited(container.read(appRouterProvider).push('/my-listings'));
     await tester.pumpAndSettle();
-    expect(find.text('Archive'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('my-section-archive')));
+    await tester.pumpAndSettle();
+    expect(server.sent.last.uri.queryParametersAll['status'], [
+      'expired',
+      'completed',
+      'cancelled',
+      'hidden',
+    ]);
     expect(find.textContaining('Expired'), findsOneWidget);
     await tester.tap(find.text('Publish again'));
     await tester.pumpAndSettle();
-    expect(find.text('Archive'), findsNothing);
+    expect(find.textContaining('Expired'), findsNothing);
     expect(find.textContaining('Available'), findsOneWidget);
     await tester.tap(find.text('A desk'));
     await tester.pumpAndSettle();

@@ -389,13 +389,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get listingPublish => 'Publish';
 
   @override
-  String get listingsMine => 'My listings and reservations';
+  String get listingsMine => 'My listings and participation';
 
   @override
   String get listingsOwn => 'My listings';
 
   @override
-  String get listingsReservations => 'My reservations';
+  String get listingsReservations => 'My participation';
 
   @override
   String get listingIncoming => 'Incoming requests';
@@ -637,4 +637,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get listingExtended => 'The listing has been extended.';
+
+  @override
+  String get mySectionDrafts => 'Drafts';
+
+  @override
+  String get mySectionActive => 'Active';
+
+  @override
+  String get mySectionBusy => 'Reserved';
+
+  @override
+  String get listingKindGiveaway => 'Giveaway';
+
+  @override
+  String get favoritesTitle => 'Favorites';
+
+  @override
+  String get favoritesEmpty => 'No favorites yet';
+
+  @override
+  String get favoriteAdd => 'Add to favorites';
+
+  @override
+  String get favoriteRemove => 'Remove from favorites';
+
+  @override
+  String get favoriteUnavailable => 'Listing unavailable';
+
+  @override
+  String get savedCopy => 'Offline: showing saved data';
+
+  @override
+  String participationStage(String stage) {
+    return 'Stage: $stage';
+  }
 }

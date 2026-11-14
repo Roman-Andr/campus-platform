@@ -7,6 +7,7 @@ import 'package:campus/src/core/auth/auth_session.dart';
 import 'package:campus/src/core/auth/auth_storage.dart';
 import 'package:campus/src/core/database/app_database.dart';
 import 'package:campus/src/features/listings/data/listings_repository.dart';
+import 'package:campus/src/features/listings/data/my_cache.dart';
 import 'package:campus/src/features/settings/application/settings_controller.dart';
 import 'package:campus/src/features/settings/data/settings_repository.dart';
 import 'package:campus/src/features/settings/domain/app_settings.dart';
@@ -53,12 +54,13 @@ const signedInStorage = {
 List<Override> apiOverrides({
   FakeHttpAdapter? adapter,
   ListingsCache? cache,
+  MyCache? myCache,
   Stream<bool>? network,
   SettingsRepository? settings,
   Map<String, String> secure = const {},
 }) {
   FlutterSecureStorage.setMockInitialValues(Map.of(secure));
-  return _overrides(adapter, network, settings, cache);
+  return _overrides(adapter, network, settings, cache, myCache);
 }
 
 List<Override> _overrides(
@@ -66,8 +68,10 @@ List<Override> _overrides(
   Stream<bool>? network,
   SettingsRepository? settings,
   ListingsCache? cache,
+  MyCache? myCache,
 ) => [
   listingsCacheProvider.overrideWithValue(cache ?? InMemoryListingsCache()),
+  myCacheProvider.overrideWithValue(myCache ?? InMemoryMyCache()),
   settingsRepositoryProvider.overrideWithValue(
     settings ?? InMemorySettingsRepository(),
   ),
@@ -101,6 +105,7 @@ extension PumpCampusApp on WidgetTester {
     SettingsRepository repository, {
     FakeHttpAdapter? adapter,
     ListingsCache? cache,
+    MyCache? myCache,
     Stream<bool>? network,
     Map<String, String> secure = signedInStorage,
     List<Override> overrides = const [],
@@ -110,6 +115,7 @@ extension PumpCampusApp on WidgetTester {
         ...apiOverrides(
           adapter: adapter,
           cache: cache,
+          myCache: myCache,
           network: network,
           settings: repository,
           secure: secure,
@@ -145,4 +151,15 @@ class InMemoryListingsCache implements ListingsCache {
 
   @override
   Future<void> clear() async => pages.clear();
+}
+
+class InMemoryMyCache implements MyCache {
+  final pages = <String, Map<String, Object?>>{};
+  @override
+  Future<Map<String, Object?>?> load(String owner, String key) async =>
+      pages['$owner/$key'];
+  @override
+  Future<void> save(String owner, String key, Map<String, Object?> page) async {
+    pages['$owner/$key'] = page;
+  }
 }

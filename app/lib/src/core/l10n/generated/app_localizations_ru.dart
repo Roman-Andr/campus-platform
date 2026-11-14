@@ -387,13 +387,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get listingPublish => 'Опубликовать';
 
   @override
-  String get listingsMine => 'Мои объявления и брони';
+  String get listingsMine => 'Мои объявления и участие';
 
   @override
   String get listingsOwn => 'Мои объявления';
 
   @override
-  String get listingsReservations => 'Мои брони';
+  String get listingsReservations => 'Моё участие';
 
   @override
   String get listingIncoming => 'Входящие заявки';
@@ -633,4 +633,39 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get listingExtended => 'Срок объявления продлён.';
+
+  @override
+  String get mySectionDrafts => 'Черновики';
+
+  @override
+  String get mySectionActive => 'Активные';
+
+  @override
+  String get mySectionBusy => 'Занятые';
+
+  @override
+  String get listingKindGiveaway => 'Отдам даром';
+
+  @override
+  String get favoritesTitle => 'Избранное';
+
+  @override
+  String get favoritesEmpty => 'В избранном пока ничего нет';
+
+  @override
+  String get favoriteAdd => 'Добавить в избранное';
+
+  @override
+  String get favoriteRemove => 'Убрать из избранного';
+
+  @override
+  String get favoriteUnavailable => 'Объявление недоступно';
+
+  @override
+  String get savedCopy => 'Нет сети: показаны сохранённые данные';
+
+  @override
+  String participationStage(String stage) {
+    return 'Этап: $stage';
+  }
 }
