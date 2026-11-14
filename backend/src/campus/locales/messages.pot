@@ -1,6 +1,10 @@
 msgid "A meeting time and place were proposed."
 msgstr ""
 
+#, python-brace-format
+msgid "At most {max} skills."
+msgstr ""
+
 msgid "Authentication required"
 msgstr ""
 
@@ -161,10 +165,19 @@ msgstr ""
 msgid "Must have at most {max_length} items."
 msgstr ""
 
+msgid "Name changed recently"
+msgstr ""
+
 msgid "No such campus city."
 msgstr ""
 
+msgid "No such skill tag."
+msgstr ""
+
 msgid "Not found"
+msgstr ""
+
+msgid "Photo unavailable"
 msgstr ""
 
 msgid "Profile incomplete"
@@ -241,7 +254,14 @@ msgstr ""
 msgid "The meeting time must be in the future."
 msgstr ""
 
+#, python-brace-format
+msgid "The name can be changed once in {days} days; see available_at."
+msgstr ""
+
 msgid "The page cursor is invalid or belongs to another list; start over."
+msgstr ""
+
+msgid "The photo is not processed yet, has expired or is used by a listing."
 msgstr ""
 
 msgid "The request body is not valid JSON."
