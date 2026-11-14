@@ -383,6 +383,7 @@ void main() {
                 {
                   'id': more ? 'event-2' : 'event-1',
                   'interaction_id': 'request-1',
+                  'waitlist_entry_id': null,
                   'actor_id': null,
                   'action': 'auto_rejected',
                   'previous_status': 'pending',

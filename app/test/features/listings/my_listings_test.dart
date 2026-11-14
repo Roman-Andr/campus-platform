@@ -5,6 +5,7 @@ import 'package:campus/src/core/l10n/generated/app_localizations_ru.dart';
 import 'package:campus/src/features/listings/application/my_listings.dart';
 import 'package:campus/src/features/listings/data/listings_repository.dart';
 import 'package:campus/src/features/listings/data/my_cache.dart';
+import 'package:campus/src/features/listings/domain/feed.dart';
 import 'package:campus/src/features/listings/presentation/my_screens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -97,7 +98,13 @@ void main() {
       expect(restored.items.first.listing!.title, 'A desk');
       expect(restored.items.last.listing, isNull);
       final feed = DriftListingsCache(db);
-      expect(await feed.load('alice', Visibility.city), isNull);
+      expect(
+        await feed.load(
+          'alice',
+          feedCacheKey(Visibility.city, FeedFilters.none),
+        ),
+        isNull,
+      );
       await feed.clear();
       expect(await cache.load('alice', 'favorites'), isNull);
     },

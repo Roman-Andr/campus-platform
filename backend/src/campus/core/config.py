@@ -336,6 +336,16 @@ class Settings(BaseSettings):
     )
     listing_title_max_length: int = Field(default=100, ge=1)
     listing_description_max_length: int = Field(default=5000, ge=1)
+    # How long a queue member has to confirm an offered place (appendix 4).
+    listing_offer_timeout: timedelta = Field(
+        default=timedelta(hours=2), gt=timedelta(0)
+    )
+    # Closer to the start than this, places are not offered by queue: they
+    # open to everyone and the whole queue is notified at once.
+    listing_open_to_all_before: timedelta = Field(
+        default=timedelta(hours=1), gt=timedelta(0)
+    )
+
     meeting_place_max_length: int = Field(default=200, ge=1)
     meeting_reminder_long: timedelta = Field(
         default=timedelta(hours=24),

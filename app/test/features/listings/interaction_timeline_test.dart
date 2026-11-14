@@ -38,6 +38,7 @@ Map<String, Object?> eventJson(
 }) => {
   'id': id,
   'interaction_id': 'request-1',
+  'waitlist_entry_id': null,
   'actor_id': actor,
   'action': action,
   'previous_status': previous,

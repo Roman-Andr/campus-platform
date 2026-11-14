@@ -22,10 +22,15 @@ import 'models/page_listing_output.dart' as models show PageListingOutput;
 import 'models/page_participation_output.dart'
     as models
     show PageParticipationOutput;
+import 'models/page_waitlist_entry_output.dart'
+    as models
+    show PageWaitlistEntryOutput;
 import 'models/participation_output_meeting.dart' as models show MeetingOutput;
 import 'models/publication_input.dart' as models show PublicationInput;
 import 'models/transition_input.dart' as models show TransitionInput;
 import 'models/visibility.dart' as models show Visibility;
+import 'models/waitlist_entry_output.dart' as models show WaitlistEntryOutput;
+import 'models/waitlist_queue.dart' as models show WaitlistQueue;
 
 class ListingsClient {
   ListingsClient(this._transport);
@@ -908,6 +913,255 @@ class ListingsClient {
       cancelToken: cancelToken,
     );
     return models.PageEventOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Listing Waitlist
+  ///
+  /// The active queue, visible to the author of the listing.
+  Future<models.WaitlistQueue> listingWaitlist({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/waitlist",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.WaitlistQueue.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Join Listing Waitlist
+  ///
+  /// Take the last place of the queue; only occupied listings have one.
+  Future<models.WaitlistEntryOutput> joinListingWaitlist({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 201),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/waitlist",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.WaitlistEntryOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Leave Listing Waitlist
+  Future<void> leaveListingWaitlist({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "DELETE",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 204),
+    );
+    await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/waitlist",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+  }
+
+  /// My Waitlist Entry
+  Future<models.WaitlistEntryOutput> myWaitlistEntry({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/waitlist/me",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.WaitlistEntryOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// My Waitlist
+  Future<models.PageWaitlistEntryOutput> myWaitlist({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+
+    /// Number of items; the default (20) and the maximum (100) are set in the server configuration.
+    int? size,
+
+    /// `next_page` of the previous page.
+    String? cursor,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/waitlist/mine",
+      options: _options,
+      queryParameters: <String, Object?>{
+        if (size != null) "size": size,
+        if (cursor != null) "cursor": cursor,
+      },
+      cancelToken: cancelToken,
+    );
+    return models.PageWaitlistEntryOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Accept Place Offer
+  ///
+  /// Confirming an offer creates the usual pending application.
+  Future<models.InteractionOutput> acceptPlaceOffer({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 201),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/waitlist/offer/accept",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.InteractionOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Decline Place Offer
+  Future<models.WaitlistEntryOutput> declinePlaceOffer({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/waitlist/offer/decline",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.WaitlistEntryOutput.fromJson(
       response.data as Map<String, Object?>,
     );
   }

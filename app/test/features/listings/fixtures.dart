@@ -4,6 +4,8 @@ Map<String, Object?> listingJson({
   String id = 'listing-1',
   String? author,
   String status = 'active',
+  String kind = 'giveaway',
+  String? pinnedUntil,
 }) => {
   'id': id,
   'author_id': author ?? userJson['id'],
@@ -12,7 +14,7 @@ Map<String, Object?> listingJson({
   'hidden_reason': null,
   'archived_at': null,
   'purged_at': null,
-  'kind': 'giveaway',
+  'kind': kind,
   'title': 'A desk',
   'description': 'Collect on campus',
   'visibility': 'city',
@@ -25,6 +27,7 @@ Map<String, Object?> listingJson({
   'version': 1,
   'created_at': '2026-11-14T00:00:00Z',
   'expires_at': status == 'draft' ? null : '2026-12-14T00:00:00Z',
+  'pinned_until': ?pinnedUntil,
 };
 Map<String, Object?> pageJson(List<Object?> items, {String? next}) => {
   'items': items,
