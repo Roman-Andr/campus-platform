@@ -54,4 +54,5 @@ Future<List<CityPlaceOut>> faculties(Ref ref, String cityId) async =>
         .items;
 
 /// Whether accounts of [type] give a course: students do, employees not.
-bool hasCourse(AccountType type) => type != AccountType.employee;
+bool hasCourse(UserOutputAccountType type) =>
+    type == UserOutputAccountType.student;

@@ -83,7 +83,9 @@ class _ProfileDetails extends ConsumerWidget {
           leading: const Icon(Icons.person_outline),
           title: Text('${user.firstName} ${user.lastName}'),
           subtitle: Text(switch (user.accountType) {
-            AccountType.employee => l10n.profileAccountEmployee,
+            UserOutputAccountType.employee => l10n.profileAccountEmployee,
+            UserOutputAccountType.formerEmployee =>
+              l10n.profileAccountFormerEmployee,
             _ => l10n.profileAccountStudent,
           }),
         ),

@@ -9,7 +9,7 @@ filled profile: their endpoints take :data:`ProfiledUser` instead of
 ``CurrentUser``.
 """
 
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import Depends, Request
@@ -64,7 +64,7 @@ class UserOutput(BaseModel):
     email: str
     first_name: str
     last_name: str
-    account_type: AccountType
+    account_type: Literal["student", "employee", "former_employee"]
     city_id: UUID | None = Field(description="Campus city; empty until filled in.")
     city_timezone: str | None
     dormitory_id: UUID | None = Field(
@@ -124,7 +124,7 @@ async def _check(
             )
             if city_id != data.city_id:
                 errors.append(_error(locale, field, "not_of_city", NOT_OF_CITY))
-    if user.account_type == AccountType.EMPLOYEE:
+    if user.account_type in (AccountType.EMPLOYEE, "former_employee"):
         if data.course is not None:
             errors.append(_error(locale, "course", "not_allowed", COURSE_NOT_ALLOWED))
     elif data.course is None:

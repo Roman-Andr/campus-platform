@@ -304,12 +304,26 @@ async def test_highest_course(student: Account, places: Places) -> None:
     assert response.status_code == 200, response.text
 
 
-async def test_employee_has_no_course(employee: Account, places: Places) -> None:
+@pytest.mark.parametrize("account_type", ["employee", "former_employee"])
+async def test_employee_has_no_course(
+    employee: Account, places: Places, account_type: str
+) -> None:
+    await employee.auth.db.execute(
+        update(User)
+        .where(User.id == UUID(employee.tokens["user"]["id"]))
+        .values(account_type=account_type)
+    )
+    await employee.auth.db.commit()
+    assert (await employee.me()).json()["profile_complete"] is False
     response = await employee.put(moscow_profile(places, course=1))
     assert pointers(response) == {"#/course": "not_allowed"}
     response = await employee.put(moscow_profile(places, course=None))
     assert response.status_code == 200, response.text
     assert response.json()["profile_complete"] is True
+    me = (await employee.me()).json()
+    assert me["profile_complete"] is True
+    assert me["course"] is None
+    assert me["account_type"] == account_type
 
 
 async def test_errors_are_localized(student: Account, places: Places) -> None:

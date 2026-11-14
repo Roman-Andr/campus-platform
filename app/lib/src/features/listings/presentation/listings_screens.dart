@@ -355,7 +355,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
                   Visibility.city,
                   if (user?.facultyId != null) Visibility.faculty,
                   if (user?.dormitoryId != null &&
-                      user?.accountType == AccountType.student)
+                      user?.accountType == UserOutputAccountType.student)
                     Visibility.dormitory,
                 ])
                   DropdownMenuItem(value: s, child: Text(scopeName(l, s))),

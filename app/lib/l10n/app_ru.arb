@@ -330,6 +330,10 @@
   "@profileAccountEmployee": {
     "description": "Account type label of university employees."
   },
+  "profileAccountFormerEmployee": "Бывший сотрудник",
+  "@profileAccountFormerEmployee": {
+    "description": "Account type label of former university employees."
+  },
   "profileCourseValue": "{course} курс",
   "@profileCourseValue": {
     "description": "A course (year of study) in the course field and in the profile.",
