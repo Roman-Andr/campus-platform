@@ -46,6 +46,7 @@ Map<String, Object?> eventJson(
   'created_at': createdAt,
   'reason': reason,
   'stage': null,
+  'details': null,
   'via_assistant': viaAssistant,
   'offline_qr': offlineQr,
 };
@@ -61,6 +62,7 @@ Map<String, Object?> interactionJson({
   'stage': null,
   'response_due_at': null,
   'status': status,
+  'meeting': null,
 };
 
 const _timelinePath = '/listings/listing-1/interactions/request-1';
