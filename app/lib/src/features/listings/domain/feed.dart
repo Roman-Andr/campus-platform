@@ -7,7 +7,8 @@ enum FeedKind {
   giveaway('giveaway'),
   skill('skill'),
   publication('publication'),
-  event('event');
+  event('event'),
+  help('help');
 
   const FeedKind(this.apiValue);
 

@@ -1439,4 +1439,78 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get meetingOnline => 'Онлайн-встреча';
+
+  @override
+  String get listingKindHelp => 'Помощь';
+
+  @override
+  String get feedCreateHelp => 'Попросить помощь';
+
+  @override
+  String get helpCreateTitle => 'Новый запрос о помощи';
+
+  @override
+  String get helpPublished => 'Запрос о помощи опубликован.';
+
+  @override
+  String get helpDeadline => 'Актуален до';
+
+  @override
+  String get helpDeadlinePast => 'Выберите срок в будущем.';
+
+  @override
+  String get helpDeadlineInvalid =>
+      'Срок должен быть в будущем и не позже срока жизни объявления.';
+
+  @override
+  String get helpRespond => 'Откликнуться';
+
+  @override
+  String get helpResponded => 'Отклик отправлен.';
+
+  @override
+  String get helpApplicationPending => 'Отклик ждёт решения автора.';
+
+  @override
+  String get helpReserve => 'Резерв';
+
+  @override
+  String get helpReserveNotice =>
+      'Исполнитель уже выбран; вы остаётесь в резерве.';
+
+  @override
+  String get helpExecutor => 'Исполнитель';
+
+  @override
+  String get helpYouAreExecutor => 'Вы исполнитель.';
+
+  @override
+  String get helpSelectExecutor => 'Выбрать исполнителя';
+
+  @override
+  String get helpSelected => 'Исполнитель выбран.';
+
+  @override
+  String get helpConflict => 'Запрос уже изменился. Обновите объявление.';
+
+  @override
+  String get helpForbidden => 'Вы не можете действовать по этому запросу.';
+
+  @override
+  String get helpIncoming => 'Отклики';
+
+  @override
+  String helpDeadlineHint(int days) {
+    return 'Не позже срока жизни объявления ($days дн.).';
+  }
+
+  @override
+  String helpDeadlineTooLate(int days) {
+    return 'Срок не может быть больше срока жизни объявления ($days дн.).';
+  }
+
+  @override
+  String helpRelevantUntil(String date) {
+    return 'Актуален до $date';
+  }
 }

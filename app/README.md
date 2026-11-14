@@ -22,7 +22,8 @@ flutter build apk --debug       # APK: build/app/outputs/flutter-apk/
 Адрес сервера и другие параметры клиента API задаются при сборке через
 `--dart-define` (`lib/src/core/api/api_config.dart`,
 `lib/src/core/auth/auth_config.dart`,
-`lib/src/features/profile/application/profile_config.dart`):
+`lib/src/features/profile/application/profile_config.dart`,
+`lib/src/features/listings/application/help_config.dart`):
 
 | Параметр                      | По умолчанию                               |
 |-------------------------------|--------------------------------------------|
@@ -44,6 +45,7 @@ flutter build apk --debug       # APK: build/app/outputs/flutter-apk/
 | `CAMPUS_REALTIME_RESUBSCRIBE_MIN_MS` | 500 (первая пауза подписки)         |
 | `CAMPUS_REALTIME_RESUBSCRIBE_MAX_MS` | 30000 (предел паузы подписки)       |
 | `CAMPUS_REALTIME_TOKEN_MARGIN` | 30 (секунд: обновить токен realtime заранее) |
+| `CAMPUS_LISTING_LIFETIME_DAYS` | 30 (дней: срок жизни объявления, не позже него — срок актуальности запроса о помощи) |
 
 Эмулятор Android видит компьютер по адресу `10.0.2.2`:
 

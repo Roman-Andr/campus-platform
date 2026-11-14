@@ -1446,4 +1446,80 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get meetingOnline => 'Online meeting';
+
+  @override
+  String get listingKindHelp => 'Help request';
+
+  @override
+  String get feedCreateHelp => 'Ask for help';
+
+  @override
+  String get helpCreateTitle => 'New help request';
+
+  @override
+  String get helpPublished => 'The help request has been published.';
+
+  @override
+  String get helpDeadline => 'Relevant until';
+
+  @override
+  String get helpDeadlinePast => 'Choose a future deadline.';
+
+  @override
+  String get helpDeadlineInvalid =>
+      'The deadline must be in the future and no later than the listing lifetime.';
+
+  @override
+  String get helpRespond => 'Respond';
+
+  @override
+  String get helpResponded => 'Response sent.';
+
+  @override
+  String get helpApplicationPending =>
+      'Your response is waiting for the author.';
+
+  @override
+  String get helpReserve => 'Reserve';
+
+  @override
+  String get helpReserveNotice =>
+      'An executor is already selected; you remain in the reserve.';
+
+  @override
+  String get helpExecutor => 'Executor';
+
+  @override
+  String get helpYouAreExecutor => 'You are the executor.';
+
+  @override
+  String get helpSelectExecutor => 'Choose executor';
+
+  @override
+  String get helpSelected => 'The executor has been selected.';
+
+  @override
+  String get helpConflict =>
+      'The help request has already changed. Refresh the listing.';
+
+  @override
+  String get helpForbidden => 'You cannot act on this help request.';
+
+  @override
+  String get helpIncoming => 'Responses';
+
+  @override
+  String helpDeadlineHint(int days) {
+    return 'Not later than the listing lifetime ($days days).';
+  }
+
+  @override
+  String helpDeadlineTooLate(int days) {
+    return 'The deadline cannot be later than $days days.';
+  }
+
+  @override
+  String helpRelevantUntil(String date) {
+    return 'Relevant until $date';
+  }
 }

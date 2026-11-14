@@ -10,6 +10,7 @@ import '../../features/auth/presentation/sign_in_name_screen.dart';
 import '../../features/consents/presentation/consents_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/listings/presentation/event_screen.dart';
+import '../../features/listings/presentation/help_screen.dart';
 import '../../features/listings/presentation/interaction_timeline_screen.dart';
 import '../../features/listings/presentation/listings_screens.dart';
 import '../../features/listings/presentation/meeting_screen.dart';
@@ -87,6 +88,10 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: '/skills/new',
         builder: (context, state) => const CreateSkillScreen(),
+      ),
+      GoRoute(
+        path: '/help/new',
+        builder: (context, state) => const CreateHelpScreen(),
       ),
       GoRoute(
         path: '/my-listings',
