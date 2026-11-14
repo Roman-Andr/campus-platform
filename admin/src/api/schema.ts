@@ -2435,7 +2435,25 @@ export interface components {
       /** Last Name */
       last_name?: string | null;
     };
-<<<<<<< HEAD
+    /** SignupInput */
+    SignupInput: {
+      /**
+       * Join Queue
+       * @default false
+       */
+      join_queue: boolean;
+    };
+    /** SignupOutput */
+    SignupOutput: {
+      /**
+       * Result
+       * @enum {string}
+       */
+      result: 'registered' | 'queued' | 'full';
+      interaction?: components['schemas']['InteractionOutput'] | null;
+      /** Remaining Places */
+      remaining_places: number;
+    };
     /**
      * SkillDirection
      * @description Whether the author can teach a skill or wants to learn it.
@@ -2458,26 +2476,6 @@ export interface components {
        * Format: uuid
        */
       category_id: string;
-=======
-    /** SignupInput */
-    SignupInput: {
-      /**
-       * Join Queue
-       * @default false
-       */
-      join_queue: boolean;
-    };
-    /** SignupOutput */
-    SignupOutput: {
-      /**
-       * Result
-       * @enum {string}
-       */
-      result: 'registered' | 'queued' | 'full';
-      interaction?: components['schemas']['InteractionOutput'] | null;
-      /** Remaining Places */
-      remaining_places: number;
->>>>>>> e66507d (feat: add event signup with seat limits)
     };
     /** SkillTagList */
     SkillTagList: {

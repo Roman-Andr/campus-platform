@@ -9,13 +9,9 @@ import 'models/category_list.dart' as models show CategoryList;
 import 'models/event_edit.dart' as models show EventEdit;
 import 'models/event_input.dart' as models show EventInput;
 import 'models/giveaway_input.dart' as models show GiveawayInput;
-<<<<<<< HEAD
-import 'models/interaction_output.dart' as models show InteractionOutput;
 import 'models/lesson_accept_input.dart' as models show LessonAcceptInput;
 import 'models/lesson_input.dart' as models show LessonInput;
 import 'models/lesson_slot_input.dart' as models show LessonSlotInput;
-=======
->>>>>>> e66507d (feat: add event signup with seat limits)
 import 'models/listing_edit.dart' as models show ListingEdit;
 import 'models/listing_output.dart' as models show ListingOutput;
 import 'models/listing_status.dart' as models show ListingStatus;
@@ -35,13 +31,10 @@ import 'models/page_waitlist_entry_output.dart'
     show PageWaitlistEntryOutput;
 import 'models/participation_output_meeting.dart' as models show MeetingOutput;
 import 'models/publication_input.dart' as models show PublicationInput;
-<<<<<<< HEAD
-import 'models/skill_input.dart' as models show SkillInput;
-=======
 import 'models/signup_input.dart' as models show SignupInput;
 import 'models/signup_output.dart' as models show SignupOutput;
 import 'models/signup_output_interaction.dart' as models show InteractionOutput;
->>>>>>> e66507d (feat: add event signup with seat limits)
+import 'models/skill_input.dart' as models show SkillInput;
 import 'models/transition_input.dart' as models show TransitionInput;
 import 'models/visibility.dart' as models show Visibility;
 import 'models/waitlist_entry_output.dart' as models show WaitlistEntryOutput;

@@ -5,11 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-<<<<<<< HEAD
-"POT-Creation-Date: 2026-11-14 20:54+0300\n"
-=======
-"POT-Creation-Date: 2026-11-14 21:45+0300\n"
->>>>>>> e66507d (feat: add event signup with seat limits)
+"POT-Creation-Date: 2026-11-14 22:09+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"

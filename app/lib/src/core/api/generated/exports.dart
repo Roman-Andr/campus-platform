@@ -61,15 +61,12 @@ export 'listings/models/participation_listing.dart';
 export 'listings/models/participation_output.dart';
 export 'listings/models/participation_output_meeting.dart';
 export 'listings/models/publication_input.dart';
-<<<<<<< HEAD
-export 'listings/models/skill_direction.dart';
-export 'listings/models/skill_input.dart';
-=======
 export 'listings/models/signup_input.dart';
 export 'listings/models/signup_output.dart';
 export 'listings/models/signup_output_interaction.dart';
 export 'listings/models/signup_output_result.dart';
->>>>>>> e66507d (feat: add event signup with seat limits)
+export 'listings/models/skill_direction.dart';
+export 'listings/models/skill_input.dart';
 export 'listings/models/transition_input.dart';
 export 'listings/models/visibility.dart';
 export 'listings/models/waitlist_entry_output.dart';

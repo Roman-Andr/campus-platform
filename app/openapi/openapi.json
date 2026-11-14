@@ -13694,62 +13694,16 @@
         ],
         "title": "SignInInput"
       },
-<<<<<<< HEAD
-      "SkillDirection": {
-        "type": "string",
-        "enum": [
-          "teach",
-          "learn"
-        ],
-        "title": "SkillDirection",
-        "description": "Whether the author can teach a skill or wants to learn it."
-      },
-      "SkillInput": {
-        "properties": {
-          "title": {
-            "type": "string",
-            "title": "Title"
-          },
-          "description": {
-            "type": "string",
-            "title": "Description"
-          },
-          "direction": {
-            "$ref": "#/components/schemas/SkillDirection"
-          },
-          "visibility": {
-            "$ref": "#/components/schemas/Visibility",
-            "default": "city"
-          },
-          "audience": {
-            "$ref": "#/components/schemas/Audience",
-            "default": "students"
-          },
-          "category_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Category Id"
-=======
       "SignupInput": {
         "properties": {
           "join_queue": {
             "type": "boolean",
             "title": "Join Queue",
             "default": false
->>>>>>> e66507d (feat: add event signup with seat limits)
           }
         },
         "additionalProperties": false,
         "type": "object",
-<<<<<<< HEAD
-        "required": [
-          "title",
-          "description",
-          "direction",
-          "category_id"
-        ],
-        "title": "SkillInput"
-=======
         "title": "SignupInput"
       },
       "SignupOutput": {
@@ -13784,7 +13738,52 @@
           "remaining_places"
         ],
         "title": "SignupOutput"
->>>>>>> e66507d (feat: add event signup with seat limits)
+      },
+      "SkillDirection": {
+        "type": "string",
+        "enum": [
+          "teach",
+          "learn"
+        ],
+        "title": "SkillDirection",
+        "description": "Whether the author can teach a skill or wants to learn it."
+      },
+      "SkillInput": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/SkillDirection"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/Visibility",
+            "default": "city"
+          },
+          "audience": {
+            "$ref": "#/components/schemas/Audience",
+            "default": "students"
+          },
+          "category_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Category Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "description",
+          "direction",
+          "category_id"
+        ],
+        "title": "SkillInput"
       },
       "SkillTagList": {
         "properties": {
