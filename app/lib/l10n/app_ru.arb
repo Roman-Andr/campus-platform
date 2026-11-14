@@ -517,5 +517,69 @@
   "chooseCityDateTime": "Выбрать дату и время",
   "cityTimeDoesNotExist": "Такого времени нет в часовом поясе города. Выберите другое время.",
   "@chooseCityDateTime": {},
-  "@cityTimeDoesNotExist": {}
+  "@cityTimeDoesNotExist": {},
+  "consentDocuments": "Согласия и документы",
+  "@consentDocuments": {
+    "description": "Consents and documents"
+  },
+  "consentRules": "Правила сообщества",
+  "@consentRules": {
+    "description": "Community rules"
+  },
+  "consentPrivacy": "Политика обработки персональных данных",
+  "@consentPrivacy": {
+    "description": "Privacy policy"
+  },
+  "consentProcessing": "Согласие на обработку персональных данных",
+  "@consentProcessing": {
+    "description": "Personal data processing consent"
+  },
+  "consentCrossBorder": "Трансграничная передача данных",
+  "@consentCrossBorder": {
+    "description": "Cross-border data transfer"
+  },
+  "consentAcceptRequired": "Я принимаю правила сообщества, политику и согласие на обработку персональных данных (обязательно).",
+  "@consentAcceptRequired": {
+    "description": "I accept the community rules, privacy policy and personal data processing consent (required)."
+  },
+  "consentCrossBorderOptional": "Я согласен на трансграничную передачу данных (необязательно).",
+  "@consentCrossBorderOptional": {
+    "description": "I consent to cross-border data transfer (optional)."
+  },
+  "consentCrossBorderEffects": "Разрешает полный текст push-уведомлений, Telegram-бота и ИИ-функции.",
+  "@consentCrossBorderEffects": {
+    "description": "Enables full push notification text, the Telegram bot and AI features."
+  },
+  "consentUpdateTitle": "Обновление документов",
+  "@consentUpdateTitle": {
+    "description": "Updated documents"
+  },
+  "consentUpdateIntro": "Для продолжения прочитайте и примите текущие версии документов.",
+  "@consentUpdateIntro": {
+    "description": "Read and accept the current document versions to continue."
+  },
+  "consentContinue": "Принять и продолжить",
+  "@consentContinue": {
+    "description": "Accept and continue"
+  },
+  "consentClose": "Закрыть",
+  "@consentClose": {
+    "description": "Close"
+  },
+  "consentCancel": "Отмена",
+  "@consentCancel": {
+    "description": "Cancel"
+  },
+  "consentRevoke": "Отозвать согласие",
+  "@consentRevoke": {
+    "description": "Revoke consent"
+  },
+  "consentRevokeTitle": "Отозвать согласие на передачу данных?",
+  "@consentRevokeTitle": {
+    "description": "Revoke data transfer consent?"
+  },
+  "consentRevokeEffects": "Push-уведомления будут без имён и текста. Telegram-бот и ИИ-функции будут отключены.",
+  "@consentRevokeEffects": {
+    "description": "Push notifications will contain no names or message text. The Telegram bot and AI features will be disabled."
+  }
 }

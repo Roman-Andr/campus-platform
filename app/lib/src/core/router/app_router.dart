@@ -6,6 +6,7 @@ import '../../features/auth/application/sign_in_flow.dart';
 import '../../features/auth/presentation/sign_in_code_screen.dart';
 import '../../features/auth/presentation/sign_in_email_screen.dart';
 import '../../features/auth/presentation/sign_in_name_screen.dart';
+import '../../features/consents/presentation/consents_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/listings/presentation/listings_screens.dart';
 import '../../features/profile/application/my_profile.dart';
@@ -22,6 +23,7 @@ part 'app_router.g.dart';
 abstract final class AppRoutes {
   static const home = '/';
   static const settings = '/settings';
+  static const consents = '/settings/consents';
   static const updateRequired = '/update-required';
   static const signIn = '/sign-in';
   static const signInCode = '/sign-in/code';
@@ -59,6 +61,12 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: AppRoutes.settings.substring(1),
             builder: (context, state) => const SettingsScreen(),
+            routes: [
+              GoRoute(
+                path: 'consents',
+                builder: (context, state) => const ConsentsScreen(),
+              ),
+            ],
           ),
           GoRoute(
             path: AppRoutes.profile.substring(1),

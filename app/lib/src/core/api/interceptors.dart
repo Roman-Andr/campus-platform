@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import 'api_failure.dart';
 import 'client_info.dart';
+import 'generated/campus_api.dart' show ProblemCode;
 
 const platformHeader = 'X-Client-Platform';
 const versionHeader = 'X-Client-Version';
@@ -123,4 +124,37 @@ class ApiStatusInterceptor extends Interceptor {
   static bool _unreachable(DioExceptionType type) =>
       type == DioExceptionType.connectionError ||
       type == DioExceptionType.connectionTimeout;
+}
+
+/// Holds authenticated operations until the current documents are accepted.
+/// Registration has no session yet and handles stale documents in its form.
+class ConsentInterceptor extends Interceptor {
+  ConsentInterceptor(this.dio, this.requireConsent);
+
+  final Dio dio;
+  final Future<bool> Function() requireConsent;
+
+  @override
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
+    final failure = ApiFailure.from(err);
+    if (err.response?.statusCode != 403 ||
+        failure is! ProblemFailure ||
+        failure.code != ProblemCode.consentRequired ||
+        !err.requestOptions.extra.containsKey('openapi.security')) {
+      handler.next(err);
+      return;
+    }
+    if (!await requireConsent()) {
+      handler.next(err);
+      return;
+    }
+    try {
+      handler.resolve(await dio.fetch<Object?>(err.requestOptions));
+    } on DioException catch (error) {
+      handler.next(error);
+    }
+  }
 }

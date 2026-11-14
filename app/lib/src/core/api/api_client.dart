@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../features/consents/application/consents.dart';
 import '../../features/settings/application/settings_controller.dart';
 import '../auth/auth_session.dart';
 import '../l10n/l10n.dart';
@@ -56,6 +57,12 @@ HttpClientAdapter? apiHttpAdapter(Ref ref) => null;
 @Riverpod(keepAlive: true)
 Dio apiDio(Ref ref) {
   final dio = createAppDio(ref, auth: ref.watch(authSessionProvider));
+  dio.interceptors.add(
+    ConsentInterceptor(
+      dio,
+      () => ref.read(consentGateProvider.notifier).require(),
+    ),
+  );
   ref.onDispose(dio.close);
   return dio;
 }

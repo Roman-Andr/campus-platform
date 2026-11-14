@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../core/auth/auth_service.dart';
 import '../../../core/auth/auth_session.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/router/app_router.dart';
 import '../application/settings_controller.dart';
 import '../domain/app_settings.dart';
 
@@ -65,6 +67,11 @@ class SettingsScreen extends ConsumerWidget {
           if (signedIn) ...[
             const Divider(),
             _SectionHeader(l10n.settingsAccount),
+            ListTile(
+              title: Text(l10n.consentDocuments),
+              leading: const Icon(Icons.description_outlined),
+              onTap: () => context.push(AppRoutes.consents),
+            ),
             ListTile(
               key: const Key('sign-out'),
               leading: const Icon(Icons.logout),
