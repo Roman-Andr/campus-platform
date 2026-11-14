@@ -14,6 +14,7 @@ from campus.api import admin, health
 from campus.api.access_log import AccessLogMiddleware
 from campus.core.config import Settings, get_settings
 from campus.core.db import create_engine, create_session_factory
+from campus.core.metrics import HttpMetricsMiddleware, Metrics, metrics_server
 from campus.core.observability import configure_observability
 from campus.core.web import (
     install_problem_handlers,
@@ -46,13 +47,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     """Build the API application; used by uvicorn as a factory."""
     settings = settings or get_settings()
     configure_observability(settings, process="api")
+    metrics = Metrics(settings, "api")
     engine = create_engine(settings) if settings.database_url else None
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         # Fail fast: without keys no request that changes data could run.
         _app.state.idempotency_keyring = response_keyring(settings)
-        yield
+        async with metrics_server(metrics):
+            yield
         redis = getattr(_app.state, "auth_redis", None)
         if redis is not None:
             await redis.aclose()
@@ -72,6 +75,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         lifespan=lifespan,
     )
     app.state.consent_gate = identity.check_consents
+    app.state.metrics = metrics
     app.state.settings = settings
     app.state.session_factory = (
         create_session_factory(engine) if engine is not None else None
@@ -95,6 +99,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # The last added middleware is the outermost: the request ID is set
     # before the access log record is written.
     app.add_middleware(AccessLogMiddleware)
+    app.add_middleware(HttpMetricsMiddleware, metrics=metrics)
     app.add_middleware(CorrelationIdMiddleware)
     # Outermost: everything below sees the client address and scheme from
     # X-Forwarded-* of a trusted reverse proxy, e.g. the sign-in IP limit.

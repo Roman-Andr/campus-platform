@@ -964,3 +964,9 @@ scrolling; refresh the first page to see new entries or newly expired pins.
 Reusing a cursor with other filters returns `400 invalid_cursor`. Explicit
 edits, withdrawals and permission changes can alter the remaining results;
 the cursor is not a historical snapshot of mutable content.
+
+## Метрики Prometheus
+
+Внутренние экспортеры API/worker/scheduler, имена, единицы, buckets,
+безопасный scrape и внешний испытательный Prometheus/Grafana описаны в
+[infra/monitoring](../infra/monitoring/README.md).

@@ -44,6 +44,8 @@ class Deadline(Job):
         ),
     )
 
+    due_at: Mapped[datetime]
+
     # Identifies a pending deadline to move or cancel it, e.g.
     # "booking-expiry:<booking id>". Unique among pending deadlines.
     key: Mapped[str | None] = mapped_column(String(200))
@@ -67,6 +69,7 @@ async def schedule_deadline(
         "topic": topic,
         "payload": payload,
         "available_at": due_at,
+        "due_at": due_at,
         "attempts": 0,
         "last_error": None,
         "updated_at": now,

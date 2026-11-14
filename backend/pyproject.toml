@@ -18,6 +18,7 @@ dependencies = [
     "packaging>=25,<26",
     "pillow>=13.0.0",
     "pillow-heif>=1.8.1",
+    "prometheus-client>=0.26.0",
     "pydantic-settings>=2.16.3",
     "pyjwt>=2.15.1",
     "redis>=8,<9",

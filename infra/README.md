@@ -153,3 +153,6 @@ Centrifugo получает `CENTRIFUGO_TOKEN_HMAC_SECRET` (им же подпи
 процесс задаёт команда. Тег образа —
 `CAMPUS_BACKEND_IMAGE` (по умолчанию `campus-backend:local`, собирается
 из `backend/`).
+
+Метрики процессов и пример внешнего испытательного Prometheus/Grafana:
+[monitoring/README.md](monitoring/README.md).
