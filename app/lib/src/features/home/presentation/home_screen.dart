@@ -18,6 +18,12 @@ class HomeScreen extends StatelessWidget {
         title: Text(l10n.appTitle),
         actions: [
           IconButton(
+            key: const Key('home-favorites'),
+            icon: const Icon(Icons.star_border),
+            tooltip: l10n.favoritesTitle,
+            onPressed: () => context.push('/favorites'),
+          ),
+          IconButton(
             icon: const Icon(Icons.inventory_2_outlined),
             tooltip: l10n.listingsMine,
             onPressed: () => context.push('/my-listings'),

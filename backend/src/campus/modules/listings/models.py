@@ -7,6 +7,7 @@ from uuid import UUID
 from sqlalchemy import CheckConstraint, ForeignKey, Index, Integer, String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from campus.core import clock
 from campus.core.db import Base, Entity, LocalizedName
 from campus.modules.identity import User
 from campus.modules.university import City
@@ -148,6 +149,8 @@ class Interaction(Entity):
         ),
     )
     listing_id: Mapped[UUID] = mapped_column(ForeignKey("listing.id"))
+    # Loaded explicitly by participant views; mutations lock the listing.
+    listing: Mapped[Listing] = relationship(lazy="raise", viewonly=True)
     # Preserve explicit None for unlimited capacity; only omission defaults to 1.
     slot: Mapped[int | None] = mapped_column(Integer().evaluates_none(), default=1)
     participant_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
@@ -185,3 +188,16 @@ class ListingEvent(Entity):
     stage: Mapped[str | None] = mapped_column(String(32))
     via_assistant: Mapped[bool] = mapped_column(default=False)
     offline_qr: Mapped[bool] = mapped_column(default=False)
+
+
+class Favorite(Base):
+    """A user's bookmark; the key makes repeated additions a no-op."""
+
+    __tablename__ = "listing_favorite"
+    __table_args__ = (Index("ix_listing_favorite_user", "user_id", "created_at"),)
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("identity_user.id"), primary_key=True
+    )
+    listing_id: Mapped[UUID] = mapped_column(ForeignKey("listing.id"), primary_key=True)
+    listing: Mapped[Listing] = relationship(lazy="joined", innerjoin=True)
+    created_at: Mapped[datetime] = mapped_column(default=clock.now)

@@ -7,6 +7,7 @@ import '../../../core/api/api_failure_message.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../profile/application/my_profile.dart';
 import '../application/listings.dart';
+import 'my_screens.dart';
 import 'status_labels.dart';
 
 export 'status_labels.dart';
@@ -190,6 +191,7 @@ class ListingTile extends ConsumerWidget {
         subtitle: Text(
           '${item.authorName} · ${listingName(context.l10n, item.status)}',
         ),
+        trailing: FavoriteButton(listing: item),
         onTap: () => context.push('/listings/${item.id}'),
       ),
       if (item.authorId == ref.watch(myProfileProvider).value?.id &&
@@ -228,9 +230,16 @@ class ListingScreen extends ConsumerWidget {
             data: (item) => ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Text(
-                  item.title,
-                  style: Theme.of(context).textTheme.headlineSmall,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.title,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                    ),
+                    FavoriteButton(listing: item),
+                  ],
                 ),
                 Text(l.listingAuthor(item.authorName)),
                 Text(listingName(l, item.status)),
@@ -475,115 +484,6 @@ class InvalidListingForm implements Exception {
   const InvalidListingForm();
 }
 
-class MyListingsScreen extends StatelessWidget {
-  const MyListingsScreen({super.key});
-  @override
-  Widget build(BuildContext context) {
-    final l = context.l10n;
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(l.listingsMine),
-          bottom: TabBar(
-            tabs: [
-              Tab(text: l.listingsOwn),
-              Tab(text: l.listingsReservations),
-            ],
-          ),
-        ),
-        body: const TabBarView(
-          children: [MyPage(reservations: false), MyPage(reservations: true)],
-        ),
-      ),
-    );
-  }
-}
-
-class MyPage extends ConsumerStatefulWidget {
-  const MyPage({required this.reservations, super.key});
-  final bool reservations;
-  @override
-  ConsumerState<MyPage> createState() => _MyPageState();
-}
-
-class _MyPageState extends ConsumerState<MyPage> {
-  String? cursor;
-  @override
-  Widget build(BuildContext context) {
-    final l = context.l10n;
-    final AsyncValue<({List<Widget> rows, String? next})> page =
-        widget.reservations
-        ? ref
-              .watch(ownReservationsProvider(cursor))
-              .whenData(
-                (p) => (
-                  rows: [for (final i in p.items) ReservationTile(item: i)],
-                  next: p.nextPage,
-                ),
-              )
-        : ref
-              .watch(ownListingsProvider(cursor))
-              .whenData(
-                (p) => (
-                  rows: [
-                    for (final i in p.items.where(
-                      (i) => i.status != ListingStatus.expired,
-                    ))
-                      ListingTile(item: i),
-                    if (p.items.any(
-                      (item) => item.status == ListingStatus.expired,
-                    ))
-                      ExpiredListingsSection(items: p.items),
-                  ],
-                  next: p.nextPage,
-                ),
-              );
-    return page.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(apiFailureMessage(l, e)),
-            TextButton(
-              onPressed: () {
-                ref.invalidate(ownListingsProvider);
-                ref.invalidate(ownReservationsProvider);
-              },
-              child: Text(l.errorRetry),
-            ),
-          ],
-        ),
-      ),
-      data: (data) => RefreshIndicator(
-        onRefresh: () async {
-          setState(() => cursor = null);
-          ref.invalidate(ownListingsProvider);
-          ref.invalidate(ownReservationsProvider);
-        },
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          children: [
-            if (data.rows.isEmpty) ListTile(title: Text(l.listingsEmpty)),
-            ...data.rows,
-            if (data.next != null)
-              TextButton(
-                onPressed: () => setState(() => cursor = data.next),
-                child: Text(l.listingsMore),
-              ),
-            if (cursor != null)
-              TextButton(
-                onPressed: () => setState(() => cursor = null),
-                child: Text(l.listingsFirst),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class ReservationTile extends ConsumerWidget {
   const ReservationTile({required this.item, super.key});
   final InteractionOutput item;
@@ -597,25 +497,35 @@ class ReservationTile extends ConsumerWidget {
           subtitle: InteractionStatusText(item: item),
           onTap: () => context.push('/listings/${item.listingId}'),
         ),
-        if (item.participantId == ref.watch(myProfileProvider).value?.id &&
-            (item.status == InteractionStatus.pending ||
-                item.status == InteractionStatus.accepted))
-          ListingAction(
-            label: context.l10n.reservationCancel,
-            run: () async {
-              await ref
-                  .read(campusApiProvider)
-                  .listings
-                  .transitionInteraction(
-                    listingId: item.listingId,
-                    interactionId: item.id,
-                    body: const TransitionInput(
-                      status: InteractionStatus.cancelled,
-                    ),
-                  );
-            },
-          ),
+        ParticipantCancel(item: item),
       ],
+    );
+  }
+}
+
+/// Lets the participant withdraw a pending or accepted interaction.
+class ParticipantCancel extends ConsumerWidget {
+  const ParticipantCancel({required this.item, super.key});
+  final InteractionOutput item;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (item.participantId != ref.watch(myProfileProvider).value?.id ||
+        (item.status != InteractionStatus.pending &&
+            item.status != InteractionStatus.accepted)) {
+      return const SizedBox.shrink();
+    }
+    return ListingAction(
+      label: context.l10n.reservationCancel,
+      run: () async {
+        await ref
+            .read(campusApiProvider)
+            .listings
+            .transitionInteraction(
+              listingId: item.listingId,
+              interactionId: item.id,
+              body: const TransitionInput(status: InteractionStatus.cancelled),
+            );
+      },
     );
   }
 }
@@ -748,27 +658,6 @@ class ListingOwnerActions extends ConsumerWidget {
                   .extendListing(listingId: item.id);
             },
           ),
-      ],
-    );
-  }
-}
-
-/// The My screen can replace this with its archive filter.
-class ExpiredListingsSection extends StatelessWidget {
-  const ExpiredListingsSection({required this.items, super.key});
-  final List<ListingOutput> items;
-  @override
-  Widget build(BuildContext context) {
-    final expired = items.where((item) => item.status == ListingStatus.expired);
-    if (expired.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(context.l10n.listingsArchive),
-        ),
-        for (final item in expired) ListingTile(item: item),
       ],
     );
   }

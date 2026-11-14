@@ -3,12 +3,22 @@
 import base64
 import binascii
 import json
+from collections.abc import Sequence
 from datetime import datetime
+from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import Request, Response
-from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import and_, case, or_, select
+from fastapi import Query, Request, Response
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SerializerFunctionWrapHandler,
+    model_serializer,
+)
+from sqlalchemy import and_, case, delete, or_, select
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import joinedload
 
 from campus.core import clock
 from campus.core.config import Settings
@@ -30,6 +40,7 @@ from campus.modules.identity import Permissions, ProfiledUser, Role, User
 from campus.modules.listings.models import (
     Audience,
     Category,
+    Favorite,
     Interaction,
     InteractionStatus,
     Item,
@@ -110,6 +121,9 @@ class ListingOutput(BaseModel):
     category_id: UUID | None
     pinned_until: Instant | None = None
     hidden_reason: str | None
+    favorite: bool = Field(
+        default=False, description="Whether the current user bookmarked it."
+    )
 
 
 class InteractionOutput(BaseModel):
@@ -121,6 +135,57 @@ class InteractionOutput(BaseModel):
     status: InteractionStatus
     stage: str | None
     response_due_at: Instant | None
+
+
+class ParticipationListing(BaseModel):
+    """Enough of the listing to show a participation row without a fetch."""
+
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    kind: str
+    title: str
+    status: ListingStatus
+    city_timezone: str
+
+
+class ParticipationOutput(InteractionOutput):
+    created_at: Instant
+    listing: ParticipationListing
+
+
+class FavoriteRow(BaseModel):
+    model_config = ConfigDict(from_attributes=True, arbitrary_types_allowed=True)
+    listing_id: UUID
+    created_at: datetime
+    listing: Listing
+
+
+def omit_null(schema: dict[str, Any]) -> None:
+    """Describe an optional object as a plain reference, not a null union."""
+    [ref] = [item for item in schema.pop("anyOf") if item.get("type") != "null"]
+    schema.update(ref)
+    schema.pop("default", None)
+
+
+class FavoriteOutput(BaseModel):
+    listing_id: UUID
+    created_at: Instant
+    available: bool = Field(
+        description="False when hidden, expired, closed or out of the user's area."
+    )
+    listing: ListingOutput | None = Field(
+        default=None,
+        description="The listing; absent, with no content, when unavailable.",
+        json_schema_extra=omit_null,
+    )
+
+    # Unannotated on purpose: a return annotation would replace the schema.
+    @model_serializer(mode="wrap")
+    def _omit_listing(self, handler: SerializerFunctionWrapHandler):  # type: ignore[no-untyped-def]
+        data = handler(self)
+        if data.get("listing") is None:
+            data.pop("listing", None)
+        return data
 
 
 class TransitionInput(BaseModel):
@@ -340,7 +405,36 @@ async def listing_feed(  # noqa: PLR0913, PLR0917 - independent feed filters
             .decode()
             .rstrip("=")
         )
+    await mark_favorites(session, user.id, result.items)
     return result
+
+
+async def mark_favorites(
+    session: DbSession, user_id: UUID, items: Sequence[ListingOutput]
+) -> None:
+    if not items:
+        return
+    marked = set(
+        await session.scalars(
+            select(Favorite.listing_id).where(
+                Favorite.user_id == user_id,
+                Favorite.listing_id.in_([item.id for item in items]),
+            )
+        )
+    )
+    for item in items:
+        item.favorite = item.id in marked
+
+
+def available(listing: Listing, user: User) -> bool:
+    return (
+        listing.status in (ListingStatus.ACTIVE, ListingStatus.BUSY)
+        and (
+            (listing.kind == "publication" and listing.expires_at is None)
+            or (listing.expires_at is not None and listing.expires_at > clock.now())
+        )
+        and visible(listing, user)
+    )
 
 
 class CategoryOutput(BaseModel):
@@ -373,10 +467,20 @@ async def categories(
 
 @router.get("/mine")
 async def my_listings(
-    session: DbSession, principal: CurrentUser, page: PageQuery
+    session: DbSession,
+    principal: CurrentUser,
+    page: PageQuery,
+    status: Annotated[
+        list[ListingStatus] | None,
+        Query(description="Only these statuses; all of them by default."),
+    ] = None,
 ) -> Page[ListingOutput]:
+    """Own listings of every status: drafts, active, busy and the archive."""
+    query = select(Listing).where(Listing.author_id == principal.user_id)
+    if status:
+        query = query.where(Listing.status.in_(status))
     query = sort_by(
-        select(Listing).where(Listing.author_id == principal.user_id),
+        query,
         "-created_at",
         {"created_at": Listing.created_at},
         Listing.id,
@@ -389,14 +493,75 @@ async def my_reservations(
     session: DbSession,
     principal: CurrentUser,
     page: PageQuery,
-) -> Page[InteractionOutput]:
+) -> Page[ParticipationOutput]:
+    """Own participation in listings of every kind, with status and stage."""
     query = sort_by(
-        select(Interaction).where(Interaction.participant_id == principal.user_id),
+        select(Interaction)
+        .options(joinedload(Interaction.listing))
+        .where(Interaction.participant_id == principal.user_id),
         "-created_at",
         {"created_at": Interaction.created_at},
         Interaction.id,
     )
-    return await paginate(session, query, page, InteractionOutput)
+    return await paginate(session, query, page, ParticipationOutput)
+
+
+@router.get("/favorites")
+async def my_favorites(
+    session: DbSession, principal: CurrentUser, page: PageQuery
+) -> Page[FavoriteOutput]:
+    """Recently bookmarked first; unavailable listings carry no content."""
+    user = await user_for(session, principal)
+    query = sort_by(
+        select(Favorite).where(Favorite.user_id == user.id),
+        "-created_at",
+        {"created_at": Favorite.created_at},
+        Favorite.listing_id,
+    )
+    rows = await paginate(session, query, page, FavoriteRow)
+    items = []
+    for row in rows.items:
+        shown = available(row.listing, user)
+        items.append(
+            FavoriteOutput(
+                listing_id=row.listing_id,
+                created_at=row.created_at,
+                available=shown,
+                listing=ListingOutput.model_validate(row.listing) if shown else None,
+            )
+        )
+    for item in items:
+        if item.listing is not None:
+            item.listing.favorite = True
+    return Page[FavoriteOutput](items=items, next_page=rows.next_page)
+
+
+@router.put("/{listing_id}/favorite", status_code=204)
+async def add_favorite(
+    listing_id: UUID, session: DbSession, principal: CurrentUser
+) -> None:
+    """Repeating the request, even concurrently, keeps a single bookmark."""
+    user = await user_for(session, principal)
+    listing = await session.get(Listing, listing_id)
+    if listing is None or not visible(listing, user):
+        raise ProblemError(NOT_FOUND)
+    await session.execute(
+        insert(Favorite)
+        .values(user_id=user.id, listing_id=listing.id, created_at=clock.now())
+        .on_conflict_do_nothing()
+    )
+
+
+@router.delete("/{listing_id}/favorite", status_code=204)
+async def remove_favorite(
+    listing_id: UUID, session: DbSession, principal: CurrentUser
+) -> None:
+    """Removal works for unavailable listings too and is a no-op if absent."""
+    await session.execute(
+        delete(Favorite).where(
+            Favorite.user_id == principal.user_id, Favorite.listing_id == listing_id
+        )
+    )
 
 
 @router.get("/{listing_id}/interactions")
@@ -516,9 +681,10 @@ async def get_listing(
     session: DbSession,
     principal: CurrentUser,
 ) -> ListingOutput:
-    return ListingOutput.model_validate(
-        await readable(session, listing_id, await user_for(session, principal))
-    )
+    user = await user_for(session, principal)
+    result = ListingOutput.model_validate(await readable(session, listing_id, user))
+    await mark_favorites(session, user.id, [result])
+    return result
 
 
 @router.patch("/{listing_id}", response_model=ListingOutput)

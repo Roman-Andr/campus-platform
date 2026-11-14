@@ -31,6 +31,9 @@ class ListingOutput {
     /// RFC 3339 instant with an explicit offset; returned in UTC.
     this.pinnedUntil,
     required this.hiddenReason,
+
+    /// Whether the current user bookmarked it.
+    this.favorite = false,
     this.additionalProperties = const {},
   });
 
@@ -76,6 +79,7 @@ class ListingOutput {
                 : DateTime.parse(json["pinned_until"] as String).toUtc()
           : null,
       hiddenReason: json["hidden_reason"] as String?,
+      favorite: json.containsKey("favorite") ? json["favorite"] as bool : false,
       additionalProperties: {
         for (final entry in json.entries)
           if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
@@ -124,6 +128,9 @@ class ListingOutput {
 
   final String? hiddenReason;
 
+  /// Whether the current user bookmarked it.
+  final bool favorite;
+
   static const _knownKeys = <String>{
     "id",
     "author_name",
@@ -144,6 +151,7 @@ class ListingOutput {
     "category_id",
     "pinned_until",
     "hidden_reason",
+    "favorite",
   };
 
   final Map<String, Object?> additionalProperties;
@@ -171,5 +179,6 @@ class ListingOutput {
     if (this.pinnedUntil != null)
       "pinned_until": this.pinnedUntil?.toUtc().toIso8601String(),
     "hidden_reason": this.hiddenReason,
+    "favorite": this.favorite,
   };
 }

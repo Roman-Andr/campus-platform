@@ -2,18 +2,24 @@
 
 import 'dart:convert' as convert;
 
-import 'package:dio/dio.dart' show Dio, Options, ResponseType, CancelToken;
+import 'package:dio/dio.dart'
+    show Dio, Options, ResponseType, CancelToken, ListParam, ListFormat;
 
 import 'models/category_list.dart' as models show CategoryList;
 import 'models/giveaway_input.dart' as models show GiveawayInput;
 import 'models/interaction_output.dart' as models show InteractionOutput;
 import 'models/listing_edit.dart' as models show ListingEdit;
 import 'models/listing_output.dart' as models show ListingOutput;
+import 'models/listing_status.dart' as models show ListingStatus;
 import 'models/page_event_output.dart' as models show PageEventOutput;
+import 'models/page_favorite_output.dart' as models show PageFavoriteOutput;
 import 'models/page_interaction_output.dart'
     as models
     show PageInteractionOutput;
 import 'models/page_listing_output.dart' as models show PageListingOutput;
+import 'models/page_participation_output.dart'
+    as models
+    show PageParticipationOutput;
 import 'models/publication_input.dart' as models show PublicationInput;
 import 'models/transition_input.dart' as models show TransitionInput;
 import 'models/visibility.dart' as models show Visibility;
@@ -135,6 +141,8 @@ class ListingsClient {
   }
 
   /// My Listings
+  ///
+  /// Own listings of every status: drafts, active, busy and the archive.
   Future<models.PageListingOutput> myListings({
     Map<String, Object?> extra = const {
       "openapi.security": [
@@ -146,6 +154,9 @@ class ListingsClient {
     },
     CancelToken? cancelToken,
     Options? options,
+
+    /// Only these statuses; all of them by default.
+    List<models.ListingStatus>? status,
 
     /// Number of items; the default (20) and the maximum (100) are set in the server configuration.
     int? size,
@@ -164,6 +175,11 @@ class ListingsClient {
       "/api/v1/listings/mine",
       options: _options,
       queryParameters: <String, Object?>{
+        if (status != null)
+          "status": ListParam(
+            (status.map((item) => item.toJson()).toList()),
+            ListFormat.multi,
+          ),
         if (size != null) "size": size,
         if (cursor != null) "cursor": cursor,
       },
@@ -175,7 +191,9 @@ class ListingsClient {
   }
 
   /// My Reservations
-  Future<models.PageInteractionOutput> myReservations({
+  ///
+  /// Own participation in listings of every kind, with status and stage.
+  Future<models.PageParticipationOutput> myReservations({
     Map<String, Object?> extra = const {
       "openapi.security": [
         {"HTTPBearer": []},
@@ -209,8 +227,116 @@ class ListingsClient {
       },
       cancelToken: cancelToken,
     );
-    return models.PageInteractionOutput.fromJson(
+    return models.PageParticipationOutput.fromJson(
       response.data as Map<String, Object?>,
+    );
+  }
+
+  /// My Favorites
+  ///
+  /// Recently bookmarked first; unavailable listings carry no content.
+  Future<models.PageFavoriteOutput> myFavorites({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+
+    /// Number of items; the default (20) and the maximum (100) are set in the server configuration.
+    int? size,
+
+    /// `next_page` of the previous page.
+    String? cursor,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/favorites",
+      options: _options,
+      queryParameters: <String, Object?>{
+        if (size != null) "size": size,
+        if (cursor != null) "cursor": cursor,
+      },
+      cancelToken: cancelToken,
+    );
+    return models.PageFavoriteOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Add Favorite
+  ///
+  /// Repeating the request, even concurrently, keeps a single bookmark.
+  Future<void> addFavorite({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "PUT",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 204),
+    );
+    await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/favorite",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+  }
+
+  /// Remove Favorite
+  ///
+  /// Removal works for unavailable listings too and is a no-op if absent.
+  Future<void> removeFavorite({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "DELETE",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 204),
+    );
+    await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/favorite",
+      options: _options,
+      cancelToken: cancelToken,
     );
   }
 

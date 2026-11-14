@@ -293,6 +293,14 @@ void main() {
                 'stage': null,
                 'response_due_at': null,
                 'status': 'accepted',
+                'created_at': '2026-11-14T00:00:00Z',
+                'listing': {
+                  'id': 'listing-1',
+                  'kind': 'giveaway',
+                  'title': 'A desk',
+                  'status': 'busy',
+                  'city_timezone': 'Europe/Moscow',
+                },
               },
             ]),
           );
@@ -306,8 +314,9 @@ void main() {
     await tester.tap(find.byIcon(Icons.inventory_2_outlined));
     await tester.pumpAndSettle();
     expect(find.text('A desk'), findsOneWidget);
-    await tester.tap(find.text('My reservations'));
+    await tester.tap(find.text('My participation'));
     await tester.pumpAndSettle();
+    expect(find.text('Giveaway'), findsOneWidget);
     expect(find.text('Accepted'), findsOneWidget);
     expect(find.text('A desk'), findsOneWidget);
   });

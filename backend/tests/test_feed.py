@@ -307,3 +307,53 @@ async def test_filter_combinations_and_scope(
         f"?kind=giveaway&category_id={wanted}&dormitory_id={places.dubki}",
     )
     assert {i["id"] for i in response.json()["items"]} == {city["id"], faculty["id"]}
+
+
+async def test_university_publication_favorite_survives_pin_expiry(
+    owner: Account,
+    borrower: Account,
+    places: Places,
+) -> None:
+    await grant(owner, Role.ADMINISTRATOR)
+    with time_machine.travel(clock.now(), tick=False) as traveller:
+        publication = await notice(
+            owner, visibility="university", city_id=str(places.perm)
+        )
+        publication_id = publication["id"]
+        assert (
+            await request(borrower, "PUT", f"/{publication_id}/favorite")
+        ).status_code == 204
+        traveller.shift(timedelta(seconds=1))
+        ordinary = await publish(owner)
+        assert (
+            await request(borrower, "PUT", f"/{ordinary['id']}/favorite")
+        ).status_code == 204
+        first = (await request(borrower, "GET", "?size=1")).json()
+        assert first["items"][0]["id"] == publication_id
+        assert first["items"][0]["favorite"] is True
+        traveller.shift(timedelta(minutes=1))
+        second = (
+            await request(borrower, "GET", "?size=1&cursor=" + first["next_page"])
+        ).json()
+        assert second["items"][0]["id"] == ordinary["id"]
+        assert second["items"][0]["favorite"] is True
+        items = (await request(borrower, "GET", "/favorites")).json()["items"]
+        favorite = next(item for item in items if item["listing_id"] == publication_id)
+        assert favorite["available"] is True
+        assert favorite["listing"]["favorite"] is True
+        assert favorite["listing"]["expires_at"] is None
+        assert favorite["listing"]["visibility"] == "university"
+        fresh = (await request(borrower, "GET")).json()["items"]
+        assert [item["id"] for item in fresh] == [ordinary["id"], publication_id]
+        assert all(item["favorite"] for item in fresh)
+        assert all(
+            not item["favorite"]
+            for item in (await request(owner, "GET")).json()["items"]
+        )
+        assert (
+            await request(owner, "POST", f"/{publication_id}/cancel")
+        ).status_code == 200
+        items = (await request(borrower, "GET", "/favorites")).json()["items"]
+        favorite = next(item for item in items if item["listing_id"] == publication_id)
+        assert favorite["available"] is False
+        assert "listing" not in favorite

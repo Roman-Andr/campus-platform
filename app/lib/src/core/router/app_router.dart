@@ -10,6 +10,7 @@ import '../../features/auth/presentation/sign_in_name_screen.dart';
 import '../../features/consents/presentation/consents_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/listings/presentation/listings_screens.dart';
+import '../../features/listings/presentation/my_screens.dart';
 import '../../features/profile/application/my_profile.dart';
 import '../../features/profile/presentation/profile_form_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -52,6 +53,10 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: '/my-listings',
         builder: (context, state) => const MyListingsScreen(),
+      ),
+      GoRoute(
+        path: '/favorites',
+        builder: (context, state) => const FavoritesScreen(),
       ),
       GoRoute(
         path: '/listings/:id',
