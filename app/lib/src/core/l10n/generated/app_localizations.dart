@@ -2341,6 +2341,12 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Нельзя уменьшить лимит мест ниже числа записавшихся.'**
   String get eventCapacityConflict;
+
+  /// Menu of secondary actions of the home screen.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ещё'**
+  String get moreActions;
 }
 
 class _AppLocalizationsDelegate

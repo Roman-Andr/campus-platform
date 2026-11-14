@@ -1651,5 +1651,9 @@
   "eventCapacityConflict": "Нельзя уменьшить лимит мест ниже числа записавшихся.",
   "@eventCapacityConflict": {
     "description": "The server refused a seat limit below the registered count."
+  },
+  "moreActions": "Ещё",
+  "@moreActions": {
+    "description": "Menu of secondary actions of the home screen."
   }
 }

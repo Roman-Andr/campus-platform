@@ -1286,4 +1286,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get eventCapacityConflict =>
       'The seat limit cannot be lower than the number of registered participants.';
+
+  @override
+  String get moreActions => 'More';
 }

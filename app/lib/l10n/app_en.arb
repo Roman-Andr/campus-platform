@@ -663,5 +663,9 @@
   "eventTimeRange": "{start} — {end}",
   "eventCapacityInvalid": "The seat limit must be at least 1.",
   "eventCapacityBelowRegistered": "The seat limit cannot be lower than the number of registered participants: {registered}.",
-  "eventCapacityConflict": "The seat limit cannot be lower than the number of registered participants."
+  "eventCapacityConflict": "The seat limit cannot be lower than the number of registered participants.",
+  "moreActions": "More",
+  "@moreActions": {
+    "description": "Menu of secondary actions of the home screen."
+  }
 }

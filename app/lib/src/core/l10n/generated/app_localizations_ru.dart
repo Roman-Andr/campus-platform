@@ -1280,4 +1280,7 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get eventCapacityConflict =>
       'Нельзя уменьшить лимит мест ниже числа записавшихся.';
+
+  @override
+  String get moreActions => 'Ещё';
 }
