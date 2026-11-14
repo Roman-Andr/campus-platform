@@ -3,6 +3,7 @@
 from datetime import timedelta
 from enum import StrEnum
 from functools import lru_cache
+from ipaddress import ip_address, ip_network
 from typing import Literal, Self
 
 from limits import parse_many
@@ -58,6 +59,15 @@ class Settings(BaseSettings):
 
     api_host: str = "127.0.0.1"
     api_port: int = Field(default=8000, ge=1, le=65535)
+    trusted_proxies: str = Field(
+        default="127.0.0.1",
+        description=(
+            "Reverse proxies whose X-Forwarded-For and X-Forwarded-Proto are"
+            " trusted: comma-separated addresses and networks, e.g."
+            " 127.0.0.1,172.16.0.0/12, or * for any peer. Requests from other"
+            " peers keep their socket address."
+        ),
+    )
 
     database_url: SecretStr | None = Field(
         default=None,
@@ -105,6 +115,20 @@ class Settings(BaseSettings):
     sign_in_code_max_attempts: int = Field(default=5, ge=1)
     sign_in_email_limits: str = "3/15 minutes;10/day"
     sign_in_ip_limits: str = "60/minute"
+
+    @field_validator("trusted_proxies")
+    @classmethod
+    def _check_trusted_proxies(cls, value: str) -> str:
+        entries = [entry.strip() for entry in value.split(",")]
+        if entries == ["*"]:
+            return "*"
+        for entry in entries:
+            # uvicorn silently treats malformed entries as host names.
+            if "/" in entry:
+                ip_network(entry)
+            else:
+                ip_address(entry)
+        return ",".join(entries)
 
     @field_validator("sign_in_email_limits", "sign_in_ip_limits")
     @classmethod

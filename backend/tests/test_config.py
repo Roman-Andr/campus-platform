@@ -62,6 +62,9 @@ def test_environment_variable_overrides_dotenv_file(
         ("CAMPUS_LOG_LEVEL", "LOUD"),
         ("CAMPUS_API_PORT", "0"),
         ("CAMPUS_SENTRY_TRACES_SAMPLE_RATE", "1.5"),
+        ("CAMPUS_TRUSTED_PROXIES", "caddy"),
+        ("CAMPUS_TRUSTED_PROXIES", "10.0.0.0/33"),
+        ("CAMPUS_TRUSTED_PROXIES", "127.0.0.1,*"),
     ],
 )
 def test_invalid_values_are_rejected(
@@ -137,3 +140,18 @@ def test_default_page_size_must_not_exceed_maximum(
 
     with pytest.raises(ValidationError, match="page_size_default"):
         Settings()
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("*", "*"),
+        (" 127.0.0.1 , 172.16.0.0/12,fc00::/7", "127.0.0.1,172.16.0.0/12,fc00::/7"),
+    ],
+)
+def test_trusted_proxies_are_normalized(
+    monkeypatch: pytest.MonkeyPatch, value: str, expected: str
+) -> None:
+    monkeypatch.setenv("CAMPUS_TRUSTED_PROXIES", value)
+
+    assert Settings().trusted_proxies == expected
