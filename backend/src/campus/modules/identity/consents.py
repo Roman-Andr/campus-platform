@@ -76,6 +76,11 @@ class DocumentVersion(Entity):
     text_en: Mapped[str]
     published_at: Mapped[datetime]
 
+    @property
+    def required(self) -> bool:
+        """Whether users must accept this document kind."""
+        return self.kind in REQUIRED
+
 
 class ConsentDecision(Entity):
     __tablename__ = "identity_consent_decision"
@@ -238,6 +243,10 @@ async def check_consents(
     """Global API gate; future export/deletion handlers use these route names."""
     route = request.scope["route"]
     if route.name in {
+        # Publishing changes the gate itself: a retry must replay its stored
+        # response, and concurrent publications must both get a version
+        # instead of the second one being gated by the first.
+        "admin_publish_document",
         "get_documents",
         "accept_documents",
         "change_cross_border_consent",

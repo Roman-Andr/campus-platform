@@ -5,6 +5,9 @@ enum ProblemCodeValue {
   clientUpdateRequired("client_update_required"),
   clientVersionInvalid("client_version_invalid"),
   clientVersionMissing("client_version_missing"),
+  complaintReasonCodeConflict("complaint_reason_code_conflict"),
+  complaintReasonRulesInvalid("complaint_reason_rules_invalid"),
+  complaintReasonVersionConflict("complaint_reason_version_conflict"),
   consentInvalid("consent_invalid"),
   consentRequired("consent_required"),
   emailConflict("email_conflict"),
@@ -80,6 +83,15 @@ sealed class ProblemCode {
   );
   static const clientVersionMissing = ProblemCodeKnown(
     ProblemCodeValue.clientVersionMissing,
+  );
+  static const complaintReasonCodeConflict = ProblemCodeKnown(
+    ProblemCodeValue.complaintReasonCodeConflict,
+  );
+  static const complaintReasonRulesInvalid = ProblemCodeKnown(
+    ProblemCodeValue.complaintReasonRulesInvalid,
+  );
+  static const complaintReasonVersionConflict = ProblemCodeKnown(
+    ProblemCodeValue.complaintReasonVersionConflict,
   );
   static const consentInvalid = ProblemCodeKnown(
     ProblemCodeValue.consentInvalid,
