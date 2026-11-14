@@ -217,5 +217,4 @@ KNOWN_FAILURES = {
             "detail_dormitory_community",
         )
     },
-    "finish_review/former_employee/continue": 240,
 }

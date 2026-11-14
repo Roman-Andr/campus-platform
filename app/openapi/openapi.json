@@ -6030,7 +6030,13 @@
             "title": "Last Name"
           },
           "account_type": {
-            "$ref": "#/components/schemas/AccountType"
+            "type": "string",
+            "enum": [
+              "student",
+              "employee",
+              "former_employee"
+            ],
+            "title": "Account Type"
           },
           "city_id": {
             "type": [

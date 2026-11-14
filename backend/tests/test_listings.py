@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from campus.core import clock
 from campus.core.db import create_session_factory
 from campus.core.deadlines import process_due_deadlines
+from campus.modules.identity import User
 from campus.modules.listings import (
     Interaction,
     InteractionStatus,
@@ -694,3 +695,78 @@ async def test_listing_timezone_follows_city_snapshot(
     assert published.json()["city_timezone"] == "Asia/Yekaterinburg"
     feed = await request(owner, "GET")
     assert feed.json()["items"][0]["city_timezone"] == "Asia/Yekaterinburg"
+
+
+async def test_former_employee_continues_own_interaction(
+    owner: Account, staff: Account, borrower: Account
+) -> None:
+    listing = await publish(owner, audience="community")
+    interaction = (await reserve(staff, listing)).json()
+    assert (await move(owner, listing, interaction, "accepted")).status_code == 200
+    await staff.auth.db.execute(
+        update(User)
+        .where(User.id == UUID(staff.tokens["user"]["id"]))
+        .values(account_type="former_employee")
+    )
+    await staff.auth.db.commit()
+    me = (await staff.me()).json()
+    assert me["profile_complete"] is True
+    assert me["course"] is None
+    assert me["account_type"] == "former_employee"
+
+    for account in (borrower, owner):
+        response = await move(account, listing, interaction, "cancelled")
+        assert response.status_code == 403
+        assert response.json()["code"] == "listing_forbidden"
+    for status in ("completed", "no_show"):
+        response = await move(staff, listing, interaction, status)
+        assert response.status_code == 403
+        assert response.json()["code"] == "listing_forbidden"
+    other = await publish(owner, audience="community")
+    response = await move(staff, other, interaction, "cancelled")
+    assert response.status_code == 404
+    assert response.headers["content-type"] == "application/problem+json"
+
+    # The same former employee is an outsider to another accepted interaction.
+    other_interaction = (await reserve(borrower, other)).json()
+    assert (await move(owner, other, other_interaction, "accepted")).status_code == 200
+    response = await move(staff, other, other_interaction, "cancelled")
+    assert response.status_code == 403
+    assert response.json()["code"] == "listing_forbidden"
+    response = await move(staff, listing, interaction, "cancelled")
+    assert response.status_code == 200, response.text
+    assert response.json()["status"] == "cancelled"
+
+
+@pytest.mark.parametrize("status", ["draft", "expired"])
+async def test_former_employee_cannot_publish_or_respond(
+    owner: Account, staff: Account, status: str
+) -> None:
+    own = await publish(staff, audience="community", draft=status == "draft")
+    if status == "expired":
+        await staff.auth.db.execute(
+            update(Listing)
+            .where(Listing.id == UUID(own["id"]))
+            .values(status="expired", expires_at=clock.now() - timedelta(seconds=1))
+        )
+    await staff.auth.db.execute(
+        update(User)
+        .where(User.id == UUID(staff.tokens["user"]["id"]))
+        .values(account_type="former_employee")
+    )
+    await staff.auth.db.commit()
+    response = await request(staff, "POST", f"/{own['id']}/publish")
+    assert response.status_code == 403
+    assert response.json()["code"] == "listing_forbidden"
+    response = await request(
+        staff,
+        "POST",
+        "/giveaways",
+        {"title": "Desk", "description": "Collect", "audience": "community"},
+    )
+    assert response.status_code == 403
+    assert response.json()["code"] == "listing_forbidden"
+    listing = await publish(owner, audience="community")
+    response = await reserve(staff, listing)
+    assert response.status_code == 403
+    assert response.json()["code"] == "listing_forbidden"

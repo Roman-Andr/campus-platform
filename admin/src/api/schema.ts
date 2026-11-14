@@ -1207,7 +1207,11 @@ export interface components {
       first_name: string;
       /** Last Name */
       last_name: string;
-      account_type: components['schemas']['AccountType'];
+      /**
+       * Account Type
+       * @enum {string}
+       */
+      account_type: 'student' | 'employee' | 'former_employee';
       /**
        * City Id
        * @description Campus city; empty until filled in.

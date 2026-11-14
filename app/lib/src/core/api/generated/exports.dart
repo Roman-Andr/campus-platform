@@ -15,6 +15,7 @@ export 'authentication/models/role_output.dart';
 export 'authentication/models/sign_in_input.dart';
 export 'authentication/models/tokens.dart';
 export 'authentication/models/user_output.dart';
+export 'authentication/models/user_output_account_type.dart';
 export 'consents/consents_client.dart';
 export 'consents/models/acceptance_input.dart';
 export 'consents/models/cross_border_input.dart';
