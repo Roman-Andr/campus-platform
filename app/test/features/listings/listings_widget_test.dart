@@ -163,6 +163,7 @@ void main() {
       'participant_name': 'Boris',
       'stage': null,
       'response_due_at': null,
+      'executor': false,
       'status': status,
       'meeting': null,
     };
@@ -295,6 +296,7 @@ void main() {
                 'participant_name': 'Ivan',
                 'stage': null,
                 'response_due_at': null,
+                'executor': false,
                 'status': 'accepted',
                 'created_at': '2026-11-14T00:00:00Z',
                 'listing': {

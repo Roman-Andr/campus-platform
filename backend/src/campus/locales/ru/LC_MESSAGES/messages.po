@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-14 22:40+0300\n"
+"POT-Creation-Date: 2026-11-14 22:50+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -117,6 +117,9 @@ msgstr "Недопустимое решение по согласию"
 
 msgid "Invalid cursor"
 msgstr "Неверный курсор"
+
+msgid "Invalid help deadline"
+msgstr "Неверный срок актуальности запроса"
 
 msgid "Invalid idempotency key"
 msgstr "Неверный ключ идемпотентности"
@@ -300,6 +303,13 @@ msgstr "Мероприятие должно начинаться в будуще
 
 msgid "The event time or location has changed."
 msgstr "Время или место мероприятия изменено."
+
+msgid ""
+"The help request must expire in the future and within the listing "
+"lifetime."
+msgstr ""
+"Запрос о помощи должен завершаться в будущем и не позже срока жизни "
+"объявления."
 
 msgid "The interaction must be accepted and have a current meeting proposal."
 msgstr "Взаимодействие должно быть принято и иметь текущее предложение встречи."

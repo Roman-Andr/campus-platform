@@ -93,6 +93,12 @@ INVALID_LESSON_OPTIONS = ProblemType(
     N_("Invalid lesson time options"),
     N_("A lesson has from {min} to {max} time options."),
 )
+HELP_DEADLINE_INVALID = ProblemType(
+    "help_deadline_invalid",
+    422,
+    N_("Invalid help deadline"),
+    N_("The help request must expire in the future and within the listing lifetime."),
+)
 
 MEETING_PROPOSED = N_("A meeting time and place were proposed.")
 MEETING_SCHEDULED = N_("The meeting is scheduled.")
@@ -204,6 +210,8 @@ TYPE_POLICIES = {
     "giveaway": TypePolicy(author_response_deadline=True, capacity=1),
     # A skill listing is permanent and takes lessons from many participants.
     "skill": TypePolicy(author_response_deadline=True, capacity=None),
+    # Applications are unlimited and stay pending; the author selects one.
+    "help": TypePolicy(author_response_deadline=False),
 }
 
 
@@ -856,9 +864,29 @@ async def reject_pending(session: AsyncSession, listing: Listing, reason: str) -
         )
 
 
+async def has_executor(session: AsyncSession, listing_id: UUID) -> bool:
+    """Whether a help request already has the selected executor."""
+    selected = await session.scalar(
+        select(Interaction.id).where(
+            Interaction.listing_id == listing_id,
+            Interaction.status == InteractionStatus.ACCEPTED,
+            Interaction.executor.is_(True),
+        )
+    )
+    return selected is not None
+
+
 async def expire(session: AsyncSession, listing: Listing) -> None:
-    """Accepted interactions survive closure and may finish afterwards."""
+    """Accepted interactions survive closure and may finish afterwards.
+
+    A help request with a selected executor does not close on its
+    availability deadline: it continues until the executor finishes or
+    refuses. Without an executor the request closes and its reserve is
+    rejected.
+    """
     if listing.status not in (ListingStatus.ACTIVE, ListingStatus.BUSY):
+        return
+    if listing.kind == "help" and await has_executor(session, listing.id):
         return
     change_listing(session, listing, ListingStatus.EXPIRED, None, "expired")
     await reject_pending(session, listing, "listing_expired")
@@ -961,7 +989,23 @@ async def transition(  # noqa: PLR0912, PLR0913 - aggregate transition
     if previous == InteractionStatus.ACCEPTED:
         # Reminders belong to an accepted interaction only.
         await cancel_meeting_reminders(session, interaction.id)
+    selected = False
+    if target == InteractionStatus.ACCEPTED and listing.kind == "help":
+        # The author selects one application; the remaining ones stay pending
+        # as a reserve. The partial unique index backs this check up.
+        if listing.status != ListingStatus.ACTIVE:
+            raise ProblemError(CONFLICT)
+        interaction.executor = True
+        change_listing(
+            session, listing, ListingStatus.BUSY, actor_id, "executor_selected"
+        )
+        selected = True
     released = False
+    # A giveaway reservation makes the listing busy while still pending, so
+    # ending any interaction releases it. Help requests stay active while
+    # applications are pending and become busy only for the selected executor,
+    # whose refusal or cancellation returns the request to the reserve.
+    releases_slot = listing.kind != "help" or previous == InteractionStatus.ACCEPTED
     if listing.kind == "event":
         if target == InteractionStatus.CANCELLED:
             listing.event_registered -= 1
@@ -975,6 +1019,7 @@ async def transition(  # noqa: PLR0912, PLR0913 - aggregate transition
             InteractionStatus.NO_SHOW,
         )
         and listing.status == ListingStatus.BUSY
+        and releases_slot
     ):
         # A deadline that has elapsed must not reintroduce a listing to the feed.
         if listing.expires_at is not None and listing.expires_at <= clock.now():
@@ -984,8 +1029,10 @@ async def transition(  # noqa: PLR0912, PLR0913 - aggregate transition
             released = True
     elif target == InteractionStatus.COMPLETED and listing.status == ListingStatus.BUSY:
         change_listing(session, listing, ListingStatus.COMPLETED, actor_id, "completed")
+        if listing.kind == "help":
+            await reject_pending(session, listing, "help_completed")
         await clear_waitlist(session, listing, "listing_completed")
-    else:
+    elif not selected:
         listing.version += 1
     record(session, listing, actor_id, "transition", previous, interaction)
     if released:

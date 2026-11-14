@@ -62,6 +62,7 @@ Map<String, Object?> interactionJson({
   'participant_name': 'Boris',
   'stage': null,
   'response_due_at': null,
+  'executor': false,
   'status': status,
   'meeting': null,
 };

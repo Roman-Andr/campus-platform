@@ -72,6 +72,7 @@ from campus.modules.listings.models import (
 from campus.modules.listings.service import (
     CONFLICT,
     FORBIDDEN,
+    HELP_DEADLINE_INVALID,
     INVALID_CATEGORY,
     INVALID_CONTENT,
     INVALID_LESSON_OPTIONS,
@@ -167,6 +168,20 @@ class LessonInput(BaseModel):
 class LessonAcceptInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     option_id: UUID
+
+
+class HelpRequestInput(BaseModel):
+    """A help request stays relevant only until its author-set deadline."""
+
+    model_config = ConfigDict(extra="forbid")
+    title: str
+    description: str
+    visibility: Visibility = Visibility.CITY
+    audience: Audience = Audience.STUDENTS
+    category_id: UUID | None = None
+    actual_until: Instant = Field(
+        description="When the request stops being relevant; not after its lifetime."
+    )
 
 
 class ListingEdit(BaseModel):
@@ -323,6 +338,9 @@ class InteractionOutput(BaseModel):
     status: InteractionStatus
     stage: str | None
     response_due_at: Instant | None
+    executor: bool = Field(
+        description="Whether this application is the selected help executor."
+    )
     meeting: MeetingOutput | None
     options: list[LessonOptionOutput] = Field(
         default_factory=list,
@@ -552,6 +570,22 @@ async def user_for(session: DbSession, principal: CurrentUser) -> User:
     return user
 
 
+def check_publish_access(
+    user: User, visibility: Visibility, audience: Audience
+) -> None:
+    """Shared rules of user-created listings and help requests."""
+    if visibility == Visibility.UNIVERSITY:
+        raise ProblemError(FORBIDDEN)
+    if user.account_type not in (AccountType.STUDENT, AccountType.EMPLOYEE):
+        raise ProblemError(FORBIDDEN)
+    if user.account_type == AccountType.EMPLOYEE and audience != Audience.COMMUNITY:
+        raise ProblemError(FORBIDDEN)
+    if visibility == Visibility.DORMITORY and (
+        user.dormitory_id is None or user.account_type == AccountType.EMPLOYEE
+    ):
+        raise ProblemError(FORBIDDEN)
+
+
 async def readable(session: DbSession, listing_id: UUID, user: User) -> Listing:
     listing = await session.get(Listing, listing_id)
     if listing is None:
@@ -580,19 +614,7 @@ async def publish_giveaway(
     user = await user_for(session, principal)
     settings: Settings = request.app.state.settings
     check_text(data.title, data.description, settings)
-    if data.visibility == Visibility.UNIVERSITY:
-        raise ProblemError(FORBIDDEN)
-    if user.account_type not in (AccountType.STUDENT, AccountType.EMPLOYEE):
-        raise ProblemError(FORBIDDEN)
-    if (
-        user.account_type == AccountType.EMPLOYEE
-        and data.audience != Audience.COMMUNITY
-    ):
-        raise ProblemError(FORBIDDEN)
-    if data.visibility == Visibility.DORMITORY and (
-        user.dormitory_id is None or user.account_type == AccountType.EMPLOYEE
-    ):
-        raise ProblemError(FORBIDDEN)
+    check_publish_access(user, data.visibility, data.audience)
     if data.category_id is not None or not data.draft:
         await check_category(session, data.category_id)
     if not data.draft:
@@ -625,6 +647,55 @@ async def publish_giveaway(
     )
     if not data.draft:
         await expiry_deadline(session, listing)
+    return ListingOutput.model_validate(listing)
+
+
+@router.post("/help-requests", status_code=201)
+async def publish_help_request(
+    data: HelpRequestInput,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> ListingOutput:
+    """Publish a help request with an author-set relevance deadline.
+
+    The deadline is the listing's expiry: the request leaves the feed and
+    closes automatically at that time unless the author has selected an
+    executor. It may not exceed the ordinary listing lifetime.
+    """
+    user = await user_for(session, principal)
+    settings: Settings = request.app.state.settings
+    check_text(data.title, data.description, settings)
+    check_publish_access(user, data.visibility, data.audience)
+    await check_category(session, data.category_id)
+    now = clock.now()
+    if data.actual_until <= now or data.actual_until > now + settings.listing_lifetime:
+        raise ProblemError(HELP_DEADLINE_INVALID)
+    await publication_quota(session, user.id, settings)
+    assert user.city_id is not None  # noqa: S101 - ProfiledUser
+    listing = Listing(
+        author=user,
+        author_id=user.id,
+        author_dormitory_id=user.dormitory_id,
+        kind="help",
+        title=data.title,
+        description=data.description,
+        visibility=data.visibility,
+        audience=data.audience,
+        city_id=user.city_id,
+        city=await session.get(City, user.city_id),
+        faculty_id=user.faculty_id if data.visibility == Visibility.FACULTY else None,
+        dormitory_id=user.dormitory_id
+        if data.visibility == Visibility.DORMITORY
+        else None,
+        status=ListingStatus.ACTIVE,
+        category_id=data.category_id,
+        expires_at=data.actual_until,
+    )
+    session.add(listing)
+    await session.flush()
+    record(session, listing, user.id, "published", None)
+    await expiry_deadline(session, listing)
     return ListingOutput.model_validate(listing)
 
 
@@ -1450,6 +1521,73 @@ async def repeat_lesson(  # noqa: PLR0913, PLR0917 - request context
     )
     await schedule_author_response(session, listing, interaction)
     await session.flush()
+    return InteractionOutput.model_validate(interaction)
+
+
+@router.post("/{listing_id}/responses", status_code=201)
+async def respond_to_help(
+    listing_id: UUID,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> InteractionOutput:
+    """Apply to a help request; several applications stay pending at once.
+
+    The author later selects one of them. An application does not occupy
+    the listing's single executor slot, so the listing stays active until
+    the selection.
+    """
+    listing = await locked(session, listing_id)
+    user = await user_for(session, principal)
+    if (
+        user.account_type == AccountType.EMPLOYEE
+        and listing.audience == Audience.STUDENTS
+    ):
+        raise ProblemError(FORBIDDEN)
+    if user.id == listing.author_id or user.account_type not in (
+        AccountType.STUDENT,
+        AccountType.EMPLOYEE,
+    ):
+        raise ProblemError(FORBIDDEN)
+    if not visible(listing, user):
+        raise ProblemError(NOT_FOUND)
+    require_live(listing)
+    if listing.kind != "help" or listing.status != ListingStatus.ACTIVE:
+        raise ProblemError(CONFLICT)
+    already_applied = await session.scalar(
+        select(Interaction.id).where(
+            Interaction.listing_id == listing.id,
+            Interaction.participant_id == user.id,
+            Interaction.status.in_(
+                (InteractionStatus.PENDING, InteractionStatus.ACCEPTED)
+            ),
+        )
+    )
+    if already_applied is not None:
+        raise ProblemError(CONFLICT)
+    settings: Settings = request.app.state.settings
+    retry = await rate_limit(
+        session,
+        user.id,
+        "responded",
+        settings.listing_response_limit,
+        settings.listing_response_window,
+    )
+    if retry is not None:
+        raise ProblemError(RATE_LIMIT, headers={"Retry-After": str(retry)})
+    interaction = Interaction(
+        listing_id=listing.id,
+        participant_id=user.id,
+        participant=user,
+        slot=None,
+        response_due_at=None,
+        meeting=None,
+        options=[],
+    )
+    session.add(interaction)
+    await session.flush()
+    listing.version += 1
+    record(session, listing, user.id, "responded", None, interaction)
     return InteractionOutput.model_validate(interaction)
 
 

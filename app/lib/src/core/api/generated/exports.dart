@@ -38,6 +38,7 @@ export 'listings/models/event_input_draft.dart';
 export 'listings/models/event_output.dart';
 export 'listings/models/favorite_output.dart';
 export 'listings/models/giveaway_input.dart';
+export 'listings/models/help_request_input.dart';
 export 'listings/models/interaction_status.dart';
 export 'listings/models/lesson_accept_input.dart';
 export 'listings/models/lesson_input.dart';

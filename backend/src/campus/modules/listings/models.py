@@ -236,6 +236,9 @@ class Interaction(Entity):
 
     Capacity scenarios can allocate multiple slots; unlimited scenarios
     use NULL, which PostgreSQL excludes from uniqueness comparisons.
+    Help-request applications use NULL slots, and the one selected as the
+    executor carries ``executor``: only one accepted executor is allowed
+    per listing, while the other applications stay pending as a reserve.
     """
 
     __tablename__ = "listing_interaction"
@@ -252,6 +255,12 @@ class Interaction(Entity):
             unique=True,
             postgresql_where=text("status IN ('pending', 'accepted')"),
         ),
+        Index(
+            "uq_listing_one_executor",
+            "listing_id",
+            unique=True,
+            postgresql_where=text("status = 'accepted' AND executor"),
+        ),
     )
     listing_id: Mapped[UUID] = mapped_column(ForeignKey("listing.id"))
     # Loaded explicitly by participant views; mutations lock the listing.
@@ -266,6 +275,8 @@ class Interaction(Entity):
         return f"{self.participant.first_name} {self.participant.last_name}"
 
     status: Mapped[str] = mapped_column(String(16), default=InteractionStatus.PENDING)
+    # The selected executor of a help request; other applications stay pending.
+    executor: Mapped[bool] = mapped_column(default=False)
 
     stage: Mapped[str | None] = mapped_column(String(32))
     response_due_at: Mapped[datetime | None]
