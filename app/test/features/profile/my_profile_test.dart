@@ -114,8 +114,9 @@ void main() {
   });
 
   test('only students give a course', () {
-    expect(hasCourse(AccountType.student), isTrue);
-    expect(hasCourse(AccountType.employee), isFalse);
+    expect(hasCourse(UserOutputAccountType.student), isTrue);
+    expect(hasCourse(UserOutputAccountType.employee), isFalse);
+    expect(hasCourse(UserOutputAccountType.formerEmployee), isFalse);
   });
 
   test('the highest course defaults to the server default', () {

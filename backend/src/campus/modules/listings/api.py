@@ -556,6 +556,8 @@ async def publish_listing(
     if listing.status not in (ListingStatus.DRAFT, ListingStatus.EXPIRED):
         raise ProblemError(CONFLICT)
     user = await user_for(session, principal)
+    if user.account_type not in (AccountType.STUDENT, AccountType.EMPLOYEE):
+        raise ProblemError(FORBIDDEN)
     if (
         user.account_type == AccountType.EMPLOYEE
         and listing.audience != Audience.COMMUNITY

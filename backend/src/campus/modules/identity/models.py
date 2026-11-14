@@ -70,7 +70,8 @@ class User(Entity):
     def profile_complete(self) -> bool:
         """Whether the profile is filled in; required to publish and respond."""
         return self.city_id is not None and (
-            self.course is not None or self.account_type == AccountType.EMPLOYEE
+            self.course is not None
+            or self.account_type in (AccountType.EMPLOYEE, "former_employee")
         )
 
 
