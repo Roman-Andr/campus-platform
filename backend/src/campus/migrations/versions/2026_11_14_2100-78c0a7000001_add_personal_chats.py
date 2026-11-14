@@ -7,7 +7,7 @@ sequence per chat. Monthly partitions are created ahead of time and a
 default partition catches everything else until the next release adds more.
 
 Revision ID: 78c0a7000001
-Revises: 87a000000001
+Revises: 86a000000001
 """
 
 from collections.abc import Sequence
@@ -17,7 +17,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "78c0a7000001"
-down_revision: str | Sequence[str] | None = "87a000000001"
+down_revision: str | Sequence[str] | None = "86a000000001"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
