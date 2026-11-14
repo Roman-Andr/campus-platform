@@ -104,17 +104,17 @@ def test_pending_reference_admin_api_is_absent(
         return
     response = client.get("/api/v1/openapi.json")
     assert response.status_code == 200
-    # Public lookup GETs do not implement reference-data administration,
-    # nor do the user's own lists (e.g. /me/skills). Once an administrative
-    # read or any write exists, activate API probes.
+    # Reference-data administration lives only under the protected
+    # /api/v1/admin/ router. User-facing routes that mention the same word
+    # (POST /api/v1/listings/skills, the user's own /me/skills) do not
+    # implement it, so they must not fire the probe. Once an administrative
+    # read or write exists, the skip is replaced by API assertions.
     implemented = {
         f"{method.upper()} {path}"
         for path, operations in response.json()["paths"].items()
-        if resources.intersection(path.split("/"))
-        and not path.startswith("/api/v1/me/")
+        if path.startswith("/api/v1/admin/") and resources.intersection(path.split("/"))
         for method in operations
-        if method in {"post", "put", "patch", "delete"}
-        or (path.startswith("/api/v1/admin/") and method == "get")
+        if method in {"get", "post", "put", "patch", "delete"}
     }
     assert not implemented, (
         f"Replace the #99 {probe} skips with API assertions: {sorted(implemented)}"
