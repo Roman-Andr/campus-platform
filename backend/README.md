@@ -43,7 +43,9 @@ uv run lint-imports          # границы модулей
 Тесты с базой данных поднимают PostgreSQL 18 с pgvector
 (`pgvector/pgvector:0.8.7-pg18-trixie`) через testcontainers, поэтому нужен Docker.
 Тесты воркера, планировщика и почты так же поднимают Redis и Mailpit
-(`tests/services.py`).
+(`tests/services.py`). Интеграционные тесты реального времени поднимают
+Centrifugo (`tests/test_realtime_integration.py`), остальные тесты
+Centrifugo подменяют.
 С podman вместо Docker:
 
 ```sh
@@ -164,6 +166,72 @@ API отдаёт название на языке запроса (`request_local
 Обработчики модулей регистрируются при импорте модуля; воркер
 импортирует все модули при запуске.
 
+## Реальное время (Centrifugo)
+
+Клиент подключается к Centrifugo напрямую (WebSocket), а API выдаёт ему
+подписанные токены и отдаёт пропущенные публикации. Публичные транспорты
+Centrifugo наружу открывает Caddy (`infra/README.md`), серверный HTTP API
+доступен только бэкенду.
+
+- **Токены.** `POST /api/v1/realtime/connection-token` — токен соединения
+  устройства (`sub` — пользователь, `sid` — сессия устройства).
+  `POST /api/v1/realtime/subscription-token` с `{"channel": ...}` — токен
+  подписки на один канал: тот же `sub`/`sid` и claim `channel`, поэтому
+  токен нельзя применить к другому каналу (Centrifugo отключает клиента).
+  Оба маршрута требуют `Idempotency-Key`; повтор возвращает
+  сохранённый токен, но проверки сессии и доступа выполняются заново.
+  Время жизни — `CAMPUS_CENTRIFUGO_CONNECTION_TOKEN_TTL` и
+  `CAMPUS_CENTRIFUGO_SUBSCRIPTION_TOKEN_TTL` (по 5 минут): клиент
+  обновляет токен через API, где доступ проверяется ещё раз.
+- **Каналы.** `user#<uuid>` — личный канал пользователя
+  (user-limited channel без namespace; подписка только на свой).
+  `chat:<uuid>` — канал чата из namespace `chat` с историей и
+  восстановлением. Имя проверяется канонически: UUID в нижнем регистре,
+  без лишних символов; иначе `422 realtime_channel_invalid`.
+- **Доступ к чату.** `realtime_channel_grant` — проекция прав на реальное
+  время: пара `(channel, user_id)`, отзыв — `revoked_at`, а не удаление
+  строки. Модуль, владеющий членством (чат), пишет её публичными
+  `grant_chat_access`/`revoke_chat_access` в той же транзакции, что и
+  изменение членства. Нет действующего grant — `403
+  realtime_channel_forbidden`; проверка идёт и при выдаче токена, и при
+  восстановлении.
+- **Сессии и блокировка.** Выдача токена проверяет строку сессии
+  устройства в БД, а не только отметку отзыва в Redis: отозванная сессия
+  получает `401` даже при повторном запросе с тем же
+  `Idempotency-Key`. Блокировка аккаунта (#93) отзывает сессии, поэтому
+  заблокированный пользователь не получит и токен соединения.
+- **Принудительные эффекты.** Отзыв членства пишет в outbox
+  `realtime.unsubscribe`, обработчик вызывает `unsubscribe(channel,
+  user)`; отзыв сессии — событие `identity.sessions_revoked`, обработчик
+  вызывает `disconnect(user)`. Перед отпиской обработчик заново читает
+  grant: доставка, пришедшая после повторной выдачи доступа,
+  пропускается. Команды Centrifugo идемпотентны, поэтому повторы outbox
+  безопасны. `disconnect` отключает все устройства пользователя: у
+  Centrifugo OSS нет адресации по нашей сессии, остальные устройства
+  переподключаются и подписываются снова, а отозванное — не получит
+  новый токен.
+- **Восстановление.** `POST /api/v1/realtime/recover` с `{"channel":
+  ..., "since": {"epoch": ..., "offset": ...}}` возвращает публикации
+  после позиции и текущую `{epoch, offset}`; без `since` — только
+  позицию. История эфемерна: если позиции уже нет,
+  `409 realtime_history_lost` — клиент перезагружает состояние канала
+  через API, полнота истории не гарантируется. Лимит читаемых
+  публикаций — `CAMPUS_CENTRIFUGO_HISTORY_LIMIT`.
+- **Конфигурация.** `CAMPUS_CENTRIFUGO_TOKEN_HMAC_SECRET` (тот же, что
+  `client.token.hmac_secret_key` Centrifugo), `CAMPUS_CENTRIFUGO_API_URL`
+  (например, `http://centrifugo:8000/api`), `CAMPUS_CENTRIFUGO_API_KEY`
+  (`http_api.key`), `CAMPUS_CENTRIFUGO_API_TIMEOUT`. Без секрета токены
+  отвечают `503 realtime_unavailable`, без адреса или ключа API — не
+  работает восстановление; в Docker Compose значения задаются из
+  `infra/.env`.
+  История и recovery включены для личных каналов и namespace `chat` в
+  `infra/compose.yaml`.
+- **Тесты.** `tests/test_realtime.py` проверяет токены, матрицу доступа и
+  обработчики на подменённом серверном API; concurrency — на настоящем
+  PostgreSQL. `tests/test_realtime_integration.py` поднимает настоящий
+  Centrifugo (testcontainers) и проверяет подключение, подписку, запрет
+  чужого канала, принудительную отписку и отключение, чтение истории.
+
 ## Устройство
 
 | Пакет               | Назначение                                              |
@@ -183,7 +251,8 @@ API отдаёт название на языке запроса (`request_local
 (структура вуза), `listings` (объявления и взаимодействия), `reputation`
 (подтверждение встреч и репутация), `points` (баллы), `booking`
 (бронирование ресурсов), `chat`, `publications` (форум, страницы, лента),
-`moderation`, `notifications`, `ai`, `administration`.
+`moderation`, `notifications`, `ai`, `administration`, `realtime` (токены
+Centrifugo и восстановление потока).
 
 Границы проверяет import-linter (контракты — в `pyproject.toml`):
 

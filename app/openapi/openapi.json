@@ -9347,6 +9347,461 @@
           }
         }
       }
+    },
+    "/api/v1/realtime/connection-token": {
+      "post": {
+        "tags": [
+          "Realtime"
+        ],
+        "summary": "Issue Connection Token",
+        "description": "Issue a connection token for the current device session.\n\nA retry with the same ``Idempotency-Key`` returns the stored token; the\nsession check still runs first, so a revoked session never receives it.",
+        "operationId": "issue_connection_token",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/realtime/subscription-token": {
+      "post": {
+        "tags": [
+          "Realtime"
+        ],
+        "summary": "Issue Subscription Token",
+        "description": "Issue a token bound to one channel, if the user may subscribe now.",
+        "operationId": "issue_subscription_token",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionTokenInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionTokenOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/realtime/recover": {
+      "post": {
+        "tags": [
+          "Realtime"
+        ],
+        "summary": "Recover",
+        "description": "Return publications missing after ``since`` and the current position.\n\nRealtime history is ephemeral. When Centrifugo no longer has the stream\nposition, the explicit ``realtime_history_lost`` problem tells the client\nto reload the channel state through the API; the answer never promises\nthat the whole history is retained.",
+        "operationId": "recover",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoverInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoverOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -10939,6 +11394,26 @@
         ],
         "title": "PhotosOutput"
       },
+      "Position": {
+        "properties": {
+          "epoch": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Epoch"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "epoch",
+          "offset"
+        ],
+        "title": "Position"
+      },
       "Problem": {
         "properties": {
           "type": {
@@ -11010,6 +11485,10 @@
               "photo_unavailable",
               "profile_incomplete",
               "rate_limited",
+              "realtime_channel_forbidden",
+              "realtime_channel_invalid",
+              "realtime_history_lost",
+              "realtime_unavailable",
               "refresh_token_invalid",
               "registration_required",
               "session_not_found",
@@ -11216,6 +11695,81 @@
           "pinned_until"
         ],
         "title": "PublicationInput"
+      },
+      "PublicationOutput": {
+        "properties": {
+          "offset": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Offset"
+          },
+          "data": {
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "offset"
+        ],
+        "title": "PublicationOutput"
+      },
+      "RecoverInput": {
+        "properties": {
+          "channel": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Channel"
+          },
+          "since": {
+            "description": "Last seen stream position. Omit it to ask only for the current position without publications.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Position"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "channel"
+        ],
+        "title": "RecoverInput"
+      },
+      "RecoverOutput": {
+        "properties": {
+          "channel": {
+            "type": "string",
+            "title": "Channel"
+          },
+          "epoch": {
+            "type": "string",
+            "title": "Epoch"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Offset"
+          },
+          "publications": {
+            "items": {
+              "$ref": "#/components/schemas/PublicationOutput"
+            },
+            "type": "array",
+            "title": "Publications"
+          }
+        },
+        "type": "object",
+        "required": [
+          "channel",
+          "epoch",
+          "offset"
+        ],
+        "title": "RecoverOutput"
       },
       "RefreshInput": {
         "properties": {
@@ -11498,6 +12052,69 @@
         ],
         "title": "SkillsOutput",
         "description": "Skills of the profile, each list by name."
+      },
+      "SubscriptionTokenInput": {
+        "properties": {
+          "channel": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Channel"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "channel"
+        ],
+        "title": "SubscriptionTokenInput"
+      },
+      "SubscriptionTokenOutput": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token",
+            "description": "JWT for the Centrifugo client."
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC."
+          },
+          "channel": {
+            "type": "string",
+            "title": "Channel"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "expires_at",
+          "channel"
+        ],
+        "title": "SubscriptionTokenOutput"
+      },
+      "TokenOutput": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token",
+            "description": "JWT for the Centrifugo client."
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC."
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "expires_at"
+        ],
+        "title": "TokenOutput"
       },
       "Tokens": {
         "properties": {

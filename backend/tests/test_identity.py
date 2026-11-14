@@ -36,11 +36,13 @@ from campus.modules.identity import (
     seed_documents,
 )
 from campus.modules.university import AccountType, EmailDomain
+from tests.services import CENTRIFUGO_TOKEN_SECRET, CentrifugoConfig
 from tests.web_app import CLIENT_HEADERS, serve
 
 EMAIL = "student@university.example"
 DEVICE = str(uuid4())
 SECRET = "testing-sign-in-secret-at-least-32-characters"  # noqa: S105 - test key
+CENTRIFUGO_SECRET = CENTRIFUGO_TOKEN_SECRET
 
 
 @dataclass
@@ -105,11 +107,16 @@ class Auth:
 
 
 @pytest.fixture
-async def auth(database_url: str, redis_url: str) -> AsyncIterator[Auth]:
+async def auth(
+    database_url: str, redis_url: str, centrifugo_config: CentrifugoConfig
+) -> AsyncIterator[Auth]:
     settings = Settings(
         database_url=SecretStr(database_url),
         redis_url=SecretStr(redis_url),
         auth_secret_key=SecretStr(SECRET),
+        centrifugo_token_hmac_secret=SecretStr(centrifugo_config.token_secret),
+        centrifugo_api_url=centrifugo_config.api_url,
+        centrifugo_api_key=SecretStr(centrifugo_config.api_key),
     )
     engine = create_engine(settings)
     async with (

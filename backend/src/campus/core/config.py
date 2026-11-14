@@ -341,6 +341,58 @@ class Settings(BaseSettings):
         description="Last reminder before a scheduled meeting, e.g. 1 hour.",
     )
 
+    # Centrifugo (specification, 4.4, 4.6): the API issues JWT tokens signed
+    # with the shared HMAC secret and talks to the server API for history and
+    # forced unsubscribe. Clients reach only the public transports.
+    centrifugo_token_hmac_secret: SecretStr | None = Field(
+        default=None,
+        description=(
+            "Shared with Centrifugo client.token.hmac_secret_key; signs"
+            " connection and subscription tokens. Required to issue tokens."
+        ),
+    )
+    centrifugo_api_url: str | None = Field(
+        default=None,
+        description=(
+            "Centrifugo server API endpoint including /api, e.g."
+            " http://centrifugo:8000/api. Used by history and forced"
+            " unsubscribe; the server API is not exposed to clients."
+        ),
+    )
+    centrifugo_api_key: SecretStr | None = Field(
+        default=None,
+        description="Value of the Centrifugo X-API-Key header (http_api.key).",
+    )
+    centrifugo_api_timeout: float = Field(
+        default=5.0, gt=0, description="Seconds to wait for the server API."
+    )
+    centrifugo_connection_token_ttl: timedelta = Field(
+        default=timedelta(minutes=5),
+        gt=timedelta(0),
+        description=(
+            "Lifetime of a connection token; a client refreshes it before"
+            " expiry. Short enough to stop a revoked session from reconnecting"
+            " soon after a forced disconnect."
+        ),
+    )
+    centrifugo_subscription_token_ttl: timedelta = Field(
+        default=timedelta(minutes=5),
+        gt=timedelta(0),
+        description=(
+            "Lifetime of a channel subscription token; rights are rechecked"
+            " when the client refreshes it."
+        ),
+    )
+    centrifugo_history_limit: int = Field(
+        default=100,
+        ge=1,
+        le=300,
+        description=(
+            "Publications returned by one realtime recovery request; Centrifugo"
+            " caps client history at 300 by default."
+        ),
+    )
+
     smtp_host: str | None = Field(
         default=None, description="Outgoing mail server; sending fails when empty."
     )

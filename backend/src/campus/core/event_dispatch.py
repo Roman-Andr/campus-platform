@@ -1,7 +1,8 @@
 """Durable event fan-out using independently retried outbox deliveries."""
 
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from uuid import UUID, uuid5
 
 from sqlalchemy import String, select
@@ -63,6 +64,27 @@ class EventConsumers:
     def remove(self, name: str) -> None:
         """Remove a consumer (for tests)."""
         outbox_handlers.remove(self._topics.pop(name))
+
+    @contextmanager
+    def suspend(self) -> Iterator[None]:
+        """Temporarily unregister every consumer (for tests).
+
+        Dispatcher tests own the whole registry: consumers registered by
+        imported modules would receive extra deliveries and receipts. The
+        handlers are restored even if the test fails.
+        """
+        saved = {
+            name: (topic, outbox_handlers.get(topic))
+            for name, topic in self._topics.items()
+        }
+        for name in saved:
+            self.remove(name)
+        try:
+            yield
+        finally:
+            for name, (topic, handler) in saved.items():
+                outbox_handlers.register(topic)(handler)
+                self._topics[name] = topic
 
     async def dispatch(self, session: AsyncSession, event: JobInfo) -> None:
         """Zero consumers is a successfully handled event."""

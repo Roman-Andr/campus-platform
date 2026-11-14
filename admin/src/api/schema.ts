@@ -1024,6 +1024,74 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/realtime/connection-token': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Issue Connection Token
+     * @description Issue a connection token for the current device session.
+     *
+     *     A retry with the same ``Idempotency-Key`` returns the stored token; the
+     *     session check still runs first, so a revoked session never receives it.
+     */
+    post: operations['issue_connection_token'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/realtime/subscription-token': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Issue Subscription Token
+     * @description Issue a token bound to one channel, if the user may subscribe now.
+     */
+    post: operations['issue_subscription_token'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/realtime/recover': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Recover
+     * @description Return publications missing after ``since`` and the current position.
+     *
+     *     Realtime history is ephemeral. When Centrifugo no longer has the stream
+     *     position, the explicit ``realtime_history_lost`` problem tells the client
+     *     to reload the channel state through the API; the answer never promises
+     *     that the whole history is retained.
+     */
+    post: operations['recover'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1758,6 +1826,13 @@ export interface components {
       /** Items */
       items: components['schemas']['PhotoOutput'][];
     };
+    /** Position */
+    Position: {
+      /** Epoch */
+      epoch: string;
+      /** Offset */
+      offset: number;
+    };
     /**
      * Problem
      * @description Error response (RFC 9457 Problem Details).
@@ -1826,6 +1901,10 @@ export interface components {
         | 'photo_unavailable'
         | 'profile_incomplete'
         | 'rate_limited'
+        | 'realtime_channel_forbidden'
+        | 'realtime_channel_invalid'
+        | 'realtime_history_lost'
+        | 'realtime_unavailable'
         | 'refresh_token_invalid'
         | 'registration_required'
         | 'session_not_found'
@@ -1935,6 +2014,31 @@ export interface components {
        * @description RFC 3339 instant with an explicit offset; returned in UTC.
        */
       pinned_until: string;
+    };
+    /** PublicationOutput */
+    PublicationOutput: {
+      /** Offset */
+      offset: number;
+      /** Data */
+      data?: unknown;
+    };
+    /** RecoverInput */
+    RecoverInput: {
+      /** Channel */
+      channel: string;
+      /** @description Last seen stream position. Omit it to ask only for the current position without publications. */
+      since?: components['schemas']['Position'] | null;
+    };
+    /** RecoverOutput */
+    RecoverOutput: {
+      /** Channel */
+      channel: string;
+      /** Epoch */
+      epoch: string;
+      /** Offset */
+      offset: number;
+      /** Publications */
+      publications?: components['schemas']['PublicationOutput'][];
     };
     /** RefreshInput */
     RefreshInput: {
@@ -2068,6 +2172,41 @@ export interface components {
       can: components['schemas']['SkillTagOutput'][];
       /** Wants */
       wants: components['schemas']['SkillTagOutput'][];
+    };
+    /** SubscriptionTokenInput */
+    SubscriptionTokenInput: {
+      /** Channel */
+      channel: string;
+    };
+    /** SubscriptionTokenOutput */
+    SubscriptionTokenOutput: {
+      /**
+       * Token
+       * @description JWT for the Centrifugo client.
+       */
+      token: string;
+      /**
+       * Expires At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      expires_at: string;
+      /** Channel */
+      channel: string;
+    };
+    /** TokenOutput */
+    TokenOutput: {
+      /**
+       * Token
+       * @description JWT for the Centrifugo client.
+       */
+      token: string;
+      /**
+       * Expires At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      expires_at: string;
     };
     /** Tokens */
     Tokens: {
@@ -8424,6 +8563,311 @@ export interface operations {
       };
       /** @description Internal error (internal_error). */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  issue_connection_token: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['TokenOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  issue_subscription_token: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SubscriptionTokenInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SubscriptionTokenOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  recover: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RecoverInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RecoverOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
         headers: {
           [name: string]: unknown;
         };

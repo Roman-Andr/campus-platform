@@ -20,7 +20,7 @@ from campus.core.web import (
     response_keyring,
     use_problem_media_type,
 )
-from campus.modules import files, identity, listings, university
+from campus.modules import files, identity, listings, realtime, university
 
 API_PREFIX = "/api/v1"
 
@@ -90,6 +90,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(listings.router, prefix=API_PREFIX)
     app.include_router(files.router, prefix=API_PREFIX)
     app.include_router(files.profile_router, prefix=API_PREFIX)
+    app.include_router(realtime.router, prefix=API_PREFIX)
 
     # The last added middleware is the outermost: the request ID is set
     # before the access log record is written.

@@ -1,11 +1,6 @@
 msgid "A meeting time and place were proposed."
 msgstr ""
 
-msgid ""
-"A place in the queue is available for you. Confirm it before the timer "
-"ends."
-msgstr ""
-
 #, python-brace-format
 msgid "At most {max} skills."
 msgstr ""
@@ -16,16 +11,13 @@ msgstr ""
 msgid "Bad request"
 msgstr ""
 
-msgid "Book the listing instead of joining its queue."
-msgstr ""
-
 msgid "Campus account security notification"
 msgstr ""
 
-msgid "Cancel your application before joining the queue."
+msgid "Cannot remove the last corporate address"
 msgstr ""
 
-msgid "Cannot remove the last corporate address"
+msgid "Channel is not available"
 msgstr ""
 
 msgid "Choose a listing category."
@@ -94,6 +86,9 @@ msgstr ""
 msgid "Invalid meeting time"
 msgstr ""
 
+msgid "Invalid realtime channel"
+msgstr ""
+
 msgid "Invalid refresh token"
 msgstr ""
 
@@ -101,9 +96,6 @@ msgid "Invalid request"
 msgstr ""
 
 msgid "Invalid sign-in code"
-msgstr ""
-
-msgid "Leave the queue before joining it again."
 msgstr ""
 
 msgid "Method not allowed"
@@ -194,10 +186,13 @@ msgstr ""
 msgid "Photo unavailable"
 msgstr ""
 
-msgid "Places are open to everyone; book now."
+msgid "Profile incomplete"
 msgstr ""
 
-msgid "Profile incomplete"
+msgid "Realtime history expired"
+msgstr ""
+
+msgid "Realtime is unavailable"
 msgstr ""
 
 #, python-brace-format
@@ -226,9 +221,6 @@ msgstr ""
 msgid "Some fields of the request are invalid."
 msgstr ""
 
-msgid "Someone joined the queue of your listing."
-msgstr ""
-
 msgid "Something went wrong on our side. Please try again later."
 msgstr ""
 
@@ -241,25 +233,19 @@ msgstr ""
 msgid "The X-Client-Platform and X-Client-Version headers are required."
 msgstr ""
 
+msgid "The channel name is not a Campus realtime channel."
+msgstr ""
+
 msgid "The client platform or version is not recognized."
 msgstr ""
 
 msgid "The interaction must be accepted and have a current meeting proposal."
 msgstr ""
 
-msgid "The listing is closed; you are no longer in its queue."
-msgstr ""
-
 msgid "The listing state has changed."
 msgstr ""
 
-msgid "The listing still has a free place."
-msgstr ""
-
 msgid "The listing text is empty or too long."
-msgstr ""
-
-msgid "The listing type has no limited places to wait for."
 msgstr ""
 
 msgid "The listing was edited."
@@ -287,19 +273,21 @@ msgstr ""
 msgid "The name can be changed once in {days} days; see available_at."
 msgstr ""
 
-msgid "The offer of a place has expired."
-msgstr ""
-
 msgid "The page cursor is invalid or belongs to another list; start over."
 msgstr ""
 
 msgid "The photo is not processed yet, has expired or is used by a listing."
 msgstr ""
 
-msgid "The place is offered to another participant."
+msgid "The realtime server is temporarily unavailable. Try again later."
 msgstr ""
 
 msgid "The request body is not valid JSON."
+msgstr ""
+
+msgid ""
+"The requested position is no longer in realtime history. Reload the "
+"channel state through the API."
 msgstr ""
 
 msgid "The requested resource does not exist."
@@ -323,9 +311,6 @@ msgstr ""
 msgid "This field is required."
 msgstr ""
 
-msgid "This listing has no queue."
-msgstr ""
-
 #, python-brace-format
 msgid ""
 "This version of the app is no longer supported. Please update to "
@@ -344,16 +329,7 @@ msgstr ""
 msgid "Use RFC 3339 with an explicit UTC offset."
 msgstr ""
 
-msgid "Wait for the offer timer to end or join the queue."
-msgstr ""
-
-msgid "You already participate in this listing."
-msgstr ""
-
-msgid "You are already in the queue."
-msgstr ""
-
-msgid "You have no offer of a place."
+msgid "You are not a member of this channel."
 msgstr ""
 
 msgid "Your Campus e-mail confirmation code"
@@ -368,9 +344,6 @@ msgid ""
 msgstr ""
 
 msgid "Your meeting starts soon."
-msgstr ""
-
-msgid "Your place offer has expired."
 msgstr ""
 
 #, python-brace-format

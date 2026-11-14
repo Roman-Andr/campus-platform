@@ -41,6 +41,10 @@ enum ProblemCodeValue {
   photoUnavailable("photo_unavailable"),
   profileIncomplete("profile_incomplete"),
   rateLimited("rate_limited"),
+  realtimeChannelForbidden("realtime_channel_forbidden"),
+  realtimeChannelInvalid("realtime_channel_invalid"),
+  realtimeHistoryLost("realtime_history_lost"),
+  realtimeUnavailable("realtime_unavailable"),
   refreshTokenInvalid("refresh_token_invalid"),
   registrationRequired("registration_required"),
   sessionNotFound("session_not_found"),
@@ -156,6 +160,18 @@ sealed class ProblemCode {
     ProblemCodeValue.profileIncomplete,
   );
   static const rateLimited = ProblemCodeKnown(ProblemCodeValue.rateLimited);
+  static const realtimeChannelForbidden = ProblemCodeKnown(
+    ProblemCodeValue.realtimeChannelForbidden,
+  );
+  static const realtimeChannelInvalid = ProblemCodeKnown(
+    ProblemCodeValue.realtimeChannelInvalid,
+  );
+  static const realtimeHistoryLost = ProblemCodeKnown(
+    ProblemCodeValue.realtimeHistoryLost,
+  );
+  static const realtimeUnavailable = ProblemCodeKnown(
+    ProblemCodeValue.realtimeUnavailable,
+  );
   static const refreshTokenInvalid = ProblemCodeKnown(
     ProblemCodeValue.refreshTokenInvalid,
   );
