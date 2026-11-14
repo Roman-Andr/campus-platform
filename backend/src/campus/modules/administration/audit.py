@@ -10,7 +10,7 @@ purges them after the retention period.
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from fastapi import Depends, Query
+from fastapi import Depends, Query, Request
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -89,6 +89,7 @@ def _filtered(filters: AuditFilters) -> Select[AuditRecord]:
 
 @router.get("")
 async def list_audit_records(
+    request: Request,
     session: DbSession,
     page: PageQuery,
     filters: Annotated[AuditFilters, Query()],
@@ -106,7 +107,13 @@ async def list_audit_records(
         {"occurred_at": AuditRecord.occurred_at},
         AuditRecord.id,
     )
-    return await paginate(session, query, page, AuditRecordOut)
+    return await paginate(
+        session,
+        query,
+        page,
+        AuditRecordOut,
+        settings=request.app.state.settings,
+    )
 
 
 @register_cleanup("audit")

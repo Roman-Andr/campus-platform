@@ -202,3 +202,22 @@ async def test_cursor_of_another_ordering_is_rejected(
 
     assert response.status_code == 400
     assert response.json()["code"] == "invalid_cursor"
+
+
+async def test_cursor_bookmark_is_authenticated(
+    api: httpx2.AsyncClient, session: AsyncSession
+) -> None:
+    await add_notes(session, ["a", "b", "c"], START)
+    _, cursor = await get_page(api, size=1, order_by="title")
+    _, other = await get_page(api, size=2, order_by="title")
+    assert cursor is not None
+    assert other is not None
+    decoded = base64.urlsafe_b64decode(cursor + "==").decode()
+    other_decoded = base64.urlsafe_b64decode(other + "==").decode()
+
+    # A valid bookmark of the same ordering with the old signature and MAC.
+    forged = encode(decoded[:80] + other_decoded[80:])
+    response = await api.get(NOTES_URL, params={"cursor": forged, "order_by": "title"})
+
+    assert response.status_code == 400
+    assert response.json()["code"] == "invalid_cursor"

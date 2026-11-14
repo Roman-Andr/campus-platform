@@ -2,6 +2,8 @@
 
 import base64
 import binascii
+import hashlib
+import hmac
 import json
 from collections.abc import Sequence
 from datetime import datetime
@@ -34,7 +36,13 @@ from campus.core.web import (
 )
 from campus.core.web.auth import CurrentUser
 from campus.core.web.datetimes import Instant
-from campus.core.web.pagination import INVALID_CURSOR, PageParams, paginate, sort_by
+from campus.core.web.pagination import (
+    INVALID_CURSOR,
+    PageParams,
+    cursor_key,
+    paginate,
+    sort_by,
+)
 from campus.core.web.problems import NOT_FOUND, ProblemResponse, problem_response
 from campus.modules.identity import Permissions, ProfiledUser, Role, User
 from campus.modules.listings.models import (
@@ -349,16 +357,39 @@ async def publish_giveaway(
     return ListingOutput.model_validate(listing)
 
 
-def feed_snapshot(page: PageParams) -> tuple[datetime, PageParams]:
+def _feed_mac(settings: Settings, snapshot: str, cursor: str) -> str:
+    payload = f"{snapshot}\n{cursor}".encode()
+    return hmac.new(cursor_key(settings), payload, hashlib.sha256).hexdigest()
+
+
+def feed_cursor(settings: Settings, snapshot: datetime, cursor: str) -> str:
+    """Wrap a page cursor with the snapshot, authenticated by HMAC."""
+    snapshot_text = snapshot.isoformat()
+    raw = json.dumps(
+        [snapshot_text, cursor, _feed_mac(settings, snapshot_text, cursor)]
+    ).encode()
+    return base64.urlsafe_b64encode(raw).decode().rstrip("=")
+
+
+def feed_snapshot(page: PageParams, settings: Settings) -> tuple[datetime, PageParams]:
     if page.cursor is None:
         return clock.now(), page
     try:
         raw = base64.urlsafe_b64decode(page.cursor + "=" * (-len(page.cursor) % 4))
-        snapshot, cursor = json.loads(raw)
-        snapshot = datetime.fromisoformat(snapshot)
+        snapshot_text, cursor, mac = json.loads(raw)
+        if not (
+            isinstance(snapshot_text, str)
+            and isinstance(cursor, str)
+            and isinstance(mac, str)
+        ):
+            raise ValueError
+        expected = _feed_mac(settings, snapshot_text, cursor)
+        if not hmac.compare_digest(mac.encode(), expected.encode()):
+            raise ValueError
+        snapshot = datetime.fromisoformat(snapshot_text)
         if snapshot.utcoffset() is None or snapshot > clock.now():
             raise ValueError
-        if not isinstance(cursor, str):
+        if clock.now() - snapshot > settings.feed_snapshot_ttl:
             raise ValueError
         return snapshot, PageParams(page.size, cursor)
     except ValueError, TypeError, binascii.Error, UnicodeDecodeError:
@@ -367,6 +398,7 @@ def feed_snapshot(page: PageParams) -> tuple[datetime, PageParams]:
 
 @router.get("")
 async def listing_feed(  # noqa: PLR0913, PLR0917 - independent feed filters
+    request: Request,
     session: DbSession,
     principal: CurrentUser,
     page: PageQuery,
@@ -380,9 +412,11 @@ async def listing_feed(  # noqa: PLR0913, PLR0917 - independent feed filters
     New records appear on refresh. Pin expiry during scrolling does not move
     records between pages; a fresh first page reflects current pin deadlines.
     Dormitory filters apply in city and faculty feeds without widening access.
+    A cursor expires after CAMPUS_FEED_SNAPSHOT_TTL.
     """
+    settings: Settings = request.app.state.settings
     user = await user_for(session, principal)
-    snapshot, params = feed_snapshot(page)
+    snapshot, params = feed_snapshot(page, settings)
     scopes = [
         Listing.visibility == Visibility.CITY,
         and_(
@@ -444,15 +478,11 @@ async def listing_feed(  # noqa: PLR0913, PLR0917 - independent feed filters
             snapshot.isoformat(),
         ]
     )
-    result = await paginate(session, query, params, ListingOutput, context=context)
+    result = await paginate(
+        session, query, params, ListingOutput, settings=settings, context=context
+    )
     if result.next_page:
-        result.next_page = (
-            base64.urlsafe_b64encode(
-                json.dumps([snapshot.isoformat(), result.next_page]).encode()
-            )
-            .decode()
-            .rstrip("=")
-        )
+        result.next_page = feed_cursor(settings, snapshot, result.next_page)
     await mark_favorites(session, user.id, result.items)
     return result
 
@@ -515,6 +545,7 @@ async def categories(
 
 @router.get("/mine")
 async def my_listings(
+    request: Request,
     session: DbSession,
     principal: CurrentUser,
     page: PageQuery,
@@ -533,11 +564,18 @@ async def my_listings(
         {"created_at": Listing.created_at},
         Listing.id,
     )
-    return await paginate(session, query, page, ListingOutput)
+    return await paginate(
+        session,
+        query,
+        page,
+        ListingOutput,
+        settings=request.app.state.settings,
+    )
 
 
 @router.get("/reservations/mine")
 async def my_reservations(
+    request: Request,
     session: DbSession,
     principal: CurrentUser,
     page: PageQuery,
@@ -551,12 +589,18 @@ async def my_reservations(
         {"created_at": Interaction.created_at},
         Interaction.id,
     )
-    return await paginate(session, query, page, ParticipationOutput)
+    return await paginate(
+        session,
+        query,
+        page,
+        ParticipationOutput,
+        settings=request.app.state.settings,
+    )
 
 
 @router.get("/favorites")
 async def my_favorites(
-    session: DbSession, principal: CurrentUser, page: PageQuery
+    request: Request, session: DbSession, principal: CurrentUser, page: PageQuery
 ) -> Page[FavoriteOutput]:
     """Recently bookmarked first; unavailable listings carry no content."""
     user = await user_for(session, principal)
@@ -566,7 +610,13 @@ async def my_favorites(
         {"created_at": Favorite.created_at},
         Favorite.listing_id,
     )
-    rows = await paginate(session, query, page, FavoriteRow)
+    rows = await paginate(
+        session,
+        query,
+        page,
+        FavoriteRow,
+        settings=request.app.state.settings,
+    )
     items = []
     for row in rows.items:
         shown = available(row.listing, user)
@@ -615,6 +665,7 @@ async def remove_favorite(
 @router.get("/{listing_id}/interactions")
 async def listing_interactions(
     listing_id: UUID,
+    request: Request,
     session: DbSession,
     principal: CurrentUser,
     page: PageQuery,
@@ -630,7 +681,13 @@ async def listing_interactions(
         {"created_at": Interaction.created_at},
         Interaction.id,
     )
-    return await paginate(session, query, page, InteractionOutput)
+    return await paginate(
+        session,
+        query,
+        page,
+        InteractionOutput,
+        settings=request.app.state.settings,
+    )
 
 
 class PublicationInput(BaseModel):
@@ -1037,6 +1094,7 @@ async def accept_meeting(  # noqa: PLR0913, PLR0917 - request context
 @router.get("/{listing_id}/events")
 async def listing_events(
     listing_id: UUID,
+    request: Request,
     session: DbSession,
     principal: CurrentUser,
     page: PageQuery,
@@ -1068,7 +1126,13 @@ async def listing_events(
     query = sort_by(
         query, "created_at", {"created_at": ListingEvent.created_at}, ListingEvent.id
     )
-    return await paginate(session, query, page, EventOutput)
+    return await paginate(
+        session,
+        query,
+        page,
+        EventOutput,
+        settings=request.app.state.settings,
+    )
 
 
 async def check_category(session: DbSession, category_id: UUID | None) -> None:
@@ -1183,9 +1247,10 @@ async def extend_listing(
 
 
 @router.get("/{listing_id}/interactions/{interaction_id}/events")
-async def interaction_events(
+async def interaction_events(  # noqa: PLR0913, PLR0917 - request dependencies
     listing_id: UUID,
     interaction_id: UUID,
+    request: Request,
     session: DbSession,
     principal: CurrentUser,
     page: PageQuery,
@@ -1202,4 +1267,10 @@ async def interaction_events(
         {"created_at": ListingEvent.created_at},
         ListingEvent.id,
     )
-    return await paginate(session, query, page, EventOutput)
+    return await paginate(
+        session,
+        query,
+        page,
+        EventOutput,
+        settings=request.app.state.settings,
+    )

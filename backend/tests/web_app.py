@@ -8,7 +8,7 @@ from typing import Annotated, Literal
 from uuid import UUID
 
 import httpx2
-from fastapi import FastAPI, Query, Response
+from fastapi import FastAPI, Query, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
@@ -73,6 +73,7 @@ async def create_note(
 
 @router.get("")
 async def list_notes(
+    request: Request,
     session: DbSession,
     page: PageQuery,
     order_by: Literal["created_at", "-created_at", "title", "-title"] = "created_at",
@@ -84,7 +85,13 @@ async def list_notes(
         {"created_at": Note.created_at, "title": Note.title},
         Note.id,
     )
-    return await paginate(session, query, page, NoteOut)
+    return await paginate(
+        session,
+        query,
+        page,
+        NoteOut,
+        settings=request.app.state.settings,
+    )
 
 
 @router.delete("/{note_id}", status_code=204)

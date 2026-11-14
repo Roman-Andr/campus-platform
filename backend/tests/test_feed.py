@@ -1,6 +1,8 @@
 """Pinned publication permissions, visibility and stable filtered feed pages."""
 
-from datetime import timedelta
+import base64
+import json
+from datetime import datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -224,6 +226,63 @@ async def test_filters_and_snapshot_pages(owner: Account, places: Places) -> Non
             seen += [i["id"] for i in result["items"]]
             cursor = result["next_page"]
         assert seen == expected
+
+
+def feed_cursor_parts(cursor: str) -> list[Any]:
+    raw = base64.urlsafe_b64decode(cursor + "=" * (-len(cursor) % 4))
+    parts: list[Any] = json.loads(raw)
+    return parts
+
+
+async def test_forged_feed_snapshot_is_rejected(owner: Account) -> None:
+    with time_machine.travel(clock.now(), tick=False) as traveller:
+        for n in range(2):
+            traveller.shift(timedelta(seconds=1))
+            await publish(owner, title=f"Item {n}")
+        first = (await request(owner, "GET", "?size=1")).json()
+        assert first["next_page"] is not None
+        snapshot, cursor, mac = feed_cursor_parts(first["next_page"])
+        # Edit the snapshot time, keeping the rest: the attacker has no key.
+        forged = base64.urlsafe_b64encode(
+            json.dumps(
+                [
+                    (
+                        datetime.fromisoformat(snapshot) - timedelta(seconds=1)
+                    ).isoformat(),
+                    cursor,
+                    mac,
+                ]
+            ).encode()
+        )
+        response = await request(
+            owner, "GET", f"?size=1&cursor={forged.decode().rstrip('=')}"
+        )
+    assert response.status_code == 400
+    assert response.json()["code"] == "invalid_cursor"
+
+
+async def test_expired_feed_snapshot_is_rejected(owner: Account) -> None:
+    ttl = timedelta(seconds=2)
+    owner.auth.settings = owner.auth.settings.model_copy(
+        update={"feed_snapshot_ttl": ttl}
+    )
+    owner.auth.app.state.settings = owner.auth.settings
+    with time_machine.travel(clock.now(), tick=False) as traveller:
+        for n in range(2):
+            traveller.shift(timedelta(seconds=1))
+            await publish(owner, title=f"Item {n}")
+        cursor = (await request(owner, "GET", "?size=1")).json()["next_page"]
+        assert cursor is not None
+        # Still within the configured snapshot lifetime.
+        traveller.shift(ttl - timedelta(seconds=1))
+        assert (
+            await request(owner, "GET", f"?size=1&cursor={cursor}")
+        ).status_code == 200
+        # Now the snapshot is older than CAMPUS_FEED_SNAPSHOT_TTL.
+        traveller.shift(timedelta(seconds=2))
+        response = await request(owner, "GET", f"?size=1&cursor={cursor}")
+    assert response.status_code == 400
+    assert response.json()["code"] == "invalid_cursor"
 
 
 @pytest.mark.parametrize(

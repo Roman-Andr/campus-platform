@@ -76,6 +76,9 @@ services:
       # Only the API stores idempotent responses; the worker and scheduler
       # do not get the keys.
       CAMPUS_IDEMPOTENCY_ENCRYPTION_KEYS: ${CAMPUS_IDEMPOTENCY_ENCRYPTION_KEYS:?set in .env, generate with `openssl rand -base64 32`}
+      # Cursors are signed and expire; only list endpoints of the API need it.
+      CAMPUS_CURSOR_SECRET_KEY: ${CAMPUS_CURSOR_SECRET_KEY:?set in .env, generate with `openssl rand -hex 32`}
+      CAMPUS_FEED_SNAPSHOT_TTL: ${CAMPUS_FEED_SNAPSHOT_TTL:-PT15M}
     depends_on:
       migrate:
         condition: service_completed_successfully
