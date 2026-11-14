@@ -1,7 +1,7 @@
 """add user profile
 
 Revision ID: 8c8be0488993
-Revises: b97cb4e36b48
+Revises: 3c1e9a7f5b20
 Create Date: 2026-11-14 09:08:40.080446+00:00
 """
 
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "8c8be0488993"
-down_revision: str | Sequence[str] | None = "b97cb4e36b48"
+down_revision: str | Sequence[str] | None = "3c1e9a7f5b20"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
