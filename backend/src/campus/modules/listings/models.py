@@ -32,6 +32,7 @@ class InteractionStatus(StrEnum):
 
 
 class Visibility(StrEnum):
+    UNIVERSITY = "university"
     CITY = "city"
     FACULTY = "faculty"
     DORMITORY = "dormitory"
@@ -66,11 +67,13 @@ class Listing(Entity):
             name="status",
         ),
         CheckConstraint(
-            "visibility IN ('city','faculty','dormitory')", name="visibility"
+            "visibility IN ('city','faculty','dormitory','university')",
+            name="visibility",
         ),
         CheckConstraint("audience IN ('students','community')", name="audience"),
         CheckConstraint(
-            "(visibility = 'city' AND dormitory_id IS NULL AND faculty_id IS NULL) OR "
+            "(visibility IN ('city','university') AND dormitory_id IS NULL "
+            "AND faculty_id IS NULL) OR "
             "(visibility = 'faculty' AND faculty_id IS NOT NULL "
             "AND dormitory_id IS NULL) OR "
             "(visibility = 'dormitory' AND dormitory_id IS NOT NULL "
@@ -104,9 +107,13 @@ class Listing(Entity):
     dormitory_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("university_dormitory.id")
     )
+    author_dormitory_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("university_dormitory.id")
+    )
     version: Mapped[int] = mapped_column(default=1)
     expires_at: Mapped[datetime | None]
     category_id: Mapped[UUID | None] = mapped_column(ForeignKey("listing_category.id"))
+    pinned_until: Mapped[datetime | None]
     hidden_reason: Mapped[str | None] = mapped_column(Text)
 
 

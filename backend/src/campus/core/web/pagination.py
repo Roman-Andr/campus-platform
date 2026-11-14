@@ -151,13 +151,18 @@ async def paginate[T: BaseModel](
     query: Select[Any],
     params: PageParams,
     item: type[T],
+    *,
+    context: str = "",
 ) -> Page[T]:
     """Fetch one page of ``query``, which selects a single entity or column.
 
     Rows are converted to ``item`` (from attributes); ``query`` must be
-    ordered by :func:`sort_by`.
+    ordered by :func:`sort_by`. Optional ``context`` binds cursors to the
+    caller's filters, scope or snapshot without changing SQL ordering.
     """
     signature = _ordering_signature(query)
+    if context:
+        signature = hashlib.sha256((signature + context).encode()).hexdigest()[:16]
     bookmark = None
     if params.cursor is not None:
         bookmark = _decode_cursor(signature, params.cursor)

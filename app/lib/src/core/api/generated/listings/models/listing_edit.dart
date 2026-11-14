@@ -5,6 +5,9 @@ class ListingEdit {
     required this.title,
     required this.description,
     required this.version,
+
+    /// RFC 3339 instant with an explicit offset; returned in UTC.
+    this.pinnedUntil,
     this.categoryId,
   });
 
@@ -16,6 +19,11 @@ class ListingEdit {
       title: json["title"] as String,
       description: json["description"] as String,
       version: json["version"] as int,
+      pinnedUntil: json.containsKey("pinned_until")
+          ? json["pinned_until"] == null
+                ? null
+                : DateTime.parse(json["pinned_until"] as String).toUtc()
+          : null,
       categoryId: json.containsKey("category_id")
           ? json["category_id"] as String?
           : null,
@@ -28,12 +36,16 @@ class ListingEdit {
 
   final int version;
 
+  /// RFC 3339 instant with an explicit offset; returned in UTC.
+  final DateTime? pinnedUntil;
+
   final String? categoryId;
 
   static const _knownKeys = <String>{
     "title",
     "description",
     "version",
+    "pinned_until",
     "category_id",
   };
 
@@ -41,6 +53,8 @@ class ListingEdit {
     "title": this.title,
     "description": this.description,
     "version": this.version,
+    if (this.pinnedUntil != null)
+      "pinned_until": this.pinnedUntil?.toUtc().toIso8601String(),
     if (this.categoryId != null) "category_id": this.categoryId,
   };
 }

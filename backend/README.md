@@ -782,3 +782,40 @@ They contain only event UUIDs and consumer names. Pruned source events
 cannot be replayed; consumers deployed after that window need their own
 state reconciliation. Realtime and device-key consumers remain in #77
 and #71 respectively.
+
+### Informational publications and feed filters
+
+`POST /api/v1/listings/publications` creates a `kind=publication` entry in
+that same listing aggregate and its shared `publication` base row, with `title`, `description`, `visibility` and
+an explicit future `pinned_until` instant. It has no item, interactions or
+listing lifetime. Headmen supply their assigned `dormitory_id` or
+`faculty_id`; administrators publish for `city` (optional `city_id`, defaults
+to their profile city) or `university`. University publications are visible
+across cities; their `city_id` supplies timezone metadata. All publications
+use the community audience, while dormitory access still requires a
+student living in that dormitory.
+
+Authors and administrators edit publications through the existing
+`PATCH /api/v1/listings/{id}` with optimistic `version` checks. Optional
+`pinned_until` changes the deadline; null removes the pin. The dedicated
+`POST /api/v1/listings/{id}/unpin` also removes just the pin. The existing
+`POST .../{id}/cancel` withdraws the publication. All writes use the common
+idempotency and Problem Details mechanisms. Expiration of a pin needs no
+worker: a new feed request ranks it chronologically without removing it.
+
+`GET /api/v1/listings` accepts `kind`, `category_id` and `dormitory_id` in
+addition to `area`. Filters intersect and never widen visibility. In city
+and faculty feeds, the dormitory filter uses the author's dormitory saved
+at publication time; changing the author's profile does not move entries
+between filter results. Existing entries are backfilled from current
+profiles by the migration. Publications without a category do not match a
+category filter.
+
+Visible university pins are included in narrower area feeds too. Pins sort
+first, then all entries sort by creation time and UUID descending. The
+cursor binds the user, profile scope, filters and first-page timestamp.
+New entries and pin deadlines are evaluated against that timestamp while
+scrolling; refresh the first page to see new entries or newly expired pins.
+Reusing a cursor with other filters returns `400 invalid_cursor`. Explicit
+edits, withdrawals and permission changes can alter the remaining results;
+the cursor is not a historical snapshot of mutable content.

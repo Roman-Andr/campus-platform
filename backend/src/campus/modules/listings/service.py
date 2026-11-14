@@ -95,7 +95,7 @@ TYPE_POLICIES = {"giveaway": TypePolicy(author_response_deadline=True)}
 def visible(listing: Listing, user: User) -> bool:
     if listing.status in (ListingStatus.DRAFT, ListingStatus.HIDDEN):
         return False
-    if listing.city_id != user.city_id:
+    if listing.visibility != Visibility.UNIVERSITY and listing.city_id != user.city_id:
         return False
     if user.account_type != AccountType.STUDENT and (
         listing.audience == Audience.STUDENTS
@@ -246,8 +246,8 @@ async def expire_response(session: AsyncSession, job: JobInfo) -> None:
 
 def require_live(listing: Listing) -> None:
     if (
-        listing.expires_at is None
-        or listing.expires_at <= clock.now()
+        (listing.expires_at is None and listing.kind != "publication")
+        or (listing.expires_at is not None and listing.expires_at <= clock.now())
         or listing.status not in (ListingStatus.ACTIVE, ListingStatus.BUSY)
     ):
         raise ProblemError(CONFLICT)

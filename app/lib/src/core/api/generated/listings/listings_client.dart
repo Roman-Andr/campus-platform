@@ -14,6 +14,7 @@ import 'models/page_interaction_output.dart'
     as models
     show PageInteractionOutput;
 import 'models/page_listing_output.dart' as models show PageListingOutput;
+import 'models/publication_input.dart' as models show PublicationInput;
 import 'models/transition_input.dart' as models show TransitionInput;
 import 'models/visibility.dart' as models show Visibility;
 
@@ -60,7 +61,11 @@ class ListingsClient {
 
   /// Listing Feed
   ///
-  /// Newest first. City includes all visible scopes; narrower areas filter them.
+  /// Visible pins first, then chronology; cursors bind filters and snapshot time.
+  ///
+  /// New records appear on refresh. Pin expiry during scrolling does not move
+  /// records between pages; a fresh first page reflects current pin deadlines.
+  /// Dormitory filters apply in city and faculty feeds without widening access.
   Future<models.PageListingOutput> listingFeed({
     Map<String, Object?> extra = const {
       "openapi.security": [
@@ -73,6 +78,9 @@ class ListingsClient {
     CancelToken? cancelToken,
     Options? options,
     models.Visibility? area,
+    String? kind,
+    String? categoryId,
+    String? dormitoryId,
 
     /// Number of items; the default (20) and the maximum (100) are set in the server configuration.
     int? size,
@@ -92,6 +100,9 @@ class ListingsClient {
       options: _options,
       queryParameters: <String, Object?>{
         if (area != null) "area": area.toJson(),
+        if (kind != null) "kind": kind,
+        if (categoryId != null) "category_id": categoryId,
+        if (dormitoryId != null) "dormitory_id": dormitoryId,
         if (size != null) "size": size,
         if (cursor != null) "cursor": cursor,
       },
@@ -245,6 +256,78 @@ class ListingsClient {
     return models.PageInteractionOutput.fromJson(
       response.data as Map<String, Object?>,
     );
+  }
+
+  /// Publish Publication
+  ///
+  /// Create an informational publication with no interactions or lifetime.
+  Future<models.ListingOutput> publishPublication({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required models.PublicationInput body,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 201),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/publications",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.ListingOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Unpin Publication
+  ///
+  /// Remove only the pin; the publication remains in the feed.
+  Future<models.ListingOutput> unpinPublication({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/unpin",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.ListingOutput.fromJson(response.data as Map<String, Object?>);
   }
 
   /// Get Listing

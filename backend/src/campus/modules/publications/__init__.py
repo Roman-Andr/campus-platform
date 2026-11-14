@@ -1,5 +1,5 @@
-"""Publications: forum, pages and feed.
+"""Public publication persistence, shared by notices and future page content."""
 
-Public interface of the module. Other modules import only this package,
-never its submodules (enforced by import-linter).
-"""
+from campus.modules.publications.models import Publication
+
+__all__ = ["Publication"]

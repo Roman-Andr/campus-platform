@@ -27,6 +27,9 @@ class ListingOutput {
     /// RFC 3339 instant with an explicit offset; returned in UTC.
     required this.expiresAt,
     required this.categoryId,
+
+    /// RFC 3339 instant with an explicit offset; returned in UTC.
+    required this.pinnedUntil,
     required this.hiddenReason,
     this.additionalProperties = const {},
   });
@@ -43,6 +46,9 @@ class ListingOutput {
     }
     if (!json.containsKey("category_id")) {
       throw ArgumentError("Missing required property: category_id");
+    }
+    if (!json.containsKey("pinned_until")) {
+      throw ArgumentError("Missing required property: pinned_until");
     }
     if (!json.containsKey("hidden_reason")) {
       throw ArgumentError("Missing required property: hidden_reason");
@@ -67,6 +73,9 @@ class ListingOutput {
           ? null
           : DateTime.parse(json["expires_at"] as String).toUtc(),
       categoryId: json["category_id"] as String?,
+      pinnedUntil: json["pinned_until"] == null
+          ? null
+          : DateTime.parse(json["pinned_until"] as String).toUtc(),
       hiddenReason: json["hidden_reason"] as String?,
       additionalProperties: {
         for (final entry in json.entries)
@@ -111,6 +120,9 @@ class ListingOutput {
 
   final String? categoryId;
 
+  /// RFC 3339 instant with an explicit offset; returned in UTC.
+  final DateTime? pinnedUntil;
+
   final String? hiddenReason;
 
   static const _knownKeys = <String>{
@@ -131,6 +143,7 @@ class ListingOutput {
     "created_at",
     "expires_at",
     "category_id",
+    "pinned_until",
     "hidden_reason",
   };
 
@@ -156,6 +169,7 @@ class ListingOutput {
     "created_at": this.createdAt.toUtc().toIso8601String(),
     "expires_at": this.expiresAt?.toUtc().toIso8601String(),
     "category_id": this.categoryId,
+    "pinned_until": this.pinnedUntil?.toUtc().toIso8601String(),
     "hidden_reason": this.hiddenReason,
   };
 }

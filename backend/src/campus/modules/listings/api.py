@@ -1,10 +1,14 @@
 """Giveaway endpoints, using the shared listing aggregate."""
 
+import base64
+import binascii
+import json
+from datetime import datetime
 from uuid import UUID
 
 from fastapi import Request, Response
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, case, or_, select
 
 from campus.core import clock
 from campus.core.config import Settings
@@ -20,9 +24,9 @@ from campus.core.web import (
 )
 from campus.core.web.auth import CurrentUser
 from campus.core.web.datetimes import Instant
-from campus.core.web.pagination import paginate, sort_by
+from campus.core.web.pagination import INVALID_CURSOR, PageParams, paginate, sort_by
 from campus.core.web.problems import NOT_FOUND, ProblemResponse, problem_response
-from campus.modules.identity import ProfiledUser, User
+from campus.modules.identity import Permissions, ProfiledUser, Role, User
 from campus.modules.listings.models import (
     Audience,
     Category,
@@ -51,7 +55,8 @@ from campus.modules.listings.service import (
     transition,
     visible,
 )
-from campus.modules.university import AccountType, City
+from campus.modules.publications import Publication
+from campus.modules.university import AccountType, City, Dormitory, Faculty
 
 router = api_router(
     prefix="/listings",
@@ -80,6 +85,7 @@ class ListingEdit(BaseModel):
     title: str
     description: str
     version: int = Field(ge=1)
+    pinned_until: Instant | None = None
     category_id: UUID | None = None
 
 
@@ -102,6 +108,7 @@ class ListingOutput(BaseModel):
     created_at: Instant
     expires_at: Instant | None
     category_id: UUID | None
+    pinned_until: Instant | None
     hidden_reason: str | None
 
 
@@ -181,6 +188,8 @@ async def publish_giveaway(
     user = await user_for(session, principal)
     settings: Settings = request.app.state.settings
     check_text(data.title, data.description, settings)
+    if data.visibility == Visibility.UNIVERSITY:
+        raise ProblemError(FORBIDDEN)
     if user.account_type not in (AccountType.STUDENT, AccountType.EMPLOYEE):
         raise ProblemError(FORBIDDEN)
     if (
@@ -200,6 +209,7 @@ async def publish_giveaway(
     listing = Listing(
         author=user,
         author_id=user.id,
+        author_dormitory_id=user.dormitory_id,
         kind="giveaway",
         title=data.title,
         description=data.description,
@@ -226,15 +236,40 @@ async def publish_giveaway(
     return ListingOutput.model_validate(listing)
 
 
+def feed_snapshot(page: PageParams) -> tuple[datetime, PageParams]:
+    if page.cursor is None:
+        return clock.now(), page
+    try:
+        raw = base64.urlsafe_b64decode(page.cursor + "=" * (-len(page.cursor) % 4))
+        snapshot, cursor = json.loads(raw)
+        snapshot = datetime.fromisoformat(snapshot)
+        if snapshot.utcoffset() is None or snapshot > clock.now():
+            raise ValueError
+        if not isinstance(cursor, str):
+            raise ValueError
+        return snapshot, PageParams(page.size, cursor)
+    except ValueError, TypeError, binascii.Error, UnicodeDecodeError:
+        raise ProblemError(INVALID_CURSOR) from None
+
+
 @router.get("")
-async def listing_feed(
+async def listing_feed(  # noqa: PLR0913, PLR0917 - independent feed filters
     session: DbSession,
     principal: CurrentUser,
     page: PageQuery,
     area: Visibility = Visibility.CITY,
+    kind: str | None = None,
+    category_id: UUID | None = None,
+    dormitory_id: UUID | None = None,
 ) -> Page[ListingOutput]:
-    """Newest first. City includes all visible scopes; narrower areas filter them."""
+    """Visible pins first, then chronology; cursors bind filters and snapshot time.
+
+    New records appear on refresh. Pin expiry during scrolling does not move
+    records between pages; a fresh first page reflects current pin deadlines.
+    Dormitory filters apply in city and faculty feeds without widening access.
+    """
     user = await user_for(session, principal)
+    snapshot, params = feed_snapshot(page)
     scopes = [
         Listing.visibility == Visibility.CITY,
         and_(
@@ -250,19 +285,62 @@ async def listing_feed(
             )
         )
     query = select(Listing).where(
-        Listing.city_id == user.city_id,
-        or_(*scopes),
+        or_(
+            Listing.visibility == Visibility.UNIVERSITY,
+            and_(Listing.city_id == user.city_id, or_(*scopes)),
+        ),
         Listing.status.in_([ListingStatus.ACTIVE, ListingStatus.BUSY]),
-        Listing.expires_at > clock.now(),
+        or_(
+            Listing.expires_at > snapshot,
+            and_(Listing.kind == "publication", Listing.expires_at.is_(None)),
+        ),
+        Listing.created_at <= snapshot,
     )
     if user.account_type != AccountType.STUDENT:
         query = query.where(Listing.audience == Audience.COMMUNITY)
     if area != Visibility.CITY:
-        query = query.where(Listing.visibility == area)
-    query = sort_by(
-        query, "-created_at", {"created_at": Listing.created_at}, Listing.id
+        query = query.where(Listing.visibility.in_([area, Visibility.UNIVERSITY]))
+    if kind is not None:
+        query = query.where(Listing.kind == kind)
+    if category_id is not None:
+        query = query.where(Listing.category_id == category_id)
+    if dormitory_id is not None:
+        # City/faculty listings retain the author's dormitory as filter metadata.
+        query = query.where(
+            or_(
+                Listing.dormitory_id == dormitory_id,
+                and_(
+                    Listing.dormitory_id.is_(None),
+                    Listing.author_dormitory_id == dormitory_id,
+                ),
+            )
+        )
+    pinned = case((Listing.pinned_until > snapshot, 1), else_=0)
+    query = query.order_by(pinned.desc(), Listing.created_at.desc(), Listing.id.desc())
+    context = json.dumps(
+        [
+            str(user.id),
+            user.account_type,
+            str(user.city_id),
+            str(user.faculty_id),
+            str(user.dormitory_id),
+            area,
+            kind,
+            str(category_id),
+            str(dormitory_id),
+            snapshot.isoformat(),
+        ]
     )
-    return await paginate(session, query, page, ListingOutput)
+    result = await paginate(session, query, params, ListingOutput, context=context)
+    if result.next_page:
+        result.next_page = (
+            base64.urlsafe_b64encode(
+                json.dumps([snapshot.isoformat(), result.next_page]).encode()
+            )
+            .decode()
+            .rstrip("=")
+        )
+    return result
 
 
 class CategoryOutput(BaseModel):
@@ -342,6 +420,96 @@ async def listing_interactions(
     return await paginate(session, query, page, InteractionOutput)
 
 
+class PublicationInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    title: str
+    description: str
+    visibility: Visibility
+    city_id: UUID | None = None
+    faculty_id: UUID | None = None
+    dormitory_id: UUID | None = None
+    pinned_until: Instant
+
+
+@router.post("/publications", status_code=201)
+async def publish_publication(
+    data: PublicationInput,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+    permissions: Permissions,
+) -> ListingOutput:
+    """Create an informational publication with no interactions or lifetime."""
+    user = await user_for(session, principal)
+    if data.visibility in (Visibility.CITY, Visibility.UNIVERSITY):
+        permissions.require_role(Role.ADMINISTRATOR)
+        if data.faculty_id is not None or data.dormitory_id is not None:
+            raise ProblemError(INVALID_CONTENT)
+        city_id = data.city_id or user.city_id
+    else:
+        permissions.require_scope(
+            dormitory_id=data.dormitory_id, faculty_id=data.faculty_id
+        )
+        place: Dormitory | Faculty | None
+        if data.visibility == Visibility.DORMITORY and data.dormitory_id:
+            place = await session.get(Dormitory, data.dormitory_id)
+        elif data.visibility == Visibility.FACULTY and data.faculty_id:
+            place = await session.get(Faculty, data.faculty_id)
+        else:
+            place = None
+        if place is None:
+            raise ProblemError(FORBIDDEN)
+        city_id = place.city_id
+        if data.city_id is not None and data.city_id != city_id:
+            raise ProblemError(INVALID_CONTENT)
+    city = await session.get(City, city_id) if city_id else None
+    if city is None or data.pinned_until <= clock.now():
+        raise ProblemError(INVALID_CONTENT)
+    check_text(data.title, data.description, request.app.state.settings)
+    listing = Listing(
+        author=user,
+        city=city,
+        author_id=user.id,
+        city_id=city.id,
+        author_dormitory_id=user.dormitory_id,
+        kind="publication",
+        title=data.title,
+        description=data.description,
+        visibility=data.visibility,
+        audience=Audience.COMMUNITY,
+        faculty_id=data.faculty_id,
+        dormitory_id=data.dormitory_id,
+        pinned_until=data.pinned_until,
+        expires_at=None,
+    )
+    session.add(listing)
+    await session.flush()
+    session.add(Publication(listing_id=listing.id))
+    record(session, listing, user.id, "published", None)
+    return ListingOutput.model_validate(listing)
+
+
+@router.post("/{listing_id}/unpin")
+async def unpin_publication(
+    listing_id: UUID,
+    session: DbSession,
+    principal: ProfiledUser,
+    permissions: Permissions,
+) -> ListingOutput:
+    """Remove only the pin; the publication remains in the feed."""
+    listing = await locked(session, listing_id)
+    if listing.author_id != principal.user_id:
+        permissions.require_role(Role.ADMINISTRATOR)
+    if listing.kind != "publication":
+        raise ProblemError(CONFLICT)
+    require_live(listing)
+    listing.pinned_until = None
+    listing.version += 1
+    record(session, listing, principal.user_id, "unpinned", listing.status)
+    await session.flush()
+    return ListingOutput.model_validate(listing)
+
+
 @router.get("/{listing_id}")
 async def get_listing(
     listing_id: UUID,
@@ -354,15 +522,19 @@ async def get_listing(
 
 
 @router.patch("/{listing_id}", response_model=ListingOutput)
-async def edit_listing(
+async def edit_listing(  # noqa: PLR0913, PLR0917 - request dependencies
     listing_id: UUID,
     data: ListingEdit,
     request: Request,
     session: DbSession,
     principal: ProfiledUser,
+    permissions: Permissions,
 ) -> ListingOutput | ProblemResponse:
     listing = await locked(session, listing_id)
-    if listing.author_id != principal.user_id:
+    if listing.author_id != principal.user_id and not (
+        listing.kind == "publication"
+        and any(role.role == Role.ADMINISTRATOR for role in permissions.roles)
+    ):
         raise ProblemError(FORBIDDEN)
     if listing.version != data.version:
         return problem_response(
@@ -376,6 +548,12 @@ async def edit_listing(
     if data.category_id is not None:
         await check_category(session, data.category_id)
         listing.category_id = data.category_id
+    if "pinned_until" in data.model_fields_set:
+        if listing.kind != "publication" or (
+            data.pinned_until is not None and data.pinned_until <= clock.now()
+        ):
+            raise ProblemError(INVALID_CONTENT)
+        listing.pinned_until = data.pinned_until
     check_text(data.title, data.description, request.app.state.settings)
     listing.title, listing.description = data.title, data.description
     listing.version += 1
@@ -389,10 +567,14 @@ async def cancel_listing(
     listing_id: UUID,
     session: DbSession,
     principal: ProfiledUser,
+    permissions: Permissions,
 ) -> ListingOutput:
     """Closing rejects pending applications and preserves accepted interactions."""
     listing = await locked(session, listing_id)
-    if listing.author_id != principal.user_id:
+    if listing.author_id != principal.user_id and not (
+        listing.kind == "publication"
+        and any(role.role == Role.ADMINISTRATOR for role in permissions.roles)
+    ):
         raise ProblemError(FORBIDDEN)
     if listing.status != ListingStatus.DRAFT:
         require_live(listing)
@@ -553,6 +735,8 @@ async def publish_listing(
     listing = await locked(session, listing_id)
     if listing.author_id != principal.user_id:
         raise ProblemError(FORBIDDEN)
+    if listing.kind == "publication":
+        raise ProblemError(CONFLICT)
     if listing.status not in (ListingStatus.DRAFT, ListingStatus.EXPIRED):
         raise ProblemError(CONFLICT)
     user = await user_for(session, principal)
@@ -573,6 +757,7 @@ async def publish_listing(
         user.dormitory_id is None or user.account_type == AccountType.EMPLOYEE
     ):
         raise ProblemError(FORBIDDEN)
+    listing.author_dormitory_id = user.dormitory_id
     listing.city_id = user.city_id
     city = await session.get(City, user.city_id)
     assert city is not None  # noqa: S101 - the profile has a city foreign key
@@ -610,6 +795,8 @@ async def extend_listing(
     listing = await locked(session, listing_id)
     if listing.author_id != principal.user_id:
         raise ProblemError(FORBIDDEN)
+    if listing.kind == "publication":
+        raise ProblemError(CONFLICT)
     require_live(listing)
     listing.expires_at = clock.now() + request.app.state.settings.listing_lifetime
     listing.version += 1
