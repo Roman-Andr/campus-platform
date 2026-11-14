@@ -255,3 +255,36 @@ def test_consumer_registration(consumers: list[str]) -> None:
     consumers.append("devices")
     with pytest.raises(ValueError, match="already registered"):
         session_consumers.register("devices")(callback)
+
+
+async def test_replay_keeps_exhausted_delivery_failed(
+    sessions: async_sessionmaker[AsyncSession], consumers: list[str]
+) -> None:
+    calls = 0
+
+    @session_consumers.register("devices")
+    async def devices(_session: AsyncSession, _change: SessionsRevoked) -> None:
+        nonlocal calls
+        calls += 1
+        raise ConnectionError("offline")
+
+    consumers.append("devices")
+    with time_machine.travel("2026-11-14T12:00:00Z", tick=False):
+        await event(sessions)
+        settings = Settings(job_max_attempts=1)
+        while await process_outbox(sessions, settings):
+            pass
+        await replay(sessions)
+        await drain(sessions)
+        assert calls == 1
+        async with sessions() as session:
+            delivery = (
+                await session.scalars(
+                    select(OutboxMessage).where(
+                        OutboxMessage.topic == "identity.session.devices"
+                    )
+                )
+            ).one()
+            assert delivery.failed_at == clock.now()
+            assert delivery.attempts == 1
+            assert delivery.last_error == "ConnectionError: offline"

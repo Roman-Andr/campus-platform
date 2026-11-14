@@ -746,3 +746,39 @@ credential expiration, preventing a valid POST from recreating a cleaned
 source. Monitor failed outbox/deadline jobs under the existing job policy;
 retry exhausted failures after repairing storage. Retention and URL TTLs
 come from configuration; server time comes from `campus.core.clock`.
+### Session revocation events
+
+`identity.sessions_revoked` is handled even without channel consumers.
+Consumers register on module import through the public identity interface:
+
+```python
+@session_consumers.register("devices")
+async def revoke_devices(session: AsyncSession, event: SessionsRevoked) -> None:
+    # event.user_id and event.session_ids identify the revoked devices.
+    # Use event.delivery_id as the provider's idempotency key.
+    ...
+```
+
+Each consumer receives its own outbox job with independent retries. Use
+stable consumer names. Database effects commit with delivery completion;
+external effects require provider deduplication with `delivery_id`, which
+stays unchanged after a lost acknowledgement and retry.
+
+After migrations and registration are deployed on every worker, run:
+
+```sh
+uv run python -m campus.worker.replay_sessions
+```
+
+The shared dispatcher replays retained source events to new consumers,
+including legacy `UnknownTopicError` failures. Concurrent or repeated
+replay is safe and does not reset failed delivery jobs or repeat existing
+consumers. Other source failures remain visible. Exhausted deliveries need
+an explicit operator retry after fixing their cause.
+
+`identity_session_dispatch` receipts survive outbox retention and have no
+foreign key to the source. Keep them while source events can be replayed.
+They contain only event UUIDs and consumer names. Pruned source events
+cannot be replayed; consumers deployed after that window need their own
+state reconciliation. Realtime and device-key consumers remain in #77
+and #71 respectively.

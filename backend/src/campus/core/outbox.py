@@ -8,7 +8,9 @@ handler of the message topic, registered with
 
 A topic names one action of one consumer, e.g. ``notifications.send``; an
 event with several consumers is written as several messages, so that each
-consumer is retried on its own. Messages are not ordered across retries.
+consumer is retried on its own. :mod:`campus.core.event_dispatch` provides
+this fan-out with permanent receipts for replay. Messages are not ordered
+across retries.
 """
 
 import asyncio
