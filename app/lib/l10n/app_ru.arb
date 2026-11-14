@@ -517,5 +517,65 @@
   "chooseCityDateTime": "Выбрать дату и время",
   "cityTimeDoesNotExist": "Такого времени нет в часовом поясе города. Выберите другое время.",
   "@chooseCityDateTime": {},
-  "@cityTimeDoesNotExist": {}
+  "@cityTimeDoesNotExist": {},
+  "devicesTitle": "Устройства",
+  "devicesCurrent": "Текущее устройство",
+  "devicesUnknown": "Устройство без названия",
+  "devicesSignOutAll": "Выйти со всех устройств",
+  "devicesConfirmAll": "Выйти со всех устройств, включая текущее?",
+  "devicesConfirmOne": "Выйти с устройства «{device}»?",
+  "@devicesConfirmOne": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "devicesCancel": "Отмена",
+  "devicesSignedIn": "Вход: {time}",
+  "@devicesSignedIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "devicesLastActive": "Последняя активность: {time}",
+  "@devicesLastActive": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "devicesEmpty": "Нет активных сессий",
+  "devicesPlatform": "{platform, select, android{Android} web{Браузер} desktop{Компьютер} telegram{Telegram} admin{Панель администратора} other{Другая платформа}}",
+  "@devicesPlatform": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "@devicesTitle": {
+    "description": "devicesTitle"
+  },
+  "@devicesCurrent": {
+    "description": "devicesCurrent"
+  },
+  "@devicesUnknown": {
+    "description": "devicesUnknown"
+  },
+  "@devicesSignOutAll": {
+    "description": "devicesSignOutAll"
+  },
+  "@devicesConfirmAll": {
+    "description": "devicesConfirmAll"
+  },
+  "@devicesCancel": {
+    "description": "devicesCancel"
+  },
+  "@devicesEmpty": {
+    "description": "devicesEmpty"
+  }
 }

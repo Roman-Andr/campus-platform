@@ -9,7 +9,7 @@ import jwt
 from fastapi import Request, Response
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from pydantic_core import PydanticCustomError
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 
 from campus.core import clock
@@ -25,7 +25,7 @@ from campus.core.web import (
     api_router,
     request_locale,
 )
-from campus.core.web.auth import CurrentUser, digest, rate_limit, revoke_access, secret
+from campus.core.web.auth import CurrentUser, digest, rate_limit, secret
 from campus.modules.identity.consents import (
     current_documents,
     record_decision,
@@ -33,6 +33,7 @@ from campus.modules.identity.consents import (
 )
 from campus.modules.identity.models import RefreshToken, Session, SignInCode, User
 from campus.modules.identity.profile import UserOutput, user_output
+from campus.modules.identity.sessions import revoke_sessions
 from campus.modules.university import EmailDomain
 
 DOMAIN_NOT_ALLOWED = ProblemType(
@@ -242,7 +243,9 @@ async def sign_in(data: SignInInput, request: Request, session: DbSession) -> To
         or challenge.expires_at <= clock.now()
     ):
         raise ProblemError(CODE_EXPIRED)
-    user = await session.scalar(select(User).where(User.email == data.email))
+    user = await session.scalar(
+        select(User).where(User.email == data.email).with_for_update()
+    )
     registering = user is None
     if user is None:
         if data.first_name is None or data.last_name is None:
@@ -270,9 +273,7 @@ async def sign_in(data: SignInInput, request: Request, session: DbSession) -> To
             .with_for_update()
         )
     ).all()
-    for old in old_devices:
-        old.revoked_at = clock.now()
-        await revoke_access(request, old.id)
+    await revoke_sessions(request, session, old_devices)
     device = Session(
         user_id=user.id,
         device_id=data.device_id,
@@ -325,14 +326,14 @@ async def refresh_tokens(
             request.app.state.session_factory() as revocations,
             revocations.begin(),
         ):
-            await revocations.execute(
-                update(Session)
-                .where(Session.id == session_id)
-                .values(revoked_at=clock.now())
+            revoked = await revocations.scalar(
+                select(Session).where(Session.id == session_id).with_for_update()
             )
-            await revoke_access(request, session_id)
+            assert revoked is not None  # noqa: S101 - session exists
+            await revoke_sessions(request, revocations, [revoked])
         raise ProblemError(REFRESH_INVALID)
     token.used_at = clock.now()
+    device.updated_at = clock.now()
     user = await session.get(User, device.user_id)
     assert user is not None  # noqa: S101 - foreign key
     # Rotation and the idempotent response commit in one transaction.
@@ -343,10 +344,9 @@ async def refresh_tokens(
 async def sign_out(
     request: Request, session: DbSession, principal: CurrentUser
 ) -> Response:
-    await session.execute(
-        update(Session)
-        .where(Session.id == principal.session_id)
-        .values(revoked_at=clock.now())
+    device = await session.scalar(
+        select(Session).where(Session.id == principal.session_id).with_for_update()
     )
-    await revoke_access(request, principal.session_id)
+    if device is not None:
+        await revoke_sessions(request, session, [device])
     return Response(status_code=204)

@@ -395,4 +395,54 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cityTimeDoesNotExist =>
       'This time does not exist in the city time zone. Choose another time.';
+
+  @override
+  String get devicesTitle => 'Devices';
+
+  @override
+  String get devicesCurrent => 'This device';
+
+  @override
+  String get devicesUnknown => 'Unnamed device';
+
+  @override
+  String get devicesSignOutAll => 'Sign out of all devices';
+
+  @override
+  String get devicesConfirmAll =>
+      'Sign out of all devices, including this one?';
+
+  @override
+  String devicesConfirmOne(String device) {
+    return 'Sign out of $device?';
+  }
+
+  @override
+  String get devicesCancel => 'Cancel';
+
+  @override
+  String devicesSignedIn(String time) {
+    return 'Signed in: $time';
+  }
+
+  @override
+  String devicesLastActive(String time) {
+    return 'Last active: $time';
+  }
+
+  @override
+  String get devicesEmpty => 'No active sessions';
+
+  @override
+  String devicesPlatform(String platform) {
+    String _temp0 = intl.Intl.selectLogic(platform, {
+      'android': 'Android',
+      'web': 'Web browser',
+      'desktop': 'Desktop',
+      'telegram': 'Telegram',
+      'admin': 'Admin panel',
+      'other': 'Other platform',
+    });
+    return '$_temp0';
+  }
 }

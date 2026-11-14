@@ -348,7 +348,8 @@ void main() {
 
     await tester.tap(find.byTooltip('Настройки'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Выйти из аккаунта'));
+    await tester.scrollUntilVisible(find.byKey(const Key('sign-out')), 200);
+    await tester.tap(find.byKey(const Key('sign-out')));
     await tester.pumpAndSettle();
 
     expect(sentTo('/api/v1/auth/sign-out'), hasLength(1));
