@@ -438,6 +438,9 @@ msgstr ""
 msgid "You are not a member of this chat."
 msgstr ""
 
+msgid "You have a new notification."
+msgstr ""
+
 msgid "You have no offer of a place."
 msgstr ""
 

@@ -79,6 +79,7 @@ export 'notifications/models/notification_page.dart';
 export 'notifications/models/notification_settings_output.dart';
 export 'notifications/models/notification_settings_patch.dart';
 export 'notifications/models/notification_settings_patch_quiet_hours.dart';
+export 'notifications/models/push_token_input.dart';
 export 'notifications/models/quiet_hours.dart';
 export 'notifications/models/read_cursor.dart';
 export 'notifications/models/read_input.dart';

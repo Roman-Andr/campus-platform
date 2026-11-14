@@ -1,5 +1,7 @@
 """Transactional notification producers, inbox and delivery adapters."""
 
+# Importing registers the FCM channel and its consent/session consumers.
+from campus.modules.notifications import fcm as _fcm  # noqa: F401
 from campus.modules.notifications.api import router
 from campus.modules.notifications.delivery import (
     NotificationEvent,
@@ -23,6 +25,7 @@ from campus.modules.notifications.models import (
     MutedChat,
     Notification,
     NotificationSettings,
+    PushToken,
     Reminder,
 )
 from campus.modules.notifications.preferences import (
@@ -50,6 +53,7 @@ __all__ = [
     "Notification",
     "NotificationEvent",
     "NotificationSettings",
+    "PushToken",
     "Reminder",
     "cancel_reminders",
     "default_settings",

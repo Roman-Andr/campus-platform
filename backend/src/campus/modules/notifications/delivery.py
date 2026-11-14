@@ -181,13 +181,14 @@ def register_channel(
 ) -> Callable[[ChannelAdapter], ChannelAdapter]:
     """Register a delivery adapter, retried independently per channel.
 
-    The last argument is the stable external idempotency key. Adapters that
-    transfer data across borders must register with cross_border=True: the
-    adapter then runs only with live consent, holding identity's consent lock.
-    Every adapter is external and honors the user's disabled types, muted
-    chats and quiet hours, except in_app=True ones: the in-app realtime wakeup
-    only points to the saved feed row. No external provider is enabled by
-    default (#88 / FCM are separate).
+    The last argument is the stable external idempotency key. Every adapter
+    is external and honors the user's disabled types, muted chats and quiet
+    hours, except in_app=True ones: the in-app realtime wakeup only points to
+    the saved feed row. Adapters that must not run at all without consent
+    register with cross_border=True; an adapter that sends a reduced,
+    non-personal payload without consent (FCM) rechecks the live decision
+    itself. External providers stay disabled until configured
+    (#88 / Telegram are separate).
     """
     register = notification_consumers.register_handler(name)
 

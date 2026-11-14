@@ -58,6 +58,27 @@ class Notification(Entity):
     important: Mapped[bool] = mapped_column(default=False)
 
 
+class PushToken(Entity):
+    """An FCM registration token bound to one user and device session.
+
+    A token is unique: re-registering it moves the binding instead of
+    creating a second one, and a new token of the same session replaces the
+    old rows. The adapter also checks the session row before sending, so a
+    revoked device never receives a push even before its tokens are pruned.
+    """
+
+    __tablename__ = "notification_push_token"
+    __table_args__ = (UniqueConstraint("session_id"),)
+
+    token: Mapped[str] = mapped_column(String(512), unique=True)
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("identity_user.id", ondelete="CASCADE"), index=True
+    )
+    session_id: Mapped[UUID] = mapped_column(
+        ForeignKey("identity_session.id", ondelete="CASCADE")
+    )
+
+
 class Reminder(Base):
     """Current schedule projected by the owning domain in its transaction."""
 
