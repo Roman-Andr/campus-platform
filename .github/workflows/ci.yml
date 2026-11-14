@@ -160,11 +160,7 @@ jobs:
       run:
         working-directory: app
     steps:
-      # Only app/: the Gradle cache globs the whole checkout and stops at
-      # unreadable paths elsewhere in the repository.
       - uses: actions/checkout@v7
-        with:
-          sparse-checkout: app
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
