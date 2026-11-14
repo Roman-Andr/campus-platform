@@ -4,6 +4,12 @@ import 'dart:convert' as convert;
 
 import 'package:dio/dio.dart' show Dio, Options, ResponseType, CancelToken;
 
+import 'models/notification_settings_output.dart'
+    as models
+    show NotificationSettingsOutput;
+import 'models/notification_settings_patch.dart'
+    as models
+    show NotificationSettingsPatch;
 import 'models/page_notification_output.dart'
     as models
     show PageNotificationOutput;
@@ -98,5 +104,77 @@ class NotificationsClient {
       cancelToken: cancelToken,
     );
     return models.ReadCursor.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Read Settings
+  ///
+  /// Owner-only settings; defaults apply until the user changes them.
+  Future<models.NotificationSettingsOutput> readSettings({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/notifications/settings",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.NotificationSettingsOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Update Settings
+  ///
+  /// Change only the given fields; a stale ``version`` is rejected.
+  Future<models.NotificationSettingsOutput> updateSettings({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required models.NotificationSettingsPatch body,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "PATCH",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/notifications/settings",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.NotificationSettingsOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
   }
 }

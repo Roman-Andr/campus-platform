@@ -38,6 +38,9 @@ msgstr ""
 msgid "Channel is not available"
 msgstr ""
 
+msgid "Chat not available"
+msgstr ""
+
 msgid "Choose a listing category."
 msgstr ""
 
@@ -108,6 +111,9 @@ msgid "Invalid meeting place"
 msgstr ""
 
 msgid "Invalid meeting time"
+msgstr ""
+
+msgid "Invalid quiet hours"
 msgstr ""
 
 msgid "Invalid realtime channel"
@@ -219,6 +225,9 @@ msgstr ""
 msgid "Profile incomplete"
 msgstr ""
 
+msgid "Quiet hours must start and end at different times."
+msgstr ""
+
 msgid "Realtime history expired"
 msgstr ""
 
@@ -231,6 +240,10 @@ msgstr ""
 
 #, python-brace-format
 msgid "Reload the listing. Its current version is {version}."
+msgstr ""
+
+#, python-brace-format
+msgid "Reload the settings. Their current version is {version}."
 msgstr ""
 
 msgid "Request failed"
@@ -329,6 +342,13 @@ msgstr ""
 msgid "The name can be changed once in {days} days; see available_at."
 msgstr ""
 
+msgid "The notification settings were changed."
+msgstr ""
+
+#, python-brace-format
+msgid "The notification type {type} is not supported."
+msgstr ""
+
 msgid "The offer of a place has expired."
 msgstr ""
 
@@ -388,6 +408,9 @@ msgstr ""
 msgid "Too many requests"
 msgstr ""
 
+msgid "Unknown notification type"
+msgstr ""
+
 msgid "Update required"
 msgstr ""
 
@@ -404,6 +427,9 @@ msgid "You are already in the queue."
 msgstr ""
 
 msgid "You are not a member of this channel."
+msgstr ""
+
+msgid "You are not a member of this chat."
 msgstr ""
 
 msgid "You have no offer of a place."

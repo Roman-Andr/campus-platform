@@ -164,3 +164,36 @@ def test_deadline_due_time_is_backfilled(empty_database: str) -> None:
     assert rows[0]["preserved"]
     run_alembic(empty_database, "downgrade", "77c3f7a00001")
     assert len(asyncio.run(fetch(empty_database, "SELECT id FROM deadline"))) == 1
+
+
+def test_notification_importance_is_backfilled(empty_database: str) -> None:
+    run_alembic(empty_database, "upgrade", "85a000000001")
+    user = asyncio.run(
+        fetch(
+            empty_database,
+            """
+        INSERT INTO identity_user (email, first_name, last_name, account_type,
+                                   created_at, updated_at)
+        VALUES ('notified@university.example', 'Notified', 'User', 'student',
+                now(), now()) RETURNING id
+    """,
+        )
+    )[0]
+    asyncio.run(
+        fetch(
+            empty_database,
+            """
+        INSERT INTO notification (event_id, recipient_id, sequence, type,
+                                  occurred_at, text, params,
+                                  created_at, updated_at)
+        VALUES (gen_random_uuid(), $1, 1, 'status.changed', now(),
+                '{}', '{}', now(), now())
+    """.replace("$1", f"'{user['id']}'"),
+        )
+    )
+    run_alembic(empty_database, "upgrade", "head")
+    rows = asyncio.run(fetch(empty_database, "SELECT important FROM notification"))
+    assert len(rows) == 1
+    assert rows[0]["important"] is False
+    run_alembic(empty_database, "downgrade", "85a000000001")
+    assert len(asyncio.run(fetch(empty_database, "SELECT id FROM notification"))) == 1

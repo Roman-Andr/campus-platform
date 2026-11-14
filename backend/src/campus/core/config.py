@@ -3,11 +3,12 @@
 import base64
 import binascii
 import math
-from datetime import timedelta
+from datetime import time, timedelta
 from enum import StrEnum
 from functools import lru_cache
 from ipaddress import ip_address, ip_network
 from typing import Annotated, Literal, Self
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from limits import parse_many
 from packaging.version import InvalidVersion, Version
@@ -396,6 +397,28 @@ class Settings(BaseSettings):
         description="Last reminder before a scheduled meeting, e.g. 1 hour.",
     )
 
+    # Notification settings (specification, 5.1.1, module 7): the defaults
+    # for a user who has not changed them. Quiet hours are wall-clock times
+    # of the user's city; the fallback zone is used until the profile has one.
+    notification_quiet_hours_enabled: bool = Field(
+        default=True,
+        description="Quiet hours are on by default (specification, appendix 4).",
+    )
+    notification_quiet_hours_start: time = Field(
+        default=time(23, 0),
+        description="Start of quiet hours as a wall time in the user's city.",
+    )
+    notification_quiet_hours_end: time = Field(
+        default=time(8, 0),
+        description="End of quiet hours as a wall time in the user's city.",
+    )
+    notification_default_timezone: str = Field(
+        default="Europe/Moscow",
+        description=(
+            "IANA time zone used for quiet hours until the user's city is known."
+        ),
+    )
+
     # Centrifugo (specification, 4.4, 4.6): the API issues JWT tokens signed
     # with the shared HMAC secret and talks to the server API for history and
     # forced unsubscribe. Clients reach only the public transports.
@@ -502,6 +525,31 @@ class Settings(BaseSettings):
             msg = "lesson_options_min exceeds lesson_options_max"
             raise ValueError(msg)
         return self
+
+    @model_validator(mode="after")
+    def _check_quiet_hours(self) -> Self:
+        if self.notification_quiet_hours_start == self.notification_quiet_hours_end:
+            msg = "notification quiet hours must not be empty"
+            raise ValueError(msg)
+        return self
+
+    @field_validator("notification_quiet_hours_start", "notification_quiet_hours_end")
+    @classmethod
+    def _check_wall_time(cls, value: time) -> time:
+        if value.tzinfo is not None:
+            msg = "notification quiet hours must be wall times without an offset"
+            raise ValueError(msg)
+        return value
+
+    @field_validator("notification_default_timezone")
+    @classmethod
+    def _check_default_timezone(cls, value: str) -> str:
+        try:
+            ZoneInfo(value)
+        except ZoneInfoNotFoundError:
+            msg = f"{value!r} is not an IANA time zone"
+            raise ValueError(msg) from None
+        return value
 
     def client_min_version(self, platform: ClientPlatform) -> Version | None:
         """Oldest supported version of ``platform``, if one is configured."""

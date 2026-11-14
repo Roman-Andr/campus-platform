@@ -19,6 +19,7 @@ from campus.modules.notifications.models import (
     NotificationDispatch,
     Reminder,
 )
+from campus.modules.notifications.preferences import external_delivery_allowed
 
 # A producer can only address explicit recipients. Payloads contain no fetched
 # content; the owning domain authorizes recipients in its source transaction.
@@ -159,6 +160,7 @@ async def persist_notifications(session: AsyncSession, job: JobInfo) -> None:
                 occurred_at=event.occurred_at or clock.now(),
                 text=event.text,
                 params=event.params,
+                important=event.important,
             )
         )
         session.add(
@@ -175,14 +177,17 @@ type ChannelAdapter = Callable[[AsyncSession, Notification, UUID], Awaitable[Non
 
 
 def register_channel(
-    name: str, *, cross_border: bool = False
+    name: str, *, cross_border: bool = False, in_app: bool = False
 ) -> Callable[[ChannelAdapter], ChannelAdapter]:
-    """Register a local delivery adapter, retried independently per channel.
+    """Register a delivery adapter, retried independently per channel.
 
     The last argument is the stable external idempotency key. Adapters that
     transfer data across borders must register with cross_border=True: the
     adapter then runs only with live consent, holding identity's consent lock.
-    No external provider is enabled by default (#88 / FCM are separate).
+    Every adapter is external and honors the user's disabled types, muted
+    chats and quiet hours, except in_app=True ones: the in-app realtime wakeup
+    only points to the saved feed row. No external provider is enabled by
+    default (#88 / FCM are separate).
     """
     register = notification_consumers.register_handler(name)
 
@@ -192,6 +197,10 @@ def register_channel(
                 Notification, UUID(job.payload["notification_id"])
             )
             if notification is None:
+                return
+            if not in_app and not await external_delivery_allowed(
+                session, notification
+            ):
                 return
             if cross_border:
                 from campus.modules.identity import (  # noqa: PLC0415
@@ -210,7 +219,7 @@ def register_channel(
     return decorator
 
 
-@register_channel("realtime")
+@register_channel("realtime", in_app=True)
 async def publish_realtime(
     _session: AsyncSession, notification: Notification, delivery_id: UUID
 ) -> None:

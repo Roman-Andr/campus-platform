@@ -1,26 +1,41 @@
-"""Owner-only inbox and monotone read cursor."""
+"""Owner-only inbox, monotone read cursor and delivery settings."""
 
+from datetime import time
 from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import Query, Request
-from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import func, select
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert
 
+from campus.core.i18n import N_
 from campus.core.web import (
     DbSession,
     Page,
     PageQuery,
     Problem,
     ProblemError,
+    ProblemType,
     api_router,
 )
 from campus.core.web.auth import CurrentUser
 from campus.core.web.datetimes import Instant
 from campus.core.web.pagination import paginate
-from campus.core.web.problems import NOT_FOUND
-from campus.modules.notifications.models import Inbox, Notification
+from campus.core.web.problems import NOT_FOUND, ProblemResponse, problem_response
+from campus.modules.notifications.delivery import NOTIFICATION_TYPES
+from campus.modules.notifications.models import (
+    Inbox,
+    MutedChat,
+    Notification,
+    NotificationSettings,
+)
+from campus.modules.notifications.preferences import (
+    EffectiveSettings,
+    effective_settings,
+    is_chat_member,
+    user_timezone,
+)
 
 router = api_router(
     prefix="/notifications", tags=["Notifications"], responses={404: {"model": Problem}}
@@ -115,3 +130,233 @@ async def read_notifications(
     )
     assert sequence is not None  # noqa: S101 - INSERT RETURNING
     return ReadCursor(sequence=sequence)
+
+
+SETTINGS_VERSION_CONFLICT = ProblemType(
+    "notification_settings_version_conflict",
+    409,
+    N_("The notification settings were changed."),
+    N_("Reload the settings. Their current version is {version}."),
+)
+QUIET_HOURS_INVALID = ProblemType(
+    "notification_quiet_hours_invalid",
+    422,
+    N_("Invalid quiet hours"),
+    N_("Quiet hours must start and end at different times."),
+)
+CHAT_NOT_MEMBER = ProblemType(
+    "notification_chat_forbidden",
+    403,
+    N_("Chat not available"),
+    N_("You are not a member of this chat."),
+)
+UNKNOWN_NOTIFICATION_TYPE = ProblemType(
+    "notification_type_unknown",
+    422,
+    N_("Unknown notification type"),
+    N_("The notification type {type} is not supported."),
+)
+
+
+class QuietHours(BaseModel):
+    """Daily quiet interval in the wall clock of the user's city."""
+
+    enabled: bool = Field(
+        description="Whether quiet hours suppress external notifications."
+    )
+    start: time = Field(description="Start wall time; may be after the end.")
+    end: time = Field(description="End wall time, exclusive.")
+
+
+class NotificationSettingsOutput(BaseModel):
+    """Current settings of the signed-in user, with defaults filled in."""
+
+    version: int = Field(
+        description="Incremented by every change; send it back to reject a stale edit."
+    )
+    types: dict[str, bool] = Field(
+        description="Every notification type and whether it is enabled."
+    )
+    quiet_hours: QuietHours
+    muted_chat_ids: list[UUID] = Field(description="Chats with muted notifications.")
+    timezone: str = Field(
+        description="IANA zone of the user's city used for quiet hours."
+    )
+
+
+class QuietHoursPatch(BaseModel):
+    """Fields of quiet hours to change; omitted fields keep their values."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool | None = None
+    start: time | None = None
+    end: time | None = None
+
+    @field_validator("start", "end")
+    @classmethod
+    def wall_time(cls, value: time | None) -> time | None:
+        if value is not None and value.tzinfo is not None:
+            raise ValueError("Quiet hours are wall times without an offset.")
+        return value
+
+
+class NotificationSettingsPatch(BaseModel):
+    """Partial settings update; omitted fields keep their values."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    version: int | None = Field(
+        default=None,
+        ge=0,
+        description="Version the edit is based on; a different one is rejected.",
+    )
+    types: dict[str, bool] | None = Field(
+        default=None,
+        description="Types to enable or disable; other types keep their state.",
+    )
+    quiet_hours: QuietHoursPatch | None = None
+    muted_chat_ids: list[UUID] | None = Field(
+        default=None, description="Replaces the whole set of muted chats."
+    )
+
+
+def settings_output(
+    current: EffectiveSettings, timezone: str
+) -> NotificationSettingsOutput:
+    return NotificationSettingsOutput(
+        version=current.version,
+        types={
+            kind: kind not in current.disabled_types
+            for kind in sorted(NOTIFICATION_TYPES)
+        },
+        quiet_hours=QuietHours(
+            enabled=current.quiet_hours_enabled,
+            start=current.quiet_hours_start,
+            end=current.quiet_hours_end,
+        ),
+        muted_chat_ids=sorted(current.muted_chats, key=str),
+        timezone=timezone,
+    )
+
+
+async def current_settings(
+    session: DbSession, principal: CurrentUser, request: Request
+) -> NotificationSettingsOutput:
+    """Effective settings and the current city zone of the signed-in user."""
+    settings = request.app.state.settings
+    current = await effective_settings(session, principal.user_id, settings)
+    timezone = await user_timezone(session, principal.user_id, settings)
+    return settings_output(current, timezone)
+
+
+@router.get("/settings")
+async def read_settings(
+    request: Request, session: DbSession, principal: CurrentUser
+) -> NotificationSettingsOutput:
+    """Owner-only settings; defaults apply until the user changes them."""
+    return await current_settings(session, principal, request)
+
+
+async def apply_patch(  # noqa: PLR0912 - independent optional fields
+    session: DbSession,
+    row: NotificationSettings,
+    data: NotificationSettingsPatch,
+    user_id: UUID,
+) -> bool:
+    """Apply the given fields to ``row``; return whether anything changed."""
+    if data.types is not None:
+        unknown = sorted(set(data.types) - NOTIFICATION_TYPES)
+        if unknown:
+            raise ProblemError(UNKNOWN_NOTIFICATION_TYPE, type=unknown[0])
+    muted = frozenset(
+        await session.scalars(
+            select(MutedChat.chat_id).where(MutedChat.user_id == user_id)
+        )
+    )
+    if data.muted_chat_ids is not None:
+        for chat_id in dict.fromkeys(data.muted_chat_ids):
+            if not await is_chat_member(session, user_id, chat_id):
+                raise ProblemError(CHAT_NOT_MEMBER)
+    changed = False
+    if data.types is not None:
+        disabled = set(row.disabled_types)
+        for kind, enabled in data.types.items():
+            if enabled:
+                disabled.discard(kind)
+            else:
+                disabled.add(kind)
+        if disabled != set(row.disabled_types):
+            row.disabled_types = sorted(disabled)
+            changed = True
+    if data.quiet_hours is not None:
+        quiet = data.quiet_hours
+        if quiet.enabled is not None and quiet.enabled != row.quiet_hours_enabled:
+            row.quiet_hours_enabled = quiet.enabled
+            changed = True
+        if quiet.start is not None and quiet.start != row.quiet_hours_start:
+            row.quiet_hours_start = quiet.start
+            changed = True
+        if quiet.end is not None and quiet.end != row.quiet_hours_end:
+            row.quiet_hours_end = quiet.end
+            changed = True
+    if row.quiet_hours_start == row.quiet_hours_end:
+        raise ProblemError(QUIET_HOURS_INVALID)
+    if data.muted_chat_ids is not None:
+        desired = frozenset(data.muted_chat_ids)
+        if desired != muted:
+            await session.execute(delete(MutedChat).where(MutedChat.user_id == user_id))
+            session.add_all(
+                MutedChat(user_id=user_id, chat_id=chat_id) for chat_id in desired
+            )
+            changed = True
+    return changed
+
+
+@router.patch("/settings", response_model=NotificationSettingsOutput)
+async def update_settings(
+    data: NotificationSettingsPatch,
+    request: Request,
+    session: DbSession,
+    principal: CurrentUser,
+) -> NotificationSettingsOutput | ProblemResponse:
+    """Change only the given fields; a stale ``version`` is rejected."""
+    settings = request.app.state.settings
+    defaults = {
+        "user_id": principal.user_id,
+        "version": 1,
+        "quiet_hours_enabled": settings.notification_quiet_hours_enabled,
+        "quiet_hours_start": settings.notification_quiet_hours_start,
+        "quiet_hours_end": settings.notification_quiet_hours_end,
+        "disabled_types": [],
+    }
+    created = (
+        await session.scalar(
+            insert(NotificationSettings)
+            .values(**defaults)
+            .on_conflict_do_nothing()
+            .returning(NotificationSettings.user_id)
+        )
+    ) is not None
+    row = await session.scalar(
+        select(NotificationSettings)
+        .where(NotificationSettings.user_id == principal.user_id)
+        .with_for_update()
+    )
+    assert row is not None  # noqa: S101 - inserted above
+    current_version = row.version if not created else 0
+    if data.version is not None and data.version != current_version:
+        return problem_response(
+            request,
+            SETTINGS_VERSION_CONFLICT,
+            params={"version": current_version},
+            current_version=current_version,
+        )
+    changed = await apply_patch(session, row, data, principal.user_id)
+    if changed and not created:
+        row.version += 1
+    if changed or created:
+        await session.flush()
+    current = await effective_settings(session, principal.user_id, settings)
+    timezone = await user_timezone(session, principal.user_id, settings)
+    return settings_output(current, timezone)

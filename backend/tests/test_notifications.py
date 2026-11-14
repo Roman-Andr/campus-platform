@@ -3,7 +3,7 @@
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -105,7 +105,7 @@ async def test_rollback_replay_reordering_and_channel_failure(
     assert (await feed(owner))["items"] == []
     attempts: list[UUID] = []
 
-    @register_channel("test_broken")
+    @register_channel("test_broken", in_app=True)
     async def broken(_session: Any, _notification: Notification, key: UUID) -> None:
         attempts.append(key)
         raise ConnectionError("provider unavailable")
@@ -446,15 +446,17 @@ async def test_external_adapter_checks_live_consent(
     docs = (await auth.client.get("/api/v1/documents")).json()
     document = next(doc for doc in docs if doc["kind"] == "cross_border_transfer")
     try:
-        for allowed in (False, True, False):
-            response = await auth.client.put(
-                "/api/v1/me/consents/cross-border",
-                json={"document_id": document["id"], "accepted": allowed},
-                headers={**owner.headers, "Idempotency-Key": str(uuid4())},
-            )
-            assert response.status_code == 204
-            await enqueue(auth, owner)
-            await drain(engine, auth)
+        # Midday in the user's city: the default quiet hours do not apply.
+        with time_machine.travel(datetime(2026, 6, 1, 9, 0, tzinfo=UTC), tick=False):
+            for allowed in (False, True, False):
+                response = await auth.client.put(
+                    "/api/v1/me/consents/cross-border",
+                    json={"document_id": document["id"], "accepted": allowed},
+                    headers={**owner.headers, "Idempotency-Key": str(uuid4())},
+                )
+                assert response.status_code == 204
+                await enqueue(auth, owner)
+                await drain(engine, auth)
         assert len(calls) == 1
         assert len((await feed(owner))["items"]) == 3
     finally:
