@@ -1,7 +1,7 @@
 """Preserve the original deadline time across retries.
 
 Revision ID: 106a00000001
-Revises: 48a1b2c3d4e5
+Revises: 77c3f7a00001
 """
 
 from collections.abc import Sequence
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "106a00000001"
-down_revision: str | Sequence[str] | None = "48a1b2c3d4e5"
+down_revision: str | Sequence[str] | None = "77c3f7a00001"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
