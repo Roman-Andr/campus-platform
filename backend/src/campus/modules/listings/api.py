@@ -71,10 +71,12 @@ from campus.modules.listings.models import (
 )
 from campus.modules.listings.service import (
     CONFLICT,
+    EXCHANGE_OFFER_DUPLICATE,
     FORBIDDEN,
     HELP_DEADLINE_INVALID,
     INVALID_CATEGORY,
     INVALID_CONTENT,
+    INVALID_EXCHANGE_OFFER,
     INVALID_LESSON_OPTIONS,
     MEETING_PROPOSED,
     MEETING_RESCHEDULED,
@@ -92,6 +94,7 @@ from campus.modules.listings.service import (
     claim_offer,
     clear_waitlist,
     decline_offer,
+    extend_reservation,
     join_waitlist,
     leave_waitlist,
     locked,
@@ -143,6 +146,13 @@ class SkillInput(BaseModel):
     visibility: Visibility = Visibility.CITY
     audience: Audience = Audience.STUDENTS
     category_id: UUID
+
+
+class ExchangeOfferInput(BaseModel):
+    """What a participant offers in exchange for the author's item."""
+
+    model_config = ConfigDict(extra="forbid")
+    description: str
 
 
 class LessonSlotInput(BaseModel):
@@ -341,11 +351,26 @@ class InteractionOutput(BaseModel):
     executor: bool = Field(
         description="Whether this application is the selected help executor."
     )
+    reservation_due_at: Instant | None = Field(
+        default=None,
+        description=(
+            "When an accepted item reservation ends; extended to the meeting"
+            " time once a meeting is scheduled."
+        ),
+    )
+    offer_description: str | None = Field(
+        default=None,
+        description="The item a participant offers for an exchange; null otherwise.",
+    )
     meeting: MeetingOutput | None
     options: list[LessonOptionOutput] = Field(
         default_factory=list,
         description="Time options of a skill lesson; empty for other types.",
     )
+
+
+class ExchangeOfferList(BaseModel):
+    items: list[InteractionOutput]
 
 
 class ParticipationListing(BaseModel):
@@ -696,6 +721,65 @@ async def publish_help_request(
     await session.flush()
     record(session, listing, user.id, "published", None)
     await expiry_deadline(session, listing)
+    return ListingOutput.model_validate(listing)
+
+
+@router.post("/exchanges", status_code=201)
+async def publish_exchange(
+    data: GiveawayInput,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> ListingOutput:
+    """Publish an item to exchange: participants offer their own items."""
+    user = await user_for(session, principal)
+    settings: Settings = request.app.state.settings
+    check_text(data.title, data.description, settings)
+    if data.visibility == Visibility.UNIVERSITY:
+        raise ProblemError(FORBIDDEN)
+    if user.account_type not in (AccountType.STUDENT, AccountType.EMPLOYEE):
+        raise ProblemError(FORBIDDEN)
+    if (
+        user.account_type == AccountType.EMPLOYEE
+        and data.audience != Audience.COMMUNITY
+    ):
+        raise ProblemError(FORBIDDEN)
+    if data.visibility == Visibility.DORMITORY and (
+        user.dormitory_id is None or user.account_type == AccountType.EMPLOYEE
+    ):
+        raise ProblemError(FORBIDDEN)
+    if data.category_id is not None or not data.draft:
+        await check_category(session, data.category_id)
+    if not data.draft:
+        await publication_quota(session, user.id, settings)
+    assert user.city_id is not None  # noqa: S101 - ProfiledUser
+    listing = Listing(
+        author=user,
+        author_id=user.id,
+        author_dormitory_id=user.dormitory_id,
+        kind="exchange",
+        title=data.title,
+        description=data.description,
+        visibility=data.visibility,
+        audience=data.audience,
+        city_id=user.city_id,
+        city=await session.get(City, user.city_id),
+        faculty_id=user.faculty_id if data.visibility == Visibility.FACULTY else None,
+        dormitory_id=user.dormitory_id
+        if data.visibility == Visibility.DORMITORY
+        else None,
+        status=ListingStatus.DRAFT if data.draft else ListingStatus.ACTIVE,
+        category_id=data.category_id,
+        expires_at=None if data.draft else clock.now() + settings.listing_lifetime,
+    )
+    session.add(listing)
+    await session.flush()
+    session.add(Item(listing_id=listing.id, mode="exchange"))
+    record(
+        session, listing, user.id, "draft_created" if data.draft else "published", None
+    )
+    if not data.draft:
+        await expiry_deadline(session, listing)
     return ListingOutput.model_validate(listing)
 
 
@@ -1352,6 +1436,95 @@ async def reserve_giveaway(
     return InteractionOutput.model_validate(interaction)
 
 
+@router.post("/{listing_id}/exchange-offers", status_code=201)
+async def offer_exchange(
+    listing_id: UUID,
+    data: ExchangeOfferInput,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> InteractionOutput:
+    """Offer an item for exchange; the author later chooses one offer."""
+    listing = await locked(session, listing_id)
+    user = await user_for(session, principal)
+    check_participant(listing, user)
+    if not visible(listing, user):
+        raise ProblemError(NOT_FOUND)
+    require_live(listing)
+    if listing.kind != "exchange" or listing.status != ListingStatus.ACTIVE:
+        raise ProblemError(CONFLICT)
+    settings: Settings = request.app.state.settings
+    description = data.description.strip()
+    if not description or len(description) > settings.listing_description_max_length:
+        raise ProblemError(INVALID_EXCHANGE_OFFER)
+    duplicate = await session.scalar(
+        select(Interaction.id).where(
+            Interaction.listing_id == listing.id,
+            Interaction.participant_id == user.id,
+            Interaction.status.in_(
+                (InteractionStatus.PENDING, InteractionStatus.ACCEPTED)
+            ),
+        )
+    )
+    if duplicate is not None:
+        raise ProblemError(EXCHANGE_OFFER_DUPLICATE)
+    retry = await rate_limit(
+        session,
+        user.id,
+        "requested",
+        settings.listing_response_limit,
+        settings.listing_response_window,
+    )
+    if retry is not None:
+        raise ProblemError(RATE_LIMIT, headers={"Retry-After": str(retry)})
+    interaction = Interaction(
+        listing_id=listing.id,
+        participant_id=user.id,
+        participant=user,
+        slot=None,
+        offer_description=description,
+        response_due_at=None,
+        meeting=None,
+        options=[],
+    )
+    session.add(interaction)
+    await session.flush()
+    listing.version += 1
+    record(
+        session,
+        listing,
+        user.id,
+        "requested",
+        None,
+        interaction,
+        details={"offer": description},
+    )
+    await session.flush()
+    return InteractionOutput.model_validate(interaction)
+
+
+@router.get("/{listing_id}/exchange-offers")
+async def exchange_offers(
+    listing_id: UUID,
+    session: DbSession,
+    principal: CurrentUser,
+) -> ExchangeOfferList:
+    """Every offer for the author; only the caller's own offer otherwise."""
+    listing = await session.get(Listing, listing_id)
+    if listing is None or listing.kind != "exchange":
+        raise ProblemError(NOT_FOUND)
+    query = select(Interaction).where(
+        Interaction.listing_id == listing.id,
+        Interaction.offer_description.is_not(None),
+    )
+    if principal.user_id != listing.author_id:
+        query = query.where(Interaction.participant_id == principal.user_id)
+    rows = await session.scalars(query.order_by(Interaction.created_at, Interaction.id))
+    return ExchangeOfferList(
+        items=[InteractionOutput.model_validate(row) for row in rows]
+    )
+
+
 @router.post("/{listing_id}/lessons", status_code=201)
 async def propose_lesson(
     listing_id: UUID,
@@ -1758,6 +1931,7 @@ async def accept_meeting(  # noqa: PLR0913, PLR0917 - request context
         action,
         details,
     )
+    await extend_reservation(session, listing, interaction, proposed_at)
     await schedule_meeting_reminders(session, settings, listing, interaction, meeting)
     await session.flush()
     notify(

@@ -1,7 +1,7 @@
 """Giveaway acceptance and concurrency on real PostgreSQL and HTTP requests."""
 
 import asyncio
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -89,6 +89,34 @@ async def move(
         f"/{listing['id']}/interactions/{interaction['id']}/transition",
         {"status": status},
     )
+
+
+async def schedule_meeting(
+    owner: Account,
+    borrower: Account,
+    listing: dict[str, Any],
+    interaction: dict[str, Any],
+    at: datetime,
+) -> None:
+    """Agree on a meeting so the item reservation lasts until that time."""
+    proposed = await request(
+        owner,
+        "POST",
+        f"/{listing['id']}/interactions/{interaction['id']}/meeting/proposals",
+        {
+            "time": at.astimezone(UTC).isoformat().replace("+00:00", "Z"),
+            "location": "Main library",
+        },
+    )
+    assert proposed.status_code == 200, proposed.text
+    proposals = proposed.json()
+    accepted = await request(
+        borrower,
+        "POST",
+        f"/{listing['id']}/interactions/{interaction['id']}/meeting/accept",
+        {"version": proposals["version"]},
+    )
+    assert accepted.status_code == 200, accepted.text
 
 
 @pytest.fixture
@@ -416,7 +444,9 @@ async def test_deadline_catch_up(owner: Account, borrower: Account, state: str) 
         if interaction:
             item = await owner.auth.db.get(Interaction, UUID(interaction["id"]))
             assert item is not None
-            assert item.status == ("rejected" if state == "pending" else "accepted")
+            # A pending application is rejected on expiry; an accepted item
+            # reservation lapses after its own window well before the listing.
+            assert item.status == ("rejected" if state == "pending" else "cancelled")
         events = list(
             await owner.auth.db.scalars(
                 select(ListingEvent).where(ListingEvent.action == "expired")

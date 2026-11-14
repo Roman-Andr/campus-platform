@@ -43,6 +43,7 @@ from tests.test_listings import (
     publish,
     request,
     reserve,
+    schedule_meeting,
     staff,
 )
 from tests.test_profile import Account
@@ -575,8 +576,11 @@ async def test_republish_accepted_stays_occupied(
     listing = await publish(owner)
     interaction = (await reserve(borrower, listing)).json()
     await move(owner, listing, interaction, "accepted")
+    await schedule_meeting(
+        owner, borrower, listing, interaction, clock.now() + timedelta(days=40)
+    )
     with time_machine.travel(clock.now() + timedelta(days=31), tick=False):
-        assert await deadlines(owner) == 2
+        assert await deadlines(owner) == 1
         assert (await request(owner, "POST", f"/{listing['id']}/publish")).json()[
             "status"
         ] == "busy"
@@ -595,8 +599,11 @@ async def test_accepted_finishes_after_expiry(
     listing = await publish(owner)
     interaction = (await reserve(borrower, listing)).json()
     await move(owner, listing, interaction, "accepted")
+    await schedule_meeting(
+        owner, borrower, listing, interaction, clock.now() + timedelta(days=40)
+    )
     with time_machine.travel(clock.now() + timedelta(days=31), tick=False):
-        assert await deadlines(owner) == 2
+        assert await deadlines(owner) == 1
         db = owner.auth.db
         row = await locked(db, UUID(listing["id"]))
         item = await db.get(Interaction, UUID(interaction["id"]))

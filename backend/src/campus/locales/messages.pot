@@ -56,6 +56,9 @@ msgstr ""
 msgid "Current documents must be accepted"
 msgstr ""
 
+msgid "Describe the item you offer."
+msgstr ""
+
 msgid "E-mail address already in use"
 msgstr ""
 
@@ -111,6 +114,9 @@ msgid "Invalid meeting place"
 msgstr ""
 
 msgid "Invalid meeting time"
+msgstr ""
+
+msgid "Invalid offer"
 msgstr ""
 
 msgid "Invalid quiet hours"
@@ -423,7 +429,13 @@ msgstr ""
 msgid "Use a wall time without a UTC offset."
 msgstr ""
 
+msgid "Wait for the author's decision."
+msgstr ""
+
 msgid "Wait for the offer timer to end or join the queue."
+msgstr ""
+
+msgid "You already offered an item."
 msgstr ""
 
 msgid "You already participate in this listing."

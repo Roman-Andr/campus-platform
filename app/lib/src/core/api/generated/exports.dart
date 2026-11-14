@@ -36,6 +36,8 @@ export 'listings/models/event_edit.dart';
 export 'listings/models/event_input.dart';
 export 'listings/models/event_input_draft.dart';
 export 'listings/models/event_output.dart';
+export 'listings/models/exchange_offer_input.dart';
+export 'listings/models/exchange_offer_list.dart';
 export 'listings/models/favorite_output.dart';
 export 'listings/models/giveaway_input.dart';
 export 'listings/models/help_request_input.dart';

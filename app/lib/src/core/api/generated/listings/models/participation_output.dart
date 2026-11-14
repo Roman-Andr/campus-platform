@@ -19,6 +19,12 @@ class ParticipationOutput {
 
     /// Whether this application is the selected help executor.
     required this.executor,
+
+    /// When an accepted item reservation ends; extended to the meeting time once a meeting is scheduled.
+    this.reservationDueAt,
+
+    /// The item a participant offers for an exchange; null otherwise.
+    this.offerDescription,
     required this.meeting,
 
     /// Time options of a skill lesson; empty for other types.
@@ -53,6 +59,14 @@ class ParticipationOutput {
           ? null
           : DateTime.parse(json["response_due_at"] as String).toUtc(),
       executor: json["executor"] as bool,
+      reservationDueAt: json.containsKey("reservation_due_at")
+          ? json["reservation_due_at"] == null
+                ? null
+                : DateTime.parse(json["reservation_due_at"] as String).toUtc()
+          : null,
+      offerDescription: json.containsKey("offer_description")
+          ? json["offer_description"] as String?
+          : null,
       meeting: ParticipationOutputMeeting.fromJson(json["meeting"]),
       options: json.containsKey("options")
           ? (json["options"] as List<Object?>)
@@ -91,6 +105,12 @@ class ParticipationOutput {
   /// Whether this application is the selected help executor.
   final bool executor;
 
+  /// When an accepted item reservation ends; extended to the meeting time once a meeting is scheduled.
+  final DateTime? reservationDueAt;
+
+  /// The item a participant offers for an exchange; null otherwise.
+  final String? offerDescription;
+
   final ParticipationOutputMeeting meeting;
 
   /// Time options of a skill lesson; empty for other types.
@@ -111,6 +131,8 @@ class ParticipationOutput {
     "stage",
     "response_due_at",
     "executor",
+    "reservation_due_at",
+    "offer_description",
     "meeting",
     "options",
     "created_at",
@@ -130,6 +152,10 @@ class ParticipationOutput {
     "stage": this.stage,
     "response_due_at": this.responseDueAt?.toUtc().toIso8601String(),
     "executor": this.executor,
+    if (this.reservationDueAt != null)
+      "reservation_due_at": this.reservationDueAt?.toUtc().toIso8601String(),
+    if (this.offerDescription != null)
+      "offer_description": this.offerDescription,
     "meeting": this.meeting.toJson(),
     if (this.options != null)
       "options": this.options?.map((item) => item.toJson()).toList(),

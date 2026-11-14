@@ -100,6 +100,19 @@ HELP_DEADLINE_INVALID = ProblemType(
     N_("The help request must expire in the future and within the listing lifetime."),
 )
 
+INVALID_EXCHANGE_OFFER = ProblemType(
+    "exchange_offer_invalid",
+    422,
+    N_("Invalid offer"),
+    N_("Describe the item you offer."),
+)
+EXCHANGE_OFFER_DUPLICATE = ProblemType(
+    "exchange_offer_duplicate",
+    409,
+    N_("You already offered an item."),
+    N_("Wait for the author's decision."),
+)
+
 MEETING_PROPOSED = N_("A meeting time and place were proposed.")
 MEETING_SCHEDULED = N_("The meeting is scheduled.")
 MEETING_RESCHEDULED = N_("The meeting has been rescheduled.")
@@ -208,11 +221,18 @@ TYPE_POLICIES = {
         False, capacity=1, start_time=lambda listing: listing.event_starts_at
     ),
     "giveaway": TypePolicy(author_response_deadline=True, capacity=1),
+    # An exchange takes several offers; the author chooses one, no queue.
+    "exchange": TypePolicy(author_response_deadline=False, capacity=None),
     # A skill listing is permanent and takes lessons from many participants.
     "skill": TypePolicy(author_response_deadline=True, capacity=None),
     # Applications are unlimited and stay pending; the author selects one.
     "help": TypePolicy(author_response_deadline=False),
 }
+
+# Item kinds whose accepted reservation expires unless a meeting is scheduled.
+RESERVATION_KINDS = frozenset({"giveaway", "exchange"})
+RESERVATION_EXPIRED = "reservation_expired"
+EXCHANGE_OFFER_DECLINED = "another_offer_accepted"
 
 
 def visible(listing: Listing, user: User) -> bool:
@@ -844,6 +864,128 @@ def change_listing(
     record(session, listing, actor_id, action, previous, reason=listing.hidden_reason)
 
 
+def reservation_key(interaction_id: UUID) -> str:
+    return f"interaction:{interaction_id}"
+
+
+async def schedule_reservation(
+    session: AsyncSession,
+    listing: Listing,
+    interaction: Interaction,
+    settings: Settings,
+) -> None:
+    """Start the reservation window of a newly accepted item interaction."""
+    if listing.kind not in RESERVATION_KINDS:
+        return
+    # The reservation reuses the interaction deadline key, replacing the
+    # author response timer, so the pending response time no longer applies.
+    interaction.response_due_at = None
+    due_at = clock.now() + settings.listing_reservation_timeout
+    interaction.reservation_due_at = due_at
+    await schedule_deadline(
+        session,
+        "listing.reservation",
+        due_at,
+        {
+            "listing_id": str(listing.id),
+            "interaction_id": str(interaction.id),
+            "offer_timeout": int(settings.listing_offer_timeout.total_seconds()),
+            "open_all_before": int(settings.listing_open_to_all_before.total_seconds()),
+        },
+        key=reservation_key(interaction.id),
+    )
+
+
+async def extend_reservation(
+    session: AsyncSession,
+    listing: Listing,
+    interaction: Interaction,
+    meeting_at: datetime,
+) -> None:
+    """A scheduled meeting keeps the reservation until its time.
+
+    The pending expiry is dropped: the reservation no longer ends without a
+    meeting, and the interaction is finished by the meeting scenario.
+    """
+    if listing.kind not in RESERVATION_KINDS:
+        return
+    interaction.reservation_due_at = meeting_at
+    await cancel_deadline(session, reservation_key(interaction.id))
+
+
+async def release_reservation(
+    session: AsyncSession,
+    listing: Listing,
+    interaction: Interaction,
+    *,
+    offer_timeout: timedelta,
+    open_all_before: timedelta,
+) -> None:
+    """Cancel an accepted interaction whose reservation has run out.
+
+    The listing reopens without a late-cancellation mark, and the first in
+    the queue is offered the released place.
+    """
+    previous = interaction.status
+    interaction.status = InteractionStatus.CANCELLED
+    interaction.stage = None
+    interaction.reservation_due_at = None
+    released = False
+    if listing.status == ListingStatus.BUSY:
+        if listing.expires_at is not None and listing.expires_at <= clock.now():
+            await expire(session, listing)
+        else:
+            change_listing(session, listing, ListingStatus.ACTIVE, None, "released")
+            released = True
+    else:
+        listing.version += 1
+    record(
+        session,
+        listing,
+        None,
+        RESERVATION_EXPIRED,
+        previous,
+        interaction,
+        reason=RESERVATION_EXPIRED,
+    )
+    if released and listing.kind == "giveaway":
+        await offer_next(
+            session,
+            listing,
+            offer_timeout=offer_timeout,
+            open_all_before=open_all_before,
+        )
+
+
+@deadline_handlers.register("listing.reservation")
+async def expire_reservation(session: AsyncSession, job: JobInfo) -> None:
+    # The listing lock serializes every interaction mutation; the interaction
+    # is read after it, so a concurrent cancel or completion is visible here.
+    listing = await locked(session, UUID(job.payload["listing_id"]))
+    interaction = await session.get(Interaction, UUID(job.payload["interaction_id"]))
+    if interaction is None:
+        return
+    if (
+        interaction.status != InteractionStatus.ACCEPTED
+        or interaction.reservation_due_at is None
+        or interaction.reservation_due_at > clock.now()
+    ):
+        return
+    meeting = await session.scalar(
+        select(Meeting).where(Meeting.interaction_id == interaction.id)
+    )
+    if meeting is not None and meeting.scheduled_at is not None:
+        return
+    offer_timeout, open_all_before = offer_timing(payload=job.payload)
+    await release_reservation(
+        session,
+        listing,
+        interaction,
+        offer_timeout=offer_timeout,
+        open_all_before=open_all_before,
+    )
+
+
 async def reject_pending(session: AsyncSession, listing: Listing, reason: str) -> None:
     pending = await session.scalars(
         select(Interaction).where(
@@ -950,6 +1092,74 @@ def require_live(listing: Listing) -> None:
         raise ProblemError(CONFLICT)
 
 
+async def reject_exchange_offers(
+    session: AsyncSession,
+    listing: Listing,
+    selected: Interaction,
+    actor_id: UUID | None,
+) -> None:
+    """Reject every other pending offer once the author has chosen one."""
+    offers = list(
+        await session.scalars(
+            select(Interaction)
+            .where(
+                Interaction.listing_id == listing.id,
+                Interaction.id != selected.id,
+                Interaction.status == InteractionStatus.PENDING,
+            )
+            # The eager meeting is an outer join; lock only the interaction.
+            .with_for_update(of=Interaction)
+        )
+    )
+    for offer in offers:
+        offer.status = InteractionStatus.REJECTED
+        record(
+            session,
+            listing,
+            actor_id,
+            "auto_rejected",
+            InteractionStatus.PENDING,
+            offer,
+            reason=EXCHANGE_OFFER_DECLINED,
+        )
+
+
+async def claim_listing(  # noqa: PLR0913, PLR0917 - aggregate claim
+    session: AsyncSession,
+    listing: Listing,
+    interaction: Interaction,
+    target: InteractionStatus,
+    actor_id: UUID | None,
+    previous: str,
+) -> bool:
+    """Give the accepted interaction an exclusive claim on the listing.
+
+    Help requests select one application and keep the rest as a reserve;
+    exchange offers reject the others and reserve the listing for the chosen
+    one. Returns whether the claim already updated the listing, so the caller
+    does not bump its version twice.
+    """
+    if target == InteractionStatus.ACCEPTED and listing.kind == "help":
+        # The author selects one application; the remaining ones stay pending
+        # as a reserve. The partial unique index backs this check up.
+        if listing.status != ListingStatus.ACTIVE:
+            raise ProblemError(CONFLICT)
+        interaction.executor = True
+        change_listing(
+            session, listing, ListingStatus.BUSY, actor_id, "executor_selected"
+        )
+        return True
+    if (
+        listing.kind == "exchange"
+        and previous == InteractionStatus.PENDING
+        and target == InteractionStatus.ACCEPTED
+    ):
+        await reject_exchange_offers(session, listing, interaction, actor_id)
+        change_listing(session, listing, ListingStatus.BUSY, actor_id, "reserved")
+        return True
+    return False
+
+
 async def transition(  # noqa: PLR0912, PLR0913 - aggregate transition
     session: AsyncSession,
     listing: Listing,
@@ -964,6 +1174,14 @@ async def transition(  # noqa: PLR0912, PLR0913 - aggregate transition
         raise ProblemError(CONFLICT)
     # Accepting a lesson also schedules its meeting, so it has its own route.
     if listing.kind == "skill" and target == InteractionStatus.ACCEPTED:
+        raise ProblemError(CONFLICT)
+    # Only one exchange offer occupies the listing; the row lock serializes
+    # two simultaneous choices, so the second one loses here.
+    if (
+        listing.kind == "exchange"
+        and target == InteractionStatus.ACCEPTED
+        and listing.status != ListingStatus.ACTIVE
+    ):
         raise ProblemError(CONFLICT)
     allowed_id = {
         "author": listing.author_id,
@@ -987,19 +1205,13 @@ async def transition(  # noqa: PLR0912, PLR0913 - aggregate transition
         else None
     )
     if previous == InteractionStatus.ACCEPTED:
-        # Reminders belong to an accepted interaction only.
+        # Reminders and the reservation belong to an accepted interaction only.
         await cancel_meeting_reminders(session, interaction.id)
-    selected = False
-    if target == InteractionStatus.ACCEPTED and listing.kind == "help":
-        # The author selects one application; the remaining ones stay pending
-        # as a reserve. The partial unique index backs this check up.
-        if listing.status != ListingStatus.ACTIVE:
-            raise ProblemError(CONFLICT)
-        interaction.executor = True
-        change_listing(
-            session, listing, ListingStatus.BUSY, actor_id, "executor_selected"
-        )
-        selected = True
+        await cancel_deadline(session, reservation_key(interaction.id))
+        interaction.reservation_due_at = None
+    claimed = await claim_listing(
+        session, listing, interaction, target, actor_id, previous
+    )
     released = False
     # A giveaway reservation makes the listing busy while still pending, so
     # ending any interaction releases it. Help requests stay active while
@@ -1032,9 +1244,13 @@ async def transition(  # noqa: PLR0912, PLR0913 - aggregate transition
         if listing.kind == "help":
             await reject_pending(session, listing, "help_completed")
         await clear_waitlist(session, listing, "listing_completed")
-    elif not selected:
+    elif not claimed:
         listing.version += 1
     record(session, listing, actor_id, "transition", previous, interaction)
+    if target == InteractionStatus.ACCEPTED:
+        await schedule_reservation(
+            session, listing, interaction, settings or get_settings()
+        )
     if released:
         offer_timeout, open_all_before = offer_timing(settings)
         await offer_next(
