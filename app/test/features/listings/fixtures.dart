@@ -60,3 +60,28 @@ Map<String, Object?> waitlistJson({
   'interaction_id': null,
   'created_at': '2026-11-14T00:00:00Z',
 };
+
+Map<String, Object?> eventListingJson({
+  String id = 'event-1',
+  String? author,
+  String status = 'active',
+  String title = 'Campus concert',
+  int capacity = 3,
+  int remaining = 3,
+  String? startsAt,
+  String? endsAt,
+  String location = 'Hall A',
+}) {
+  final ends = endsAt ?? '2099-01-01T02:00:00Z';
+  return {
+    ...listingJson(id: id, author: author, status: status, kind: 'event'),
+    'title': title,
+    'description': 'Meet in the hall',
+    'expires_at': ends,
+    'event_starts_at': startsAt ?? '2099-01-01T00:00:00Z',
+    'event_ends_at': ends,
+    'event_location': location,
+    'event_capacity': capacity,
+    'remaining_places': remaining,
+  };
+}

@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../../core/l10n/l10n.dart';
 import '../../../core/router/app_router.dart';
+import '../../listings/domain/event.dart';
 import '../../listings/domain/publication.dart';
 import '../../listings/presentation/listings_screens.dart';
 import '../../notifications/presentation/notifications_button.dart';
@@ -16,13 +17,21 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final headman = isHeadman(ref.watch(myProfileProvider).value);
+    final user = ref.watch(myProfileProvider).value;
+    final headman = isHeadman(user);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: [
           const NotificationsButton(),
+          if (canCreateEvent(user))
+            IconButton(
+              key: const Key('feed-create-event'),
+              icon: const Icon(Icons.event_outlined),
+              tooltip: l10n.eventCreate,
+              onPressed: () => context.push('/event/new'),
+            ),
           if (headman)
             IconButton(
               key: const Key('feed-create-publication'),

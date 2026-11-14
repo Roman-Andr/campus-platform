@@ -25,6 +25,7 @@ String mySectionName(AppLocalizations l, MySection section) =>
 String listingKindName(AppLocalizations l, String kind) => switch (kind) {
   'giveaway' => l.listingKindGiveaway,
   'publication' => l.listingKindPublication,
+  'event' => l.listingKindEvent,
   _ => kind,
 };
 

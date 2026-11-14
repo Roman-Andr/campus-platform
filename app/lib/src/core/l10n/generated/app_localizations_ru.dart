@@ -1189,4 +1189,92 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get notificationsNoScreen =>
       'Для этого уведомления в приложении пока нет экрана.';
+
+  @override
+  String get listingKindEvent => 'Мероприятие';
+
+  @override
+  String get eventCreate => 'Новое мероприятие';
+
+  @override
+  String get eventEdit => 'Редактировать мероприятие';
+
+  @override
+  String get eventStartsAt => 'Начало';
+
+  @override
+  String get eventEndsAt => 'Окончание';
+
+  @override
+  String get eventLocation => 'Место';
+
+  @override
+  String eventLocationValue(String location) {
+    return 'Место: $location';
+  }
+
+  @override
+  String get eventCapacity => 'Лимит мест';
+
+  @override
+  String eventSeatsLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Осталось $count места',
+      many: 'Осталось $count мест',
+      few: 'Осталось $count места',
+      one: 'Осталось $count место',
+      zero: 'Мест нет',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get eventNoSeats => 'Мест нет';
+
+  @override
+  String get eventSignup => 'Записаться';
+
+  @override
+  String get eventRegistered => 'Вы записаны';
+
+  @override
+  String get eventQueued => 'Вы в очереди';
+
+  @override
+  String get eventJoinQueue => 'Встать в очередь';
+
+  @override
+  String get eventCancelSignup => 'Отменить запись';
+
+  @override
+  String get eventParticipants => 'Записавшиеся';
+
+  @override
+  String get eventParticipantsEmpty => 'Пока никто не записался';
+
+  @override
+  String get eventSignupClosed => 'Запись закрыта';
+
+  @override
+  String get eventTimeInvalid =>
+      'Мероприятие должно начинаться в будущем и заканчиваться после начала.';
+
+  @override
+  String eventTimeRange(String start, String end) {
+    return '$start — $end';
+  }
+
+  @override
+  String get eventCapacityInvalid => 'Лимит мест должен быть не меньше 1.';
+
+  @override
+  String eventCapacityBelowRegistered(int registered) {
+    return 'Лимит не может быть меньше числа записавшихся: $registered.';
+  }
+
+  @override
+  String get eventCapacityConflict =>
+      'Нельзя уменьшить лимит мест ниже числа записавшихся.';
 }

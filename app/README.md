@@ -410,6 +410,14 @@ CAMPUS_RUN_GIVEAWAY_CLIENT=1 uv run pytest tests/test_giveaway_client.py -s
 Обычный `uv run pytest` пропускает Android-проверку. После проверки:
 `adb emu kill`, затем `cd app/android && ./gradlew --stop`.
 
+Мероприятие проверяется так же: организатор публикует встречу с одним
+местом, первый участник записывается, второй видит «мест нет» и встаёт
+в очередь:
+
+```sh
+CAMPUS_RUN_EVENT_CLIENT=1 uv run pytest tests/test_event_client.py -s
+```
+
 ## Фото
 
 Общий загрузчик — `core/photos/photo_upload.dart`: `PhotoPicker` (пакет
