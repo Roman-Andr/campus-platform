@@ -25,7 +25,8 @@ void main() {
       final cache = DriftListingsCache(db);
       final legacy = listingJson()
         ..remove('category_id')
-        ..remove('hidden_reason');
+        ..remove('hidden_reason')
+        ..remove('pinned_until');
       await db
           .into(db.listingFeeds)
           .insert(
@@ -41,6 +42,7 @@ void main() {
       ))!.items.single;
       expect(restored.categoryId, isNull);
       expect(restored.hiddenReason, isNull);
+      expect(restored.pinnedUntil, isNull);
       expect(restored.title, 'A desk');
       for (final status in ['draft', 'completed', 'hidden']) {
         await cache.save(

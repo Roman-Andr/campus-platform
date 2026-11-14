@@ -40,6 +40,7 @@ export 'listings/models/page_listing_output.dart';
 export 'listings/models/page_participation_output.dart';
 export 'listings/models/participation_listing.dart';
 export 'listings/models/participation_output.dart';
+export 'listings/models/publication_input.dart';
 export 'listings/models/transition_input.dart';
 export 'listings/models/visibility.dart';
 export 'models/client_platform.dart';

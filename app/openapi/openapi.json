@@ -2783,7 +2783,7 @@
           "Listings"
         ],
         "summary": "Listing Feed",
-        "description": "Newest first. City includes all visible scopes; narrower areas filter them.",
+        "description": "Visible pins first, then chronology; cursors bind filters and snapshot time.\n\nNew records appear on refresh. Pin expiry during scrolling does not move\nrecords between pages; a fresh first page reflects current pin deadlines.\nDormitory filters apply in city and faculty feeds without widening access.",
         "operationId": "listing_feed",
         "security": [
           {
@@ -2798,6 +2798,35 @@
             "schema": {
               "$ref": "#/components/schemas/Visibility",
               "default": "city"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Category Id"
+            }
+          },
+          {
+            "name": "dormitory_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Dormitory Id"
             }
           },
           {
@@ -3993,6 +4022,336 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Page_InteractionOutput_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "401": {
+            "description": "Invalid, expired or revoked authentication (unauthorized).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/listings/publications": {
+      "post": {
+        "tags": [
+          "Listings"
+        ],
+        "summary": "Publish Publication",
+        "description": "Create an informational publication with no interactions or lifetime.",
+        "operationId": "publish_publication",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListingOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "401": {
+            "description": "Invalid, expired or revoked authentication (unauthorized).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/listings/{listing_id}/unpin": {
+      "post": {
+        "tags": [
+          "Listings"
+        ],
+        "summary": "Unpin Publication",
+        "description": "Remove only the pin; the publication remains in the feed.",
+        "operationId": "unpin_publication",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListingOutput"
                 }
               }
             }
@@ -7120,6 +7479,15 @@
             "minimum": 1.0,
             "title": "Version"
           },
+          "pinned_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC.",
+            "title": "Pinned Until"
+          },
           "category_id": {
             "type": [
               "string",
@@ -7226,6 +7594,15 @@
             ],
             "format": "uuid",
             "title": "Category Id"
+          },
+          "pinned_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC.",
+            "title": "Pinned Until"
           },
           "hidden_reason": {
             "type": [
@@ -7718,6 +8095,60 @@
         "title": "ProfileInput",
         "description": "The whole profile; omitted fields are not kept."
       },
+      "PublicationInput": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/Visibility"
+          },
+          "city_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "title": "City Id"
+          },
+          "faculty_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "title": "Faculty Id"
+          },
+          "dormitory_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "title": "Dormitory Id"
+          },
+          "pinned_until": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Pinned Until",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "description",
+          "visibility",
+          "pinned_until"
+        ],
+        "title": "PublicationInput"
+      },
       "RefreshInput": {
         "properties": {
           "refresh_token": {
@@ -8082,6 +8513,7 @@
       "Visibility": {
         "type": "string",
         "enum": [
+          "university",
           "city",
           "faculty",
           "dormitory"

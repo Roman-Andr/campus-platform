@@ -27,6 +27,9 @@ class ListingOutput {
     /// RFC 3339 instant with an explicit offset; returned in UTC.
     required this.expiresAt,
     required this.categoryId,
+
+    /// RFC 3339 instant with an explicit offset; returned in UTC.
+    this.pinnedUntil,
     required this.hiddenReason,
 
     /// Whether the current user bookmarked it.
@@ -70,6 +73,11 @@ class ListingOutput {
           ? null
           : DateTime.parse(json["expires_at"] as String).toUtc(),
       categoryId: json["category_id"] as String?,
+      pinnedUntil: json.containsKey("pinned_until")
+          ? json["pinned_until"] == null
+                ? null
+                : DateTime.parse(json["pinned_until"] as String).toUtc()
+          : null,
       hiddenReason: json["hidden_reason"] as String?,
       favorite: json.containsKey("favorite") ? json["favorite"] as bool : false,
       additionalProperties: {
@@ -115,6 +123,9 @@ class ListingOutput {
 
   final String? categoryId;
 
+  /// RFC 3339 instant with an explicit offset; returned in UTC.
+  final DateTime? pinnedUntil;
+
   final String? hiddenReason;
 
   /// Whether the current user bookmarked it.
@@ -138,6 +149,7 @@ class ListingOutput {
     "created_at",
     "expires_at",
     "category_id",
+    "pinned_until",
     "hidden_reason",
     "favorite",
   };
@@ -164,6 +176,8 @@ class ListingOutput {
     "created_at": this.createdAt.toUtc().toIso8601String(),
     "expires_at": this.expiresAt?.toUtc().toIso8601String(),
     "category_id": this.categoryId,
+    if (this.pinnedUntil != null)
+      "pinned_until": this.pinnedUntil?.toUtc().toIso8601String(),
     "hidden_reason": this.hiddenReason,
     "favorite": this.favorite,
   };
