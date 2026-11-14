@@ -112,9 +112,9 @@
   "listingStudents": "Students",
   "listingCommunity": "Community",
   "listingPublish": "Publish",
-  "listingsMine": "My listings and reservations",
+  "listingsMine": "My listings and participation",
   "listingsOwn": "My listings",
-  "listingsReservations": "My reservations",
+  "listingsReservations": "My participation",
   "listingIncoming": "Incoming requests",
   "reservationPending": "Pending",
   "reservationAccepted": "Accepted",
@@ -252,5 +252,102 @@
   "photoLimit": "You can add up to {limit} photos",
   "photoTooLarge": "{name}: the file is larger than {megabytes} MB",
   "photoWait": "Wait until the photos finish uploading",
-  "photoOf": "Photo {index} of {count}"
+  "photoOf": "Photo {index} of {count}",
+  "listingSaveDraft": "Save draft",
+  "listingSaveChanges": "Save changes",
+  "listingEditDraft": "Edit draft",
+  "listingRepublish": "Publish again",
+  "listingExtend": "Extend listing",
+  "listingsArchive": "Archive",
+  "reservationCancel": "Cancel request or reservation",
+  "reservationRejectedExpired": "The listing expired.",
+  "reservationRejectedClosed": "The author closed the listing.",
+  "reservationRejectedTimeout": "The author did not respond in time.",
+  "reservationRejectedAuthor": "The author rejected the request.",
+  "reservationRejectedOther": "The request was rejected.",
+  "listingHiddenReason": "Hidden: {reason}",
+  "listingRateLimitedFor": "Too many requests. Try again in {seconds} seconds.",
+  "listingVersionConflict": "The listing changed. Reopen it before editing.",
+  "listingUnavailable": "The listing is unavailable. It may have been removed or access has changed.",
+  "@listingRateLimitedFor": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@listingHiddenReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "@listingSaveDraft": {},
+  "@listingSaveChanges": {},
+  "@listingEditDraft": {},
+  "@listingRepublish": {},
+  "@listingExtend": {},
+  "@listingsArchive": {},
+  "@reservationCancel": {},
+  "@reservationRejectedExpired": {},
+  "@reservationRejectedClosed": {},
+  "@reservationRejectedTimeout": {},
+  "@reservationRejectedAuthor": {},
+  "@reservationRejectedOther": {},
+  "@listingVersionConflict": {},
+  "@listingUnavailable": {},
+  "listingTransitionConflict": "This action is unavailable in the current status. Refresh the listing.",
+  "@listingTransitionConflict": {},
+  "listingExtended": "The listing has been extended.",
+  "@listingExtended": {},
+  "mySectionDrafts": "Drafts",
+  "@mySectionDrafts": {
+    "description": "Own listings filter: drafts."
+  },
+  "mySectionActive": "Active",
+  "@mySectionActive": {
+    "description": "Own listings filter: active listings."
+  },
+  "mySectionBusy": "Reserved",
+  "@mySectionBusy": {
+    "description": "Own listings filter: reserved (busy) listings."
+  },
+  "listingKindGiveaway": "Giveaway",
+  "@listingKindGiveaway": {
+    "description": "Listing kind name: giveaway."
+  },
+  "favoritesTitle": "Favorites",
+  "@favoritesTitle": {
+    "description": "Favorites screen title and entry point."
+  },
+  "favoritesEmpty": "No favorites yet",
+  "@favoritesEmpty": {
+    "description": "Favorites screen without bookmarks."
+  },
+  "favoriteAdd": "Add to favorites",
+  "@favoriteAdd": {
+    "description": "Bookmark toggle tooltip when not bookmarked."
+  },
+  "favoriteRemove": "Remove from favorites",
+  "@favoriteRemove": {
+    "description": "Bookmark toggle tooltip when bookmarked."
+  },
+  "favoriteUnavailable": "Listing unavailable",
+  "@favoriteUnavailable": {
+    "description": "A bookmarked listing that can no longer be shown."
+  },
+  "savedCopy": "Offline: showing saved data",
+  "@savedCopy": {
+    "description": "Private lists shown from the device cache while offline."
+  },
+  "participationStage": "Stage: {stage}",
+  "@participationStage": {
+    "description": "Scenario stage of own participation.",
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  }
 }

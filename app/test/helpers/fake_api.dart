@@ -26,11 +26,13 @@ class SentRequest {
   SentRequest(RequestOptions options)
     : method = options.method,
       path = options.path,
+      uri = options.uri,
       headers = Map.of(options.headers),
       data = options.data;
 
   final String method;
   final String path;
+  final Uri uri;
   final Map<String, Object?> headers;
   final Object? data;
 

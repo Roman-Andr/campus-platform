@@ -387,13 +387,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get listingPublish => 'Опубликовать';
 
   @override
-  String get listingsMine => 'Мои объявления и брони';
+  String get listingsMine => 'Мои объявления и участие';
 
   @override
   String get listingsOwn => 'Мои объявления';
 
   @override
-  String get listingsReservations => 'Мои брони';
+  String get listingsReservations => 'Моё участие';
 
   @override
   String get listingIncoming => 'Входящие заявки';
@@ -638,5 +638,101 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String photoOf(int index, int count) {
     return 'Фото $index из $count';
+  }
+
+  @override
+  String get listingSaveDraft => 'Сохранить черновик';
+
+  @override
+  String get listingSaveChanges => 'Сохранить изменения';
+
+  @override
+  String get listingEditDraft => 'Редактировать черновик';
+
+  @override
+  String get listingRepublish => 'Опубликовать снова';
+
+  @override
+  String get listingExtend => 'Продлить объявление';
+
+  @override
+  String get listingsArchive => 'Архив';
+
+  @override
+  String get reservationCancel => 'Отменить заявку или бронь';
+
+  @override
+  String get reservationRejectedExpired => 'Срок объявления истёк.';
+
+  @override
+  String get reservationRejectedClosed => 'Автор закрыл объявление.';
+
+  @override
+  String get reservationRejectedTimeout => 'Автор не ответил вовремя.';
+
+  @override
+  String get reservationRejectedAuthor => 'Автор отклонил заявку.';
+
+  @override
+  String get reservationRejectedOther => 'Заявка отклонена.';
+
+  @override
+  String listingHiddenReason(String reason) {
+    return 'Причина скрытия: $reason';
+  }
+
+  @override
+  String listingRateLimitedFor(int seconds) {
+    return 'Слишком много запросов. Повторите через $seconds с.';
+  }
+
+  @override
+  String get listingVersionConflict =>
+      'Объявление изменилось. Откройте его заново перед правкой.';
+
+  @override
+  String get listingUnavailable =>
+      'Объявление недоступно. Возможно, оно удалено или доступ изменился.';
+
+  @override
+  String get listingTransitionConflict =>
+      'Действие недоступно в текущем статусе. Обновите объявление.';
+
+  @override
+  String get listingExtended => 'Срок объявления продлён.';
+
+  @override
+  String get mySectionDrafts => 'Черновики';
+
+  @override
+  String get mySectionActive => 'Активные';
+
+  @override
+  String get mySectionBusy => 'Занятые';
+
+  @override
+  String get listingKindGiveaway => 'Отдам даром';
+
+  @override
+  String get favoritesTitle => 'Избранное';
+
+  @override
+  String get favoritesEmpty => 'В избранном пока ничего нет';
+
+  @override
+  String get favoriteAdd => 'Добавить в избранное';
+
+  @override
+  String get favoriteRemove => 'Убрать из избранного';
+
+  @override
+  String get favoriteUnavailable => 'Объявление недоступно';
+
+  @override
+  String get savedCopy => 'Нет сети: показаны сохранённые данные';
+
+  @override
+  String participationStage(String stage) {
+    return 'Этап: $stage';
   }
 }

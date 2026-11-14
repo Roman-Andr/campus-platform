@@ -4,6 +4,7 @@ from campus.modules.listings.api import readable, router, user_for
 from campus.modules.listings.models import (
     Audience,
     Category,
+    Favorite,
     Interaction,
     InteractionStatus,
     Item,
@@ -34,6 +35,7 @@ __all__ = [
     "TYPE_POLICIES",
     "Audience",
     "Category",
+    "Favorite",
     "Interaction",
     "InteractionStatus",
     "Item",

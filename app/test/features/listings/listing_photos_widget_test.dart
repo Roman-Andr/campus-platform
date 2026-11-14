@@ -232,4 +232,56 @@ void main() {
     expect(find.text('A desk'), findsOneWidget);
     expect(find.byKey(const Key('listing-gallery')), findsNothing);
   });
+
+  testWidgets('editing a draft shows attached photos and saves the order', (
+    tester,
+  ) async {
+    final photos = PhotoServer();
+    final server =
+        FakeHttpAdapter(
+          photos: {
+            'items': [photoJson('file-9')],
+          },
+        )..route((options) {
+          if (options.path.endsWith('/mine')) {
+            return jsonBody(200, pageJson([listingJson(status: 'draft')]));
+          }
+          if (options.method == 'PATCH') {
+            return jsonBody(200, {
+              ...listingJson(status: 'draft'),
+              'version': 2,
+            });
+          }
+          return photos.handle(options) ??
+              jsonBody(200, listingJson(status: 'draft'));
+        });
+    final container = await tester.pumpCampusApp(
+      InMemorySettingsRepository(),
+      adapter: server,
+      overrides: [
+        photoPickerProvider.overrideWithValue(
+          FakePhotoPicker(files: [photoFile('a.png')], hasCamera: false),
+        ),
+        photoConfigProvider.overrideWithValue(testPhotoConfig),
+      ],
+    );
+    unawaited(container.read(appRouterProvider).push('/my-listings'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('my-section-drafts')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Edit draft'));
+    await tester.pumpAndSettle();
+    // The form opens with the photo already attached on the server.
+    expect(find.text('Photos: 1 of 10'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('photo-gallery')));
+    await tester.pumpAndSettle();
+    expect(find.text('Photos: 2 of 10'), findsOneWidget);
+    await tester.ensureVisible(find.text('Save changes'));
+    await tester.tap(find.text('Save changes'));
+    await tester.pumpAndSettle();
+    expect(server.sent.where((r) => r.method == 'PATCH'), hasLength(1));
+    expect(photos.attached, [
+      ['file-9', 'file-1'],
+    ]);
+  });
 }

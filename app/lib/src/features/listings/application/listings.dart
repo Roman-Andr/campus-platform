@@ -8,6 +8,7 @@ import '../../../core/api/api_client.dart';
 import '../../../core/api/network_status.dart';
 import '../../../core/auth/auth_session.dart';
 import '../data/listings_repository.dart';
+import 'my_listings.dart';
 
 part 'listings.g.dart';
 
@@ -75,14 +76,6 @@ Future<ListingOutput> listing(Ref ref, String id) =>
     ref.watch(campusApiProvider).listings.getListing(listingId: id);
 
 @Riverpod(retry: listingRetry)
-Future<PageListingOutput> ownListings(Ref ref, String? cursor) =>
-    ref.watch(campusApiProvider).listings.myListings(cursor: cursor);
-
-@Riverpod(retry: listingRetry)
-Future<PageInteractionOutput> ownReservations(Ref ref, String? cursor) =>
-    ref.watch(campusApiProvider).listings.myReservations(cursor: cursor);
-
-@Riverpod(retry: listingRetry)
 Future<PageInteractionOutput> incoming(Ref ref, String id, String? cursor) =>
     ref
         .watch(campusApiProvider)
@@ -111,12 +104,55 @@ Future<List<PhotoOutput>> listingPhotos(Ref ref, String id) async {
   return photos;
 }
 
+/// A participation row as the plain interaction shared with other views.
+InteractionOutput asInteraction(ParticipationOutput item) =>
+    InteractionOutput.fromJson(item.toJson());
+
 /// Refresh every affected view after a successful mutation.
 void refreshListings(WidgetRef ref) {
   ref.invalidate(listingFeedProvider);
   ref.invalidate(listingProvider);
-  ref.invalidate(ownListingsProvider);
-  ref.invalidate(ownReservationsProvider);
+  ref.invalidate(myListingsProvider);
+  ref.invalidate(myParticipationProvider);
+  ref.invalidate(favoritesProvider);
   ref.invalidate(incomingProvider);
   ref.invalidate(listingPhotosProvider);
+  ref.invalidate(interactionRejectionProvider);
+  ref.invalidate(listingParticipationProvider);
 }
+
+/// Events are ascending and paginated. Keep the latest rejection only.
+final interactionRejectionProvider = FutureProvider.autoDispose
+    .family<String?, (String, String)>((ref, ids) async {
+      final api = ref.watch(campusApiProvider).listings;
+      String? cursor;
+      String? reason;
+      do {
+        final page = await api.interactionEvents(
+          listingId: ids.$1,
+          interactionId: ids.$2,
+          cursor: cursor,
+        );
+        for (final event in page.items) {
+          if (event.status == 'rejected') reason = event.reason;
+        }
+        cursor = page.nextPage;
+      } while (cursor != null);
+      return reason;
+    }, retry: listingRetry);
+
+/// The API exposes participation by account; collect matching rows across pages.
+final listingParticipationProvider = FutureProvider.autoDispose
+    .family<List<InteractionOutput>, String>((ref, id) async {
+      final api = ref.watch(campusApiProvider).listings;
+      final items = <InteractionOutput>[];
+      String? cursor;
+      do {
+        final page = await api.myReservations(cursor: cursor);
+        items.addAll(
+          page.items.where((item) => item.listingId == id).map(asInteraction),
+        );
+        cursor = page.nextPage;
+      } while (cursor != null);
+      return items;
+    }, retry: listingRetry);

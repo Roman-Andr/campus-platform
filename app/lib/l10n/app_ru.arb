@@ -460,9 +460,9 @@
   "listingStudents": "Студенты",
   "listingCommunity": "Все участники",
   "listingPublish": "Опубликовать",
-  "listingsMine": "Мои объявления и брони",
+  "listingsMine": "Мои объявления и участие",
   "listingsOwn": "Мои объявления",
-  "listingsReservations": "Мои брони",
+  "listingsReservations": "Моё участие",
   "listingIncoming": "Входящие заявки",
   "reservationPending": "Ожидает решения",
   "reservationAccepted": "Принята",
@@ -857,6 +857,103 @@
       },
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "listingSaveDraft": "Сохранить черновик",
+  "listingSaveChanges": "Сохранить изменения",
+  "listingEditDraft": "Редактировать черновик",
+  "listingRepublish": "Опубликовать снова",
+  "listingExtend": "Продлить объявление",
+  "listingsArchive": "Архив",
+  "reservationCancel": "Отменить заявку или бронь",
+  "reservationRejectedExpired": "Срок объявления истёк.",
+  "reservationRejectedClosed": "Автор закрыл объявление.",
+  "reservationRejectedTimeout": "Автор не ответил вовремя.",
+  "reservationRejectedAuthor": "Автор отклонил заявку.",
+  "reservationRejectedOther": "Заявка отклонена.",
+  "listingHiddenReason": "Причина скрытия: {reason}",
+  "listingRateLimitedFor": "Слишком много запросов. Повторите через {seconds} с.",
+  "listingVersionConflict": "Объявление изменилось. Откройте его заново перед правкой.",
+  "listingUnavailable": "Объявление недоступно. Возможно, оно удалено или доступ изменился.",
+  "@listingRateLimitedFor": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@listingHiddenReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "@listingSaveDraft": {},
+  "@listingSaveChanges": {},
+  "@listingEditDraft": {},
+  "@listingRepublish": {},
+  "@listingExtend": {},
+  "@listingsArchive": {},
+  "@reservationCancel": {},
+  "@reservationRejectedExpired": {},
+  "@reservationRejectedClosed": {},
+  "@reservationRejectedTimeout": {},
+  "@reservationRejectedAuthor": {},
+  "@reservationRejectedOther": {},
+  "@listingVersionConflict": {},
+  "@listingUnavailable": {},
+  "listingTransitionConflict": "Действие недоступно в текущем статусе. Обновите объявление.",
+  "@listingTransitionConflict": {},
+  "listingExtended": "Срок объявления продлён.",
+  "@listingExtended": {},
+  "mySectionDrafts": "Черновики",
+  "@mySectionDrafts": {
+    "description": "Own listings filter: drafts."
+  },
+  "mySectionActive": "Активные",
+  "@mySectionActive": {
+    "description": "Own listings filter: active listings."
+  },
+  "mySectionBusy": "Занятые",
+  "@mySectionBusy": {
+    "description": "Own listings filter: reserved (busy) listings."
+  },
+  "listingKindGiveaway": "Отдам даром",
+  "@listingKindGiveaway": {
+    "description": "Listing kind name: giveaway."
+  },
+  "favoritesTitle": "Избранное",
+  "@favoritesTitle": {
+    "description": "Favorites screen title and entry point."
+  },
+  "favoritesEmpty": "В избранном пока ничего нет",
+  "@favoritesEmpty": {
+    "description": "Favorites screen without bookmarks."
+  },
+  "favoriteAdd": "Добавить в избранное",
+  "@favoriteAdd": {
+    "description": "Bookmark toggle tooltip when not bookmarked."
+  },
+  "favoriteRemove": "Убрать из избранного",
+  "@favoriteRemove": {
+    "description": "Bookmark toggle tooltip when bookmarked."
+  },
+  "favoriteUnavailable": "Объявление недоступно",
+  "@favoriteUnavailable": {
+    "description": "A bookmarked listing that can no longer be shown."
+  },
+  "savedCopy": "Нет сети: показаны сохранённые данные",
+  "@savedCopy": {
+    "description": "Private lists shown from the device cache while offline."
+  },
+  "participationStage": "Этап: {stage}",
+  "@participationStage": {
+    "description": "Scenario stage of own participation.",
+    "placeholders": {
+      "stage": {
+        "type": "String"
       }
     }
   }

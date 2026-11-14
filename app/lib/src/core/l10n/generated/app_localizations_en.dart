@@ -389,13 +389,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get listingPublish => 'Publish';
 
   @override
-  String get listingsMine => 'My listings and reservations';
+  String get listingsMine => 'My listings and participation';
 
   @override
   String get listingsOwn => 'My listings';
 
   @override
-  String get listingsReservations => 'My reservations';
+  String get listingsReservations => 'My participation';
 
   @override
   String get listingIncoming => 'Incoming requests';
@@ -640,5 +640,102 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String photoOf(int index, int count) {
     return 'Photo $index of $count';
+  }
+
+  @override
+  String get listingSaveDraft => 'Save draft';
+
+  @override
+  String get listingSaveChanges => 'Save changes';
+
+  @override
+  String get listingEditDraft => 'Edit draft';
+
+  @override
+  String get listingRepublish => 'Publish again';
+
+  @override
+  String get listingExtend => 'Extend listing';
+
+  @override
+  String get listingsArchive => 'Archive';
+
+  @override
+  String get reservationCancel => 'Cancel request or reservation';
+
+  @override
+  String get reservationRejectedExpired => 'The listing expired.';
+
+  @override
+  String get reservationRejectedClosed => 'The author closed the listing.';
+
+  @override
+  String get reservationRejectedTimeout =>
+      'The author did not respond in time.';
+
+  @override
+  String get reservationRejectedAuthor => 'The author rejected the request.';
+
+  @override
+  String get reservationRejectedOther => 'The request was rejected.';
+
+  @override
+  String listingHiddenReason(String reason) {
+    return 'Hidden: $reason';
+  }
+
+  @override
+  String listingRateLimitedFor(int seconds) {
+    return 'Too many requests. Try again in $seconds seconds.';
+  }
+
+  @override
+  String get listingVersionConflict =>
+      'The listing changed. Reopen it before editing.';
+
+  @override
+  String get listingUnavailable =>
+      'The listing is unavailable. It may have been removed or access has changed.';
+
+  @override
+  String get listingTransitionConflict =>
+      'This action is unavailable in the current status. Refresh the listing.';
+
+  @override
+  String get listingExtended => 'The listing has been extended.';
+
+  @override
+  String get mySectionDrafts => 'Drafts';
+
+  @override
+  String get mySectionActive => 'Active';
+
+  @override
+  String get mySectionBusy => 'Reserved';
+
+  @override
+  String get listingKindGiveaway => 'Giveaway';
+
+  @override
+  String get favoritesTitle => 'Favorites';
+
+  @override
+  String get favoritesEmpty => 'No favorites yet';
+
+  @override
+  String get favoriteAdd => 'Add to favorites';
+
+  @override
+  String get favoriteRemove => 'Remove from favorites';
+
+  @override
+  String get favoriteUnavailable => 'Listing unavailable';
+
+  @override
+  String get savedCopy => 'Offline: showing saved data';
+
+  @override
+  String participationStage(String stage) {
+    return 'Stage: $stage';
   }
 }
