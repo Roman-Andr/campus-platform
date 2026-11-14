@@ -10,7 +10,7 @@ from fastapi.routing import APIRoute
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from campus import __version__
-from campus.api import health
+from campus.api import admin, health
 from campus.api.access_log import AccessLogMiddleware
 from campus.core.config import Settings, get_settings
 from campus.core.db import create_engine, create_session_factory
@@ -77,6 +77,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     install_problem_handlers(app)
     _install_openapi(app)
+    app.include_router(admin.router, prefix=API_PREFIX)
     app.include_router(health.router, prefix=API_PREFIX)
     app.include_router(university.router, prefix=API_PREFIX)
     app.include_router(identity.router, prefix=API_PREFIX)

@@ -155,7 +155,7 @@ root_package = "campus"
 name = "Processes depend on domain modules, modules on the shared kernel"
 type = "layers"
 layers = [
-    "campus.api | campus.worker | campus.scheduler | campus.migrations | campus.seed",
+    "campus.api | campus.worker | campus.scheduler | campus.migrations | campus.seed | campus.admin",
     "campus.modules",
     "campus.core",
 ]
@@ -178,6 +178,7 @@ source_modules = [
     "campus.scheduler",
     "campus.migrations",
     "campus.seed",
+    "campus.admin",
 ]
 forbidden_modules = ["campus.modules.*.*"]
 allow_indirect_imports = true

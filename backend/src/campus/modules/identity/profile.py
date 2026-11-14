@@ -31,6 +31,7 @@ from campus.core.web import (
 from campus.core.web.auth import CurrentUser
 from campus.core.web.problems import VALIDATION_FAILED
 from campus.modules.identity.models import User
+from campus.modules.identity.roles import RoleOutput, user_roles
 from campus.modules.university import AccountType, City, Dormitory, Faculty
 
 PROFILE_INCOMPLETE = ProblemType(
@@ -56,6 +57,7 @@ class UserOutput(BaseModel):
     """The user's account and profile."""
 
     model_config = ConfigDict(from_attributes=True)
+    roles: tuple[RoleOutput, ...]
     id: UUID
     email: str
     first_name: str
@@ -144,10 +146,23 @@ async def _user(session: DbSession, principal: Principal) -> User:
     return user
 
 
+async def user_output(session: DbSession, user: User) -> UserOutput:
+    return UserOutput.model_validate(
+        {
+            **{
+                name: getattr(user, name)
+                for name in UserOutput.model_fields
+                if name != "roles"
+            },
+            "roles": await user_roles(session, user.id),
+        }
+    )
+
+
 @router.get("")
 async def get_me(session: DbSession, principal: CurrentUser) -> UserOutput:
     """The signed-in user's account and profile."""
-    return UserOutput.model_validate(await _user(session, principal))
+    return await user_output(session, await _user(session, principal))
 
 
 @router.put("/profile", responses={422: {"model": Problem}})
@@ -166,7 +181,7 @@ async def update_profile(
     user.faculty_id = data.faculty_id
     user.course = data.course
     await session.flush()
-    return UserOutput.model_validate(user)
+    return await user_output(session, user)
 
 
 async def profiled_user(session: DbSession, principal: CurrentUser) -> Principal:

@@ -58,6 +58,17 @@ API и воркер незапущенными. Воркер и планиров
 запуска, повторная загрузка безопасна:
 `docker compose run --rm migrate campus-seed`.
 
+Затем создайте первого администратора (почта из разрешённого домена):
+
+```sh
+docker compose run --rm migrate python -m campus.admin create-first-admin \
+  --email admin@hse.ru --first-name Иван --last-name Иванов
+```
+
+Существующий аккаунт используется без изменения имени и профиля.
+Если администратор уже есть, команда завершается с кодом 1 без изменений.
+Подробности прав и локального запуска — в [backend/README.md](../backend/README.md#первый-администратор).
+
 Маршруты Caddy:
 
 - `https://$CAMPUS_DOMAIN/api/*` → API;

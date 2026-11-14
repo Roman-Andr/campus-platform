@@ -178,6 +178,7 @@ const userJson = <String, Object?>{
   'first_name': 'Иван',
   'last_name': 'Иванов',
   'account_type': 'student',
+  'roles': <Object?>[],
 };
 
 /// Profile fields of a user who has not filled in the profile.

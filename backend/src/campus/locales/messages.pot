@@ -217,3 +217,6 @@ msgstr ""
 msgid "Your sign-in code: {code}. It expires in {minutes} minutes."
 msgstr ""
 
+
+msgid "Forbidden"
+msgstr ""

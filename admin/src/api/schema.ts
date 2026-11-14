@@ -667,6 +667,7 @@ export interface components {
         | 'client_version_invalid'
         | 'client_version_missing'
         | 'email_domain_not_allowed'
+        | 'forbidden'
         | 'http_error'
         | 'idempotency_key_invalid'
         | 'idempotency_key_missing'
@@ -742,6 +743,19 @@ export interface components {
        */
       device_id: string;
     };
+    /**
+     * Role
+     * @enum {string}
+     */
+    Role: 'headman' | 'moderator' | 'administrator';
+    /** RoleOutput */
+    RoleOutput: {
+      role: components['schemas']['Role'];
+      /** Dormitory Id */
+      dormitory_id: string | null;
+      /** Faculty Id */
+      faculty_id: string | null;
+    };
     /** SignInInput */
     SignInInput: {
       /**
@@ -787,6 +801,8 @@ export interface components {
      * @description The user's account and profile.
      */
     UserOutput: {
+      /** Roles */
+      roles: components['schemas']['RoleOutput'][];
       /**
        * Id
        * Format: uuid

@@ -26,7 +26,7 @@ from campus.core.web import (
 )
 from campus.core.web.auth import CurrentUser, digest, rate_limit, revoke_access, secret
 from campus.modules.identity.models import RefreshToken, Session, SignInCode, User
-from campus.modules.identity.profile import UserOutput
+from campus.modules.identity.profile import UserOutput, user_output
 from campus.modules.university import EmailDomain
 
 DOMAIN_NOT_ALLOWED = ProblemType(
@@ -201,7 +201,7 @@ async def issue_tokens(
         access_token=access,
         refresh_token=refresh,
         expires_in=int(settings.access_token_ttl.total_seconds()),
-        user=UserOutput.model_validate(user),
+        user=await user_output(session, user),
     )
 
 
