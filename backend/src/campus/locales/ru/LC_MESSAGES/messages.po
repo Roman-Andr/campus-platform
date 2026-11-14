@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-14 14:35+0300\n"
+"POT-Creation-Date: 2026-11-14 15:00+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -23,17 +23,37 @@ msgstr "Требуется вход в аккаунт"
 msgid "Bad request"
 msgstr "Некорректный запрос"
 
+msgid "Campus account security notification"
+msgstr "Уведомление о безопасности аккаунта Кампус"
+
+msgid "Cannot remove the last corporate address"
+msgstr "Нельзя удалить последний корпоративный адрес"
+
 msgid "Choose a listing category."
 msgstr "Выберите категорию объявления."
 
 msgid "Client version missing"
 msgstr "Не указана версия клиента"
 
+#, python-brace-format
+msgid ""
+"Confirm your e-mail address with code: {code}. It expires in {minutes} "
+"minutes."
+msgstr ""
+"Подтвердите адрес электронной почты кодом: {code}. Он действует {minutes}"
+" минут."
+
 msgid "Current documents must be accepted"
 msgstr "Необходимо принять актуальные документы"
 
-msgid "E-mail domain not allowed"
-msgstr "Домен почты не разрешён"
+msgid "E-mail address already in use"
+msgstr "Адрес электронной почты уже используется"
+
+msgid "E-mail address not found"
+msgstr "Адрес электронной почты не найден"
+
+msgid "E-mail domain does not match address kind"
+msgstr "Домен электронной почты не соответствует виду адреса"
 
 msgid "Employees have no course."
 msgstr "У сотрудников нет курса."
@@ -252,9 +272,23 @@ msgstr "Требуется обновление"
 msgid "Use RFC 3339 with an explicit UTC offset."
 msgstr "Используйте RFC 3339 с явно указанным смещением UTC."
 
+msgid "Your Campus e-mail confirmation code"
+msgstr "Ваш код подтверждения почты в Кампус"
+
 msgid "Your Campus sign-in code"
 msgstr "Ваш код входа в Кампус"
+
+msgid ""
+"Your account e-mail addresses have changed. If this was not you, contact "
+"support."
+msgstr ""
+"Адреса электронной почты вашего аккаунта изменены. Если это сделали не "
+"вы, обратитесь в поддержку."
 
 #, python-brace-format
 msgid "Your sign-in code: {code}. It expires in {minutes} minutes."
 msgstr "Ваш код входа: {code}. Он действует {minutes} минут."
+
+#~ msgid "E-mail domain not allowed"
+#~ msgstr "Домен почты не разрешён"
+

@@ -4,7 +4,8 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from campus.modules.identity.models import User
+from campus.core import clock
+from campus.modules.identity.models import User, UserEmail
 from campus.modules.identity.roles import Role, RoleAssignment
 from campus.modules.university import EmailDomain
 
@@ -47,7 +48,11 @@ async def create_first_admin(session: AsyncSession, data: FirstAdminInput) -> Us
     )
     if domain is None:
         raise ValueError("E-mail domain is not allowed.")
-    user = await session.scalar(select(User).where(User.email == data.email))
+    user = await session.scalar(
+        select(User)
+        .join(UserEmail, UserEmail.user_id == User.id)
+        .where(UserEmail.email == data.email)
+    )
     if user is None:
         user = User(
             email=data.email,
@@ -57,6 +62,14 @@ async def create_first_admin(session: AsyncSession, data: FirstAdminInput) -> Us
         )
         session.add(user)
         await session.flush()
+        session.add(
+            UserEmail(
+                user_id=user.id,
+                email=data.email,
+                kind="corporate",
+                verified_at=clock.now(),
+            )
+        )
     session.add(RoleAssignment(user_id=user.id, role=Role.ADMINISTRATOR))
     await session.flush()
     return user
