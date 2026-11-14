@@ -2347,6 +2347,282 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Ещё'**
   String get moreActions;
+
+  /// Название вида объявления: навык.
+  ///
+  /// In ru, this message translates to:
+  /// **'Навык'**
+  String get listingKindSkill;
+
+  /// Поле направления объявления о навыке.
+  ///
+  /// In ru, this message translates to:
+  /// **'Направление'**
+  String get skillDirection;
+
+  /// Заголовок формы создания объявления о навыке.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новое объявление о навыке'**
+  String get skillCreateTitle;
+
+  /// Автор предлагает научить навыку.
+  ///
+  /// In ru, this message translates to:
+  /// **'Могу научить'**
+  String get skillDirectionTeach;
+
+  /// Автор ищет того, кто научит навыку.
+  ///
+  /// In ru, this message translates to:
+  /// **'Хочу научиться'**
+  String get skillDirectionLearn;
+
+  /// Направление навыка не выбрано.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите, чему вы можете научить или хотите научиться.'**
+  String get skillDirectionRequired;
+
+  /// Объявление о навыке успешно создано.
+  ///
+  /// In ru, this message translates to:
+  /// **'Объявление о навыке опубликовано.'**
+  String get skillPublished;
+
+  /// Заголовок списка вариантов времени занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Варианты времени'**
+  String get lessonOptionsTitle;
+
+  /// Участник предлагает занятие с вариантами времени.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложить занятие'**
+  String get lessonPropose;
+
+  /// Заголовок формы предложения занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Время занятия'**
+  String get lessonProposeTitle;
+
+  /// Создаёт следующее занятие с тем же участником.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ещё занятие'**
+  String get lessonRepeat;
+
+  /// Заголовок формы повторного занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ещё занятие с {name}'**
+  String lessonRepeatTitle(String name);
+
+  /// Вторая сторона повторного занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'С кем: {name}'**
+  String lessonCounterpart(String name);
+
+  /// Подсказка о числе вариантов времени.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите от {min} до {max} вариантов времени.'**
+  String lessonOptionsHint(int min, int max);
+
+  /// Номер варианта времени занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вариант {number}'**
+  String lessonOptionNumber(int number);
+
+  /// Добавляет ещё один вариант времени.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить вариант времени'**
+  String get lessonAddOption;
+
+  /// Удаляет вариант времени из формы.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить вариант'**
+  String get lessonRemoveOption;
+
+  /// Вариантов времени меньше допустимого.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавьте хотя бы {min} варианта времени.'**
+  String lessonOptionsTooFew(int min);
+
+  /// Достигнут предел вариантов времени.
+  ///
+  /// In ru, this message translates to:
+  /// **'Можно добавить не больше {max} вариантов времени.'**
+  String lessonOptionsTooMany(int max);
+
+  /// Сервер отклонил число или значения вариантов времени.
+  ///
+  /// In ru, this message translates to:
+  /// **'У занятия должно быть от {min} до {max} вариантов времени в будущем.'**
+  String lessonOptionsInvalid(int min, int max);
+
+  /// Занятие уже обработано, вариант времени недоступен.
+  ///
+  /// In ru, this message translates to:
+  /// **'На занятие уже ответили. Обновите объявление.'**
+  String get lessonConflict;
+
+  /// Нет прав на действие с занятием.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отвечать на занятие могут только автор и участник.'**
+  String get lessonForbidden;
+
+  /// Занятие проходит онлайн.
+  ///
+  /// In ru, this message translates to:
+  /// **'Онлайн'**
+  String get lessonOnline;
+
+  /// Занятие проходит очно.
+  ///
+  /// In ru, this message translates to:
+  /// **'Очно'**
+  String get lessonOffline;
+
+  /// Переключатель онлайн-формата занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Онлайн-встреча'**
+  String get lessonOnlineSwitch;
+
+  /// Поле места очного занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Место занятия'**
+  String get lessonPlaceLabel;
+
+  /// Вариант времени ожидает ответа.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ждёт ответа'**
+  String get lessonOptionProposed;
+
+  /// Выбранный вариант времени занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выбран'**
+  String get lessonOptionSelected;
+
+  /// Отклонённый вариант времени занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отклонён'**
+  String get lessonOptionDeclined;
+
+  /// Вариант времени предложен текущим пользователем.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ваш вариант'**
+  String get lessonOptionByYou;
+
+  /// Вариант времени предложен участником.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вариант участника'**
+  String get lessonOptionByParticipant;
+
+  /// Вариант времени предложен автором объявления.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вариант автора'**
+  String get lessonOptionByAuthor;
+
+  /// Выбирает вариант времени занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выбрать это время'**
+  String get lessonAccept;
+
+  /// Автор предлагает встречное время занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложить другое время'**
+  String get lessonCounter;
+
+  /// Заголовок формы встречного предложения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Другое время'**
+  String get lessonCounterTitle;
+
+  /// Отправляет варианты времени занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отправить'**
+  String get lessonSend;
+
+  /// Заявка на занятие отправлена.
+  ///
+  /// In ru, this message translates to:
+  /// **'Занятие предложено.'**
+  String get lessonSent;
+
+  /// Встречное время занятия отправлено.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложено другое время.'**
+  String get lessonCounterSent;
+
+  /// Вариант времени выбран и встреча назначена.
+  ///
+  /// In ru, this message translates to:
+  /// **'Занятие назначено.'**
+  String get lessonAccepted;
+
+  /// Следующее занятие создано.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ещё одно занятие предложено.'**
+  String get lessonRepeated;
+
+  /// У занятия нет вариантов времени.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вариантов времени нет.'**
+  String get lessonNoOptions;
+
+  /// Участник ждёт ответа на предложенные варианты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ждём ответа автора'**
+  String get lessonAwaitingAnswer;
+
+  /// Автор должен ответить на варианты участника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ждёт вашего ответа'**
+  String get lessonAwaitingYourAnswer;
+
+  /// Автор ждёт ответа участника на свои варианты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ждём ответа участника'**
+  String get lessonAwaitingParticipant;
+
+  /// Срок ответа автора на заявку.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ответить нужно до {time}'**
+  String lessonResponseDue(String time);
+
+  /// Встреча проходит онлайн, без места.
+  ///
+  /// In ru, this message translates to:
+  /// **'Онлайн-встреча'**
+  String get meetingOnline;
 }
 
 class _AppLocalizationsDelegate

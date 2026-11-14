@@ -16,6 +16,7 @@ import '../../features/listings/presentation/meeting_screen.dart';
 import '../../features/listings/presentation/my_screens.dart';
 import '../../features/listings/presentation/place_offer_screen.dart';
 import '../../features/listings/presentation/publication_screen.dart';
+import '../../features/listings/presentation/skill_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/profile/application/my_profile.dart';
 import '../../features/profile/presentation/profile_form_screen.dart';
@@ -82,6 +83,10 @@ GoRouter appRouter(Ref ref) {
         path: '/event/:id/edit',
         builder: (context, state) =>
             EventEditScreen(id: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/skills/new',
+        builder: (context, state) => const CreateSkillScreen(),
       ),
       GoRoute(
         path: '/my-listings',

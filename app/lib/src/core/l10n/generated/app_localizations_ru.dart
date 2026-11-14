@@ -1283,4 +1283,160 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get moreActions => 'Ещё';
+
+  @override
+  String get listingKindSkill => 'Навык';
+
+  @override
+  String get skillDirection => 'Направление';
+
+  @override
+  String get skillCreateTitle => 'Новое объявление о навыке';
+
+  @override
+  String get skillDirectionTeach => 'Могу научить';
+
+  @override
+  String get skillDirectionLearn => 'Хочу научиться';
+
+  @override
+  String get skillDirectionRequired =>
+      'Выберите, чему вы можете научить или хотите научиться.';
+
+  @override
+  String get skillPublished => 'Объявление о навыке опубликовано.';
+
+  @override
+  String get lessonOptionsTitle => 'Варианты времени';
+
+  @override
+  String get lessonPropose => 'Предложить занятие';
+
+  @override
+  String get lessonProposeTitle => 'Время занятия';
+
+  @override
+  String get lessonRepeat => 'Ещё занятие';
+
+  @override
+  String lessonRepeatTitle(String name) {
+    return 'Ещё занятие с $name';
+  }
+
+  @override
+  String lessonCounterpart(String name) {
+    return 'С кем: $name';
+  }
+
+  @override
+  String lessonOptionsHint(int min, int max) {
+    return 'Выберите от $min до $max вариантов времени.';
+  }
+
+  @override
+  String lessonOptionNumber(int number) {
+    return 'Вариант $number';
+  }
+
+  @override
+  String get lessonAddOption => 'Добавить вариант времени';
+
+  @override
+  String get lessonRemoveOption => 'Удалить вариант';
+
+  @override
+  String lessonOptionsTooFew(int min) {
+    return 'Добавьте хотя бы $min варианта времени.';
+  }
+
+  @override
+  String lessonOptionsTooMany(int max) {
+    return 'Можно добавить не больше $max вариантов времени.';
+  }
+
+  @override
+  String lessonOptionsInvalid(int min, int max) {
+    return 'У занятия должно быть от $min до $max вариантов времени в будущем.';
+  }
+
+  @override
+  String get lessonConflict => 'На занятие уже ответили. Обновите объявление.';
+
+  @override
+  String get lessonForbidden =>
+      'Отвечать на занятие могут только автор и участник.';
+
+  @override
+  String get lessonOnline => 'Онлайн';
+
+  @override
+  String get lessonOffline => 'Очно';
+
+  @override
+  String get lessonOnlineSwitch => 'Онлайн-встреча';
+
+  @override
+  String get lessonPlaceLabel => 'Место занятия';
+
+  @override
+  String get lessonOptionProposed => 'Ждёт ответа';
+
+  @override
+  String get lessonOptionSelected => 'Выбран';
+
+  @override
+  String get lessonOptionDeclined => 'Отклонён';
+
+  @override
+  String get lessonOptionByYou => 'Ваш вариант';
+
+  @override
+  String get lessonOptionByParticipant => 'Вариант участника';
+
+  @override
+  String get lessonOptionByAuthor => 'Вариант автора';
+
+  @override
+  String get lessonAccept => 'Выбрать это время';
+
+  @override
+  String get lessonCounter => 'Предложить другое время';
+
+  @override
+  String get lessonCounterTitle => 'Другое время';
+
+  @override
+  String get lessonSend => 'Отправить';
+
+  @override
+  String get lessonSent => 'Занятие предложено.';
+
+  @override
+  String get lessonCounterSent => 'Предложено другое время.';
+
+  @override
+  String get lessonAccepted => 'Занятие назначено.';
+
+  @override
+  String get lessonRepeated => 'Ещё одно занятие предложено.';
+
+  @override
+  String get lessonNoOptions => 'Вариантов времени нет.';
+
+  @override
+  String get lessonAwaitingAnswer => 'Ждём ответа автора';
+
+  @override
+  String get lessonAwaitingYourAnswer => 'Ждёт вашего ответа';
+
+  @override
+  String get lessonAwaitingParticipant => 'Ждём ответа участника';
+
+  @override
+  String lessonResponseDue(String time) {
+    return 'Ответить нужно до $time';
+  }
+
+  @override
+  String get meetingOnline => 'Онлайн-встреча';
 }

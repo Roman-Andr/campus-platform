@@ -1289,4 +1289,161 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moreActions => 'More';
+
+  @override
+  String get listingKindSkill => 'Skill';
+
+  @override
+  String get skillDirection => 'Direction';
+
+  @override
+  String get skillCreateTitle => 'New skill listing';
+
+  @override
+  String get skillDirectionTeach => 'I can teach';
+
+  @override
+  String get skillDirectionLearn => 'I want to learn';
+
+  @override
+  String get skillDirectionRequired =>
+      'Choose what you can teach or want to learn.';
+
+  @override
+  String get skillPublished => 'The skill listing has been published.';
+
+  @override
+  String get lessonOptionsTitle => 'Time options';
+
+  @override
+  String get lessonPropose => 'Offer a lesson';
+
+  @override
+  String get lessonProposeTitle => 'Lesson time';
+
+  @override
+  String get lessonRepeat => 'Another lesson';
+
+  @override
+  String lessonRepeatTitle(String name) {
+    return 'Another lesson with $name';
+  }
+
+  @override
+  String lessonCounterpart(String name) {
+    return 'With: $name';
+  }
+
+  @override
+  String lessonOptionsHint(int min, int max) {
+    return 'Choose $min to $max time options.';
+  }
+
+  @override
+  String lessonOptionNumber(int number) {
+    return 'Option $number';
+  }
+
+  @override
+  String get lessonAddOption => 'Add a time option';
+
+  @override
+  String get lessonRemoveOption => 'Remove option';
+
+  @override
+  String lessonOptionsTooFew(int min) {
+    return 'Add at least $min time options.';
+  }
+
+  @override
+  String lessonOptionsTooMany(int max) {
+    return 'A lesson can have at most $max time options.';
+  }
+
+  @override
+  String lessonOptionsInvalid(int min, int max) {
+    return 'A lesson needs $min to $max time options in the future.';
+  }
+
+  @override
+  String get lessonConflict =>
+      'The lesson has already been answered. Refresh the listing.';
+
+  @override
+  String get lessonForbidden =>
+      'Only the author and the participant can answer the lesson.';
+
+  @override
+  String get lessonOnline => 'Online';
+
+  @override
+  String get lessonOffline => 'In person';
+
+  @override
+  String get lessonOnlineSwitch => 'Online meeting';
+
+  @override
+  String get lessonPlaceLabel => 'Lesson place';
+
+  @override
+  String get lessonOptionProposed => 'Awaiting response';
+
+  @override
+  String get lessonOptionSelected => 'Selected';
+
+  @override
+  String get lessonOptionDeclined => 'Declined';
+
+  @override
+  String get lessonOptionByYou => 'Your option';
+
+  @override
+  String get lessonOptionByParticipant => 'Participant\'s option';
+
+  @override
+  String get lessonOptionByAuthor => 'Author\'s option';
+
+  @override
+  String get lessonAccept => 'Choose this time';
+
+  @override
+  String get lessonCounter => 'Offer another time';
+
+  @override
+  String get lessonCounterTitle => 'Another time';
+
+  @override
+  String get lessonSend => 'Send';
+
+  @override
+  String get lessonSent => 'Lesson offered.';
+
+  @override
+  String get lessonCounterSent => 'Another time offered.';
+
+  @override
+  String get lessonAccepted => 'Lesson scheduled.';
+
+  @override
+  String get lessonRepeated => 'Another lesson offered.';
+
+  @override
+  String get lessonNoOptions => 'There are no time options.';
+
+  @override
+  String get lessonAwaitingAnswer => 'Waiting for the author';
+
+  @override
+  String get lessonAwaitingYourAnswer => 'Waiting for your response';
+
+  @override
+  String get lessonAwaitingParticipant => 'Waiting for the participant';
+
+  @override
+  String lessonResponseDue(String time) {
+    return 'Answer by $time';
+  }
+
+  @override
+  String get meetingOnline => 'Online meeting';
 }

@@ -60,6 +60,7 @@ class MeetingSummary extends ConsumerWidget {
     final scheduledAt = meeting?.scheduledAt;
     final proposedAt = meeting?.proposedAt;
     final location = meeting?.location;
+    final online = meeting?.online ?? false;
     final proposedLocation = meeting?.proposedLocation;
     final cityLabel = city ?? timezone;
     return Card(
@@ -87,7 +88,10 @@ class MeetingSummary extends ConsumerWidget {
             if (scheduledAt != null) ...[
               Text(l.meetingCurrent),
               Text(_meetingTime(l, scheduledAt, timezone, cityLabel)),
-              if (location != null) Text(l.meetingPlace(location)),
+              if (location != null)
+                Text(l.meetingPlace(location))
+              else if (online)
+                Text(l.meetingOnline),
             ] else if (!proposal)
               Text(l.meetingNotScheduled),
             if (proposal) ...[
@@ -97,7 +101,9 @@ class MeetingSummary extends ConsumerWidget {
               ),
               Text(_meetingTime(l, proposedAt!, timezone, cityLabel)),
               if (proposedLocation != null)
-                Text(l.meetingPlace(proposedLocation)),
+                Text(l.meetingPlace(proposedLocation))
+              else if (online)
+                Text(l.meetingOnline),
               Text(
                 mine ? l.meetingAwaitingAnswer : l.meetingAwaitingYourAnswer,
                 key: Key('meeting-awaiting-${item.id}'),
