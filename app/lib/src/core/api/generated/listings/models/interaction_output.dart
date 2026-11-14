@@ -10,6 +10,8 @@ class InteractionOutput {
     required this.participantId,
     required this.status,
     required this.stage,
+
+    /// RFC 3339 instant with an explicit offset; returned in UTC.
     required this.responseDueAt,
     this.additionalProperties = const {},
   });
@@ -50,6 +52,7 @@ class InteractionOutput {
 
   final String? stage;
 
+  /// RFC 3339 instant with an explicit offset; returned in UTC.
   final DateTime? responseDueAt;
 
   static const _knownKeys = <String>{

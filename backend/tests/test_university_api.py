@@ -101,6 +101,8 @@ async def test_places_are_filtered_by_city(api: httpx2.AsyncClient, path: str) -
     for code, places in by_city.items():
         assert places
         assert {place["city_id"] for place in places} == {cities[code]}
+        expected_zone = "Asia/Yekaterinburg" if code == "perm" else "Europe/Moscow"
+        assert {place["city_timezone"] for place in places} == {expected_zone}
 
 
 @pytest.mark.usefixtures("seeded")

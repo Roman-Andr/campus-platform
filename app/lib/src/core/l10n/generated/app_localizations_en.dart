@@ -378,4 +378,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get listingStatusUnknown => 'Status unavailable';
+
+  @override
+  String cityTimeZone(String time, String city, String offset) {
+    return '$time, $city, $offset';
+  }
+
+  @override
+  String cityDateTimeHelp(String city) {
+    return 'Date and time: $city';
+  }
+
+  @override
+  String get chooseCityDateTime => 'Choose date and time';
+
+  @override
+  String get cityTimeDoesNotExist =>
+      'This time does not exist in the city time zone. Choose another time.';
 }

@@ -16,6 +16,7 @@ Map<String, Object?> listingJson({
   'visibility': 'city',
   'audience': 'students',
   'city_id': 'city-moscow',
+  'city_timezone': 'Europe/Moscow',
   'dormitory_id': null,
   'faculty_id': null,
   'status': status,

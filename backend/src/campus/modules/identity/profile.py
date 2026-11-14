@@ -66,6 +66,7 @@ class UserOutput(BaseModel):
     last_name: str
     account_type: AccountType
     city_id: UUID | None = Field(description="Campus city; empty until filled in.")
+    city_timezone: str | None
     dormitory_id: UUID | None = Field(
         description="Empty when the user does not live in a dormitory."
     )
@@ -149,13 +150,16 @@ async def _user(session: DbSession, principal: Principal) -> User:
 
 
 async def user_output(session: DbSession, user: User) -> UserOutput:
+    city = await session.get(City, user.city_id) if user.city_id else None
     return UserOutput.model_validate(
         {
             **{
                 name: getattr(user, name)
                 for name in UserOutput.model_fields
-                if name not in {"roles", "cross_border_transfer_allowed"}
+                if name
+                not in {"roles", "cross_border_transfer_allowed", "city_timezone"}
             },
+            "city_timezone": city.timezone if city else None,
             "roles": await user_roles(session, user.id),
             "cross_border_transfer_allowed": await cross_border_allowed(
                 session, user.id

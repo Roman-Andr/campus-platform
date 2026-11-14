@@ -219,6 +219,8 @@ VALIDATION_MESSAGES = {
     "uuid_parsing": N_("Must be a UUID."),
     "enum": N_("Must be one of: {expected}."),
     "literal_error": N_("Must be one of: {expected}."),
+    "datetime_offset": N_("Use RFC 3339 with an explicit UTC offset."),
+    "timezone_aware": N_("Use RFC 3339 with an explicit UTC offset."),
     "datetime_type": N_("Must be a date and time."),
     "datetime_parsing": N_("Must be a date and time."),
     "datetime_from_date_parsing": N_("Must be a date and time."),

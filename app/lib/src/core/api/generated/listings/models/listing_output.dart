@@ -15,11 +15,16 @@ class ListingOutput {
     required this.visibility,
     required this.audience,
     required this.cityId,
+    required this.cityTimezone,
     required this.dormitoryId,
     required this.facultyId,
     required this.status,
     required this.version,
+
+    /// RFC 3339 instant with an explicit offset; returned in UTC.
     required this.createdAt,
+
+    /// RFC 3339 instant with an explicit offset; returned in UTC.
     required this.expiresAt,
     required this.categoryId,
     required this.hiddenReason,
@@ -52,6 +57,7 @@ class ListingOutput {
       visibility: Visibility.fromJson(json["visibility"]),
       audience: Audience.fromJson(json["audience"]),
       cityId: json["city_id"] as String,
+      cityTimezone: json["city_timezone"] as String,
       dormitoryId: json["dormitory_id"] as String?,
       facultyId: json["faculty_id"] as String?,
       status: ListingStatus.fromJson(json["status"]),
@@ -87,6 +93,8 @@ class ListingOutput {
 
   final String cityId;
 
+  final String cityTimezone;
+
   final String? dormitoryId;
 
   final String? facultyId;
@@ -95,8 +103,10 @@ class ListingOutput {
 
   final int version;
 
+  /// RFC 3339 instant with an explicit offset; returned in UTC.
   final DateTime createdAt;
 
+  /// RFC 3339 instant with an explicit offset; returned in UTC.
   final DateTime? expiresAt;
 
   final String? categoryId;
@@ -113,6 +123,7 @@ class ListingOutput {
     "visibility",
     "audience",
     "city_id",
+    "city_timezone",
     "dormitory_id",
     "faculty_id",
     "status",
@@ -137,6 +148,7 @@ class ListingOutput {
     "visibility": this.visibility.toJson(),
     "audience": this.audience.toJson(),
     "city_id": this.cityId,
+    "city_timezone": this.cityTimezone,
     "dormitory_id": this.dormitoryId,
     "faculty_id": this.facultyId,
     "status": this.status.toJson(),
