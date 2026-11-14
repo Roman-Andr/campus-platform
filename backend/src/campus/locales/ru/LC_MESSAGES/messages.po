@@ -5,8 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 00:32+0300
-"
+"POT-Creation-Date: 2026-11-15 02:02+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -80,6 +79,9 @@ msgstr ""
 msgid "Current documents must be accepted"
 msgstr "Необходимо принять актуальные документы"
 
+msgid "Describe the item you offer."
+msgstr "Опишите вещь, которую предлагаете."
+
 msgid "E-mail address already in use"
 msgstr "Адрес электронной почты уже используется"
 
@@ -136,6 +138,9 @@ msgstr "Неверное место встречи"
 
 msgid "Invalid meeting time"
 msgstr "Неверное время встречи"
+
+msgid "Invalid offer"
+msgstr "Неверное предложение"
 
 msgid "Invalid quiet hours"
 msgstr "Неверные параметры тихих часов"
@@ -465,8 +470,14 @@ msgstr "Используйте RFC 3339 с явно указанным смещ�
 msgid "Use a wall time without a UTC offset."
 msgstr "Укажите время без смещения часового пояса."
 
+msgid "Wait for the author's decision."
+msgstr "Дождитесь решения автора."
+
 msgid "Wait for the offer timer to end or join the queue."
 msgstr "Дождитесь окончания таймера предложения или встаньте в очередь."
+
+msgid "You already offered an item."
+msgstr "Вы уже предложили вещь."
 
 msgid "You already participate in this listing."
 msgstr "Вы уже участвуете в этом объявлении."

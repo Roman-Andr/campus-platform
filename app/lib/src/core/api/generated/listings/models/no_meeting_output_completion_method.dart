@@ -43,8 +43,8 @@ class NoMeetingOutputCompletionMethodNull
   Object? toJson() => value;
 }
 
-bool _matches21(Object? value) => (_matches19(value));
-bool _matches19(Object? value) =>
+bool _matches21(Object? value) => (_matches16(value));
+bool _matches16(Object? value) =>
     (const <Object?>["qr", "no_meeting"].contains(value)) &&
     ((value is String));
 bool _matches22(Object? value) => ((value == null));
