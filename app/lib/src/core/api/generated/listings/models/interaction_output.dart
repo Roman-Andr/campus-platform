@@ -8,20 +8,33 @@ class InteractionOutput {
     required this.listingId,
     required this.participantId,
     required this.status,
+    required this.stage,
+    required this.responseDueAt,
     this.additionalProperties = const {},
   });
 
-  factory InteractionOutput.fromJson(Map<String, Object?> json) =>
-      InteractionOutput(
-        id: json["id"] as String,
-        listingId: json["listing_id"] as String,
-        participantId: json["participant_id"] as String,
-        status: InteractionStatus.fromJson(json["status"]),
-        additionalProperties: {
-          for (final entry in json.entries)
-            if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
-        },
-      );
+  factory InteractionOutput.fromJson(Map<String, Object?> json) {
+    if (!json.containsKey("stage")) {
+      throw ArgumentError("Missing required property: stage");
+    }
+    if (!json.containsKey("response_due_at")) {
+      throw ArgumentError("Missing required property: response_due_at");
+    }
+    return InteractionOutput(
+      id: json["id"] as String,
+      listingId: json["listing_id"] as String,
+      participantId: json["participant_id"] as String,
+      status: InteractionStatus.fromJson(json["status"]),
+      stage: json["stage"] as String?,
+      responseDueAt: json["response_due_at"] == null
+          ? null
+          : DateTime.parse(json["response_due_at"] as String).toUtc(),
+      additionalProperties: {
+        for (final entry in json.entries)
+          if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
+      },
+    );
+  }
 
   final String id;
 
@@ -31,11 +44,17 @@ class InteractionOutput {
 
   final InteractionStatus status;
 
+  final String? stage;
+
+  final DateTime? responseDueAt;
+
   static const _knownKeys = <String>{
     "id",
     "listing_id",
     "participant_id",
     "status",
+    "stage",
+    "response_due_at",
   };
 
   final Map<String, Object?> additionalProperties;
@@ -47,5 +66,7 @@ class InteractionOutput {
     "listing_id": this.listingId,
     "participant_id": this.participantId,
     "status": this.status.toJson(),
+    "stage": this.stage,
+    "response_due_at": this.responseDueAt?.toUtc().toIso8601String(),
   };
 }

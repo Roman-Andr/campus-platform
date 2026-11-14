@@ -15,6 +15,8 @@ export 'consents/models/document_kind.dart';
 export 'consents/models/document_output.dart';
 export 'listings/listings_client.dart';
 export 'listings/models/audience.dart';
+export 'listings/models/category_list.dart';
+export 'listings/models/category_output.dart';
 export 'listings/models/event_output.dart';
 export 'listings/models/giveaway_input.dart';
 export 'listings/models/interaction_output.dart';

@@ -20,6 +20,8 @@ class ListingOutput {
     required this.version,
     required this.createdAt,
     required this.expiresAt,
+    required this.categoryId,
+    required this.hiddenReason,
     this.additionalProperties = const {},
   });
 
@@ -29,6 +31,15 @@ class ListingOutput {
     }
     if (!json.containsKey("faculty_id")) {
       throw ArgumentError("Missing required property: faculty_id");
+    }
+    if (!json.containsKey("expires_at")) {
+      throw ArgumentError("Missing required property: expires_at");
+    }
+    if (!json.containsKey("category_id")) {
+      throw ArgumentError("Missing required property: category_id");
+    }
+    if (!json.containsKey("hidden_reason")) {
+      throw ArgumentError("Missing required property: hidden_reason");
     }
     return ListingOutput(
       id: json["id"] as String,
@@ -44,7 +55,11 @@ class ListingOutput {
       status: ListingStatus.fromJson(json["status"]),
       version: json["version"] as int,
       createdAt: DateTime.parse(json["created_at"] as String).toUtc(),
-      expiresAt: DateTime.parse(json["expires_at"] as String).toUtc(),
+      expiresAt: json["expires_at"] == null
+          ? null
+          : DateTime.parse(json["expires_at"] as String).toUtc(),
+      categoryId: json["category_id"] as String?,
+      hiddenReason: json["hidden_reason"] as String?,
       additionalProperties: {
         for (final entry in json.entries)
           if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
@@ -78,7 +93,11 @@ class ListingOutput {
 
   final DateTime createdAt;
 
-  final DateTime expiresAt;
+  final DateTime? expiresAt;
+
+  final String? categoryId;
+
+  final String? hiddenReason;
 
   static const _knownKeys = <String>{
     "id",
@@ -95,6 +114,8 @@ class ListingOutput {
     "version",
     "created_at",
     "expires_at",
+    "category_id",
+    "hidden_reason",
   };
 
   final Map<String, Object?> additionalProperties;
@@ -115,6 +136,8 @@ class ListingOutput {
     "status": this.status.toJson(),
     "version": this.version,
     "created_at": this.createdAt.toUtc().toIso8601String(),
-    "expires_at": this.expiresAt.toUtc().toIso8601String(),
+    "expires_at": this.expiresAt?.toUtc().toIso8601String(),
+    "category_id": this.categoryId,
+    "hidden_reason": this.hiddenReason,
   };
 }

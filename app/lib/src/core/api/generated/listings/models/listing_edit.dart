@@ -5,6 +5,7 @@ class ListingEdit {
     required this.title,
     required this.description,
     required this.version,
+    this.categoryId,
   });
 
   factory ListingEdit.fromJson(Map<String, Object?> json) {
@@ -15,6 +16,9 @@ class ListingEdit {
       title: json["title"] as String,
       description: json["description"] as String,
       version: json["version"] as int,
+      categoryId: json.containsKey("category_id")
+          ? json["category_id"] as String?
+          : null,
     );
   }
 
@@ -24,11 +28,19 @@ class ListingEdit {
 
   final int version;
 
-  static const _knownKeys = <String>{"title", "description", "version"};
+  final String? categoryId;
+
+  static const _knownKeys = <String>{
+    "title",
+    "description",
+    "version",
+    "category_id",
+  };
 
   Map<String, Object?> toJson() => {
     "title": this.title,
     "description": this.description,
     "version": this.version,
+    if (this.categoryId != null) "category_id": this.categoryId,
   };
 }
