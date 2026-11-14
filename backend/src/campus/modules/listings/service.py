@@ -97,7 +97,7 @@ def visible(listing: Listing, user: User) -> bool:
         return False
     if listing.city_id != user.city_id:
         return False
-    if user.account_type == AccountType.EMPLOYEE and (
+    if user.account_type != AccountType.STUDENT and (
         listing.audience == Audience.STUDENTS
         or listing.visibility == Visibility.DORMITORY
     ):

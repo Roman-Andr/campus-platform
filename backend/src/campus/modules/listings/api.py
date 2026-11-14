@@ -155,7 +155,18 @@ async def user_for(session: DbSession, principal: CurrentUser) -> User:
 
 async def readable(session: DbSession, listing_id: UUID, user: User) -> Listing:
     listing = await session.get(Listing, listing_id)
-    if listing is None or (listing.author_id != user.id and not visible(listing, user)):
+    if listing is None:
+        raise ProblemError(NOT_FOUND)
+    if listing.author_id == user.id or visible(listing, user):
+        return listing
+    # Existing participants retain the card needed to finish and review.
+    participant = await session.scalar(
+        select(Interaction.id).where(
+            Interaction.listing_id == listing.id,
+            Interaction.participant_id == user.id,
+        )
+    )
+    if participant is None:
         raise ProblemError(NOT_FOUND)
     return listing
 
@@ -407,13 +418,13 @@ async def reserve_giveaway(
         and listing.audience == Audience.STUDENTS
     ):
         raise ProblemError(FORBIDDEN)
-    if not visible(listing, user):
-        raise ProblemError(NOT_FOUND)
     if user.id == listing.author_id or user.account_type not in (
         AccountType.STUDENT,
         AccountType.EMPLOYEE,
     ):
         raise ProblemError(FORBIDDEN)
+    if not visible(listing, user):
+        raise ProblemError(NOT_FOUND)
     require_live(listing)
     if listing.status != ListingStatus.ACTIVE or listing.kind != "giveaway":
         raise ProblemError(CONFLICT)

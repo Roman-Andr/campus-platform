@@ -207,14 +207,4 @@ def cases() -> list[Case]:
 
 # Executed regressions, not feature skips. Strict XPASS forces removal when
 # the permission bug is fixed, without broadening this test-only issue.
-KNOWN_FAILURES = {
-    **{
-        f"student_feed/{actor}/{probe}": 239
-        for actor in ("alumni", "former_employee")
-        for probe in (
-            "detail_students",
-            "detail_dormitory",
-            "detail_dormitory_community",
-        )
-    },
-}
+KNOWN_FAILURES: dict[str, int] = {}
