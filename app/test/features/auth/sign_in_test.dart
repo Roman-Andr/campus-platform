@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:campus/src/core/api/api_client.dart';
 import 'package:campus/src/core/auth/auth_session.dart';
 import 'package:campus/src/core/router/app_router.dart';
+import 'package:campus/src/features/auth/application/sign_in_flow.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -102,54 +103,140 @@ void main() {
     );
   });
 
-  testWidgets('a new user gives the names to sign up', (tester) async {
-    await start(tester);
-    server.route((options) {
-      if (options.path == _codes) return jsonBody(202, null);
-      final body = SentRequest(options).json;
-      return body.containsKey('first_name')
-          ? jsonBody(200, tokensJson(1))
-          : problemBody(422, 'registration_required');
+  for (final optional in [false, true]) {
+    testWidgets('a new user accepts required documents; optional: $optional', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1000, 1800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await start(tester);
+      server.route((options) {
+        if (options.path == _codes) return jsonBody(202, null);
+        final body = SentRequest(options).json;
+        return body.containsKey('first_name')
+            ? jsonBody(200, tokensJson(1))
+            : problemBody(422, 'registration_required');
+      });
+      await requestCode(tester);
+
+      await tester.enterText(_code, '123456');
+      await tester.pumpAndSettle();
+      expect(find.text('Регистрация'), findsOneWidget);
+
+      await tester.ensureVisible(find.byKey(const Key('sign-in-finish')));
+      await tester.tap(find.byKey(const Key('sign-in-finish')));
+      await tester.pumpAndSettle();
+      expect(find.text('Заполните это поле.'), findsNWidgets(2));
+
+      await tester.enterText(
+        find.byKey(const Key('sign-in-first-name')),
+        'Иван1',
+      );
+      await tester.enterText(
+        find.byKey(const Key('sign-in-last-name')),
+        ' Иванова-Петрова ',
+      );
+      await tester.ensureVisible(find.byKey(const Key('sign-in-finish')));
+      await tester.tap(find.byKey(const Key('sign-in-finish')));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          'Можно использовать только буквы, пробелы, дефисы и апострофы.',
+        ),
+        findsOneWidget,
+      );
+      expect(sentTo(_signIn), hasLength(1));
+
+      await tester.enterText(
+        find.byKey(const Key('sign-in-first-name')),
+        'Иван',
+      );
+      // Names alone cannot finish registration.
+      await tester.ensureVisible(find.byKey(const Key('sign-in-finish')));
+      await tester.tap(find.byKey(const Key('sign-in-finish')));
+      await tester.pumpAndSettle();
+      expect(sentTo(_signIn), hasLength(1));
+      await tester.ensureVisible(find.byKey(const Key('consent-required')));
+      await tester.tap(find.byKey(const Key('consent-required')));
+      await tester.pumpAndSettle();
+      if (optional) {
+        await tester.tap(find.byKey(const Key('consent-cross-border')));
+        await tester.pumpAndSettle();
+      }
+      await tester.ensureVisible(find.byKey(const Key('sign-in-finish')));
+      await tester.tap(find.byKey(const Key('sign-in-finish')));
+      await tester.pumpAndSettle();
+
+      expect(sentTo(_signIn).last.json, {
+        'email': 'ivanov@edu.hse.ru',
+        'code': '123456',
+        'device_id': isA<String>(),
+        'first_name': 'Иван',
+        'last_name': 'Иванова-Петрова',
+        if (optional) 'cross_border_document_id': 'cross_border_transfer',
+        'accepted_document_ids': [
+          'community_rules',
+          'privacy_policy',
+          'personal_data_processing',
+        ],
+      });
+      expect(find.text('Пока ничего нет'), findsOneWidget);
     });
-    await requestCode(tester);
+  }
 
-    await tester.enterText(_code, '123456');
+  testWidgets('registration requires a new decision after documents change', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1000, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final container = await start(tester);
+    container.read(signInFlowProvider.notifier).codeSent('ivanov@edu.hse.ru');
+    container.read(signInFlowProvider.notifier).namesRequired('123456');
+    container.read(appRouterProvider).go(AppRoutes.signInName);
+    var attempts = 0;
+    server.route((options) {
+      if (++attempts == 1) {
+        server.documents = [
+          for (final d in consentDocumentsJson)
+            {...d, 'id': '${d['id']}-v2', 'version': 2},
+        ];
+        return problemBody(403, 'consent_required');
+      }
+      return jsonBody(200, tokensJson(1));
+    });
     await tester.pumpAndSettle();
-    expect(find.text('Регистрация'), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('sign-in-finish')));
-    await tester.pumpAndSettle();
-    expect(find.text('Заполните это поле.'), findsNWidgets(2));
-
-    await tester.enterText(
-      find.byKey(const Key('sign-in-first-name')),
-      'Иван1',
-    );
+    await tester.enterText(find.byKey(const Key('sign-in-first-name')), 'Иван');
     await tester.enterText(
       find.byKey(const Key('sign-in-last-name')),
-      ' Иванова-Петрова ',
+      'Иванов',
     );
+    await tester.tap(find.byKey(const Key('consent-required')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('sign-in-finish')));
     await tester.pumpAndSettle();
     expect(
-      find.text(
-        'Можно использовать только буквы, пробелы, дефисы и апострофы.',
-      ),
-      findsOneWidget,
+      tester
+          .widget<CheckboxListTile>(find.byKey(const Key('consent-required')))
+          .value,
+      isFalse,
     );
-    expect(sentTo(_signIn), hasLength(1));
-
-    await tester.enterText(find.byKey(const Key('sign-in-first-name')), 'Иван');
+    expect(find.text('Иван'), findsOneWidget);
     await tester.tap(find.byKey(const Key('sign-in-finish')));
     await tester.pumpAndSettle();
-
-    expect(sentTo(_signIn).last.json, {
-      'email': 'ivanov@edu.hse.ru',
-      'code': '123456',
-      'device_id': isA<String>(),
-      'first_name': 'Иван',
-      'last_name': 'Иванова-Петрова',
-    });
+    expect(attempts, 1);
+    await tester.tap(find.byKey(const Key('consent-required')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('sign-in-finish')));
+    await tester.pumpAndSettle();
+    expect(sentTo(_signIn).last.json['accepted_document_ids'], [
+      'community_rules-v2',
+      'privacy_policy-v2',
+      'personal_data_processing-v2',
+    ]);
     expect(find.text('Пока ничего нет'), findsOneWidget);
   });
 
@@ -348,6 +435,7 @@ void main() {
 
     await tester.tap(find.byTooltip('Настройки'));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.byKey(const Key('sign-out')), 200);
     await tester.tap(find.text('Выйти из аккаунта'));
     await tester.pumpAndSettle();
 

@@ -11,6 +11,7 @@ import 'package:campus/src/core/api/api_client.dart';
 import 'package:campus/src/core/auth/auth_session.dart';
 import 'package:campus/src/core/auth/auth_storage.dart';
 import 'package:campus/src/core/auth/auth_token.dart';
+import 'package:campus/src/features/consents/application/consents.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -101,7 +102,14 @@ void main() {
         find.byKey(const Key('sign-in-last-name')),
         'Интеграционный',
       );
-      await tester.tap(find.byKey(const Key('sign-in-finish')));
+      await container.read(documentsProvider.future);
+      await tester.pumpAndSettle();
+      final requiredConsent = find.byKey(const Key('consent-required'));
+      await tester.scrollUntilVisible(requiredConsent, 200);
+      await tester.tap(requiredConsent);
+      final finish = find.byKey(const Key('sign-in-finish'));
+      await tester.scrollUntilVisible(finish, 200);
+      await tester.tap(finish);
 
       // A new user fills in the profile from the stand's reference data.
       Future<void> chooseLast<T>(Finder field) async {

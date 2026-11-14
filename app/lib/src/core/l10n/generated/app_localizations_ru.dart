@@ -378,4 +378,57 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get listingStatusUnknown => 'Статус недоступен';
+
+  @override
+  String get consentDocuments => 'Согласия и документы';
+
+  @override
+  String get consentRules => 'Правила сообщества';
+
+  @override
+  String get consentPrivacy => 'Политика обработки персональных данных';
+
+  @override
+  String get consentProcessing => 'Согласие на обработку персональных данных';
+
+  @override
+  String get consentCrossBorder => 'Трансграничная передача данных';
+
+  @override
+  String get consentAcceptRequired =>
+      'Я принимаю правила сообщества, политику и согласие на обработку персональных данных (обязательно).';
+
+  @override
+  String get consentCrossBorderOptional =>
+      'Я согласен на трансграничную передачу данных (необязательно).';
+
+  @override
+  String get consentCrossBorderEffects =>
+      'Разрешает полный текст push-уведомлений, Telegram-бота и ИИ-функции.';
+
+  @override
+  String get consentUpdateTitle => 'Обновление документов';
+
+  @override
+  String get consentUpdateIntro =>
+      'Для продолжения прочитайте и примите текущие версии документов.';
+
+  @override
+  String get consentContinue => 'Принять и продолжить';
+
+  @override
+  String get consentClose => 'Закрыть';
+
+  @override
+  String get consentCancel => 'Отмена';
+
+  @override
+  String get consentRevoke => 'Отозвать согласие';
+
+  @override
+  String get consentRevokeTitle => 'Отозвать согласие на передачу данных?';
+
+  @override
+  String get consentRevokeEffects =>
+      'Push-уведомления будут без имён и текста. Telegram-бот и ИИ-функции будут отключены.';
 }

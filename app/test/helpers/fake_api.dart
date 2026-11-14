@@ -49,6 +49,7 @@ typedef Reply = ResponseBody Function(RequestOptions options);
 class FakeHttpAdapter implements HttpClientAdapter {
   FakeHttpAdapter({
     this.me = const {...userJson, ...filledProfileJson},
+    this.documents = consentDocumentsJson,
     this.categories = const {
       'items': [
         {'id': 'category-items', 'code': 'items', 'name': 'Items'},
@@ -56,6 +57,8 @@ class FakeHttpAdapter implements HttpClientAdapter {
     },
     this.feed = const {'items': <Object?>[], 'next_page': null},
   });
+
+  List<Map<String, Object?>>? documents;
 
   Map<String, Object?>? feed;
   Map<String, Object?>? categories;
@@ -124,6 +127,9 @@ class FakeHttpAdapter implements HttpClientAdapter {
         options.method == 'GET' &&
         options.path == '/api/v1/listings') {
       return jsonBody(200, feed);
+    }
+    if (documents != null && options.path == '/api/v1/documents') {
+      return jsonBody(200, documents);
     }
     final me = this.me;
     if (me != null && options.method == 'GET' && options.path == mePath) {
@@ -220,3 +226,39 @@ const filledProfileJson = <String, Object?>{
   'course': 2,
   'profile_complete': true,
 };
+
+/// Current document versions used by registration and consent tests.
+const consentDocumentsJson = <Map<String, Object?>>[
+  {
+    'id': 'community_rules',
+    'kind': 'community_rules',
+    'version': 1,
+    'text': 'Document text',
+    'published_at': '2026-11-14T00:00:00Z',
+    'required': true,
+  },
+  {
+    'id': 'privacy_policy',
+    'kind': 'privacy_policy',
+    'version': 1,
+    'text': 'Document text',
+    'published_at': '2026-11-14T00:00:00Z',
+    'required': true,
+  },
+  {
+    'id': 'personal_data_processing',
+    'kind': 'personal_data_processing',
+    'version': 1,
+    'text': 'Document text',
+    'published_at': '2026-11-14T00:00:00Z',
+    'required': true,
+  },
+  {
+    'id': 'cross_border_transfer',
+    'kind': 'cross_border_transfer',
+    'version': 1,
+    'text': 'Document text',
+    'published_at': '2026-11-14T00:00:00Z',
+    'required': false,
+  },
+];

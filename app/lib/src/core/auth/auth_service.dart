@@ -32,6 +32,8 @@ class AuthService {
     required String code,
     String? firstName,
     String? lastName,
+    List<String>? acceptedDocumentIds,
+    String? crossBorderDocumentId,
   }) async {
     final tokens = await _api.signIn(
       body: SignInInput(
@@ -40,6 +42,8 @@ class AuthService {
         deviceId: await _storage.deviceId(),
         firstName: firstName,
         lastName: lastName,
+        acceptedDocumentIds: acceptedDocumentIds,
+        crossBorderDocumentId: crossBorderDocumentId,
       ),
     );
     await _session.setToken(AuthToken.issued(tokens, clock.now()));

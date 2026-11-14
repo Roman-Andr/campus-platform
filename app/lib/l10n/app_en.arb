@@ -111,5 +111,21 @@
   "listingCompleted": "Completed",
   "listingHidden": "Hidden",
   "reservationNoShow": "No show",
-  "listingStatusUnknown": "Status unavailable"
+  "listingStatusUnknown": "Status unavailable",
+  "consentDocuments": "Consents and documents",
+  "consentRules": "Community rules",
+  "consentPrivacy": "Privacy policy",
+  "consentProcessing": "Personal data processing consent",
+  "consentCrossBorder": "Cross-border data transfer",
+  "consentAcceptRequired": "I accept the community rules, privacy policy and personal data processing consent (required).",
+  "consentCrossBorderOptional": "I consent to cross-border data transfer (optional).",
+  "consentCrossBorderEffects": "Enables full push notification text, the Telegram bot and AI features.",
+  "consentUpdateTitle": "Updated documents",
+  "consentUpdateIntro": "Read and accept the current document versions to continue.",
+  "consentContinue": "Accept and continue",
+  "consentClose": "Close",
+  "consentCancel": "Cancel",
+  "consentRevoke": "Revoke consent",
+  "consentRevokeTitle": "Revoke data transfer consent?",
+  "consentRevokeEffects": "Push notifications will contain no names or message text. The Telegram bot and AI features will be disabled."
 }
