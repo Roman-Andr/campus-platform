@@ -30,6 +30,7 @@ from campus.core.web import (
 )
 from campus.core.web.auth import CurrentUser
 from campus.core.web.problems import VALIDATION_FAILED
+from campus.modules.identity.consents import cross_border_allowed
 from campus.modules.identity.models import User
 from campus.modules.identity.roles import RoleOutput, user_roles
 from campus.modules.university import AccountType, City, Dormitory, Faculty
@@ -57,6 +58,7 @@ class UserOutput(BaseModel):
     """The user's account and profile."""
 
     model_config = ConfigDict(from_attributes=True)
+    cross_border_transfer_allowed: bool = False
     roles: tuple[RoleOutput, ...]
     id: UUID
     email: str
@@ -152,9 +154,10 @@ async def user_output(session: DbSession, user: User) -> UserOutput:
             **{
                 name: getattr(user, name)
                 for name in UserOutput.model_fields
-                if name != "roles"
+                if name not in {"roles", "cross_border_transfer_allowed"}
             },
             "roles": await user_roles(session, user.id),
+            "cross_border_transfer_allowed": await cross_border_allowed(session, user.id),
         }
     )
 

@@ -71,6 +71,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         generate_unique_id_function=_operation_id,
         lifespan=lifespan,
     )
+    app.state.consent_gate = identity.check_consents
     app.state.settings = settings
     app.state.session_factory = (
         create_session_factory(engine) if engine is not None else None
@@ -81,6 +82,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(health.router, prefix=API_PREFIX)
     app.include_router(university.router, prefix=API_PREFIX)
     app.include_router(identity.router, prefix=API_PREFIX)
+    app.include_router(identity.consent_router, prefix=API_PREFIX)
     app.include_router(identity.profile_router, prefix=API_PREFIX)
     app.include_router(listings.router, prefix=API_PREFIX)
 

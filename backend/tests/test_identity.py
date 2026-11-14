@@ -33,6 +33,7 @@ from campus.modules.identity import (
     SignInCode,
     User,
     delete_expired_credentials,
+    seed_documents,
 )
 from campus.modules.university import AccountType, EmailDomain
 from tests.web_app import CLIENT_HEADERS, serve
@@ -79,7 +80,12 @@ class Auth:
         await self.db.rollback()
         return match[0]
 
+    async def documents(self) -> list[str]:
+        documents = (await self.client.get("/api/v1/documents")).json()
+        return [d["id"] for d in documents if d["required"]]
+
     async def login(self, **overrides: Any) -> dict[str, Any]:
+        accepted = await self.documents()
         code = await self.code(overrides.get("email", EMAIL))
         response = await self.post(
             "/sign-in",
@@ -87,6 +93,7 @@ class Auth:
                 "email": EMAIL,
                 "code": code,
                 "device_id": DEVICE,
+                "accepted_document_ids": accepted,
                 "first_name": "Иван",
                 "last_name": "O'Neil",
                 **overrides,
@@ -118,6 +125,7 @@ async def auth(database_url: str, redis_url: str) -> AsyncIterator[Auth]:
                 EmailDomain(domain="staff.example", account_type=AccountType.EMPLOYEE),
             ]
         )
+        await seed_documents(db)
         await db.commit()
         app = create_app(settings)
         router = api_router()
@@ -189,7 +197,13 @@ async def test_registration_required_does_not_consume_code(auth: Auth) -> None:
     response = await auth.post("/sign-in", data)
     assert response.json()["code"] == "registration_required"
     response = await auth.post(
-        "/sign-in", {**data, "first_name": "Anna-Maria", "last_name": "Smith"}
+        "/sign-in",
+        {
+            **data,
+            "first_name": "Anna-Maria",
+            "last_name": "Smith",
+            "accepted_document_ids": await auth.documents(),
+        },
     )
     assert response.status_code == 200
     assert (await auth.post("/sign-in", data)).json()["code"] == "sign_in_code_expired"
@@ -244,6 +258,7 @@ async def test_parallel_code_consumption(auth: Auth) -> None:
         "email": EMAIL,
         "code": code,
         "device_id": DEVICE,
+        "accepted_document_ids": await auth.documents(),
         "first_name": "John",
         "last_name": "Smith",
     }
@@ -494,6 +509,7 @@ async def test_idempotent_sign_in(auth: Auth) -> None:
         "email": EMAIL,
         "code": code,
         "device_id": DEVICE,
+        "accepted_document_ids": await auth.documents(),
         "first_name": "John",
         "last_name": "Smith",
     }
@@ -516,6 +532,7 @@ async def test_no_sensitive_data_in_logs(
             "email": EMAIL,
             "code": code,
             "device_id": DEVICE,
+            "accepted_document_ids": await auth.documents(),
             "first_name": "John",
             "last_name": "Smith",
         },
@@ -636,6 +653,7 @@ async def test_lost_sign_in_response_is_recovered(auth: Auth) -> None:
         "email": EMAIL,
         "code": code,
         "device_id": DEVICE,
+        "accepted_document_ids": await auth.documents(),
         "first_name": "John",
         "last_name": "Smith",
     }
@@ -787,7 +805,14 @@ async def test_correct_code_on_last_attempt(auth: Auth) -> None:
             "code"
         ] == "sign_in_code_invalid"
     response = await auth.post(
-        "/sign-in", {**data, "code": code, "first_name": "John", "last_name": "Smith"}
+        "/sign-in",
+        {
+            **data,
+            "code": code,
+            "first_name": "John",
+            "last_name": "Smith",
+            "accepted_document_ids": await auth.documents(),
+        },
     )
     assert response.status_code == 200
 

@@ -16,7 +16,7 @@ import structlog
 from campus.core.config import Settings, get_settings
 from campus.core.db import create_engine, create_session_factory
 from campus.core.observability import configure_observability
-from campus.modules import university
+from campus.modules import identity, university
 
 logger = structlog.get_logger(__name__)
 
@@ -41,7 +41,9 @@ async def seed(settings: Settings, university_file: Path) -> university.SeedRepo
     engine = create_engine(settings, pooled=False)
     try:
         async with create_session_factory(engine)() as session, session.begin():
-            return await university.seed_reference_data(session, data)
+            report = await university.seed_reference_data(session, data)
+            await identity.seed_documents(session)
+            return report
     finally:
         await engine.dispose()
 

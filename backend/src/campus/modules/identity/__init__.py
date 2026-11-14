@@ -2,6 +2,16 @@
 
 from campus.modules.identity.api import router
 from campus.modules.identity.bootstrap import FirstAdminInput, create_first_admin
+from campus.modules.identity.consent_seed import seed_documents
+from campus.modules.identity.consents import (
+    ConsentDecision,
+    DocumentKind,
+    DocumentVersion,
+    check_consents,
+    cross_border_allowed,
+    publish_document,
+)
+from campus.modules.identity.consents import router as consent_router
 from campus.modules.identity.models import RefreshToken, Session, SignInCode, User
 from campus.modules.identity.profile import ProfiledUser
 from campus.modules.identity.profile import router as profile_router
@@ -19,6 +29,9 @@ __all__ = [
     "FirstAdminInput",
     "PermissionContext",
     "Permissions",
+    "ConsentDecision",
+    "DocumentKind",
+    "DocumentVersion",
     "ProfiledUser",
     "RefreshToken",
     "Role",
@@ -31,5 +44,10 @@ __all__ = [
     "delete_expired_credentials",
     "profile_router",
     "require_roles",
+    "check_consents",
+    "consent_router",
+    "cross_border_allowed",
+    "publish_document",
     "router",
+    "seed_documents",
 ]

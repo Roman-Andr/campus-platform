@@ -123,6 +123,10 @@ _ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
         " (client_version_missing, client_version_invalid,"
         " idempotency_key_missing, idempotency_key_invalid, ...)."
     ),
+    403: _problem(
+        "Current mandatory documents must be accepted (consent_required); "
+        "errors list document kinds and version IDs."
+    ),
     401: _problem("Invalid, expired or revoked authentication (unauthorized)."),
     422: _problem(
         "Invalid request (validation_failed) or Idempotency-Key used for a"
@@ -269,6 +273,9 @@ class ApiRoute(APIRoute):
 
             async with sessions() as session:
                 request.state.db_session = session
+                gate = getattr(request.app.state, "consent_gate", None)
+                if principal is not None and gate is not None:
+                    await gate(request, session, principal)
                 scope = str(principal.user_id) if principal else ANONYMOUS_SCOPE
                 if key is not None:
                     keyring = _keyring(request)

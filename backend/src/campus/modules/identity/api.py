@@ -18,6 +18,7 @@ from campus.core.i18n import N_, translate
 from campus.core.mail import queue_email
 from campus.core.web import (
     DbSession,
+    Principal,
     Problem,
     ProblemError,
     ProblemType,
@@ -25,6 +26,11 @@ from campus.core.web import (
     request_locale,
 )
 from campus.core.web.auth import CurrentUser, digest, rate_limit, revoke_access, secret
+from campus.modules.identity.consents import (
+    current_documents,
+    record_decision,
+    require_registration_consents,
+)
 from campus.modules.identity.models import RefreshToken, Session, SignInCode, User
 from campus.modules.identity.profile import UserOutput, user_output
 from campus.modules.university import EmailDomain
@@ -72,6 +78,11 @@ class EmailInput(BaseModel):
 
 
 class SignInInput(EmailInput):
+    accepted_document_ids: list[UUID] = Field(
+        default_factory=list,
+        description="Current document IDs explicitly accepted at registration; "
+        "cross-border consent is optional.",
+    )
     code: str = Field(pattern=r"^[0-9]{6}$")
     device_id: UUID
     device_name: str | None = Field(default=None, min_length=1, max_length=100)
@@ -227,9 +238,11 @@ async def sign_in(data: SignInInput, request: Request, session: DbSession) -> To
     ):
         raise ProblemError(CODE_EXPIRED)
     user = await session.scalar(select(User).where(User.email == data.email))
+    registering = user is None
     if user is None:
         if data.first_name is None or data.last_name is None:
             raise ProblemError(REGISTRATION_REQUIRED)
+        await require_registration_consents(session, data.accepted_document_ids)
         user = User(
             email=data.email,
             first_name=data.first_name,
@@ -261,6 +274,12 @@ async def sign_in(data: SignInInput, request: Request, session: DbSession) -> To
     )
     session.add(device)
     await session.flush()
+    if registering:
+        for document in await current_documents(session):
+            if document.id in data.accepted_document_ids:
+                await record_decision(
+                    session, Principal(user.id, device.id), document, accepted=True
+                )
     return await issue_tokens(session, device, user, settings)
 
 
