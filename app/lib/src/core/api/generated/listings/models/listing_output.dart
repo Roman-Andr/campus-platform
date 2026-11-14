@@ -40,6 +40,15 @@ class ListingOutput {
 
     /// When archive cleanup removed the description and photos; a purged listing cannot be published again.
     required this.purgedAt,
+
+    /// Signed link to the first photo's preview; null without photos.
+    this.previewUrl,
+
+    /// The photo whose preview is linked; null without photos.
+    this.previewFileId,
+
+    /// When the preview link expires; null without photos.
+    this.previewExpiresAt,
     this.additionalProperties = const {},
   });
 
@@ -98,6 +107,17 @@ class ListingOutput {
       purgedAt: json["purged_at"] == null
           ? null
           : DateTime.parse(json["purged_at"] as String).toUtc(),
+      previewUrl: json.containsKey("preview_url")
+          ? json["preview_url"] as String?
+          : null,
+      previewFileId: json.containsKey("preview_file_id")
+          ? json["preview_file_id"] as String?
+          : null,
+      previewExpiresAt: json.containsKey("preview_expires_at")
+          ? json["preview_expires_at"] == null
+                ? null
+                : DateTime.parse(json["preview_expires_at"] as String).toUtc()
+          : null,
       additionalProperties: {
         for (final entry in json.entries)
           if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
@@ -155,6 +175,15 @@ class ListingOutput {
   /// When archive cleanup removed the description and photos; a purged listing cannot be published again.
   final DateTime? purgedAt;
 
+  /// Signed link to the first photo's preview; null without photos.
+  final String? previewUrl;
+
+  /// The photo whose preview is linked; null without photos.
+  final String? previewFileId;
+
+  /// When the preview link expires; null without photos.
+  final DateTime? previewExpiresAt;
+
   static const _knownKeys = <String>{
     "id",
     "author_name",
@@ -178,6 +207,9 @@ class ListingOutput {
     "favorite",
     "archived_at",
     "purged_at",
+    "preview_url",
+    "preview_file_id",
+    "preview_expires_at",
   };
 
   final Map<String, Object?> additionalProperties;
@@ -208,6 +240,10 @@ class ListingOutput {
     "favorite": this.favorite,
     "archived_at": this.archivedAt?.toUtc().toIso8601String(),
     "purged_at": this.purgedAt?.toUtc().toIso8601String(),
+    if (this.previewUrl != null) "preview_url": this.previewUrl,
+    if (this.previewFileId != null) "preview_file_id": this.previewFileId,
+    if (this.previewExpiresAt != null)
+      "preview_expires_at": this.previewExpiresAt?.toUtc().toIso8601String(),
   };
 }
 

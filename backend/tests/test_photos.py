@@ -48,7 +48,7 @@ from tests.test_listings import (
     reserve,
     staff,
 )
-from tests.test_profile import Account
+from tests.test_profile import Account, Places
 
 __all__ = ["auth", "borrower", "owner", "places", "staff"]
 
@@ -650,3 +650,77 @@ async def test_historical_participant_keeps_photo_access(
     assert response.status_code == 200, response.text
     assert response.json()["items"][0]["id"] == file_id
     assert (await request(staff, "GET", f"/{listing['id']}/photos")).status_code == 404
+
+
+async def test_feed_and_my_listings_carry_the_first_photo(
+    owner: Account, borrower: Account, storage: Storage
+) -> None:
+    assert storage
+    listing = await publish(owner)
+    first = await ready(owner)
+    second = await ready(owner)
+    assert (await attach(owner, listing, [second, first])).status_code == 204
+
+    def row(items: list[dict[str, Any]], item_id: str) -> dict[str, Any]:
+        return next(item for item in items if item["id"] == item_id)
+
+    feed = row((await request(borrower, "GET")).json()["items"], listing["id"])
+    assert feed["preview_file_id"] == second
+    assert feed["preview_url"]
+    assert "X-Amz-Expires" in feed["preview_url"]
+    expires = datetime.fromisoformat(feed["preview_expires_at"].replace("Z", "+00:00"))
+    assert timedelta(0) < expires - clock.now() <= owner.auth.settings.photo_read_ttl
+
+    mine = row((await request(owner, "GET", "/mine")).json()["items"], listing["id"])
+    assert mine["preview_file_id"] == second
+    card = (await request(borrower, "GET", f"/{listing['id']}")).json()
+    assert card["preview_file_id"] == second
+
+    # The preview follows the order: the first photo is the one shown.
+    assert (await attach(owner, listing, [first, second])).status_code == 204
+    mine = row((await request(owner, "GET", "/mine")).json()["items"], listing["id"])
+    assert mine["preview_file_id"] == first
+
+
+async def test_listing_without_photos_has_no_preview(
+    owner: Account, storage: Storage
+) -> None:
+    assert storage
+    listing = await publish(owner)
+    for item in [
+        (await request(owner, "GET", f"/{listing['id']}")).json(),
+        *((await request(owner, "GET", "/mine")).json()["items"]),
+        *((await request(owner, "GET")).json()["items"]),
+    ]:
+        assert item["preview_url"] is None
+        assert item["preview_file_id"] is None
+        assert item["preview_expires_at"] is None
+
+
+async def test_preview_follows_listing_visibility(
+    owner: Account, borrower: Account, storage: Storage, places: Places
+) -> None:
+    assert storage
+    home = await publish(owner, visibility="dormitory")
+    file_id = await ready(owner)
+    assert (await attach(owner, home, [file_id])).status_code == 204
+    # A student of the same dormitory sees the listing and its preview.
+    feed = (await request(borrower, "GET")).json()["items"]
+    assert (
+        next(item for item in feed if item["id"] == home["id"])["preview_file_id"]
+        == file_id
+    )
+    # Moving to another city hides the listing: neither the row nor its
+    # signed preview link may leak through the feed or the card.
+    assert (
+        await borrower.put(
+            {
+                "city_id": str(places.perm),
+                "faculty_id": str(places.perm_faculty),
+                "course": 1,
+            }
+        )
+    ).status_code == 200
+    assert (await request(borrower, "GET")).json()["items"] == []
+    assert (await request(borrower, "GET", f"/{home['id']}")).status_code == 404
+    assert (await request(borrower, "GET", f"/{home['id']}/photos")).status_code == 404

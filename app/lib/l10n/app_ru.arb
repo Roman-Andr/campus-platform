@@ -921,6 +921,10 @@
       }
     }
   },
+  "photoPreview": "Превью фото",
+  "@photoPreview": {
+    "description": "Alt text of the photo preview in a listing row."
+  },
   "listingSaveDraft": "Сохранить черновик",
   "listingSaveChanges": "Сохранить изменения",
   "listingEditDraft": "Редактировать черновик",

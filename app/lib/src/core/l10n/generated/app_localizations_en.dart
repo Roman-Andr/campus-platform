@@ -687,6 +687,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get photoPreview => 'Photo preview';
+
+  @override
   String get listingSaveDraft => 'Save draft';
 
   @override

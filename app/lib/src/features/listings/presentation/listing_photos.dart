@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../../core/api/api_client.dart';
 import '../../../core/api/api_failure_message.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/photos/photo_image.dart';
@@ -304,23 +305,25 @@ class _ListingGalleryState extends ConsumerState<ListingGallery> {
   }
 }
 
-/// The first photo's preview in the feed; a plain icon without photos.
-class ListingThumbnail extends ConsumerWidget {
-  const ListingThumbnail({required this.id, super.key});
-  final String id;
+/// The first photo's preview carried by a listing row; a plain icon without
+/// photos. The link comes with the row, so a feed page needs no photo request.
+class ListingThumbnail extends StatelessWidget {
+  const ListingThumbnail({required this.listing, super.key});
+  final ListingOutput listing;
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final first = ref.watch(listingPhotosProvider(id)).value?.firstOrNull;
+  Widget build(BuildContext context) {
+    final url = listing.previewUrl;
     return SizedBox.square(
       dimension: 56,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: first == null
+        child: url == null
             ? const PhotoPlaceholder()
             : CampusPhoto(
-                key: Key('listing-thumbnail-$id'),
-                url: first.previewUrl,
-                cacheKey: 'preview:${first.id}',
+                key: Key('listing-thumbnail-${listing.id}'),
+                url: url,
+                cacheKey: 'preview:${listing.previewFileId ?? listing.id}',
+                semanticLabel: context.l10n.photoPreview,
               ),
       ),
     );

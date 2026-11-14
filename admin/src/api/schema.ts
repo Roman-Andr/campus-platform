@@ -1614,6 +1614,21 @@ export interface components {
        * @description When archive cleanup removed the description and photos; a purged listing cannot be published again.
        */
       purged_at: string | null;
+      /**
+       * Preview Url
+       * @description Signed link to the first photo's preview; null without photos.
+       */
+      preview_url?: string | null;
+      /**
+       * Preview File Id
+       * @description The photo whose preview is linked; null without photos.
+       */
+      preview_file_id?: string | null;
+      /**
+       * Preview Expires At
+       * @description When the preview link expires; null without photos.
+       */
+      preview_expires_at?: string | null;
     };
     /**
      * ListingStatus

@@ -1,13 +1,16 @@
 """Private photo upload and listing attachment endpoints."""
 
+from collections.abc import Sequence
 from datetime import datetime
 from uuid import UUID, uuid4
 
 from fastapi import Request, Response
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from campus.core import clock
+from campus.core.config import Settings
 from campus.core.outbox import add_message
 from campus.core.storage import Storage, storage_io
 from campus.core.web import DbSession, Problem, ProblemError, api_router
@@ -17,7 +20,15 @@ from campus.core.web.problems import NOT_FOUND
 from campus.modules.files.models import File
 from campus.modules.files.service import expire_later, locked_file
 from campus.modules.identity import ProfiledUser
-from campus.modules.listings import CONFLICT, FORBIDDEN, locked, readable, user_for
+from campus.modules.listings import (
+    CONFLICT,
+    FORBIDDEN,
+    Preview,
+    locked,
+    readable,
+    register_preview_loader,
+    user_for,
+)
 from campus.modules.university import AccountType
 
 router = api_router(
@@ -206,3 +217,35 @@ async def listing_photos(
             for file in files
         ]
     )
+
+
+@register_preview_loader("photos")
+async def first_photo_previews(
+    session: AsyncSession, settings: Settings, listing_ids: Sequence[UUID]
+) -> dict[UUID, Preview]:
+    """The first ready photo of each listing, with one signed preview link.
+
+    The caller passes listings it has already filtered by visibility; the
+    query only batches what would otherwise be a request per feed row.
+    """
+    files = await session.scalars(
+        select(File)
+        .where(File.listing_id.in_(listing_ids), File.status == "ready")
+        .order_by(File.listing_id, File.position, File.id)
+    )
+    first: dict[UUID, File] = {}
+    for file in files:
+        if file.listing_id is not None:
+            first.setdefault(file.listing_id, file)
+    if not first:
+        return {}
+    storage = Storage(settings)
+    expires_at = clock.now() + settings.photo_read_ttl
+    return {
+        listing_id: Preview(
+            file_id=file.id,
+            url=storage.url(file.key + "/preview"),
+            expires_at=expires_at,
+        )
+        for listing_id, file in first.items()
+    }

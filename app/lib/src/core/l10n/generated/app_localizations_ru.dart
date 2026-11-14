@@ -685,6 +685,9 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get photoPreview => 'Превью фото';
+
+  @override
   String get listingSaveDraft => 'Сохранить черновик';
 
   @override

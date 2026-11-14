@@ -1274,6 +1274,12 @@ abstract class AppLocalizations {
   /// **'Фото {index} из {count}'**
   String photoOf(int index, int count);
 
+  /// Alt text of the photo preview in a listing row.
+  ///
+  /// In ru, this message translates to:
+  /// **'Превью фото'**
+  String get photoPreview;
+
   /// No description provided for @listingSaveDraft.
   ///
   /// In ru, this message translates to:
