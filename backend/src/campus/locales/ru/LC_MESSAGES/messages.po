@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-14 20:11+0300\n"
+"POT-Creation-Date: 2026-11-14 20:42+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -20,6 +20,13 @@ msgstr ""
 msgid "A meeting time and place were proposed."
 msgstr "Второй участник предложил время и место встречи."
 
+msgid ""
+"A place in the queue is available for you. Confirm it before the timer "
+"ends."
+msgstr ""
+"Для вас освободилось место в очереди. Подтвердите его до истечения "
+"таймера."
+
 #, python-brace-format
 msgid "At most {max} skills."
 msgstr "Не больше {max} навыков."
@@ -30,8 +37,14 @@ msgstr "Требуется вход в аккаунт"
 msgid "Bad request"
 msgstr "Некорректный запрос"
 
+msgid "Book the listing instead of joining its queue."
+msgstr "Забронируйте объявление вместо того, чтобы вставать в очередь."
+
 msgid "Campus account security notification"
 msgstr "Уведомление о безопасности аккаунта Кампус"
+
+msgid "Cancel your application before joining the queue."
+msgstr "Отмените заявку, чтобы встать в очередь."
 
 msgid "Cannot remove the last corporate address"
 msgstr "Нельзя удалить последний корпоративный адрес"
@@ -118,6 +131,9 @@ msgstr "Неверные данные запроса"
 
 msgid "Invalid sign-in code"
 msgstr "Неверный код входа"
+
+msgid "Leave the queue before joining it again."
+msgstr "Выйдите из очереди, чтобы встать в неё снова."
 
 msgid "Method not allowed"
 msgstr "Метод не поддерживается"
@@ -207,6 +223,9 @@ msgstr "Не найдено"
 msgid "Photo unavailable"
 msgstr "Фото недоступно"
 
+msgid "Places are open to everyone; book now."
+msgstr "Места открыты для всех; бронируйте сейчас."
+
 msgid "Profile incomplete"
 msgstr "Профиль не заполнен"
 
@@ -242,6 +261,9 @@ msgstr "Код входа истёк или уже использован"
 msgid "Some fields of the request are invalid."
 msgstr "Некоторые поля запроса заполнены неверно."
 
+msgid "Someone joined the queue of your listing."
+msgstr "В очередь вашего объявления встал новый участник."
+
 msgid "Something went wrong on our side. Please try again later."
 msgstr "Что-то пошло не так на нашей стороне. Попробуйте позже."
 
@@ -263,11 +285,22 @@ msgstr "Платформа или версия клиента не распоз�
 msgid "The interaction must be accepted and have a current meeting proposal."
 msgstr "Взаимодействие должно быть принято и иметь текущее предложение встречи."
 
+msgid "The listing is closed; you are no longer in its queue."
+msgstr "Объявление закрыто; вы больше не в его очереди."
+
 msgid "The listing state has changed."
 msgstr "Состояние объявления изменилось."
 
+msgid "The listing still has a free place."
+msgstr "В объявлении ещё есть свободное место."
+
 msgid "The listing text is empty or too long."
 msgstr "Текст объявления пуст или слишком длинный."
+
+msgid "The listing type has no limited places to wait for."
+msgstr ""
+"У объявлений этого типа нет ограниченного числа мест, за которые ждут в "
+"очереди."
 
 msgid "The listing was edited."
 msgstr "Объявление было изменено."
@@ -294,11 +327,17 @@ msgstr "Время встречи должно быть в будущем."
 msgid "The name can be changed once in {days} days; see available_at."
 msgstr "Имя можно менять раз в {days} дней; ближайшая дата — в available_at."
 
+msgid "The offer of a place has expired."
+msgstr "Срок предложения места истёк."
+
 msgid "The page cursor is invalid or belongs to another list; start over."
 msgstr "Курсор страницы неверен или относится к другому списку; начните сначала."
 
 msgid "The photo is not processed yet, has expired or is used by a listing."
 msgstr "Фото ещё обрабатывается, устарело или уже прикреплено к объявлению."
+
+msgid "The place is offered to another participant."
+msgstr "Место предложено другому участнику."
 
 msgid "The realtime server is temporarily unavailable. Try again later."
 msgstr "Сервер реального времени временно недоступен. Повторите попытку позже."
@@ -310,8 +349,6 @@ msgid ""
 "The requested position is no longer in realtime history. Reload the "
 "channel state through the API."
 msgstr ""
-"Запрошенная позиция больше не находится в истории реального времени. "
-"Перезагрузите состояние канала через API."
 
 msgid "The requested resource does not exist."
 msgstr "Запрошенный ресурс не существует."
@@ -334,6 +371,9 @@ msgstr "Это поле недопустимо."
 msgid "This field is required."
 msgstr "Обязательное поле."
 
+msgid "This listing has no queue."
+msgstr "У этого объявления нет очереди."
+
 #, python-brace-format
 msgid ""
 "This version of the app is no longer supported. Please update to "
@@ -354,8 +394,20 @@ msgstr "Требуется обновление"
 msgid "Use RFC 3339 with an explicit UTC offset."
 msgstr "Используйте RFC 3339 с явно указанным смещением UTC."
 
+msgid "Wait for the offer timer to end or join the queue."
+msgstr "Дождитесь окончания таймера предложения или встаньте в очередь."
+
+msgid "You already participate in this listing."
+msgstr "Вы уже участвуете в этом объявлении."
+
+msgid "You are already in the queue."
+msgstr "Вы уже стоите в очереди."
+
 msgid "You are not a member of this channel."
 msgstr "Вы не участник этого канала."
+
+msgid "You have no offer of a place."
+msgstr "У вас нет предложения места."
 
 msgid "Your Campus e-mail confirmation code"
 msgstr "Ваш код подтверждения почты в Кампус"
@@ -372,6 +424,9 @@ msgstr ""
 
 msgid "Your meeting starts soon."
 msgstr "Скоро встреча."
+
+msgid "Your place offer has expired."
+msgstr "Срок вашего предложения места истёк."
 
 #, python-brace-format
 msgid "Your sign-in code: {code}. It expires in {minutes} minutes."
