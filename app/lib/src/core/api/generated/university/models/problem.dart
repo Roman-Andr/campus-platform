@@ -36,7 +36,7 @@ class Problem {
   factory Problem.fromJson(Map<String, Object?> json) => Problem(
     type: json["type"] as String,
     title: json["title"] as String,
-    status: json["status"] as int,
+    status: _readJsonInteger(json["status"]),
     detail: json.containsKey("detail") ? json["detail"] as String? : null,
     code: ProblemCode.fromJson(json["code"]),
     requestId: json.containsKey("request_id")
@@ -53,7 +53,9 @@ class Problem {
                     .toList()
         : null,
     currentVersion: json.containsKey("current_version")
-        ? json["current_version"] as int?
+        ? json["current_version"] == null
+              ? null
+              : _readJsonInteger(json["current_version"])
         : null,
     minVersion: json.containsKey("min_version")
         ? json["min_version"] as String?
@@ -127,4 +129,14 @@ class Problem {
     if (this.availableAt != null)
       "available_at": this.availableAt?.toUtc().toIso8601String(),
   };
+}
+
+int _readJsonInteger(Object? value) {
+  if (value is int) {
+    return value;
+  }
+  if (value is double && value.isFinite && value == value.toInt()) {
+    return value.toInt();
+  }
+  throw FormatException('Expected a JSON integer.', value);
 }

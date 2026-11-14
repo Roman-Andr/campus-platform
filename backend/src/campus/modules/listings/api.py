@@ -47,6 +47,8 @@ from campus.modules.listings.models import (
     Listing,
     ListingEvent,
     ListingStatus,
+    Meeting,
+    MeetingStatus,
     Visibility,
 )
 from campus.modules.listings.service import (
@@ -54,6 +56,11 @@ from campus.modules.listings.service import (
     FORBIDDEN,
     INVALID_CATEGORY,
     INVALID_CONTENT,
+    MEETING_PROPOSED,
+    MEETING_RESCHEDULED,
+    MEETING_SCHEDULED,
+    MEETING_STALE,
+    MEETING_STATE,
     RATE_LIMIT,
     STALE,
     TYPE_POLICIES,
@@ -61,11 +68,15 @@ from campus.modules.listings.service import (
     locked,
     rate_limit,
     record,
+    record_meeting,
     reject_pending,
     require_live,
+    schedule_meeting_reminders,
     transition,
+    validate_meeting,
     visible,
 )
+from campus.modules.notifications import notify
 from campus.modules.publications import Publication
 from campus.modules.university import AccountType, City, Dormitory, Faculty
 
@@ -126,6 +137,21 @@ class ListingOutput(BaseModel):
     )
 
 
+class MeetingOutput(BaseModel):
+    """The effective meeting plus the proposal awaiting an answer, if any."""
+
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    version: int
+    status: MeetingStatus
+    scheduled_at: Instant | None
+    location: str | None
+    scheduled_by_id: UUID | None
+    proposed_at: Instant | None
+    proposed_location: str | None
+    proposed_by_id: UUID | None
+
+
 class InteractionOutput(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
@@ -135,6 +161,7 @@ class InteractionOutput(BaseModel):
     status: InteractionStatus
     stage: str | None
     response_due_at: Instant | None
+    meeting: MeetingOutput | None
 
 
 class ParticipationListing(BaseModel):
@@ -193,6 +220,17 @@ class TransitionInput(BaseModel):
     status: InteractionStatus
 
 
+class MeetingProposalInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    time: Instant
+    location: str
+
+
+class MeetingAcceptInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    version: int = Field(ge=1)
+
+
 class EventOutput(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
@@ -205,6 +243,7 @@ class EventOutput(BaseModel):
     created_at: Instant
     reason: str | None
     stage: str | None
+    details: dict[str, Any] | None
     via_assistant: bool
     offline_qr: bool
 
@@ -793,6 +832,7 @@ async def reserve_giveaway(
         response_due_at=clock.now() + settings.listing_response_timeout
         if TYPE_POLICIES[listing.kind].author_response_deadline
         else None,
+        meeting=None,
     )
     session.add(interaction)
     await session.flush()
@@ -825,6 +865,164 @@ async def transition_interaction(
         raise ProblemError(FORBIDDEN)
     await transition(session, listing, interaction, data.status, principal.user_id)
     return InteractionOutput.model_validate(interaction)
+
+
+def other_participant(
+    listing: Listing, interaction: Interaction, actor_id: UUID
+) -> UUID:
+    """The participant who did not perform the meeting action."""
+    if actor_id == listing.author_id:
+        return interaction.participant_id
+    return listing.author_id
+
+
+async def meeting_context(
+    session: DbSession, listing_id: UUID, interaction_id: UUID, actor_id: UUID
+) -> tuple[Listing, Interaction]:
+    """Lock the aggregate and check that ``actor_id`` may change its meeting."""
+    listing = await locked(session, listing_id)
+    interaction = await session.get(Interaction, interaction_id)
+    if interaction is None or interaction.listing_id != listing.id:
+        raise ProblemError(NOT_FOUND)
+    if actor_id not in (listing.author_id, interaction.participant_id):
+        raise ProblemError(FORBIDDEN)
+    if interaction.status != InteractionStatus.ACCEPTED:
+        raise ProblemError(MEETING_STATE)
+    return listing, interaction
+
+
+@router.post("/{listing_id}/interactions/{interaction_id}/meeting/proposals")
+async def propose_meeting(  # noqa: PLR0913, PLR0917 - request context
+    listing_id: UUID,
+    interaction_id: UUID,
+    data: MeetingProposalInput,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> MeetingOutput:
+    """Propose a time and place; a counter-proposal replaces the pending one."""
+    listing, interaction = await meeting_context(
+        session, listing_id, interaction_id, principal.user_id
+    )
+    settings: Settings = request.app.state.settings
+    location = validate_meeting(data.time, data.location, settings)
+    meeting = interaction.meeting
+    if meeting is None:
+        meeting = Meeting(interaction_id=interaction.id, version=1)
+        interaction.meeting = meeting
+        session.add(meeting)
+    else:
+        meeting.version += 1
+    meeting.proposed_at = data.time
+    meeting.proposed_location = location
+    meeting.proposed_by_id = principal.user_id
+    time = data.time.isoformat()
+    record_meeting(
+        session,
+        listing,
+        interaction,
+        principal.user_id,
+        "meeting_proposed",
+        {"time": time, "location": location},
+    )
+    await session.flush()
+    notify(
+        session,
+        {other_participant(listing, interaction, principal.user_id)},
+        "listing.meeting.proposed",
+        {
+            "listing_id": str(listing.id),
+            "interaction_id": str(interaction.id),
+            "time": time,
+            "location": location,
+            "version": meeting.version,
+        },
+        message=MEETING_PROPOSED,
+    )
+    return MeetingOutput.model_validate(meeting)
+
+
+@router.post(
+    "/{listing_id}/interactions/{interaction_id}/meeting/accept",
+    response_model=MeetingOutput,
+)
+async def accept_meeting(  # noqa: PLR0913, PLR0917 - request context
+    listing_id: UUID,
+    interaction_id: UUID,
+    data: MeetingAcceptInput,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> MeetingOutput | ProblemResponse:
+    """Accept the current proposal; a stale one is rejected with 409."""
+    listing, interaction = await meeting_context(
+        session, listing_id, interaction_id, principal.user_id
+    )
+    meeting = interaction.meeting
+    if meeting is None:
+        raise ProblemError(MEETING_STATE)
+    if meeting.version != data.version:
+        return problem_response(
+            request,
+            MEETING_STALE,
+            params={"version": meeting.version},
+            current_version=meeting.version,
+        )
+    proposed_at = meeting.proposed_at
+    proposed_location = meeting.proposed_location
+    proposed_by_id = meeting.proposed_by_id
+    if proposed_at is None or proposed_location is None or proposed_by_id is None:
+        raise ProblemError(MEETING_STATE)
+    settings: Settings = request.app.state.settings
+    location = validate_meeting(proposed_at, proposed_location, settings)
+    previous_at = meeting.scheduled_at
+    previous_location = meeting.location
+    scheduled_at = proposed_at.isoformat()
+    meeting.scheduled_at = proposed_at
+    meeting.location = location
+    meeting.scheduled_by_id = proposed_by_id
+    meeting.proposed_at = None
+    meeting.proposed_location = None
+    meeting.proposed_by_id = None
+    meeting.version += 1
+    details: dict[str, Any] = {"time": scheduled_at, "location": location}
+    if previous_at is None:
+        action, notification_type, message = (
+            "meeting_scheduled",
+            "listing.meeting.scheduled",
+            MEETING_SCHEDULED,
+        )
+    else:
+        action, notification_type, message = (
+            "meeting_rescheduled",
+            "listing.meeting.rescheduled",
+            MEETING_RESCHEDULED,
+        )
+        details["previous_time"] = previous_at.isoformat()
+        details["previous_location"] = previous_location
+    record_meeting(
+        session,
+        listing,
+        interaction,
+        principal.user_id,
+        action,
+        details,
+    )
+    await schedule_meeting_reminders(session, settings, listing, interaction, meeting)
+    await session.flush()
+    notify(
+        session,
+        {other_participant(listing, interaction, principal.user_id)},
+        notification_type,
+        {
+            "listing_id": str(listing.id),
+            "interaction_id": str(interaction.id),
+            **details,
+            "version": meeting.version,
+        },
+        message=message,
+    )
+    return MeetingOutput.model_validate(meeting)
 
 
 @router.get("/{listing_id}/events")

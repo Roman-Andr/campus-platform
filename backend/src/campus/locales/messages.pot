@@ -1,3 +1,6 @@
+msgid "A meeting time and place were proposed."
+msgstr ""
+
 #, python-brace-format
 msgid "At most {max} skills."
 msgstr ""
@@ -72,6 +75,12 @@ msgid "Invalid cursor"
 msgstr ""
 
 msgid "Invalid idempotency key"
+msgstr ""
+
+msgid "Invalid meeting place"
+msgstr ""
+
+msgid "Invalid meeting time"
 msgstr ""
 
 msgid "Invalid refresh token"
@@ -175,6 +184,10 @@ msgid "Profile incomplete"
 msgstr ""
 
 #, python-brace-format
+msgid "Reload the interaction. The current meeting version is {version}."
+msgstr ""
+
+#, python-brace-format
 msgid "Reload the listing. Its current version is {version}."
 msgstr ""
 
@@ -211,6 +224,9 @@ msgstr ""
 msgid "The client platform or version is not recognized."
 msgstr ""
 
+msgid "The interaction must be accepted and have a current meeting proposal."
+msgstr ""
+
 msgid "The listing state has changed."
 msgstr ""
 
@@ -218,6 +234,24 @@ msgid "The listing text is empty or too long."
 msgstr ""
 
 msgid "The listing was edited."
+msgstr ""
+
+msgid "The meeting cannot be changed."
+msgstr ""
+
+msgid "The meeting has been rescheduled."
+msgstr ""
+
+msgid "The meeting is scheduled."
+msgstr ""
+
+msgid "The meeting place must not be empty or too long."
+msgstr ""
+
+msgid "The meeting proposal has changed."
+msgstr ""
+
+msgid "The meeting time must be in the future."
 msgstr ""
 
 #, python-brace-format
@@ -281,6 +315,9 @@ msgstr ""
 msgid ""
 "Your account e-mail addresses have changed. If this was not you, contact "
 "support."
+msgstr ""
+
+msgid "Your meeting starts soon."
 msgstr ""
 
 #, python-brace-format

@@ -21,7 +21,7 @@ class FileOutput {
       id: json["id"] as String,
       purpose: json["purpose"] as String,
       status: json["status"] as String,
-      size: json["size"] as int,
+      size: _readJsonInteger(json["size"]),
       rejectionReason: json["rejection_reason"] as String?,
       expiresAt: DateTime.parse(json["expires_at"] as String).toUtc(),
       additionalProperties: {
@@ -65,4 +65,14 @@ class FileOutput {
     "rejection_reason": this.rejectionReason,
     "expires_at": this.expiresAt.toUtc().toIso8601String(),
   };
+}
+
+int _readJsonInteger(Object? value) {
+  if (value is int) {
+    return value;
+  }
+  if (value is double && value.isFinite && value == value.toInt()) {
+    return value.toInt();
+  }
+  throw FormatException('Expected a JSON integer.', value);
 }

@@ -2,6 +2,7 @@
 
 import 'interaction_status.dart';
 import 'participation_listing.dart';
+import 'participation_output_meeting.dart';
 
 class ParticipationOutput {
   const ParticipationOutput({
@@ -14,6 +15,7 @@ class ParticipationOutput {
 
     /// RFC 3339 instant with an explicit offset; returned in UTC.
     required this.responseDueAt,
+    required this.meeting,
 
     /// RFC 3339 instant with an explicit offset; returned in UTC.
     required this.createdAt,
@@ -30,6 +32,9 @@ class ParticipationOutput {
     if (!json.containsKey("response_due_at")) {
       throw ArgumentError("Missing required property: response_due_at");
     }
+    if (!json.containsKey("meeting")) {
+      throw ArgumentError("Missing required property: meeting");
+    }
     return ParticipationOutput(
       id: json["id"] as String,
       listingId: json["listing_id"] as String,
@@ -40,6 +45,7 @@ class ParticipationOutput {
       responseDueAt: json["response_due_at"] == null
           ? null
           : DateTime.parse(json["response_due_at"] as String).toUtc(),
+      meeting: ParticipationOutputMeeting.fromJson(json["meeting"]),
       createdAt: DateTime.parse(json["created_at"] as String).toUtc(),
       listing: ParticipationListing.fromJson(
         json["listing"] as Map<String, Object?>,
@@ -66,6 +72,8 @@ class ParticipationOutput {
   /// RFC 3339 instant with an explicit offset; returned in UTC.
   final DateTime? responseDueAt;
 
+  final ParticipationOutputMeeting meeting;
+
   /// RFC 3339 instant with an explicit offset; returned in UTC.
   final DateTime createdAt;
 
@@ -80,6 +88,7 @@ class ParticipationOutput {
     "status",
     "stage",
     "response_due_at",
+    "meeting",
     "created_at",
     "listing",
   };
@@ -96,6 +105,7 @@ class ParticipationOutput {
     "status": this.status.toJson(),
     "stage": this.stage,
     "response_due_at": this.responseDueAt?.toUtc().toIso8601String(),
+    "meeting": this.meeting.toJson(),
     "created_at": this.createdAt.toUtc().toIso8601String(),
     "listing": this.listing.toJson(),
   };

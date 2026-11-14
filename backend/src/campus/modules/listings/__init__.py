@@ -11,6 +11,8 @@ from campus.modules.listings.models import (
     Listing,
     ListingEvent,
     ListingStatus,
+    Meeting,
+    MeetingStatus,
     Visibility,
 )
 from campus.modules.listings.service import (
@@ -42,6 +44,8 @@ __all__ = [
     "Listing",
     "ListingEvent",
     "ListingStatus",
+    "Meeting",
+    "MeetingStatus",
     "TypePolicy",
     "Visibility",
     "change_listing",

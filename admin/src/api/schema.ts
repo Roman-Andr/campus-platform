@@ -687,6 +687,46 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/listings/{listing_id}/interactions/{interaction_id}/meeting/proposals': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Propose Meeting
+     * @description Propose a time and place; a counter-proposal replaces the pending one.
+     */
+    post: operations['propose_meeting'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{listing_id}/interactions/{interaction_id}/meeting/accept': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Accept Meeting
+     * @description Accept the current proposal; a stale one is rejected with 409.
+     */
+    post: operations['accept_meeting'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/listings/{listing_id}/events': {
     parameters: {
       query?: never;
@@ -1114,6 +1154,10 @@ export interface components {
       reason: string | null;
       /** Stage */
       stage: string | null;
+      /** Details */
+      details: {
+        [key: string]: unknown;
+      } | null;
       /** Via Assistant */
       via_assistant: boolean;
       /** Offline Qr */
@@ -1251,6 +1295,7 @@ export interface components {
       stage: string | null;
       /** Response Due At */
       response_due_at: string | null;
+      meeting: components['schemas']['MeetingOutput'] | null;
     };
     /**
      * InteractionStatus
@@ -1332,6 +1377,54 @@ export interface components {
      * @enum {string}
      */
     ListingStatus: 'draft' | 'completed' | 'hidden' | 'active' | 'busy' | 'cancelled' | 'expired';
+    /** MeetingAcceptInput */
+    MeetingAcceptInput: {
+      /** Version */
+      version: number;
+    };
+    /**
+     * MeetingOutput
+     * @description The effective meeting plus the proposal awaiting an answer, if any.
+     */
+    MeetingOutput: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Version */
+      version: number;
+      status: components['schemas']['MeetingStatus'];
+      /** Scheduled At */
+      scheduled_at: string | null;
+      /** Location */
+      location: string | null;
+      /** Scheduled By Id */
+      scheduled_by_id: string | null;
+      /** Proposed At */
+      proposed_at: string | null;
+      /** Proposed Location */
+      proposed_location: string | null;
+      /** Proposed By Id */
+      proposed_by_id: string | null;
+    };
+    /** MeetingProposalInput */
+    MeetingProposalInput: {
+      /**
+       * Time
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      time: string;
+      /** Location */
+      location: string;
+    };
+    /**
+     * MeetingStatus
+     * @description The current proposal of a meeting: pending or already in force.
+     * @enum {string}
+     */
+    MeetingStatus: 'proposed' | 'scheduled';
     /**
      * NameInput
      * @description The new real name.
@@ -1434,6 +1527,7 @@ export interface components {
       stage: string | null;
       /** Response Due At */
       response_due_at: string | null;
+      meeting: components['schemas']['MeetingOutput'] | null;
       /**
        * Created At
        * Format: date-time
@@ -1521,6 +1615,10 @@ export interface components {
         | 'listing_forbidden'
         | 'listing_rate_limited'
         | 'listing_version_conflict'
+        | 'meeting_place_invalid'
+        | 'meeting_stale'
+        | 'meeting_state_conflict'
+        | 'meeting_time_invalid'
         | 'method_not_allowed'
         | 'name_change_too_soon'
         | 'not_found'
@@ -5698,6 +5796,236 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['InteractionOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  propose_meeting: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+        interaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MeetingProposalInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MeetingOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  accept_meeting: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+        interaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MeetingAcceptInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MeetingOutput'];
         };
       };
       /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
