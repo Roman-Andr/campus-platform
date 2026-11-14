@@ -375,6 +375,10 @@ class Settings(BaseSettings):
         default=timedelta(hours=1), gt=timedelta(0)
     )
 
+    # How many time options a skill lesson offers (specification, 5.1.1).
+    lesson_options_min: int = Field(default=2, ge=1)
+    lesson_options_max: int = Field(default=3, ge=1)
+
     meeting_place_max_length: int = Field(default=200, ge=1)
     meeting_reminder_long: timedelta = Field(
         default=timedelta(hours=24),
@@ -484,6 +488,13 @@ class Settings(BaseSettings):
     def _check_meeting_reminders(self) -> Self:
         if self.meeting_reminder_long <= self.meeting_reminder_short:
             msg = "meeting_reminder_long must be longer than meeting_reminder_short"
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def _check_lesson_options(self) -> Self:
+        if self.lesson_options_min > self.lesson_options_max:
+            msg = "lesson_options_min exceeds lesson_options_max"
             raise ValueError(msg)
         return self
 

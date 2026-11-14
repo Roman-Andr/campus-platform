@@ -19,9 +19,12 @@ from campus.core.web import ProblemError, ProblemType
 from campus.core.web.problems import NOT_FOUND
 from campus.modules.identity import User
 from campus.modules.listings.models import (
+    PERMANENT_KINDS,
     Audience,
     Interaction,
     InteractionStatus,
+    LessonOption,
+    LessonOptionStatus,
     Listing,
     ListingEvent,
     ListingStatus,
@@ -80,6 +83,13 @@ MEETING_STALE = ProblemType(
     409,
     N_("The meeting proposal has changed."),
     N_("Reload the interaction. The current meeting version is {version}."),
+)
+
+INVALID_LESSON_OPTIONS = ProblemType(
+    "lesson_options_invalid",
+    422,
+    N_("Invalid lesson time options"),
+    N_("A lesson has from {min} to {max} time options."),
 )
 
 MEETING_PROPOSED = N_("A meeting time and place were proposed.")
@@ -187,6 +197,8 @@ class TypePolicy:
 
 TYPE_POLICIES = {
     "giveaway": TypePolicy(author_response_deadline=True, capacity=1),
+    # A skill listing is permanent and takes lessons from many participants.
+    "skill": TypePolicy(author_response_deadline=True, capacity=None),
 }
 
 
@@ -543,8 +555,9 @@ async def claim_offer(
         response_due_at=clock.now() + settings.listing_response_timeout
         if TYPE_POLICIES[listing.kind].author_response_deadline
         else None,
-        # The relationship is unloaded for a new row; validation reads it.
+        # New rows start without relationships; validation reads them.
         meeting=None,
+        options=[],
     )
     session.add(interaction)
     await session.flush()
@@ -845,7 +858,7 @@ async def expire_response(session: AsyncSession, job: JobInfo) -> None:
 
 def require_live(listing: Listing) -> None:
     if (
-        (listing.expires_at is None and listing.kind != "publication")
+        (listing.expires_at is None and listing.kind not in PERMANENT_KINDS)
         or (listing.expires_at is not None and listing.expires_at <= clock.now())
         or listing.status not in (ListingStatus.ACTIVE, ListingStatus.BUSY)
     ):
@@ -863,6 +876,9 @@ async def transition(  # noqa: PLR0913 - aggregate transition
 ) -> None:
     expected = TRANSITIONS.get((InteractionStatus(interaction.status), target))
     if expected is None:
+        raise ProblemError(CONFLICT)
+    # Accepting a lesson also schedules its meeting, so it has its own route.
+    if listing.kind == "skill" and target == InteractionStatus.ACCEPTED:
         raise ProblemError(CONFLICT)
     allowed_id = {
         "author": listing.author_id,
@@ -942,14 +958,32 @@ def change_stage(
     record(session, listing, actor_id, "stage_changed", interaction.status, interaction)
 
 
-def validate_meeting(time: datetime, place: str, settings: Settings) -> str:
-    """Return the normalized place; reject a past time and a bad place."""
-    if time <= clock.now():
-        raise ProblemError(MEETING_TIME_INVALID)
+def validate_place(place: str, settings: Settings) -> str:
+    """Return the normalized place, rejecting an empty or too long one."""
     normalized = place.strip()
     if not normalized or len(normalized) > settings.meeting_place_max_length:
         raise ProblemError(MEETING_PLACE_INVALID)
     return normalized
+
+
+def validate_meeting(time: datetime, place: str, settings: Settings) -> str:
+    """Return the normalized place; reject a past time and a bad place."""
+    if time <= clock.now():
+        raise ProblemError(MEETING_TIME_INVALID)
+    return validate_place(place, settings)
+
+
+def validate_lesson_slot(
+    time: datetime, location: str | None, online: bool, settings: Settings
+) -> tuple[datetime, str | None, bool]:
+    """Validate one lesson time option; an online lesson has no place."""
+    if time <= clock.now():
+        raise ProblemError(MEETING_TIME_INVALID)
+    if online:
+        return time, None, True
+    if location is None:
+        raise ProblemError(MEETING_PLACE_INVALID)
+    return time, validate_place(location, settings), False
 
 
 def record_meeting(  # noqa: PLR0913, PLR0917 - event fields
@@ -972,6 +1006,168 @@ def record_meeting(  # noqa: PLR0913, PLR0917 - event fields
         interaction,
         details=details,
     )
+
+
+async def accept_lesson_option(  # noqa: PLR0912, PLR0913, PLR0917 - aggregate and actor
+    session: AsyncSession,
+    listing: Listing,
+    interaction: Interaction,
+    option: LessonOption,
+    actor_id: UUID,
+    settings: Settings,
+) -> Meeting:
+    """Select a proposed time option and schedule the resulting meeting.
+
+    The responder's options are accepted by the author, the author's
+    counter-option by the responder; nobody else may answer them.
+    """
+    if listing.kind != "skill":
+        raise ProblemError(CONFLICT)
+    if option.interaction_id != interaction.id:
+        raise ProblemError(NOT_FOUND)
+    if (
+        interaction.status != InteractionStatus.PENDING
+        or option.status != LessonOptionStatus.PROPOSED
+    ):
+        raise ProblemError(CONFLICT)
+    if option.proposed_by_id == listing.author_id:
+        expected = interaction.participant_id
+    elif option.proposed_by_id == interaction.participant_id:
+        expected = listing.author_id
+    else:
+        raise ProblemError(CONFLICT)
+    if actor_id != expected:
+        raise ProblemError(FORBIDDEN)
+    require_live(listing)
+    if (
+        interaction.response_due_at is not None
+        and interaction.response_due_at <= clock.now()
+    ):
+        raise ProblemError(CONFLICT)
+    if option.time <= clock.now():
+        raise ProblemError(MEETING_TIME_INVALID)
+    for other in interaction.options:
+        if other.status == LessonOptionStatus.PROPOSED:
+            other.status = LessonOptionStatus.DECLINED
+    option.status = LessonOptionStatus.SELECTED
+    interaction.status = InteractionStatus.ACCEPTED
+    interaction.stage = TYPE_POLICIES[listing.kind].initial_stage
+    interaction.response_due_at = None
+    await cancel_deadline(session, f"interaction:{interaction.id}")
+    meeting = interaction.meeting
+    if meeting is None:
+        meeting = Meeting(interaction_id=interaction.id, version=1)
+        interaction.meeting = meeting
+    else:
+        meeting.version += 1
+    meeting.scheduled_at = option.time
+    meeting.location = option.location
+    meeting.online = option.online
+    meeting.scheduled_by_id = option.proposed_by_id
+    meeting.proposed_at = None
+    meeting.proposed_location = None
+    meeting.proposed_by_id = None
+    details = {
+        "time": option.time.isoformat(),
+        "location": option.location,
+        "online": option.online,
+        "proposed_by_id": str(option.proposed_by_id),
+    }
+    record_meeting(
+        session,
+        listing,
+        interaction,
+        actor_id,
+        "meeting_scheduled",
+        details,
+    )
+    await schedule_meeting_reminders(session, settings, listing, interaction, meeting)
+    recipient = (
+        interaction.participant_id
+        if actor_id == listing.author_id
+        else listing.author_id
+    )
+    notify(
+        session,
+        {recipient},
+        "listing.meeting.scheduled",
+        {
+            "listing_id": str(listing.id),
+            "interaction_id": str(interaction.id),
+            **details,
+            "version": meeting.version,
+        },
+        message=MEETING_SCHEDULED,
+    )
+    await session.flush()
+    return meeting
+
+
+async def propose_lesson_counter(  # noqa: PLR0913, PLR0917 - aggregate and proposal
+    session: AsyncSession,
+    listing: Listing,
+    interaction: Interaction,
+    actor_id: UUID,
+    time: datetime,
+    location: str | None,
+    online: bool,
+    settings: Settings,
+) -> LessonOption:
+    """Let the author offer a counter-option to the responder's options."""
+    if listing.kind != "skill":
+        raise ProblemError(CONFLICT)
+    if actor_id != listing.author_id:
+        raise ProblemError(FORBIDDEN)
+    if interaction.status != InteractionStatus.PENDING:
+        raise ProblemError(CONFLICT)
+    require_live(listing)
+    if (
+        interaction.response_due_at is not None
+        and interaction.response_due_at <= clock.now()
+    ):
+        raise ProblemError(CONFLICT)
+    time, location, online = validate_lesson_slot(time, location, online, settings)
+    for old in interaction.options:
+        if old.proposed_by_id == actor_id and old.status == LessonOptionStatus.PROPOSED:
+            old.status = LessonOptionStatus.DECLINED
+    option = LessonOption(
+        interaction_id=interaction.id,
+        position=max((item.position for item in interaction.options), default=-1) + 1,
+        time=time,
+        location=location,
+        online=online,
+        proposed_by_id=actor_id,
+        status=LessonOptionStatus.PROPOSED,
+    )
+    interaction.options.append(option)
+    interaction.response_due_at = None
+    await cancel_deadline(session, f"interaction:{interaction.id}")
+    details: dict[str, Any] = {
+        "time": time.isoformat(),
+        "location": location,
+        "online": online,
+    }
+    record_meeting(
+        session,
+        listing,
+        interaction,
+        actor_id,
+        "meeting_proposed",
+        details,
+    )
+    notify(
+        session,
+        {interaction.participant_id},
+        "listing.meeting.proposed",
+        {
+            "listing_id": str(listing.id),
+            "interaction_id": str(interaction.id),
+            **details,
+        },
+        message=MEETING_PROPOSED,
+    )
+    await session.flush()
+    return option
 
 
 MEETING_REMINDER_TOPIC = "listing.meeting_reminder"

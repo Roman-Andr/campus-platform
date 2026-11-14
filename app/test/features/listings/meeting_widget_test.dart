@@ -30,6 +30,7 @@ Map<String, Object?> meetingJson({
   String? proposedAt,
   String? proposedLocation,
   String? proposedBy,
+  bool online = false,
   int version = 1,
 }) => {
   'id': 'meeting-1',
@@ -37,6 +38,7 @@ Map<String, Object?> meetingJson({
   'status': proposedAt == null ? 'scheduled' : 'proposed',
   'scheduled_at': scheduledAt,
   'location': location,
+  'online': online,
   'scheduled_by_id': scheduledBy,
   'proposed_at': proposedAt,
   'proposed_location': proposedLocation,

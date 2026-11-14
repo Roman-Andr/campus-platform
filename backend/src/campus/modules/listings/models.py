@@ -15,6 +15,8 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
+    inspect,
     text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
@@ -34,6 +36,17 @@ class ListingStatus(StrEnum):
     BUSY = "busy"
     CANCELLED = "cancelled"
     EXPIRED = "expired"
+
+
+# Listings of these kinds do not expire and have no archive deadline.
+PERMANENT_KINDS = frozenset({"publication", "skill"})
+
+
+class SkillDirection(StrEnum):
+    """Whether the author can teach a skill or wants to learn it."""
+
+    TEACH = "teach"
+    LEARN = "learn"
 
 
 class InteractionStatus(StrEnum):
@@ -152,6 +165,19 @@ class Listing(Entity):
     version: Mapped[int] = mapped_column(default=1)
     expires_at: Mapped[datetime | None]
     category_id: Mapped[UUID | None] = mapped_column(ForeignKey("listing_category.id"))
+    skill: Mapped[Skill | None] = relationship(
+        lazy="joined", uselist=False, cascade="all, delete-orphan"
+    )
+
+    @property
+    def direction(self) -> str | None:
+        """Direction of a skill listing; ``None`` for every other kind."""
+        # A new non-skill listing has not loaded the relationship; reading it
+        # must not start a lazy query while the response is serialized.
+        if "skill" in inspect(self).unloaded:
+            return None
+        return self.skill.direction if self.skill is not None else None
+
     pinned_until: Mapped[datetime | None]
     hidden_reason: Mapped[str | None] = mapped_column(Text)
     # When the listing last entered the archive (expired, completed or
@@ -160,6 +186,17 @@ class Listing(Entity):
     # Archive cleanup removed the description and photos; the row stays
     # so interactions, history and reviews remain readable.
     purged_at: Mapped[datetime | None]
+
+
+class Skill(Base):
+    """Type details of a skill listing: it offers or requests a lesson."""
+
+    __tablename__ = "listing_skill"
+    __table_args__ = (
+        CheckConstraint("direction IN ('teach','learn')", name="direction"),
+    )
+    listing_id: Mapped[UUID] = mapped_column(ForeignKey("listing.id"), primary_key=True)
+    direction: Mapped[str] = mapped_column(String(16))
 
 
 class Item(Base):
@@ -212,6 +249,11 @@ class Interaction(Entity):
     meeting: Mapped[Meeting | None] = relationship(
         lazy="joined", uselist=False, cascade="all, delete-orphan"
     )
+    options: Mapped[list[LessonOption]] = relationship(
+        lazy="selectin",
+        cascade="all, delete-orphan",
+        order_by="LessonOption.position",
+    )
 
 
 class Meeting(Entity):
@@ -228,8 +270,9 @@ class Meeting(Entity):
         CheckConstraint("version >= 1", name="version_positive"),
         CheckConstraint(
             "(scheduled_at IS NULL AND location IS NULL "
-            "AND scheduled_by_id IS NULL) OR (scheduled_at IS NOT NULL "
-            "AND location IS NOT NULL AND scheduled_by_id IS NOT NULL)",
+            "AND scheduled_by_id IS NULL AND online = false) OR "
+            "(scheduled_at IS NOT NULL AND scheduled_by_id IS NOT NULL "
+            "AND (online OR location IS NOT NULL))",
             name="scheduled_complete",
         ),
         CheckConstraint(
@@ -248,6 +291,7 @@ class Meeting(Entity):
     )
     scheduled_at: Mapped[datetime | None]
     location: Mapped[str | None] = mapped_column(Text)
+    online: Mapped[bool] = mapped_column(default=False)
     scheduled_by_id: Mapped[UUID | None] = mapped_column(ForeignKey("identity_user.id"))
     proposed_at: Mapped[datetime | None]
     proposed_location: Mapped[str | None] = mapped_column(Text)
@@ -257,6 +301,45 @@ class Meeting(Entity):
     @property
     def status(self) -> MeetingStatus:
         return MeetingStatus.PROPOSED if self.proposed_at else MeetingStatus.SCHEDULED
+
+
+class LessonOptionStatus(StrEnum):
+    PROPOSED = "proposed"
+    SELECTED = "selected"
+    DECLINED = "declined"
+
+
+class LessonOption(Entity):
+    """A time option of a skill lesson, with its place or online flag.
+
+    The responder proposes two or three options; the author selects one, or
+    proposes a counter-option that the responder accepts. Exactly one option
+    of an interaction becomes selected, and its values become the meeting.
+    """
+
+    __tablename__ = "listing_lesson_option"
+    __table_args__ = (
+        CheckConstraint("position >= 0", name="position"),
+        CheckConstraint(
+            "(online AND location IS NULL) OR (NOT online AND location IS NOT NULL)",
+            name="place",
+        ),
+        CheckConstraint("status IN ('proposed','selected','declined')", name="status"),
+        UniqueConstraint("interaction_id", "position"),
+        Index(
+            "uq_listing_lesson_option_selected",
+            "interaction_id",
+            unique=True,
+            postgresql_where=text("status = 'selected'"),
+        ),
+    )
+    interaction_id: Mapped[UUID] = mapped_column(ForeignKey("listing_interaction.id"))
+    position: Mapped[int]
+    time: Mapped[datetime]
+    location: Mapped[str | None] = mapped_column(Text)
+    online: Mapped[bool] = mapped_column(default=False)
+    proposed_by_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
+    status: Mapped[str] = mapped_column(String(16), default=LessonOptionStatus.PROPOSED)
 
 
 class WaitlistStatus(StrEnum):

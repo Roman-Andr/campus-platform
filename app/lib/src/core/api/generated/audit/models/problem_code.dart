@@ -18,6 +18,7 @@ enum ProblemCodeValue {
   internalError("internal_error"),
   invalidCursor("invalid_cursor"),
   lastCorporateEmail("last_corporate_email"),
+  lessonOptionsInvalid("lesson_options_invalid"),
   listingCategoryInvalid("listing_category_invalid"),
   listingConflict("listing_conflict"),
   listingContentInvalid("listing_content_invalid"),
@@ -96,6 +97,9 @@ sealed class ProblemCode {
   static const invalidCursor = ProblemCodeKnown(ProblemCodeValue.invalidCursor);
   static const lastCorporateEmail = ProblemCodeKnown(
     ProblemCodeValue.lastCorporateEmail,
+  );
+  static const lessonOptionsInvalid = ProblemCodeKnown(
+    ProblemCodeValue.lessonOptionsInvalid,
   );
   static const listingCategoryInvalid = ProblemCodeKnown(
     ProblemCodeValue.listingCategoryInvalid,
