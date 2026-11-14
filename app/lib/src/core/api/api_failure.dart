@@ -35,7 +35,9 @@ sealed class ApiFailure implements Exception {
         (problem == null && status == 426)) {
       return UpdateRequiredFailure(minVersion: problem?.minVersion);
     }
-    if (problem != null) return ProblemFailure(problem);
+    if (problem != null) {
+      return ProblemFailure(problem, retryAfter: retryAfterOf(response));
+    }
     return UnexpectedFailure(status);
   }
 
@@ -69,9 +71,13 @@ final class UpdateRequiredFailure extends ApiFailure {
 
 /// The server rejected the request with Problem Details.
 final class ProblemFailure extends ApiFailure {
-  const ProblemFailure(this.problem);
+  const ProblemFailure(this.problem, {this.retryAfter});
 
   final Problem problem;
+
+  /// How long to wait before trying again, from `Retry-After` (in seconds)
+  /// of a rate-limited request.
+  final Duration? retryAfter;
 
   int get status => problem.status;
 
@@ -88,4 +94,12 @@ final class UnexpectedFailure extends ApiFailure {
 
   /// For logs only; never shown to the user.
   final Object? cause;
+}
+
+/// The wait requested by the `Retry-After` header of [response], given in
+/// seconds as the server sends it.
+Duration? retryAfterOf(Response<Object?>? response) {
+  final value = response?.headers.value('retry-after');
+  final seconds = value == null ? null : int.tryParse(value.trim());
+  return seconds == null || seconds < 0 ? null : Duration(seconds: seconds);
 }

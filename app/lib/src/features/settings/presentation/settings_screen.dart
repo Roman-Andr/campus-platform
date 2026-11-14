@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../../core/auth/auth_service.dart';
+import '../../../core/auth/auth_session.dart';
 import '../../../core/l10n/l10n.dart';
 import '../application/settings_controller.dart';
 import '../domain/app_settings.dart';
 
-/// Device settings: interface language and theme.
+/// Device settings: interface language and theme; signing out.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -17,6 +19,9 @@ class SettingsScreen extends ConsumerWidget {
     final settings =
         ref.watch(settingsControllerProvider).value ?? const AppSettings();
     final controller = ref.read(settingsControllerProvider.notifier);
+    final signedIn =
+        ref.watch(authStatusProvider).value ==
+        AuthenticationStatus.authenticated;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsTitle)),
@@ -57,6 +62,16 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ),
+          if (signedIn) ...[
+            const Divider(),
+            _SectionHeader(l10n.settingsAccount),
+            ListTile(
+              key: const Key('sign-out'),
+              leading: const Icon(Icons.logout),
+              title: Text(l10n.signOut),
+              onTap: () => unawaited(ref.read(authServiceProvider).signOut()),
+            ),
+          ],
         ],
       ),
     );

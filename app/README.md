@@ -7,7 +7,8 @@ Flutter-приложение для Android, веба, Windows, macOS и Linux (
 
 - Flutter stable 3.50+ (Dart 3.14+), для Android — Android SDK
   (platform 36, build-tools, NDK из `flutter doctor`) и JDK 17+.
-- Для десктопа — инструменты сборки платформы, см. `flutter doctor`.
+- Для десктопа — инструменты сборки платформы, см. `flutter doctor`; для
+  Linux ещё `libsecret-1-dev` (защищённое хранилище токенов).
 
 ## Запуск
 
@@ -19,15 +20,18 @@ flutter build apk --debug       # APK: build/app/outputs/flutter-apk/
 ```
 
 Адрес сервера и другие параметры клиента API задаются при сборке через
-`--dart-define` (`lib/src/core/api/api_config.dart`):
+`--dart-define` (`lib/src/core/api/api_config.dart`,
+`lib/src/core/auth/auth_config.dart`):
 
-| Параметр                     | По умолчанию                       |
-|------------------------------|------------------------------------|
-| `CAMPUS_API_URL`             | `http://localhost:8000`            |
-| `CAMPUS_DOWNLOAD_URL`        | страница последнего релиза GitHub  |
-| `CAMPUS_API_CONNECT_TIMEOUT` | 10 (секунд)                        |
-| `CAMPUS_API_RECEIVE_TIMEOUT` | 30 (секунд)                        |
-| `CAMPUS_API_RETRIES`         | 3 (паузы 1, 2, 4 с…)               |
+| Параметр                      | По умолчанию                               |
+|-------------------------------|--------------------------------------------|
+| `CAMPUS_API_URL`              | `http://localhost:8000`                    |
+| `CAMPUS_DOWNLOAD_URL`         | страница последнего релиза GitHub          |
+| `CAMPUS_API_CONNECT_TIMEOUT`  | 10 (секунд)                                |
+| `CAMPUS_API_RECEIVE_TIMEOUT`  | 30 (секунд)                                |
+| `CAMPUS_API_RETRIES`          | 3 (паузы 1, 2, 4 с…)                       |
+| `CAMPUS_SIGN_IN_RESEND_DELAY` | 60 (секунд до повторной отправки кода)     |
+| `CAMPUS_TOKEN_REFRESH_MARGIN` | 30 (секунд: обновить access-токен заранее) |
 
 Эмулятор Android видит компьютер по адресу `10.0.2.2`:
 
@@ -133,6 +137,63 @@ CI запускает `tool/generate_api.sh --check` при изменениях
 текст из ARB (`apiFailureMessage`, виджет `ApiErrorView`) — не `title` и
 `detail` сервера и без технических подробностей; новые коды ошибок
 сервера не ломают старый клиент.
+
+## Вход
+
+Вход по коду из письма (ТЗ п. 5.1.1, модуль 1; сервер — раздел «Вход по
+коду из письма» в `backend/README.md`): экраны `features/auth/` — почта,
+код с таймером повторной отправки, имя и фамилия при первом входе. Без
+сессии доступны только эти экраны (`AppRoutes.signIn…`), с сессией они
+недоступны.
+
+Сессия — `core/auth/`:
+
+- refresh-токен и идентификатор устройства (UUIDv7, один на установку,
+  сохраняется после выхода) лежат в защищённом хранилище
+  ([flutter_secure_storage](https://pub.dev/packages/flutter_secure_storage):
+  на Android шифруются ключом Android Keystore). Access-токен хранится
+  только в памяти. Автобэкап Android выключен: ключ Keystore в бэкап не
+  попадает, и восстановленные данные не расшифровать;
+- перехватчик [fresh_dio](https://pub.dev/packages/fresh_dio) добавляет
+  `Authorization` к операциям, у которых в схеме OpenAPI есть
+  `security` (у сгенерированных методов — `extra['openapi.security']`),
+  обновляет access-токен заранее (за `CAMPUS_TOKEN_REFRESH_MARGIN`) или
+  после ответа 401 и повторяет запрос. Запросы ждут идущее обновление,
+  поэтому сколько угодно параллельных запросов с истёкшим токеном
+  вызывают одно обновление;
+- ответ 401 на обновление (сессия отозвана, повтор старого
+  refresh-токена) завершает сессию: `authStatusProvider` становится
+  `unauthenticated`, и приложение переходит на экран входа. Сетевые
+  ошибки сессию не завершают;
+- выход (`AuthService.signOut`, пункт в настройках) отзывает сессию на
+  сервере и удаляет токены, даже если сервер недоступен.
+
+Токены не пишутся в журналы: в приложении нет журналирования запросов, а
+`toString()` токенов и черновика входа их не содержит (тест
+`test/core/auth/auth_session_test.dart`).
+
+Ответ 429 повторяется автоматически, только если `Retry-After` не больше
+паузы перед повтором; иначе пользователь видит, сколько ждать, а таймер
+повторной отправки кода продлевается до этого срока.
+
+### Интеграционный тест
+
+`integration_test/sign_in_test.dart` проходит регистрацию, обновление
+токена и выход против запущенного стенда: API, воркер и Mailpit, из
+которого тест берёт код. Пример с эмулятором Android и стендом из
+`infra/` (README там же): порты стенда пробрасываются в эмулятор через
+adb, поэтому адреса — `127.0.0.1` (`10.0.2.2` тоже подойдёт, если у
+эмулятора есть сеть):
+
+```sh
+adb reverse tcp:8000 tcp:8000 && adb reverse tcp:8025 tcp:8025
+flutter test integration_test -d emulator-5554 \
+  --dart-define=CAMPUS_API_URL=http://127.0.0.1:8000 \
+  --dart-define=CAMPUS_TEST_MAILPIT_URL=http://127.0.0.1:8025
+```
+
+Адрес регистрируется в домене `CAMPUS_TEST_EMAIL_DOMAIN` (по умолчанию
+`edu.hse.ru` из начальных данных); справочники загружает `campus-seed`.
 
 ## Локальная БД (Drift)
 

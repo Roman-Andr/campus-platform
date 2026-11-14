@@ -96,4 +96,116 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get updateDownloadFailed => 'Couldn\'t open the download page.';
+
+  @override
+  String get errorRateLimited =>
+      'Too many requests. Wait a little and try again.';
+
+  @override
+  String get signInTitle => 'Sign in';
+
+  @override
+  String get signInEmailIntro =>
+      'Sign in with your university e-mail: we will send a sign-in code to it.';
+
+  @override
+  String get signInEmailLabel => 'University e-mail';
+
+  @override
+  String get signInEmailInvalid =>
+      'Enter an e-mail address, e.g. ivanov@edu.hse.ru.';
+
+  @override
+  String get signInGetCode => 'Get code';
+
+  @override
+  String get signInCodeTitle => 'Code from the e-mail';
+
+  @override
+  String signInCodeSent(String email) {
+    return 'We sent a code to $email. If there is no e-mail, check the spam folder.';
+  }
+
+  @override
+  String get signInCodeLabel => '6-digit code';
+
+  @override
+  String get signInCodeIncomplete => 'Enter all 6 digits of the code.';
+
+  @override
+  String get signInSubmit => 'Sign in';
+
+  @override
+  String get signInResend => 'Send the code again';
+
+  @override
+  String signInResendIn(String wait) {
+    return 'You can send the code again in $wait';
+  }
+
+  @override
+  String get signInResent => 'A new code has been sent';
+
+  @override
+  String get signInChangeEmail => 'Change e-mail';
+
+  @override
+  String get signInNameTitle => 'Sign up';
+
+  @override
+  String get signInNameIntro =>
+      'This is your first sign-in. Enter your first and last names: other students will see them.';
+
+  @override
+  String get signInFirstName => 'First name';
+
+  @override
+  String get signInLastName => 'Last name';
+
+  @override
+  String get signInNameRequired => 'Fill in this field.';
+
+  @override
+  String get signInNameInvalid =>
+      'Use only letters, spaces, hyphens and apostrophes.';
+
+  @override
+  String get signInFinish => 'Sign up';
+
+  @override
+  String get authErrorDomain =>
+      'This address is not a university e-mail. Sign in with an address in the university domain.';
+
+  @override
+  String get authErrorCodeInvalid =>
+      'Wrong code. Check the e-mail and try again.';
+
+  @override
+  String get authErrorCodeExpired =>
+      'The code has expired or was already used. Request a new code.';
+
+  @override
+  String get authErrorAttemptsExceeded =>
+      'Too many wrong attempts. Request a new code.';
+
+  @override
+  String authErrorRateLimitedFor(String wait) {
+    return 'Too many attempts. Try again in $wait.';
+  }
+
+  @override
+  String waitSeconds(int count) {
+    return '$count s';
+  }
+
+  @override
+  String waitMinutes(int count) {
+    return '$count min';
+  }
+
+  @override
+  String get settingsAccount => 'Account';
+
+  @override
+  String get signOut => 'Sign out';
 }

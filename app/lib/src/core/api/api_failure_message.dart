@@ -19,6 +19,8 @@ String apiFailureMessage(AppLocalizations l10n, Object error) =>
           l10n.errorValidation,
         ProblemCodeKnown(value: ProblemCodeValue.invalidCursor) =>
           l10n.errorListChanged,
+        ProblemCodeKnown(value: ProblemCodeValue.rateLimited) =>
+          l10n.errorRateLimited,
         _ when status >= 500 => l10n.errorServer,
         _ => l10n.errorRequest,
       },
