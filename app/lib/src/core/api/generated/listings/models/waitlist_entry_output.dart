@@ -39,7 +39,11 @@ class WaitlistEntryOutput {
       participantName: json["participant_name"] as String,
       participantId: json["participant_id"] as String,
       status: WaitlistStatus.fromJson(json["status"]),
-      position: json.containsKey("position") ? json["position"] as int? : null,
+      position: json.containsKey("position")
+          ? json["position"] == null
+                ? null
+                : _readJsonInteger(json["position"])
+          : null,
       offeredAt: json["offered_at"] == null
           ? null
           : DateTime.parse(json["offered_at"] as String).toUtc(),
@@ -107,4 +111,14 @@ class WaitlistEntryOutput {
     "interaction_id": this.interactionId,
     "created_at": this.createdAt.toUtc().toIso8601String(),
   };
+}
+
+int _readJsonInteger(Object? value) {
+  if (value is int) {
+    return value;
+  }
+  if (value is double && value.isFinite && value == value.toInt()) {
+    return value.toInt();
+  }
+  throw FormatException('Expected a JSON integer.', value);
 }
