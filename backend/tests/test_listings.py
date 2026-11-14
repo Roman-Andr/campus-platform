@@ -67,6 +67,8 @@ async def publish(account: Account, **overrides: Any) -> dict[str, Any]:
     )
     assert response.status_code == 201, response.text
     result: dict[str, Any] = response.json()
+    assert result["city_timezone"] == "Europe/Moscow"
+    assert result["created_at"].endswith("Z")
     return result
 
 
@@ -593,3 +595,27 @@ async def test_own_listings_include_archived(owner: Account) -> None:
     assert (await request(owner, "GET")).json()["items"] == []
     page = (await request(owner, "GET", "/mine")).json()
     assert page["items"][0]["status"] == "cancelled"
+
+
+async def test_listing_timezone_follows_city_snapshot(
+    owner: Account, places: Places
+) -> None:
+    listing = await publish(owner, draft=True)
+    assert listing["city_timezone"] == "Europe/Moscow"
+    response = await owner.put(
+        {
+            "city_id": str(places.perm),
+            "faculty_id": str(places.perm_faculty),
+            "course": 2,
+        }
+    )
+    assert response.status_code == 200
+    assert response.json()["city_timezone"] == "Asia/Yekaterinburg"
+    # Changing the author profile does not move an existing listing.
+    saved = await request(owner, "GET", f"/{listing['id']}")
+    assert saved.json()["city_timezone"] == "Europe/Moscow"
+    published = await request(owner, "POST", f"/{listing['id']}/publish")
+    assert published.status_code == 200, published.text
+    assert published.json()["city_timezone"] == "Asia/Yekaterinburg"
+    feed = await request(owner, "GET")
+    assert feed.json()["items"][0]["city_timezone"] == "Asia/Yekaterinburg"

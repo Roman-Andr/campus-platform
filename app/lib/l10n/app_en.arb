@@ -111,5 +111,31 @@
   "listingCompleted": "Completed",
   "listingHidden": "Hidden",
   "reservationNoShow": "No show",
-  "listingStatusUnknown": "Status unavailable"
+  "listingStatusUnknown": "Status unavailable",
+  "cityTimeZone": "{time}, {city}, {offset}",
+  "@cityTimeZone": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "city": {
+        "type": "String"
+      },
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "cityDateTimeHelp": "Date and time: {city}",
+  "@cityDateTimeHelp": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseCityDateTime": "Choose date and time",
+  "cityTimeDoesNotExist": "This time does not exist in the city time zone. Choose another time.",
+  "@chooseCityDateTime": {},
+  "@cityTimeDoesNotExist": {}
 }

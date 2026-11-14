@@ -228,6 +228,9 @@ msgstr ""
 msgid "Update required"
 msgstr ""
 
+msgid "Use RFC 3339 with an explicit UTC offset."
+msgstr ""
+
 msgid "Your Campus sign-in code"
 msgstr ""
 

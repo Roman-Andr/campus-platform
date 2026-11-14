@@ -199,6 +199,7 @@ async def test_fill_in_profile(student: Account, places: Places) -> None:
     assert response.json()["profile_complete"] is True
     me = (await student.me()).json()
     assert me["city_id"] == str(places.moscow)
+    assert me["city_timezone"] == "Europe/Moscow"
     assert me["dormitory_id"] == str(places.dubki)
     assert me["faculty_id"] == str(places.economics)
     assert me["course"] == 2
@@ -227,6 +228,7 @@ async def test_change_city(student: Account, places: Places) -> None:
     )
     assert response.status_code == 200, response.text
     assert response.json()["city_id"] == str(places.perm)
+    assert response.json()["city_timezone"] == "Asia/Yekaterinburg"
 
 
 @pytest.mark.parametrize(

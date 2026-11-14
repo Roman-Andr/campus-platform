@@ -41,6 +41,52 @@ flutter build apk --debug       # APK: build/app/outputs/flutter-apk/
 flutter run --dart-define=CAMPUS_API_URL=http://10.0.2.2:8000
 ```
 
+## Сборка на машине с 8 ГиБ RAM
+
+Gradle, Kotlin-демон, Flutter и эмулятор делят память, поэтому профиль
+сборки ограничен в `android/gradle.properties`:
+
+- `org.gradle.jvmargs` — heap 2 ГиБ, metaspace 768 МиБ,
+  code cache 256 МиБ;
+- `org.gradle.workers.max` — 2;
+- `kotlin.daemon.jvmargs` — heap 1 ГиБ, metaspace 512 МиБ.
+
+Параллельные debug- и release-сборки или сборка при запущенном
+эмуляторе могут не уложиться в 8 ГиБ. Порядок для машины с 7,6 ГиБ RAM:
+
+```sh
+cd app
+flutter pub get --enforce-lockfile
+# Сборки — последовательно, без запущенного эмулятора.
+flutter build apk --debug        # app-debug.apk
+flutter build apk --release      # app-release.apk
+# Демоны после сборки не нужны и держат память.
+cd android && ./gradlew --stop
+```
+
+APK лежат в `build/app/outputs/flutter-apk/`. `./gradlew --stop`
+останавливает Gradle-демоны; Kotlin-демон завершится по своему таймауту
+простоя. Если памяти всё равно не хватает, закройте браузер и IDE: swap
+помогает, но не заменяет физическую RAM. Для разовой сборки с большим
+heap задайте `org.gradle.jvmargs` в `~/.gradle/gradle.properties` —
+пользовательский файл переопределяет проектный.
+
+Эмулятор для такой машины — 2 ГиБ RAM и 2 ядра. AVD создаётся один
+раз, а память задаётся при каждом запуске (или постоянно — в
+`~/.android/avd/campus_api36.avd/config.ini`: `hw.ramSize=2048`,
+`hw.cpu.ncore=2`, `vm.heapSize=256`):
+
+```sh
+echo no | avdmanager create avd -n campus_api36 \
+  -k "system-images;android-36;google_apis;x86_64" --device pixel_6
+emulator -avd campus_api36 -memory 2048 -cores 2 -no-snapshot-save &
+adb wait-for-device
+flutter run -d emulator-5554
+```
+
+Запускайте эмулятор после того, как APK собран: `flutter run` пересоберёт
+только изменившееся, уже в тех же лимитах.
+
 ## Проверки
 
 ```sh
@@ -272,3 +318,18 @@ CAMPUS_RUN_GIVEAWAY_CLIENT=1 uv run pytest tests/test_giveaway_client.py -s
 передаёт данные тестовых сессий через временный файл вне репозитория.
 Обычный `uv run pytest` пропускает Android-проверку. После проверки:
 `adb emu kill`, затем `cd app/android && ./gradlew --stop`.
+
+## Время города
+
+`core/time/city_time.dart` загружает встроенную базу IANA пакета `timezone`
+при первом обращении. `cityTimeToUtc` переводит календарные поля города
+в UTC независимо от устройства. `formatCityTime` форматирует момент
+в поясе города; если смещение устройства в этот момент отличается,
+добавляет локализованную пометку города и UTC-смещения.
+
+`CityDateTimePicker` принимает UTC-значение, IANA-пояс, локализованное имя
+города, границы календарных дат и `onChanged(DateTime)` с UTC-результатом.
+Оба диалога редактируют календарные поля города. Несуществующее местное
+время при переходе DST отклоняется с сообщением RU/EN; для повторяющегося
+времени выбирается первое наступление. Форматирование использует `intl`
+после загрузки делегатов локализации приложения.
