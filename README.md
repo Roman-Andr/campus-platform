@@ -102,3 +102,5 @@ squash, обязательные `ci` и `pr-title`, без force push и уда
 gh api -X POST repos/Roman-Andr/campus-platform/rulesets \
   --input .github/rulesets/main.json
 ```
+
+<!-- ruleset guard test -->
