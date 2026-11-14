@@ -246,13 +246,6 @@ class Interaction(Entity):
             name="status",
         ),
         Index(
-            "uq_listing_active_participant",
-            "listing_id",
-            "participant_id",
-            unique=True,
-            postgresql_where=text("status IN ('pending', 'accepted')"),
-        ),
-        Index(
             "uq_listing_one_active_interaction",
             "listing_id",
             "slot",

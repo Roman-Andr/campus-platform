@@ -415,3 +415,25 @@ async def test_cancel_removes_pending_reminders(
             for n in await notifications(owner)
             if n.payload["type"] == "listing.meeting.reminder"
         ]
+
+
+async def test_signup_catches_up_an_expired_offer(
+    owner: Account, borrower: Account, places: Places
+) -> None:
+    now = clock.now()
+    with time_machine.travel(now, tick=False):
+        listing = await event(owner)
+        interaction = (await signup(borrower, listing)).json()["interaction"]
+        waiter = await queuer(owner.auth, places, 1)
+        assert (await signup(waiter, listing, True)).json()["result"] == "queued"
+        assert (
+            await move(borrower, listing, interaction, "cancelled")
+        ).status_code == 200
+    with time_machine.travel(
+        now + owner.auth.settings.listing_offer_timeout + timedelta(seconds=1),
+        tick=False,
+    ):
+        # No scheduler call: a direct retry must settle the expired offer itself.
+        response = await signup(waiter, listing)
+        assert response.status_code == 200, response.text
+        assert response.json()["result"] == "registered"

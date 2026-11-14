@@ -36,13 +36,6 @@ def upgrade() -> None:
         "event_location IS NOT NULL AND event_capacity IS NOT NULL AND "
         "event_capacity > 0)",
     )
-    op.create_index(
-        "uq_listing_active_participant",
-        "listing_interaction",
-        ["listing_id", "participant_id"],
-        unique=True,
-        postgresql_where=sa.text("status IN ('pending', 'accepted')"),
-    )
     op.add_column(
         "listing_waitlist", sa.Column("offer_slot", sa.Integer(), server_default="1")
     )
@@ -66,7 +59,6 @@ def downgrade() -> None:
         unique=True,
         postgresql_where=sa.text("status = 'offered'"),
     )
-    op.drop_index("uq_listing_active_participant", table_name="listing_interaction")
     op.drop_constraint("event_details", "listing", type_="check")
     op.drop_constraint("event_count", "listing", type_="check")
     for name in (

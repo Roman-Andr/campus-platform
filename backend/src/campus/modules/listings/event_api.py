@@ -44,6 +44,7 @@ from campus.modules.listings.service import (
     active_waitlist,
     claim_offer,
     event_offers,
+    expire_offer,
     join_waitlist,
     locked,
     offer_next,
@@ -184,6 +185,21 @@ async def signup_event(
             remaining_places=listing.remaining_places or 0,
         )
     settings: Settings = request.app.state.settings
+    # Catch up under the same aggregate lock if the scheduler has not yet
+    # processed an expired offer. Signup still returns one of its three results.
+    for offered in await event_offers(session, listing):
+        if (
+            offered.status == WaitlistStatus.OFFERED
+            and offered.offer_expires_at is not None
+            and offered.offer_expires_at <= clock.now()
+        ):
+            await expire_offer(
+                session,
+                listing,
+                offered,
+                offer_timeout=settings.listing_offer_timeout,
+                open_all_before=settings.listing_open_to_all_before,
+            )
     if (
         listing.event_starts_at - clock.now() > settings.listing_open_to_all_before
         or await event_offers(session, listing)
