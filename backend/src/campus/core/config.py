@@ -162,6 +162,12 @@ class Settings(BaseSettings):
         ),
     )
 
+    profile_max_course: int = Field(
+        default=6,
+        ge=1,
+        description="Highest year of study a student may give in the profile.",
+    )
+
     @field_validator("trusted_proxies")
     @classmethod
     def _check_trusted_proxies(cls, value: str) -> str:

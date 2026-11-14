@@ -17,6 +17,12 @@ class HomeScreen extends StatelessWidget {
         title: Text(l10n.appTitle),
         actions: [
           IconButton(
+            key: const Key('home-profile'),
+            icon: const Icon(Icons.account_circle_outlined),
+            tooltip: l10n.profileTitle,
+            onPressed: () => context.push(AppRoutes.profile),
+          ),
+          IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: l10n.settingsTitle,
             onPressed: () => context.push(AppRoutes.settings),

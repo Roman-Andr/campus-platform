@@ -75,7 +75,13 @@ class Dormitory(LocalizedName, Entity):
     """A dormitory in a campus city."""
 
     __tablename__ = "university_dormitory"
-    __table_args__ = (UniqueConstraint("city_id", "code"), _code_check())
+    # (city_id, id) is the target of foreign keys that require the row to
+    # belong to a given city, e.g. the dormitory of a user's city.
+    __table_args__ = (
+        UniqueConstraint("city_id", "code"),
+        UniqueConstraint("city_id", "id"),
+        _code_check(),
+    )
 
     city_id: Mapped[UUID] = mapped_column(
         ForeignKey("university_city.id", ondelete="RESTRICT")
@@ -87,7 +93,13 @@ class Faculty(LocalizedName, Entity):
     """A faculty (or school) of the university in a campus city."""
 
     __tablename__ = "university_faculty"
-    __table_args__ = (UniqueConstraint("city_id", "code"), _code_check())
+    # (city_id, id) is the target of foreign keys that require the row to
+    # belong to a given city, e.g. the dormitory of a user's city.
+    __table_args__ = (
+        UniqueConstraint("city_id", "code"),
+        UniqueConstraint("city_id", "id"),
+        _code_check(),
+    )
 
     city_id: Mapped[UUID] = mapped_column(
         ForeignKey("university_city.id", ondelete="RESTRICT")

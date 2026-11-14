@@ -8,6 +8,8 @@ class Tokens {
     required this.refreshToken,
     this.tokenType = "bearer",
     required this.expiresIn,
+
+    /// The user's account and profile.
     required this.user,
     this.additionalProperties = const {},
   });
@@ -34,6 +36,7 @@ class Tokens {
 
   final int expiresIn;
 
+  /// The user's account and profile.
   final UserOutput user;
 
   static const _knownKeys = <String>{

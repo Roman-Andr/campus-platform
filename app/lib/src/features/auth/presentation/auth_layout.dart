@@ -7,16 +7,18 @@ class AuthLayout extends StatelessWidget {
     required this.title,
     required this.children,
     this.leading,
+    this.actions = const [],
     super.key,
   });
 
   final String title;
   final List<Widget> children;
   final Widget? leading;
+  final List<Widget> actions;
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(title), leading: leading),
+    appBar: AppBar(title: Text(title), leading: leading, actions: actions),
     body: SafeArea(
       child: Center(
         child: ConstrainedBox(

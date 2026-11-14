@@ -80,6 +80,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(health.router, prefix=API_PREFIX)
     app.include_router(university.router, prefix=API_PREFIX)
     app.include_router(identity.router, prefix=API_PREFIX)
+    app.include_router(identity.profile_router, prefix=API_PREFIX)
 
     # The last added middleware is the outermost: the request ID is set
     # before the access log record is written.

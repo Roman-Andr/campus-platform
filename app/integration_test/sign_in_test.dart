@@ -65,89 +65,117 @@ void main() {
     expect(finder, findsWidgets);
   }
 
-  testWidgets('a new user signs up, refreshes the session and signs out', (
-    tester,
-  ) async {
-    await storage.deleteAll();
-    final email = 'it-${DateTime.now().millisecondsSinceEpoch}@$_domain';
+  testWidgets(
+    'a new user signs up, fills in the profile, refreshes the session '
+    'and signs out',
+    (tester) async {
+      await storage.deleteAll();
+      final email = 'it-${DateTime.now().millisecondsSinceEpoch}@$_domain';
 
-    await app.main();
-    await tester.pumpAndSettle();
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(Scaffold).first),
-    );
+      await app.main();
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(Scaffold).first),
+      );
 
-    // E-mail step.
-    final emailField = find.byKey(const Key('sign-in-email'));
-    await pumpUntil(tester, emailField);
-    await tester.enterText(emailField, email);
-    await tester.tap(find.byKey(const Key('sign-in-get-code')));
-    final codeField = find.byKey(const Key('sign-in-code'));
-    await pumpUntil(tester, codeField);
-    final code = await codeFrom(email);
+      // E-mail step.
+      final emailField = find.byKey(const Key('sign-in-email'));
+      await pumpUntil(tester, emailField);
+      await tester.enterText(emailField, email);
+      await tester.tap(find.byKey(const Key('sign-in-get-code')));
+      final codeField = find.byKey(const Key('sign-in-code'));
+      await pumpUntil(tester, codeField);
+      final code = await codeFrom(email);
 
-    // A wrong code is explained, without the server's text.
-    final wrong = code == '000000' ? '111111' : '000000';
-    await tester.enterText(codeField, wrong);
-    await pumpUntil(tester, find.byKey(const Key('auth-error')));
+      // A wrong code is explained, without the server's text.
+      final wrong = code == '000000' ? '111111' : '000000';
+      await tester.enterText(codeField, wrong);
+      await pumpUntil(tester, find.byKey(const Key('auth-error')));
 
-    // The right code leads a new user to registration.
-    await tester.enterText(codeField, code);
-    final firstName = find.byKey(const Key('sign-in-first-name'));
-    await pumpUntil(tester, firstName);
-    await tester.enterText(firstName, 'Иван');
-    await tester.enterText(
-      find.byKey(const Key('sign-in-last-name')),
-      'Интеграционный',
-    );
-    await tester.tap(find.byKey(const Key('sign-in-finish')));
-    final settings = find.byIcon(Icons.settings_outlined);
-    await pumpUntil(tester, settings);
-    expect(
-      container.read(authStatusProvider).value,
-      AuthenticationStatus.authenticated,
-    );
+      // The right code leads a new user to registration.
+      await tester.enterText(codeField, code);
+      final firstName = find.byKey(const Key('sign-in-first-name'));
+      await pumpUntil(tester, firstName);
+      await tester.enterText(firstName, 'Иван');
+      await tester.enterText(
+        find.byKey(const Key('sign-in-last-name')),
+        'Интеграционный',
+      );
+      await tester.tap(find.byKey(const Key('sign-in-finish')));
 
-    // Only the refresh token is kept, in the secure storage.
-    final saved = await storage.readAll();
-    final refresh = saved[AuthStorage.refreshTokenKey];
-    expect(refresh, isNotNull);
-    expect(saved.keys, {AuthStorage.refreshTokenKey, AuthStorage.deviceIdKey});
+      // A new user fills in the profile from the stand's reference data.
+      Future<void> chooseLast<T>(Finder field) async {
+        await pumpUntil(tester, field);
+        await tester.ensureVisible(field);
+        await tester.tap(field);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byType(DropdownMenuItem<T>).last);
+        await tester.pumpAndSettle();
+      }
 
-    // An expired access token is refreshed, which rotates the refresh
-    // token.
-    final session = container.read(authSessionProvider);
-    final expired = AuthToken(accessToken: 'expired', refreshToken: refresh!);
-    await session.setToken(expired);
-    await session.refreshToken(tokenUsedForRequest: expired);
-    final rotated = await storage.read(key: AuthStorage.refreshTokenKey);
-    expect(rotated, isNot(refresh));
+      Finder byKeyPrefix(String prefix) => find.byWidgetPredicate(
+        (widget) => switch (widget.key) {
+          ValueKey<String>(:final value) => value.startsWith(prefix),
+          _ => false,
+        },
+      );
 
-    // Signing out from settings ends the session on the server too.
-    await tester.tap(settings);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('sign-out')));
-    await pumpUntil(tester, emailField);
+      await chooseLast<String>(find.byKey(const Key('profile-city')));
+      await chooseLast<String>(byKeyPrefix('profile-dormitory-'));
+      await chooseLast<String>(byKeyPrefix('profile-faculty-'));
+      await chooseLast<int>(find.byKey(const Key('profile-course')));
+      await tester.tap(find.byKey(const Key('profile-save')));
+      final settings = find.byIcon(Icons.settings_outlined);
+      await pumpUntil(tester, settings);
+      expect(
+        container.read(authStatusProvider).value,
+        AuthenticationStatus.authenticated,
+      );
 
-    final deviceId = await storage.read(key: AuthStorage.deviceIdKey);
-    await expectLater(
-      AuthenticationClient(container.read(authRefreshDioProvider))
-          .refreshTokens(
-            body: RefreshInput(refreshToken: rotated!, deviceId: deviceId!),
+      // Only the refresh token is kept, in the secure storage.
+      final saved = await storage.readAll();
+      final refresh = saved[AuthStorage.refreshTokenKey];
+      expect(refresh, isNotNull);
+      expect(saved.keys, {
+        AuthStorage.refreshTokenKey,
+        AuthStorage.deviceIdKey,
+      });
+
+      // An expired access token is refreshed, which rotates the refresh
+      // token.
+      final session = container.read(authSessionProvider);
+      final expired = AuthToken(accessToken: 'expired', refreshToken: refresh!);
+      await session.setToken(expired);
+      await session.refreshToken(tokenUsedForRequest: expired);
+      final rotated = await storage.read(key: AuthStorage.refreshTokenKey);
+      expect(rotated, isNot(refresh));
+
+      // Signing out from settings ends the session on the server too.
+      await tester.tap(settings);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('sign-out')));
+      await pumpUntil(tester, emailField);
+
+      final deviceId = await storage.read(key: AuthStorage.deviceIdKey);
+      await expectLater(
+        AuthenticationClient(container.read(authRefreshDioProvider))
+            .refreshTokens(
+              body: RefreshInput(refreshToken: rotated!, deviceId: deviceId!),
+            ),
+        throwsA(
+          isA<DioException>().having(
+            (error) => error.response?.statusCode,
+            'status',
+            401,
           ),
-      throwsA(
-        isA<DioException>().having(
-          (error) => error.response?.statusCode,
-          'status',
-          401,
         ),
-      ),
-    );
-    expect(
-      container.read(authStatusProvider).value,
-      AuthenticationStatus.unauthenticated,
-    );
-    expect(await storage.read(key: AuthStorage.refreshTokenKey), isNull);
-    expect(await storage.read(key: AuthStorage.deviceIdKey), deviceId);
-  });
+      );
+      expect(
+        container.read(authStatusProvider).value,
+        AuthenticationStatus.unauthenticated,
+      );
+      expect(await storage.read(key: AuthStorage.refreshTokenKey), isNull);
+      expect(await storage.read(key: AuthStorage.deviceIdKey), deviceId);
+    },
+  );
 }
