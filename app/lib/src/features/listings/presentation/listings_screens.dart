@@ -12,6 +12,7 @@ import '../application/listing_photo_draft.dart';
 import '../application/listings.dart';
 import 'interaction_timeline_screen.dart';
 import 'listing_photos.dart';
+import 'meeting_screen.dart';
 import 'my_screens.dart';
 import 'status_labels.dart';
 
@@ -537,6 +538,12 @@ class ReservationTile extends ConsumerWidget {
           onTap: () => context.push('/listings/${item.listingId}'),
         ),
         TimelineButton(item: item),
+        if (listing.value case final value?)
+          MeetingSummary(
+            item: item,
+            timezone: value.cityTimezone,
+            city: value.cityTimezone,
+          ),
         ParticipantCancel(item: item),
       ],
     );
@@ -582,6 +589,7 @@ class _IncomingListState extends ConsumerState<IncomingList> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final listing = ref.watch(listingProvider(widget.id)).value;
     return ref
         .watch(incomingProvider(widget.id, cursor))
         .when(
@@ -611,6 +619,12 @@ class _IncomingListState extends ConsumerState<IncomingList> {
                     Text(item.participantName),
                     InteractionStatusText(item: item),
                     TimelineButton(item: item),
+                    if (listing != null)
+                      MeetingSummary(
+                        item: item,
+                        timezone: listing.cityTimezone,
+                        city: listing.cityTimezone,
+                      ),
                     if (item.status == InteractionStatus.pending)
                       Wrap(
                         spacing: 8,

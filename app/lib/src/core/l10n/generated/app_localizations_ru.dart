@@ -702,6 +702,106 @@ class AppLocalizationsRu extends AppLocalizations {
   String get listingExtended => 'Срок объявления продлён.';
 
   @override
+  String get meetingTitle => 'Встреча';
+
+  @override
+  String get meetingNotScheduled => 'Встреча ещё не назначена';
+
+  @override
+  String get meetingCurrent => 'Действующая встреча';
+
+  @override
+  String get meetingYourProposal => 'Ваше предложение';
+
+  @override
+  String get meetingNewProposal => 'Новое предложение';
+
+  @override
+  String meetingPlace(String place) {
+    return 'Место: $place';
+  }
+
+  @override
+  String get meetingAwaitingAnswer => 'Ждём ответа второго участника';
+
+  @override
+  String get meetingAwaitingYourAnswer => 'Ждёт вашего ответа';
+
+  @override
+  String get meetingOpen => 'Открыть встречу';
+
+  @override
+  String get meetingAccept => 'Подтвердить';
+
+  @override
+  String get meetingReschedule => 'Перенести';
+
+  @override
+  String get meetingSuggest => 'Предложить время и место';
+
+  @override
+  String get meetingChangeProposal => 'Изменить предложение';
+
+  @override
+  String get meetingFormTitle => 'Время и место';
+
+  @override
+  String get meetingPlaceLabel => 'Место встречи';
+
+  @override
+  String get meetingPlaceRequired => 'Укажите место встречи.';
+
+  @override
+  String get meetingTimeRequired => 'Выберите время встречи.';
+
+  @override
+  String get meetingTimePast => 'Нельзя выбрать время в прошлом.';
+
+  @override
+  String get meetingSaveProposal => 'Отправить предложение';
+
+  @override
+  String get meetingDismiss => 'Отмена';
+
+  @override
+  String get meetingStale =>
+      'Предложение уже изменилось. Проверьте новое время и место.';
+
+  @override
+  String get meetingStateConflict =>
+      'Встречу можно назначить только для принятого взаимодействия.';
+
+  @override
+  String get meetingTimeInvalid => 'Выберите время в будущем.';
+
+  @override
+  String get meetingPlaceInvalid => 'Проверьте место встречи.';
+
+  @override
+  String get meetingUnavailable => 'Встреча недоступна.';
+
+  @override
+  String get meetingConfirmed => 'Встреча подтверждена.';
+
+  @override
+  String get meetingProposalSent => 'Предложение отправлено.';
+
+  @override
+  String get meetingCancelInteraction => 'Отменить взаимодействие';
+
+  @override
+  String get meetingCancelTitle => 'Отменить взаимодействие?';
+
+  @override
+  String get meetingCancelBody => 'Встреча и напоминания о ней будут отменены.';
+
+  @override
+  String get meetingCancelKeep => 'Оставить';
+
+  @override
+  String get meetingCancelConfirm => 'Отменить';
+
+  @override
   String get mySectionDrafts => 'Черновики';
 
   @override

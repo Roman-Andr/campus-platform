@@ -11,6 +11,7 @@ import '../../features/consents/presentation/consents_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/listings/presentation/interaction_timeline_screen.dart';
 import '../../features/listings/presentation/listings_screens.dart';
+import '../../features/listings/presentation/meeting_screen.dart';
 import '../../features/listings/presentation/my_screens.dart';
 import '../../features/profile/application/my_profile.dart';
 import '../../features/profile/presentation/profile_form_screen.dart';
@@ -79,6 +80,15 @@ GoRouter appRouter(Ref ref) {
                   ? state.extra! as String
                   : null,
             ),
+            routes: [
+              GoRoute(
+                path: 'meeting',
+                builder: (context, state) => MeetingScreen(
+                  listingId: state.pathParameters['id']!,
+                  interactionId: state.pathParameters['interactionId']!,
+                ),
+              ),
+            ],
           ),
         ],
       ),

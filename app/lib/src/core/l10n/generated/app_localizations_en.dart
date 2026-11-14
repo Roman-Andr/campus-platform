@@ -705,6 +705,108 @@ class AppLocalizationsEn extends AppLocalizations {
   String get listingExtended => 'The listing has been extended.';
 
   @override
+  String get meetingTitle => 'Meeting';
+
+  @override
+  String get meetingNotScheduled => 'No meeting scheduled yet';
+
+  @override
+  String get meetingCurrent => 'Current meeting';
+
+  @override
+  String get meetingYourProposal => 'Your proposal';
+
+  @override
+  String get meetingNewProposal => 'New proposal';
+
+  @override
+  String meetingPlace(String place) {
+    return 'Place: $place';
+  }
+
+  @override
+  String get meetingAwaitingAnswer =>
+      'Waiting for the other participant to respond';
+
+  @override
+  String get meetingAwaitingYourAnswer => 'Waiting for your response';
+
+  @override
+  String get meetingOpen => 'Open meeting';
+
+  @override
+  String get meetingAccept => 'Confirm';
+
+  @override
+  String get meetingReschedule => 'Reschedule';
+
+  @override
+  String get meetingSuggest => 'Suggest a time and place';
+
+  @override
+  String get meetingChangeProposal => 'Change proposal';
+
+  @override
+  String get meetingFormTitle => 'Time and place';
+
+  @override
+  String get meetingPlaceLabel => 'Meeting place';
+
+  @override
+  String get meetingPlaceRequired => 'Enter a meeting place.';
+
+  @override
+  String get meetingTimeRequired => 'Choose a meeting time.';
+
+  @override
+  String get meetingTimePast => 'The time can\'t be in the past.';
+
+  @override
+  String get meetingSaveProposal => 'Send proposal';
+
+  @override
+  String get meetingDismiss => 'Cancel';
+
+  @override
+  String get meetingStale =>
+      'The proposal has changed. Check the new time and place.';
+
+  @override
+  String get meetingStateConflict =>
+      'A meeting can only be scheduled for an accepted interaction.';
+
+  @override
+  String get meetingTimeInvalid => 'Choose a time in the future.';
+
+  @override
+  String get meetingPlaceInvalid => 'Check the meeting place.';
+
+  @override
+  String get meetingUnavailable => 'The meeting is unavailable.';
+
+  @override
+  String get meetingConfirmed => 'Meeting confirmed.';
+
+  @override
+  String get meetingProposalSent => 'Proposal sent.';
+
+  @override
+  String get meetingCancelInteraction => 'Cancel interaction';
+
+  @override
+  String get meetingCancelTitle => 'Cancel the interaction?';
+
+  @override
+  String get meetingCancelBody =>
+      'The meeting and its reminders will be cancelled.';
+
+  @override
+  String get meetingCancelKeep => 'Keep';
+
+  @override
+  String get meetingCancelConfirm => 'Cancel';
+
+  @override
   String get mySectionDrafts => 'Drafts';
 
   @override

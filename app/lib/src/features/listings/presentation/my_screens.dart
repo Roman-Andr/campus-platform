@@ -10,6 +10,7 @@ import '../application/listings.dart';
 import '../application/my_listings.dart';
 import 'interaction_timeline_screen.dart';
 import 'listings_screens.dart';
+import 'meeting_screen.dart';
 
 String mySectionName(AppLocalizations l, MySection section) =>
     switch (section) {
@@ -140,6 +141,11 @@ class ParticipationTile extends StatelessWidget {
           onTap: () => context.push('/listings/${item.listing.id}'),
         ),
         TimelineButton(item: interaction),
+        MeetingSummary(
+          item: interaction,
+          timezone: item.listing.cityTimezone,
+          city: item.listing.cityTimezone,
+        ),
         ParticipantCancel(item: interaction),
       ],
     );

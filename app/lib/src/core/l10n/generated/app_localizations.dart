@@ -1298,6 +1298,198 @@ abstract class AppLocalizations {
   /// **'Срок объявления продлён.'**
   String get listingExtended;
 
+  /// Title of the meeting screen and of the meeting card.
+  ///
+  /// In ru, this message translates to:
+  /// **'Встреча'**
+  String get meetingTitle;
+
+  /// An accepted interaction without a meeting yet.
+  ///
+  /// In ru, this message translates to:
+  /// **'Встреча ещё не назначена'**
+  String get meetingNotScheduled;
+
+  /// Label of the effective meeting before a pending transfer.
+  ///
+  /// In ru, this message translates to:
+  /// **'Действующая встреча'**
+  String get meetingCurrent;
+
+  /// A proposal made by the current user and awaiting the answer.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ваше предложение'**
+  String get meetingYourProposal;
+
+  /// A proposal made by the other participant.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новое предложение'**
+  String get meetingNewProposal;
+
+  /// Meeting place.
+  ///
+  /// In ru, this message translates to:
+  /// **'Место: {place}'**
+  String meetingPlace(String place);
+
+  /// The user proposed a meeting and waits for the answer.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ждём ответа второго участника'**
+  String get meetingAwaitingAnswer;
+
+  /// The other participant proposed a meeting.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ждёт вашего ответа'**
+  String get meetingAwaitingYourAnswer;
+
+  /// Opens the meeting screen from an interaction card.
+  ///
+  /// In ru, this message translates to:
+  /// **'Открыть встречу'**
+  String get meetingOpen;
+
+  /// Accepts the current meeting proposal.
+  ///
+  /// In ru, this message translates to:
+  /// **'Подтвердить'**
+  String get meetingAccept;
+
+  /// Proposes a new time and place for a scheduled meeting.
+  ///
+  /// In ru, this message translates to:
+  /// **'Перенести'**
+  String get meetingReschedule;
+
+  /// Proposes the first time and place.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложить время и место'**
+  String get meetingSuggest;
+
+  /// Replaces the pending proposal.
+  ///
+  /// In ru, this message translates to:
+  /// **'Изменить предложение'**
+  String get meetingChangeProposal;
+
+  /// Title of the meeting proposal form.
+  ///
+  /// In ru, this message translates to:
+  /// **'Время и место'**
+  String get meetingFormTitle;
+
+  /// Field label of the meeting place.
+  ///
+  /// In ru, this message translates to:
+  /// **'Место встречи'**
+  String get meetingPlaceLabel;
+
+  /// A meeting place is required.
+  ///
+  /// In ru, this message translates to:
+  /// **'Укажите место встречи.'**
+  String get meetingPlaceRequired;
+
+  /// A meeting time is required.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите время встречи.'**
+  String get meetingTimeRequired;
+
+  /// A meeting cannot be proposed in the past.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нельзя выбрать время в прошлом.'**
+  String get meetingTimePast;
+
+  /// Sends the meeting proposal.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отправить предложение'**
+  String get meetingSaveProposal;
+
+  /// Closes the proposal form without sending it.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отмена'**
+  String get meetingDismiss;
+
+  /// The server rejected an outdated proposal with 409.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложение уже изменилось. Проверьте новое время и место.'**
+  String get meetingStale;
+
+  /// The interaction is not accepted, so a meeting cannot change.
+  ///
+  /// In ru, this message translates to:
+  /// **'Встречу можно назначить только для принятого взаимодействия.'**
+  String get meetingStateConflict;
+
+  /// The server rejected the meeting time.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите время в будущем.'**
+  String get meetingTimeInvalid;
+
+  /// The server rejected the meeting place.
+  ///
+  /// In ru, this message translates to:
+  /// **'Проверьте место встречи.'**
+  String get meetingPlaceInvalid;
+
+  /// The interaction or its meeting is not available to the user.
+  ///
+  /// In ru, this message translates to:
+  /// **'Встреча недоступна.'**
+  String get meetingUnavailable;
+
+  /// The meeting was accepted.
+  ///
+  /// In ru, this message translates to:
+  /// **'Встреча подтверждена.'**
+  String get meetingConfirmed;
+
+  /// A meeting proposal was sent to the other participant.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложение отправлено.'**
+  String get meetingProposalSent;
+
+  /// Withdraws the accepted interaction and its meeting.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отменить взаимодействие'**
+  String get meetingCancelInteraction;
+
+  /// Confirmation title before withdrawing the interaction.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отменить взаимодействие?'**
+  String get meetingCancelTitle;
+
+  /// Explains that withdrawing the interaction cancels the meeting.
+  ///
+  /// In ru, this message translates to:
+  /// **'Встреча и напоминания о ней будут отменены.'**
+  String get meetingCancelBody;
+
+  /// Keeps the interaction in the confirmation dialog.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оставить'**
+  String get meetingCancelKeep;
+
+  /// Confirms withdrawing the interaction.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отменить'**
+  String get meetingCancelConfirm;
+
   /// Own listings filter: drafts.
   ///
   /// In ru, this message translates to:
