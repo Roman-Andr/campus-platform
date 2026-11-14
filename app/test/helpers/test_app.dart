@@ -3,6 +3,8 @@ import 'package:campus/src/core/api/api_client.dart';
 import 'package:campus/src/core/api/api_config.dart';
 import 'package:campus/src/core/api/client_info.dart';
 import 'package:campus/src/core/api/network_status.dart';
+import 'package:campus/src/core/auth/auth_session.dart';
+import 'package:campus/src/core/auth/auth_storage.dart';
 import 'package:campus/src/core/database/app_database.dart';
 import 'package:campus/src/features/settings/application/settings_controller.dart';
 import 'package:campus/src/features/settings/data/settings_repository.dart';
@@ -11,6 +13,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fake_api.dart';
@@ -32,14 +35,34 @@ ProviderContainer createTestContainer(AppDatabase database) {
   return container;
 }
 
+/// Refresh token of a signed-in user in tests.
+const testRefreshToken = 'refresh-token-secret';
+
+/// Contents of the secure storage of a device with a signed-in user.
+const signedInStorage = {
+  AuthStorage.refreshTokenKey: testRefreshToken,
+  AuthStorage.deviceIdKey: '01890a5d-ac96-774b-bcce-b302099a8057',
+};
+
 /// Replaces the server, the device network and the settings storage:
 /// requests go to [adapter], network changes come from [network] (none by
-/// default), settings are kept in [settings].
+/// default), settings are kept in [settings], the secure storage starts
+/// with [secure] (no session by default).
 List<Override> apiOverrides({
   FakeHttpAdapter? adapter,
   Stream<bool>? network,
   SettingsRepository? settings,
-}) => [
+  Map<String, String> secure = const {},
+}) {
+  FlutterSecureStorage.setMockInitialValues(Map.of(secure));
+  return _overrides(adapter, network, settings);
+}
+
+List<Override> _overrides(
+  FakeHttpAdapter? adapter,
+  Stream<bool>? network,
+  SettingsRepository? settings,
+) => [
   settingsRepositoryProvider.overrideWithValue(
     settings ?? InMemorySettingsRepository(),
   ),
@@ -67,21 +90,29 @@ class InMemorySettingsRepository implements SettingsRepository {
 }
 
 extension PumpCampusApp on WidgetTester {
-  /// Starts the app the way `main` does: settings are loaded first.
+  /// Starts the app the way `main` does: settings and the session are
+  /// loaded first. A user is signed in unless [secure] says otherwise.
   Future<ProviderContainer> pumpCampusApp(
     SettingsRepository repository, {
     FakeHttpAdapter? adapter,
     Stream<bool>? network,
+    Map<String, String> secure = signedInStorage,
+    List<Override> overrides = const [],
   }) async {
     final container = ProviderContainer(
-      overrides: apiOverrides(
-        adapter: adapter,
-        network: network,
-        settings: repository,
-      ),
+      overrides: [
+        ...apiOverrides(
+          adapter: adapter,
+          network: network,
+          settings: repository,
+          secure: secure,
+        ),
+        ...overrides,
+      ],
     );
     addTearDown(container.dispose);
     await container.read(settingsControllerProvider.future);
+    await container.read(authStatusProvider.future);
     await pumpWidget(
       UncontrolledProviderScope(container: container, child: const CampusApp()),
     );
