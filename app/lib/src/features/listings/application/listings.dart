@@ -8,6 +8,8 @@ import '../../../core/api/api_client.dart';
 import '../../../core/api/network_status.dart';
 import '../../../core/auth/auth_session.dart';
 import '../data/listings_repository.dart';
+import '../domain/feed.dart';
+import 'feed_filters.dart';
 import 'interaction_timeline.dart';
 import 'my_listings.dart';
 
@@ -25,16 +27,23 @@ class ListingFeed extends _$ListingFeed {
   Future<PageListingOutput> build(Visibility area) async {
     ref.watch(authStatusProvider.select((s) => s.value));
     final online = ref.watch(networkStatusProvider);
+    final filters = await ref.watch(feedFilterSelectionProvider.future);
     final owner = await ref.read(authStorageProvider).cacheNamespace();
     final cache = ref.read(listingsCacheProvider);
-    final cached = await cache.load(owner, area);
+    final key = feedCacheKey(area, filters);
+    final cached = await cache.load(owner, key);
     if (!online && cached != null) return cached;
     try {
       final page = await ref
           .read(campusApiProvider)
           .listings
-          .listingFeed(area: area);
-      await cache.save(owner, area, page);
+          .listingFeed(
+            area: area,
+            kind: filters.kind?.apiValue,
+            categoryId: filters.categoryId,
+            dormitoryId: filters.dormitoryId,
+          );
+      await cache.save(owner, key, page);
       return page;
     } catch (error) {
       if (ApiFailure.from(error) is NetworkFailure && cached != null) {
@@ -49,10 +58,18 @@ class ListingFeed extends _$ListingFeed {
     if (_loading || previous == null || previous.nextPage == null) return;
     _loading = true;
     try {
+      final filters =
+          ref.read(feedFilterSelectionProvider).value ?? FeedFilters.none;
       final page = await ref
           .read(campusApiProvider)
           .listings
-          .listingFeed(area: area, cursor: previous.nextPage);
+          .listingFeed(
+            area: area,
+            kind: filters.kind?.apiValue,
+            categoryId: filters.categoryId,
+            dormitoryId: filters.dormitoryId,
+            cursor: previous.nextPage,
+          );
       final combined = PageListingOutput(
         items: {
           for (final item in [...previous.items, ...page.items]) item.id: item,
@@ -60,7 +77,9 @@ class ListingFeed extends _$ListingFeed {
         nextPage: page.nextPage,
       );
       final owner = await ref.read(authStorageProvider).cacheNamespace();
-      await ref.read(listingsCacheProvider).save(owner, area, combined);
+      await ref
+          .read(listingsCacheProvider)
+          .save(owner, feedCacheKey(area, filters), combined);
       state = AsyncData(combined);
     } finally {
       _loading = false;

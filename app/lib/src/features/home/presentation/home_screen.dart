@@ -1,22 +1,33 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../core/l10n/l10n.dart';
 import '../../../core/router/app_router.dart';
+import '../../listings/domain/publication.dart';
 import '../../listings/presentation/listings_screens.dart';
+import '../../profile/application/my_profile.dart';
 
 /// Listings feed and entry points to account and giveaway workflows.
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final headman = isHeadman(ref.watch(myProfileProvider).value);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: [
+          if (headman)
+            IconButton(
+              key: const Key('feed-create-publication'),
+              icon: const Icon(Icons.campaign_outlined),
+              tooltip: l10n.feedCreatePublication,
+              onPressed: () => context.push('/publication/new'),
+            ),
           IconButton(
             key: const Key('home-favorites'),
             icon: const Icon(Icons.star_border),

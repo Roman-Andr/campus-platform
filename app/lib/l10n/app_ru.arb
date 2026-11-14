@@ -464,6 +464,67 @@
   "listingsOwn": "Мои объявления",
   "listingsReservations": "Моё участие",
   "listingIncoming": "Входящие заявки",
+  "feedPinned": "Закреплённые",
+  "@feedPinned": {
+    "description": "Heading of the pinned notices above the feed."
+  },
+  "feedPinnedUntil": "Закреплено до {date}",
+  "@feedPinnedUntil": {
+    "description": "Pin deadline shown on a notice.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "feedFilterAllKinds": "Все типы",
+  "@feedFilterAllKinds": {
+    "description": "Feed filter: every kind of entry."
+  },
+  "feedFilterAllCategories": "Все категории",
+  "@feedFilterAllCategories": {
+    "description": "Feed filter: every category."
+  },
+  "feedFilterAllDormitories": "Все общежития",
+  "@feedFilterAllDormitories": {
+    "description": "Feed filter: every dormitory."
+  },
+  "feedFiltersReset": "Сбросить фильтры",
+  "@feedFiltersReset": {
+    "description": "Clears all feed filters."
+  },
+  "feedCreatePublication": "Разместить объявление",
+  "@feedCreatePublication": {
+    "description": "Headman action and screen title for a pinned notice."
+  },
+  "feedEditPublication": "Редактировать объявление",
+  "@feedEditPublication": {
+    "description": "Edit action of a pinned notice."
+  },
+  "feedPublicationScope": "Где опубликовать",
+  "@feedPublicationScope": {
+    "description": "Area of a pinned notice."
+  },
+  "feedPinUntil": "Закрепить до",
+  "@feedPinUntil": {
+    "description": "Label of the pin deadline picker."
+  },
+  "feedPinInFuture": "Выберите будущие дату и время.",
+  "@feedPinInFuture": {
+    "description": "Validation of a pin deadline in the past."
+  },
+  "feedNoScope": "Нет области для публикации.",
+  "@feedNoScope": {
+    "description": "A headman without a dormitory or faculty scope."
+  },
+  "feedUnpin": "Снять закреп",
+  "@feedUnpin": {
+    "description": "Removes the pin but keeps the notice in the feed."
+  },
+  "listingKindPublication": "Объявление",
+  "@listingKindPublication": {
+    "description": "Listing kind name: informational publication."
+  },
   "reservationPending": "Ожидает решения",
   "reservationAccepted": "Принята",
   "reservationRejected": "Отклонена",

@@ -399,6 +399,50 @@ class AppLocalizationsRu extends AppLocalizations {
   String get listingIncoming => 'Входящие заявки';
 
   @override
+  String get feedPinned => 'Закреплённые';
+
+  @override
+  String feedPinnedUntil(String date) {
+    return 'Закреплено до $date';
+  }
+
+  @override
+  String get feedFilterAllKinds => 'Все типы';
+
+  @override
+  String get feedFilterAllCategories => 'Все категории';
+
+  @override
+  String get feedFilterAllDormitories => 'Все общежития';
+
+  @override
+  String get feedFiltersReset => 'Сбросить фильтры';
+
+  @override
+  String get feedCreatePublication => 'Разместить объявление';
+
+  @override
+  String get feedEditPublication => 'Редактировать объявление';
+
+  @override
+  String get feedPublicationScope => 'Где опубликовать';
+
+  @override
+  String get feedPinUntil => 'Закрепить до';
+
+  @override
+  String get feedPinInFuture => 'Выберите будущие дату и время.';
+
+  @override
+  String get feedNoScope => 'Нет области для публикации.';
+
+  @override
+  String get feedUnpin => 'Снять закреп';
+
+  @override
+  String get listingKindPublication => 'Объявление';
+
+  @override
   String get reservationPending => 'Ожидает решения';
 
   @override

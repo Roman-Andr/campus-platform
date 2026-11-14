@@ -401,6 +401,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String get listingIncoming => 'Incoming requests';
 
   @override
+  String get feedPinned => 'Pinned';
+
+  @override
+  String feedPinnedUntil(String date) {
+    return 'Pinned until $date';
+  }
+
+  @override
+  String get feedFilterAllKinds => 'All types';
+
+  @override
+  String get feedFilterAllCategories => 'All categories';
+
+  @override
+  String get feedFilterAllDormitories => 'All dormitories';
+
+  @override
+  String get feedFiltersReset => 'Reset filters';
+
+  @override
+  String get feedCreatePublication => 'Post a notice';
+
+  @override
+  String get feedEditPublication => 'Edit notice';
+
+  @override
+  String get feedPublicationScope => 'Publish in';
+
+  @override
+  String get feedPinUntil => 'Pinned until';
+
+  @override
+  String get feedPinInFuture => 'Choose a future date and time.';
+
+  @override
+  String get feedNoScope => 'You have no area to publish in.';
+
+  @override
+  String get feedUnpin => 'Unpin';
+
+  @override
+  String get listingKindPublication => 'Notice';
+
+  @override
   String get reservationPending => 'Pending';
 
   @override

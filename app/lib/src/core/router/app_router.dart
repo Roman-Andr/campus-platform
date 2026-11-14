@@ -13,6 +13,7 @@ import '../../features/listings/presentation/interaction_timeline_screen.dart';
 import '../../features/listings/presentation/listings_screens.dart';
 import '../../features/listings/presentation/meeting_screen.dart';
 import '../../features/listings/presentation/my_screens.dart';
+import '../../features/listings/presentation/publication_screen.dart';
 import '../../features/profile/application/my_profile.dart';
 import '../../features/profile/presentation/profile_form_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -57,6 +58,10 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: '/giveaway/new',
         builder: (context, state) => const CreateListingScreen(),
+      ),
+      GoRoute(
+        path: '/publication/new',
+        builder: (context, state) => const CreatePublicationScreen(),
       ),
       GoRoute(
         path: '/my-listings',
