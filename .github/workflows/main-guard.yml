@@ -1,10 +1,10 @@
-# Stand-in for branch protection while the private repository has no
-# GitHub Pro (rulesets are unavailable; the intended ruleset is
-# .github/rulesets/main.json). GitHub cannot reject a push here, so every
-# change of main is checked afterwards: each new commit must be the merge
-# of a pull request whose required checks were green on its head commit,
-# and the push must not be forced. A violation fails this workflow and
-# opens a `bug` issue.
+# Second line of defence behind the main ruleset
+# (.github/rulesets/main.json), which now rejects direct, forced and
+# non-squash changes on the server. This workflow still checks every
+# change of main afterwards: each new commit must be the merge of a pull
+# request whose required checks were green on its head commit, and the
+# push must not be forced. A violation fails this workflow and opens a
+# `bug` issue.
 name: Main guard
 
 on:
