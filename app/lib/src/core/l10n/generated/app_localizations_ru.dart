@@ -791,4 +791,102 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get timelineOfflineQr => 'Офлайн-QR';
+
+  @override
+  String get profilePhoto => 'Фото профиля';
+
+  @override
+  String get profilePhotoChoose => 'Выбрать фото';
+
+  @override
+  String get profilePhotoReplace => 'Заменить фото';
+
+  @override
+  String get profilePhotoCamera => 'Сделать снимок';
+
+  @override
+  String get profilePhotoRemove => 'Удалить фото';
+
+  @override
+  String get profilePhotoUploading => 'Фото загружается…';
+
+  @override
+  String get profilePhotoProcessing => 'Фото проверяется…';
+
+  @override
+  String profilePhotoTooLarge(int megabytes) {
+    return 'Файл больше $megabytes МБ — выберите фото поменьше.';
+  }
+
+  @override
+  String get profilePhotoRejected =>
+      'Это не похоже на фото: выберите изображение JPEG, PNG, WebP или HEIC.';
+
+  @override
+  String get profilePhotoTimeout =>
+      'Фото проверяется слишком долго. Попробуйте ещё раз.';
+
+  @override
+  String get profileSkills => 'Навыки';
+
+  @override
+  String get profileSkillsCan => 'Умею';
+
+  @override
+  String get profileSkillsWants => 'Хочу научиться';
+
+  @override
+  String get profileSkillsNone => 'Не указаны';
+
+  @override
+  String get profileSkillsEdit => 'Изменить навыки';
+
+  @override
+  String get profileSkillsAdd => 'Добавить';
+
+  @override
+  String get profileSkillsSearch => 'Найти навык';
+
+  @override
+  String get profileSkillsNotFound => 'Ничего не найдено';
+
+  @override
+  String profileSkillRemove(String name) {
+    return 'Убрать «$name»';
+  }
+
+  @override
+  String get profileSkillsUnavailable =>
+      'Некоторых навыков больше нет в справочнике — уберите их и сохраните снова.';
+
+  @override
+  String get profileNameChange => 'Изменить имя';
+
+  @override
+  String get profileNameRule =>
+      'Смена имени записывается в журнал, а следующая будет доступна не сразу. Указывайте настоящие имя и фамилию.';
+
+  @override
+  String profileNameNextChange(String date) {
+    return 'Следующая смена имени — не раньше $date';
+  }
+
+  @override
+  String profileNameTooSoon(String date) {
+    return 'Имя недавно менялось. Следующая смена — не раньше $date.';
+  }
+
+  @override
+  String get profileSetupPhotoIntro =>
+      'Добавьте фото, чтобы вас узнавали при встрече. Этот шаг можно пропустить.';
+
+  @override
+  String get profileSetupSkillsIntro =>
+      'Отметьте, что вы умеете и чему хотите научиться, — так проще найти, с кем обменяться навыками. Этот шаг можно пропустить.';
+
+  @override
+  String get profileSkip => 'Пропустить';
+
+  @override
+  String get profileDone => 'Готово';
 }

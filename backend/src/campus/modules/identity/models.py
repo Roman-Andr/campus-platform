@@ -2,6 +2,7 @@
 rotating device credentials."""
 
 from datetime import datetime
+from enum import StrEnum
 from uuid import UUID
 
 from sqlalchemy import (
@@ -16,8 +17,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
-from campus.core.db import Entity
-from campus.modules.university import AccountType
+from campus.core.db import Base, Entity, LocalizedName
+from campus.modules.university import CODE_MAX_LENGTH, CODE_PATTERN, AccountType
 
 
 class User(Entity):
@@ -136,3 +137,52 @@ class RefreshToken(Entity):
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     expires_at: Mapped[datetime]
     used_at: Mapped[datetime | None]
+
+
+class SkillTag(LocalizedName, Entity):
+    """A skill of the common tag reference (specification, 5.1.1, module 10,
+    item 2): what a user can do or wants to learn."""
+
+    __tablename__ = "identity_skill_tag"
+    __table_args__ = (CheckConstraint(f"code ~ '{CODE_PATTERN}'", name="code_format"),)
+
+    code: Mapped[str] = mapped_column(String(CODE_MAX_LENGTH), unique=True)
+
+
+class SkillKind(StrEnum):
+    """Which list of the profile a skill is in."""
+
+    CAN = "can"
+    WANTS = "wants"
+
+
+class UserSkill(Base):
+    """A skill tag in one of the profile lists (specification, 5.1.1,
+    module 2, item 1); a list is replaced whole."""
+
+    __tablename__ = "identity_user_skill"
+    __table_args__ = (CheckConstraint("kind IN ('can', 'wants')", name="kind"),)
+
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("identity_user.id", ondelete="CASCADE"), primary_key=True
+    )
+    kind: Mapped[str] = mapped_column(String(8), primary_key=True)
+    tag_id: Mapped[UUID] = mapped_column(
+        ForeignKey("identity_skill_tag.id", ondelete="RESTRICT"),
+        primary_key=True,
+        index=True,
+    )
+
+
+class NameChange(Entity):
+    """One change of the user's name (specification, 5.1.1, module 1,
+    item 2). Append-only: a database trigger rejects updates and deletes."""
+
+    __tablename__ = "identity_name_change"
+    __table_args__ = (Index("ix_identity_name_change_user", "user_id", "created_at"),)
+
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
+    old_first_name: Mapped[str] = mapped_column(String(100))
+    old_last_name: Mapped[str] = mapped_column(String(100))
+    new_first_name: Mapped[str] = mapped_column(String(100))
+    new_last_name: Mapped[str] = mapped_column(String(100))

@@ -167,6 +167,16 @@ class Settings(BaseSettings):
         ge=1,
         description="Highest year of study a student may give in the profile.",
     )
+    profile_skills_max: int = Field(
+        default=30,
+        ge=1,
+        description="Most skill tags in each skill list of a profile.",
+    )
+    name_change_interval: timedelta = Field(
+        default=timedelta(days=90),
+        ge=timedelta(0),
+        description="Shortest time between two name changes (Appendix 4).",
+    )
 
     @field_validator("trusted_proxies")
     @classmethod

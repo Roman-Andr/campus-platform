@@ -5,7 +5,12 @@ import 'dart:convert' as convert;
 import 'package:dio/dio.dart' show Dio, Options, ResponseType, CancelToken;
 
 import '../authentication/models/user_output.dart' as models show UserOutput;
+import 'models/name_input.dart' as models show NameInput;
 import 'models/profile_input.dart' as models show ProfileInput;
+import 'models/profile_photo.dart' as models show ProfilePhoto;
+import 'models/profile_photo_input.dart' as models show ProfilePhotoInput;
+import 'models/skills_input.dart' as models show SkillsInput;
+import 'models/skills_output.dart' as models show SkillsOutput;
 
 class ProfileClient {
   ProfileClient(this._transport);
@@ -79,5 +84,216 @@ class ProfileClient {
       cancelToken: cancelToken,
     );
     return models.UserOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Change Name
+  ///
+  /// Change the real name; it is recorded in the name history.
+  ///
+  /// A change sooner than ``name_change_interval`` after the previous one
+  /// answers ``409 name_change_too_soon`` with ``available_at``. Giving the
+  /// current name changes nothing.
+  Future<models.UserOutput> changeName({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required models.NameInput body,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "PUT",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/me/name",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.UserOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Get My Skills
+  ///
+  /// Skills of the signed-in user's profile.
+  Future<models.SkillsOutput> getMySkills({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/me/skills",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.SkillsOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Set My Skills
+  ///
+  /// Replace both skill lists; a tag outside the reference answers
+  /// ``validation_failed`` (code ``not_found``).
+  Future<models.SkillsOutput> setMySkills({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required models.SkillsInput body,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "PUT",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/me/skills",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.SkillsOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Get My Photo
+  ///
+  /// The profile photo with fresh signed links; ``404`` without a photo.
+  Future<models.ProfilePhoto> getMyPhoto({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/me/photo",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.ProfilePhoto.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Set My Photo
+  ///
+  /// Set or replace the profile photo; the previous one is deleted.
+  ///
+  /// ``404`` for a file of someone else, ``409`` for a file that is not ready
+  /// or is attached to a listing.
+  Future<models.ProfilePhoto> setMyPhoto({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required models.ProfilePhotoInput body,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "PUT",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/me/photo",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.ProfilePhoto.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Delete My Photo
+  ///
+  /// Remove the profile photo, if any; it is deleted from the storage.
+  Future<void> deleteMyPhoto({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "DELETE",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 204),
+    );
+    await _transport.request<dynamic>(
+      "/api/v1/me/photo",
+      options: _options,
+      cancelToken: cancelToken,
+    );
   }
 }

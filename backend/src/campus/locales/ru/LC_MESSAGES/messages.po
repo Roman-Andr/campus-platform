@@ -17,6 +17,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
+#, python-brace-format
+msgid "At most {max} skills."
+msgstr "Не больше {max} навыков."
+
 msgid "Authentication required"
 msgstr "Требуется вход в аккаунт"
 
@@ -173,11 +177,20 @@ msgstr "Минимальное число элементов — {min_length}."
 msgid "Must have at most {max_length} items."
 msgstr "Максимальное число элементов — {max_length}."
 
+msgid "Name changed recently"
+msgstr "Имя недавно менялось"
+
 msgid "No such campus city."
 msgstr "Такого города-кампуса нет."
 
+msgid "No such skill tag."
+msgstr "Такого навыка нет в справочнике."
+
 msgid "Not found"
 msgstr "Не найдено"
+
+msgid "Photo unavailable"
+msgstr "Фото недоступно"
 
 msgid "Profile incomplete"
 msgstr "Профиль не заполнен"
@@ -228,8 +241,15 @@ msgstr "Текст объявления пуст или слишком длин�
 msgid "The listing was edited."
 msgstr "Объявление было изменено."
 
+#, python-brace-format
+msgid "The name can be changed once in {days} days; see available_at."
+msgstr "Имя можно менять раз в {days} дней; ближайшая дата — в available_at."
+
 msgid "The page cursor is invalid or belongs to another list; start over."
 msgstr "Курсор страницы неверен или относится к другому списку; начните сначала."
+
+msgid "The photo is not processed yet, has expired or is used by a listing."
+msgstr "Фото ещё обрабатывается, устарело или уже прикреплено к объявлению."
 
 msgid "The request body is not valid JSON."
 msgstr "Тело запроса — некорректный JSON."

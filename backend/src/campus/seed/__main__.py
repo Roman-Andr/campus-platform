@@ -1,9 +1,9 @@
 """Entry point of ``campus-seed``: load the initial data of a stand.
 
 Loads the university reference data (cities, dormitories, faculties,
-e-mail domains) into the database at ``CAMPUS_DATABASE_URL``, after the
-migrations. Safe to repeat: only missing rows are added, in one
-transaction.
+e-mail domains), the skill tags and the demonstration documents into the
+database at ``CAMPUS_DATABASE_URL``, after the migrations. Safe to
+repeat: only missing rows are added, in one transaction.
 """
 
 import argparse
@@ -43,6 +43,8 @@ async def seed(settings: Settings, university_file: Path) -> university.SeedRepo
         async with create_session_factory(engine)() as session, session.begin():
             report = await university.seed_reference_data(session, data)
             await identity.seed_documents(session)
+            skill_tags = await identity.seed_skill_tags(session)
+            logger.info("skill_tags_seeded", created=skill_tags)
             return report
     finally:
         await engine.dispose()

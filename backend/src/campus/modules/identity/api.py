@@ -8,7 +8,6 @@ from uuid import UUID
 import jwt
 from fastapi import Request, Response
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
-from pydantic_core import PydanticCustomError
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
@@ -39,7 +38,7 @@ from campus.modules.identity.models import (
     User,
     UserEmail,
 )
-from campus.modules.identity.profile import UserOutput, user_output
+from campus.modules.identity.profile import UserOutput, check_name, user_output
 from campus.modules.identity.sessions import revoke_sessions
 from campus.modules.university import EmailDomain
 
@@ -107,17 +106,7 @@ class SignInInput(EmailInput):
     @field_validator("first_name", "last_name")
     @classmethod
     def validate_name(cls, value: str | None) -> str | None:
-        if value is not None:
-            value = value.strip()
-            if (
-                not value
-                or not any(c.isalpha() for c in value)
-                or not all(c.isalpha() or c in " -'\u2019" for c in value)
-            ):
-                raise PydanticCustomError(
-                    "string_pattern_mismatch", "Has an invalid format."
-                )
-        return value
+        return None if value is None else check_name(value)
 
 
 class RefreshInput(BaseModel):
@@ -254,7 +243,7 @@ async def issue_tokens(
         access_token=access,
         refresh_token=refresh,
         expires_in=int(settings.access_token_ttl.total_seconds()),
-        user=await user_output(session, user),
+        user=await user_output(session, user, settings),
     )
 
 

@@ -48,7 +48,7 @@ final class MyProfileProvider
   MyProfile create() => MyProfile();
 }
 
-String _$myProfileHash() => r'e482411bb5328b00b9eef589c727b284f7590b1b';
+String _$myProfileHash() => r'99fccae11dfa86aa1603cff168d9adcddedd6f76';
 
 /// The signed-in user's account and profile, as the server keeps it;
 /// `null` when nobody is signed in.

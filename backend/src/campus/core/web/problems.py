@@ -12,6 +12,7 @@ still reach the logs and error reporting.
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from http import HTTPStatus
 from typing import Any, ClassVar
 
@@ -118,14 +119,19 @@ class Problem(BaseModel):
         default=None,
         description="Oldest supported client version (client_update_required).",
     )
+    available_at: datetime | None = Field(
+        default=None,
+        description="When the refused action becomes possible, e.g. the next"
+        " name change; RFC 3339 in UTC.",
+    )
 
 
 class ProblemError(Exception):
     """Raise to answer with a problem of ``problem_type``.
 
     ``params`` fill the ``{name}`` placeholders of the type's detail;
-    ``min_version`` and ``errors`` become members of the problem, ``headers``
-    are added to the response.
+    ``min_version``, ``available_at`` and ``errors`` become members of the
+    problem, ``headers`` are added to the response.
     """
 
     def __init__(
@@ -134,6 +140,7 @@ class ProblemError(Exception):
         *,
         errors: Sequence[FieldError] = (),
         min_version: str | None = None,
+        available_at: datetime | None = None,
         headers: Mapping[str, str] | None = None,
         **params: object,
     ) -> None:
@@ -141,6 +148,7 @@ class ProblemError(Exception):
         self.problem_type = problem_type
         self.errors = list(errors)
         self.min_version = min_version
+        self.available_at = available_at
         self.headers = dict(headers or {})
         self.params = params
 
@@ -167,6 +175,7 @@ def problem_response(  # noqa: PLR0913 - the members of a problem
     headers: Mapping[str, str] | None = None,
     params: Mapping[str, object] | None = None,
     current_version: int | None = None,
+    available_at: datetime | None = None,
 ) -> ProblemResponse:
     """Render ``problem_type`` in the language of ``request``."""
     locale = request_locale(request)
@@ -185,6 +194,7 @@ def problem_response(  # noqa: PLR0913 - the members of a problem
         errors=list(errors) or None,
         min_version=min_version,
         current_version=current_version,
+        available_at=available_at,
     )
     return ProblemResponse(
         problem.model_dump(mode="json", exclude_none=True),
@@ -263,6 +273,7 @@ async def _handle_problem(request: Request, exc: Exception) -> ProblemResponse:
         exc.problem_type,
         errors=exc.errors,
         min_version=exc.min_version,
+        available_at=exc.available_at,
         headers=exc.headers,
         params=exc.params,
     )

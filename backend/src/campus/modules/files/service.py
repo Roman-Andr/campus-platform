@@ -101,7 +101,7 @@ async def expire_photo(session: AsyncSession, job: JobInfo) -> None:
     # Expiry is never earlier than the upload credential expiration. Otherwise
     # a still-valid POST could recreate a source after cleanup removed its row.
     await storage_io(storage.delete, file.key + "/source")
-    if file.listing_id is None:
+    if file.listing_id is None and file.profile_user_id is None:
         for suffix in ("/photo", "/preview"):
             await storage_io(storage.delete, file.key + suffix)
         await session.delete(file)

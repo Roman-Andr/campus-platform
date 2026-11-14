@@ -18,6 +18,9 @@ class File(Entity):
         CheckConstraint("size >= 0", name="size"),
         CheckConstraint("position IS NULL OR position >= 0", name="position"),
         CheckConstraint("(listing_id IS NULL) = (position IS NULL)", name="attachment"),
+        CheckConstraint(
+            "listing_id IS NULL OR profile_user_id IS NULL", name="single_owner"
+        ),
         Index("ix_file_listing_id", "listing_id"),
     )
     owner_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
@@ -30,3 +33,7 @@ class File(Entity):
     expires_at: Mapped[datetime]
     listing_id: Mapped[UUID | None] = mapped_column(ForeignKey("listing.id"))
     position: Mapped[int | None]
+    # The user whose profile photo this is; one photo per profile.
+    profile_user_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("identity_user.id"), unique=True
+    )

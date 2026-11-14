@@ -25,7 +25,9 @@ enum ProblemCodeValue {
   listingRateLimited("listing_rate_limited"),
   listingVersionConflict("listing_version_conflict"),
   methodNotAllowed("method_not_allowed"),
+  nameChangeTooSoon("name_change_too_soon"),
   notFound("not_found"),
+  photoUnavailable("photo_unavailable"),
   profileIncomplete("profile_incomplete"),
   rateLimited("rate_limited"),
   refreshTokenInvalid("refresh_token_invalid"),
@@ -101,7 +103,13 @@ sealed class ProblemCode {
   static const methodNotAllowed = ProblemCodeKnown(
     ProblemCodeValue.methodNotAllowed,
   );
+  static const nameChangeTooSoon = ProblemCodeKnown(
+    ProblemCodeValue.nameChangeTooSoon,
+  );
   static const notFound = ProblemCodeKnown(ProblemCodeValue.notFound);
+  static const photoUnavailable = ProblemCodeKnown(
+    ProblemCodeValue.photoUnavailable,
+  );
   static const profileIncomplete = ProblemCodeKnown(
     ProblemCodeValue.profileIncomplete,
   );
