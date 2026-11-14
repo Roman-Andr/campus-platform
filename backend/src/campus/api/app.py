@@ -15,7 +15,11 @@ from campus.api.access_log import AccessLogMiddleware
 from campus.core.config import Settings, get_settings
 from campus.core.db import create_engine, create_session_factory
 from campus.core.observability import configure_observability
-from campus.core.web import install_problem_handlers, use_problem_media_type
+from campus.core.web import (
+    install_problem_handlers,
+    response_keyring,
+    use_problem_media_type,
+)
 from campus.modules import identity, university
 
 API_PREFIX = "/api/v1"
@@ -46,6 +50,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+        # Fail fast: without keys no request that changes data could run.
+        _app.state.idempotency_keyring = response_keyring(settings)
         yield
         redis = getattr(_app.state, "auth_redis", None)
         if redis is not None:

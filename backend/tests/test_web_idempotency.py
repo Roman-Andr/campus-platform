@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from campus.core.config import Settings
 from campus.core.idempotency import (
     IdempotencyKey,
+    MissingEncryptionKeysError,
     ResponseKeyring,
     ResponseUnreadableError,
     StoredResponse,
@@ -301,17 +302,23 @@ async def test_keys_rotate_without_losing_responses(
     assert await count(session, Note) == 2
 
 
-async def test_mutating_request_without_keys_fails(
-    database_url: str, session: AsyncSession
+async def test_api_does_not_start_without_keys(
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    async with serve(create_test_app(keyring_settings(database_url))) as api:
-        response = await api.post(NOTES_URL, json=NOTE, headers=key_header())
-        listed = await api.get(NOTES_URL)
+    monkeypatch.delenv("CAMPUS_IDEMPOTENCY_ENCRYPTION_KEYS")
+    app = create_test_app(Settings())
 
-    assert response.status_code == 500
-    assert listed.status_code == 200
-    assert await count(session, Note) == 0
-    assert await count(session, IdempotencyKey) == 0
+    with pytest.raises(MissingEncryptionKeysError, match="openssl rand -base64 32"):
+        async with app.router.lifespan_context(app):
+            pass
+
+
+def test_worker_and_scheduler_settings_need_no_keys(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("CAMPUS_IDEMPOTENCY_ENCRYPTION_KEYS")
+
+    assert Settings().idempotency_encryption_keys == []
 
 
 def test_keyring_round_trip_and_tampering() -> None:
@@ -329,7 +336,7 @@ def test_keyring_round_trip_and_tampering() -> None:
     for scope, value in (("anonymous", tampered), ("user", sealed)):
         with pytest.raises(ResponseUnreadableError):
             keyring.open(scope, key, value)
-    with pytest.raises(RuntimeError, match="IDEMPOTENCY_ENCRYPTION_KEYS"):
+    with pytest.raises(MissingEncryptionKeysError):
         ResponseKeyring([])
 
 

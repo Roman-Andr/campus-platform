@@ -10,7 +10,7 @@ a route, before FastAPI validates parameters:
 3. a database session is opened for the request (:data:`DbSession`); a
    mutating request claims its key in it (:mod:`campus.core.idempotency`);
    its response is stored encrypted with
-   ``CAMPUS_IDEMPOTENCY_ENCRYPTION_KEYS``.
+   ``CAMPUS_IDEMPOTENCY_ENCRYPTION_KEYS`` (checked when the API starts).
 
 The endpoint runs in that session's transaction and does not commit: a 2xx
 response is committed together with the stored idempotent response; an
@@ -147,16 +147,16 @@ DbSession = Annotated[AsyncSession, Depends(_request_session)]
 """The session of the current request; endpoints flush but never commit."""
 
 
-def _keyring(request: Request) -> ResponseKeyring:
-    keyring: ResponseKeyring | None = getattr(
-        request.app.state, "idempotency_keyring", None
+def response_keyring(settings: Settings) -> ResponseKeyring:
+    """The keyring of stored responses; fails without configured keys."""
+    return ResponseKeyring(
+        [encryption_key(key) for key in settings.idempotency_encryption_keys]
     )
-    if keyring is None:
-        settings: Settings = request.app.state.settings
-        keyring = ResponseKeyring(
-            [encryption_key(key) for key in settings.idempotency_encryption_keys]
-        )
-        request.app.state.idempotency_keyring = keyring
+
+
+def _keyring(request: Request) -> ResponseKeyring:
+    # Set when the API starts, so a missing key stops the start.
+    keyring: ResponseKeyring = request.app.state.idempotency_keyring
     return keyring
 
 

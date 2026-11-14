@@ -19,10 +19,15 @@ pytest_plugins = ["tests.database", "tests.services"]
 def isolated_environment(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> Iterator[None]:
-    """Hide the developer's CAMPUS_* variables and .env file from tests."""
+    """Hide the developer's CAMPUS_* variables and .env file from tests.
+
+    The API needs an encryption key of idempotent responses to start; the
+    tests get a fixed one.
+    """
     for name in os.environ:
         if name.startswith("CAMPUS_"):
             monkeypatch.delenv(name)
+    monkeypatch.setenv("CAMPUS_IDEMPOTENCY_ENCRYPTION_KEYS", ENCRYPTION_KEY)
     monkeypatch.chdir(tmp_path)
     get_settings.cache_clear()
     yield
@@ -52,7 +57,6 @@ def web_settings(database_url: str | None = None) -> Settings:
     return Settings(
         database_url=SecretStr(database_url) if database_url else None,
         client_min_versions={ClientPlatform.ANDROID: "1.2.0"},
-        idempotency_encryption_keys=[SecretStr(ENCRYPTION_KEY)],
     )
 
 

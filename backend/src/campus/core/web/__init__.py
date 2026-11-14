@@ -16,7 +16,12 @@ from campus.core.web.problems import (
     request_locale,
     use_problem_media_type,
 )
-from campus.core.web.routing import ApiRoute, DbSession, api_router
+from campus.core.web.routing import (
+    ApiRoute,
+    DbSession,
+    api_router,
+    response_keyring,
+)
 
 __all__ = [
     "ApiRoute",
@@ -34,6 +39,7 @@ __all__ = [
     "install_problem_handlers",
     "paginate",
     "request_locale",
+    "response_keyring",
     "sort_by",
     "use_problem_media_type",
 ]

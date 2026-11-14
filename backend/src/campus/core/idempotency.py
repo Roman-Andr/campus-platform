@@ -73,6 +73,17 @@ class IdempotencyKeyReusedError(Exception):
     """The key was already used for a different request."""
 
 
+class MissingEncryptionKeysError(RuntimeError):
+    """The API cannot start: stored responses need an encryption key."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "CAMPUS_IDEMPOTENCY_ENCRYPTION_KEYS is not set: the API encrypts"
+            " stored idempotent responses with it. Generate a key with"
+            " `openssl rand -base64 32` (see .env.example)."
+        )
+
+
 class ResponseUnreadableError(Exception):
     """A stored response cannot be opened: its key left the keyring."""
 
@@ -90,8 +101,7 @@ class ResponseKeyring:
 
     def __init__(self, keys: Sequence[bytes]) -> None:
         if not keys:
-            msg = "CAMPUS_IDEMPOTENCY_ENCRYPTION_KEYS is required"
-            raise RuntimeError(msg)
+            raise MissingEncryptionKeysError
         self._sealing = self._key_id(keys[0])
         self._keys = {self._key_id(key): AESGCM(key) for key in keys}
 

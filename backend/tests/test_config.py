@@ -99,12 +99,19 @@ def test_env_example_lists_every_setting() -> None:
     assert names == {f"CAMPUS_{field.upper()}" for field in Settings.model_fields}
 
 
-def test_env_example_gives_working_defaults(tmp_path: Path) -> None:
+def test_env_example_gives_working_defaults(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("CAMPUS_IDEMPOTENCY_ENCRYPTION_KEYS")
     (tmp_path / ".env").write_text(ENV_EXAMPLE.read_text())
 
     settings = Settings()
 
-    assert settings == Settings(_env_file=None)
+    # Defaults, plus a development key so that the API starts.
+    assert len(settings.idempotency_encryption_keys) == 1
+    assert settings.model_copy(update={"idempotency_encryption_keys": []}) == Settings(
+        _env_file=None
+    )
     assert settings.sentry_dsn is None
     assert settings.release is None
 

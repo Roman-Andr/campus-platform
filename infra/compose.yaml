@@ -23,7 +23,6 @@ x-backend: &backend
     CAMPUS_SENTRY_TRACES_SAMPLE_RATE: ${CAMPUS_SENTRY_TRACES_SAMPLE_RATE:-0.0}
     CAMPUS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:?set in .env}:${POSTGRES_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
     CAMPUS_REDIS_URL: redis://:${REDIS_PASSWORD:?set in .env}@redis:6379/0
-    CAMPUS_IDEMPOTENCY_ENCRYPTION_KEYS: ${CAMPUS_IDEMPOTENCY_ENCRYPTION_KEYS:-}
     CAMPUS_AUTH_SECRET_KEY: ${CAMPUS_AUTH_SECRET_KEY:-}
     CAMPUS_ACCESS_TOKEN_TTL: ${CAMPUS_ACCESS_TOKEN_TTL:-PT15M}
     CAMPUS_REFRESH_TOKEN_TTL: ${CAMPUS_REFRESH_TOKEN_TTL:-P30D}
@@ -61,6 +60,9 @@ services:
       # (in practice Caddy) reach it, and their addresses are private.
       # Caddy replaces X-Forwarded-For from clients with their address.
       CAMPUS_TRUSTED_PROXIES: ${CAMPUS_TRUSTED_PROXIES:-10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7}
+      # Only the API stores idempotent responses; the worker and scheduler
+      # do not get the keys.
+      CAMPUS_IDEMPOTENCY_ENCRYPTION_KEYS: ${CAMPUS_IDEMPOTENCY_ENCRYPTION_KEYS:?set in .env, generate with `openssl rand -base64 32`}
     depends_on:
       migrate:
         condition: service_completed_successfully

@@ -35,7 +35,7 @@ from campus.modules.identity import (
     delete_expired_credentials,
 )
 from campus.modules.university import AccountType, EmailDomain
-from tests.web_app import CLIENT_HEADERS, ENCRYPTION_KEY, serve
+from tests.web_app import CLIENT_HEADERS, serve
 
 EMAIL = "student@university.example"
 DEVICE = str(uuid4())
@@ -103,7 +103,6 @@ async def auth(database_url: str, redis_url: str) -> AsyncIterator[Auth]:
         database_url=SecretStr(database_url),
         redis_url=SecretStr(redis_url),
         auth_secret_key=SecretStr(SECRET),
-        idempotency_encryption_keys=[SecretStr(ENCRYPTION_KEY)],
     )
     engine = create_engine(settings)
     async with (
