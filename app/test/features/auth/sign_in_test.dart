@@ -187,6 +187,120 @@ void main() {
     });
   }
 
+  testWidgets('registration survives scrolling the form out of view', (
+    tester,
+  ) async {
+    // A narrow and short phone in logical pixels: 274 x 610 dp.
+    tester.view.physicalSize = const Size(720, 1600);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await start(tester);
+    server.route((options) {
+      if (options.path == _codes) return jsonBody(202, null);
+      final body = SentRequest(options).json;
+      return body.containsKey('first_name')
+          ? jsonBody(200, tokensJson(1))
+          : problemBody(422, 'registration_required');
+    });
+    await requestCode(tester);
+    await tester.enterText(_code, '123456');
+    await tester.pumpAndSettle();
+    expect(find.text('Регистрация'), findsOneWidget);
+
+    final scrollable = find
+        .descendant(
+          of: find.byKey(const Key('auth-scroll')),
+          matching: find.byType(Scrollable),
+        )
+        .first;
+    ScrollPosition position() =>
+        tester.state<ScrollableState>(scrollable).position;
+
+    /// Hides the keyboard and moves the form, like a user does to reach the
+    /// consent and the finish button; the focus is dropped first, so that
+    /// no field pulls the scroll position back into the viewport.
+    Future<void> scrollBy(void Function(ScrollPosition position) move) async {
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+      move(position());
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> scrollToBottom() =>
+        scrollBy((position) => position.jumpTo(position.maxScrollExtent));
+
+    Future<void> scrollToTop() => scrollBy((position) => position.jumpTo(0));
+
+    // The name fields leave the viewport and its cache extent, so the form
+    // state must survive; the finish button validates instead of crashing.
+    await scrollToBottom();
+    await tester.tap(find.byKey(const Key('sign-in-finish')));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('Заполните это поле.'), findsNWidgets(2));
+    expect(
+      tester.getBottomLeft(find.byKey(const Key('sign-in-first-name'))).dy,
+      lessThan(0),
+    );
+    expect(sentTo(_signIn), hasLength(1)); // only the code step was sent
+
+    // Invalid names are still rejected after the same scroll.
+    await scrollToTop();
+    await tester.enterText(
+      find.byKey(const Key('sign-in-first-name')),
+      'Иван1',
+    );
+    await tester.enterText(
+      find.byKey(const Key('sign-in-last-name')),
+      'Иванов',
+    );
+    await scrollToBottom();
+    await tester.tap(find.byKey(const Key('sign-in-finish')));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(
+      find.text(
+        'Можно использовать только буквы, пробелы, дефисы и апострофы.',
+      ),
+      findsOneWidget,
+    );
+    expect(sentTo(_signIn), hasLength(1));
+
+    // Valid names and the actual required documents reach the API.
+    await scrollToTop();
+    await tester.enterText(find.byKey(const Key('sign-in-first-name')), 'Иван');
+    await scrollBy(
+      (_) => tester.ensureVisible(find.byKey(const Key('consent-required'))),
+    );
+    await tester.tap(find.byKey(const Key('consent-required')));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<CheckboxListTile>(find.byKey(const Key('consent-required')))
+          .value,
+      isTrue,
+    );
+    await scrollToBottom();
+    await tester.tap(find.byKey(const Key('sign-in-finish')));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(sentTo(_signIn), hasLength(2));
+    expect(sentTo(_signIn).last.json, {
+      'email': 'ivanov@edu.hse.ru',
+      'code': '123456',
+      'device_id': isA<String>(),
+      'first_name': 'Иван',
+      'last_name': 'Иванов',
+      'accepted_document_ids': [
+        'community_rules',
+        'privacy_policy',
+        'personal_data_processing',
+      ],
+    });
+    expect(find.text('Пока ничего нет'), findsOneWidget);
+  });
+
   testWidgets('registration requires a new decision after documents change', (
     tester,
   ) async {
