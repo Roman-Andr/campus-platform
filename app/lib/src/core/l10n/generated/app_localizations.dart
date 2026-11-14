@@ -259,6 +259,192 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Не удалось открыть страницу загрузки.'**
   String get updateDownloadFailed;
+
+  /// The server limited the rate of requests.
+  ///
+  /// In ru, this message translates to:
+  /// **'Слишком много запросов. Подождите немного и попробуйте ещё раз.'**
+  String get errorRateLimited;
+
+  /// Title of the sign-in screens.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вход'**
+  String get signInTitle;
+
+  /// Explanation on the e-mail step of sign-in.
+  ///
+  /// In ru, this message translates to:
+  /// **'Войдите с почтой вуза: мы пришлём на неё код для входа.'**
+  String get signInEmailIntro;
+
+  /// Label of the e-mail field on the sign-in screen.
+  ///
+  /// In ru, this message translates to:
+  /// **'Почта вуза'**
+  String get signInEmailLabel;
+
+  /// The entered e-mail address is malformed.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите адрес почты, например ivanov@edu.hse.ru.'**
+  String get signInEmailInvalid;
+
+  /// Button that requests a sign-in code by e-mail.
+  ///
+  /// In ru, this message translates to:
+  /// **'Получить код'**
+  String get signInGetCode;
+
+  /// Title of the code step of sign-in.
+  ///
+  /// In ru, this message translates to:
+  /// **'Код из письма'**
+  String get signInCodeTitle;
+
+  /// Explanation on the code step of sign-in.
+  ///
+  /// In ru, this message translates to:
+  /// **'Мы отправили код на {email}. Если письма нет, проверьте папку «Спам».'**
+  String signInCodeSent(String email);
+
+  /// Label of the sign-in code field.
+  ///
+  /// In ru, this message translates to:
+  /// **'Код из 6 цифр'**
+  String get signInCodeLabel;
+
+  /// The entered sign-in code is shorter than 6 digits.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите все 6 цифр кода.'**
+  String get signInCodeIncomplete;
+
+  /// Button that signs in with the entered code.
+  ///
+  /// In ru, this message translates to:
+  /// **'Войти'**
+  String get signInSubmit;
+
+  /// Button that requests another sign-in code.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отправить код ещё раз'**
+  String get signInResend;
+
+  /// Disabled resend button with the time left.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отправить код ещё раз можно через {wait}'**
+  String signInResendIn(String wait);
+
+  /// Confirmation after another sign-in code was requested.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новый код отправлен'**
+  String get signInResent;
+
+  /// Button that returns to the e-mail step of sign-in.
+  ///
+  /// In ru, this message translates to:
+  /// **'Изменить почту'**
+  String get signInChangeEmail;
+
+  /// Title of the step where a new user enters the names.
+  ///
+  /// In ru, this message translates to:
+  /// **'Регистрация'**
+  String get signInNameTitle;
+
+  /// Explanation on the registration step.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы входите впервые. Укажите имя и фамилию — их увидят другие студенты.'**
+  String get signInNameIntro;
+
+  /// Label of the first name field.
+  ///
+  /// In ru, this message translates to:
+  /// **'Имя'**
+  String get signInFirstName;
+
+  /// Label of the last name field.
+  ///
+  /// In ru, this message translates to:
+  /// **'Фамилия'**
+  String get signInLastName;
+
+  /// A required name field is empty.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заполните это поле.'**
+  String get signInNameRequired;
+
+  /// A name contains characters that are not allowed.
+  ///
+  /// In ru, this message translates to:
+  /// **'Можно использовать только буквы, пробелы, дефисы и апострофы.'**
+  String get signInNameInvalid;
+
+  /// Button that completes registration.
+  ///
+  /// In ru, this message translates to:
+  /// **'Зарегистрироваться'**
+  String get signInFinish;
+
+  /// The e-mail domain is not allowed to sign in.
+  ///
+  /// In ru, this message translates to:
+  /// **'Этот адрес не из почты вуза. Войдите с адресом в домене вуза.'**
+  String get authErrorDomain;
+
+  /// The entered sign-in code is wrong.
+  ///
+  /// In ru, this message translates to:
+  /// **'Неверный код. Проверьте письмо и попробуйте ещё раз.'**
+  String get authErrorCodeInvalid;
+
+  /// The sign-in code is no longer valid.
+  ///
+  /// In ru, this message translates to:
+  /// **'Код истёк или уже использован. Запросите новый код.'**
+  String get authErrorCodeExpired;
+
+  /// The limit of attempts to enter the code is reached.
+  ///
+  /// In ru, this message translates to:
+  /// **'Слишком много неверных попыток. Запросите новый код.'**
+  String get authErrorAttemptsExceeded;
+
+  /// Sign-in requests are limited; shows how long to wait.
+  ///
+  /// In ru, this message translates to:
+  /// **'Слишком много попыток. Повторите через {wait}.'**
+  String authErrorRateLimitedFor(String wait);
+
+  /// A wait in seconds, e.g. before another attempt.
+  ///
+  /// In ru, this message translates to:
+  /// **'{count} с'**
+  String waitSeconds(int count);
+
+  /// A wait in minutes, e.g. before another attempt.
+  ///
+  /// In ru, this message translates to:
+  /// **'{count} мин'**
+  String waitMinutes(int count);
+
+  /// Header of the account section in settings.
+  ///
+  /// In ru, this message translates to:
+  /// **'Аккаунт'**
+  String get settingsAccount;
+
+  /// Settings item that signs out on this device.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выйти из аккаунта'**
+  String get signOut;
 }
 
 class _AppLocalizationsDelegate

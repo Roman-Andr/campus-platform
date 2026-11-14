@@ -130,6 +130,34 @@ void main() {
       expect(server.sent, hasLength(2));
     });
 
+    test('happen for a rate limit with a short wait', () async {
+      server
+        ..replyProblem(429, 'rate_limited', retryAfter: 0)
+        ..reply(200);
+
+      await dio.post<Object?>('/api/v1/things');
+
+      expect(server.sent, hasLength(2));
+    });
+
+    test('do not happen for a rate limit with a longer wait', () async {
+      server.replyProblem(429, 'rate_limited', retryAfter: 840);
+
+      final error = await dio
+          .post<Object?>('/api/v1/things')
+          .then<Object?>((_) => null, onError: ApiFailure.from);
+
+      expect(server.sent, hasLength(1));
+      expect(
+        error,
+        isA<ProblemFailure>().having(
+          (failure) => failure.retryAfter,
+          'retryAfter',
+          const Duration(seconds: 840),
+        ),
+      );
+    });
+
     test('do not happen for errors of the request or server', () async {
       for (final status in [400, 404, 422, 426, 500]) {
         server

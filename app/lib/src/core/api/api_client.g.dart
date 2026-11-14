@@ -60,11 +60,16 @@ final class ApiHttpAdapterProvider
 
 String _$apiHttpAdapterHash() => r'4bf044e67fd70d38d11495d5f3c71c550891e85a';
 
+/// Client of all API calls; it signs requests that need authentication.
+
 @ProviderFor(apiDio)
 final apiDioProvider = ApiDioProvider._();
 
+/// Client of all API calls; it signs requests that need authentication.
+
 final class ApiDioProvider extends $FunctionalProvider<Dio, Dio, Dio>
     with $Provider<Dio> {
+  /// Client of all API calls; it signs requests that need authentication.
   ApiDioProvider._()
     : super(
         from: null,
@@ -98,7 +103,55 @@ final class ApiDioProvider extends $FunctionalProvider<Dio, Dio, Dio>
   }
 }
 
-String _$apiDioHash() => r'7bbaf000fdb8b35dab26ab183393a266ae105351';
+String _$apiDioHash() => r'c2260a73994ae1af5cd7f873ef77f1b4401b5f04';
+
+/// Client without authentication: refreshes tokens and repeats the
+/// request that the expired access token failed.
+
+@ProviderFor(authRefreshDio)
+final authRefreshDioProvider = AuthRefreshDioProvider._();
+
+/// Client without authentication: refreshes tokens and repeats the
+/// request that the expired access token failed.
+
+final class AuthRefreshDioProvider extends $FunctionalProvider<Dio, Dio, Dio>
+    with $Provider<Dio> {
+  /// Client without authentication: refreshes tokens and repeats the
+  /// request that the expired access token failed.
+  AuthRefreshDioProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'authRefreshDioProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$authRefreshDioHash();
+
+  @$internal
+  @override
+  $ProviderElement<Dio> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  Dio create(Ref ref) {
+    return authRefreshDio(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Dio value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Dio>(value),
+    );
+  }
+}
+
+String _$authRefreshDioHash() => r'a24625dc3d373f12ac0569e482b780f82b194c94';
 
 /// Generated client of the Campus API.
 

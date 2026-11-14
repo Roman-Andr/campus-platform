@@ -204,8 +204,11 @@ jobs:
           fi
       - name: Tests
         run: flutter test --no-pub
+      # Without --no-pub: resolving packages regenerates the plugin
+      # registrant for release, without dev-only plugins (integration_test)
+      # that the earlier steps registered.
       - name: Build APK
-        run: flutter build apk --release --no-pub
+        run: flutter build apk --release
       - uses: actions/upload-artifact@v7
         with:
           name: campus-apk

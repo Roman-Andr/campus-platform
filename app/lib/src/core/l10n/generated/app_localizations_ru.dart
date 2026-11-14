@@ -96,4 +96,116 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get updateDownloadFailed => 'Не удалось открыть страницу загрузки.';
+
+  @override
+  String get errorRateLimited =>
+      'Слишком много запросов. Подождите немного и попробуйте ещё раз.';
+
+  @override
+  String get signInTitle => 'Вход';
+
+  @override
+  String get signInEmailIntro =>
+      'Войдите с почтой вуза: мы пришлём на неё код для входа.';
+
+  @override
+  String get signInEmailLabel => 'Почта вуза';
+
+  @override
+  String get signInEmailInvalid =>
+      'Введите адрес почты, например ivanov@edu.hse.ru.';
+
+  @override
+  String get signInGetCode => 'Получить код';
+
+  @override
+  String get signInCodeTitle => 'Код из письма';
+
+  @override
+  String signInCodeSent(String email) {
+    return 'Мы отправили код на $email. Если письма нет, проверьте папку «Спам».';
+  }
+
+  @override
+  String get signInCodeLabel => 'Код из 6 цифр';
+
+  @override
+  String get signInCodeIncomplete => 'Введите все 6 цифр кода.';
+
+  @override
+  String get signInSubmit => 'Войти';
+
+  @override
+  String get signInResend => 'Отправить код ещё раз';
+
+  @override
+  String signInResendIn(String wait) {
+    return 'Отправить код ещё раз можно через $wait';
+  }
+
+  @override
+  String get signInResent => 'Новый код отправлен';
+
+  @override
+  String get signInChangeEmail => 'Изменить почту';
+
+  @override
+  String get signInNameTitle => 'Регистрация';
+
+  @override
+  String get signInNameIntro =>
+      'Вы входите впервые. Укажите имя и фамилию — их увидят другие студенты.';
+
+  @override
+  String get signInFirstName => 'Имя';
+
+  @override
+  String get signInLastName => 'Фамилия';
+
+  @override
+  String get signInNameRequired => 'Заполните это поле.';
+
+  @override
+  String get signInNameInvalid =>
+      'Можно использовать только буквы, пробелы, дефисы и апострофы.';
+
+  @override
+  String get signInFinish => 'Зарегистрироваться';
+
+  @override
+  String get authErrorDomain =>
+      'Этот адрес не из почты вуза. Войдите с адресом в домене вуза.';
+
+  @override
+  String get authErrorCodeInvalid =>
+      'Неверный код. Проверьте письмо и попробуйте ещё раз.';
+
+  @override
+  String get authErrorCodeExpired =>
+      'Код истёк или уже использован. Запросите новый код.';
+
+  @override
+  String get authErrorAttemptsExceeded =>
+      'Слишком много неверных попыток. Запросите новый код.';
+
+  @override
+  String authErrorRateLimitedFor(String wait) {
+    return 'Слишком много попыток. Повторите через $wait.';
+  }
+
+  @override
+  String waitSeconds(int count) {
+    return '$count с';
+  }
+
+  @override
+  String waitMinutes(int count) {
+    return '$count мин';
+  }
+
+  @override
+  String get settingsAccount => 'Аккаунт';
+
+  @override
+  String get signOut => 'Выйти из аккаунта';
 }

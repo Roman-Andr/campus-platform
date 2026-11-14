@@ -60,7 +60,9 @@ class IdempotencyKeyInterceptor extends Interceptor {
 ///
 /// Mutating requests are repeated too: their idempotency key makes this
 /// safe. Server errors with a response are not repeated, except the
-/// statuses of an overloaded or restarting server.
+/// statuses of an overloaded or restarting server. A rate limit that asks
+/// to wait longer than the next delay is not repeated: the attempt would
+/// fail again and count against the limit.
 RetryInterceptor retryInterceptor(Dio dio, List<Duration> delays) =>
     RetryInterceptor(
       dio: dio,
@@ -71,16 +73,17 @@ RetryInterceptor retryInterceptor(Dio dio, List<Duration> delays) =>
         DioExceptionType.connectionTimeout ||
         DioExceptionType.sendTimeout ||
         DioExceptionType.receiveTimeout => true,
-        DioExceptionType.badResponse => const {
-          408,
-          429,
-          502,
-          503,
-          504,
-        }.contains(error.response?.statusCode),
+        DioExceptionType.badResponse => switch (error.response?.statusCode) {
+          408 || 502 || 503 || 504 => true,
+          429 => _waitFits(retryAfterOf(error.response), delays[attempt - 1]),
+          _ => false,
+        },
         _ => false,
       },
     );
+
+bool _waitFits(Duration? retryAfter, Duration delay) =>
+    retryAfter == null || retryAfter <= delay;
 
 /// Reports the outcome of requests: whether the server is reachable and
 /// whether this client version is still supported.

@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../features/settings/application/settings_controller.dart';
+import '../auth/auth_session.dart';
 import '../l10n/l10n.dart';
 import 'api_config.dart';
 import 'client_info.dart';
@@ -19,13 +20,15 @@ part 'api_client.g.dart';
 /// Builds the HTTP client shared by all API calls.
 ///
 /// Interceptors run in order: client headers, idempotency key, repeats
-/// after network failures, then status reporting of the final outcome.
+/// after network failures, status reporting of the final outcome, then
+/// [auth] — the access token and its refresh.
 Dio createApiDio({
   required ApiConfig config,
   required ClientInfo client,
   required String Function() language,
   required ApiStatusInterceptor status,
   HttpClientAdapter? adapter,
+  Interceptor? auth,
 }) {
   final dio = Dio(
     BaseOptions(
@@ -40,6 +43,7 @@ Dio createApiDio({
     IdempotencyKeyInterceptor(),
     retryInterceptor(dio, config.retryDelays),
     status,
+    ?auth,
   ]);
   return dio;
 }
@@ -48,11 +52,28 @@ Dio createApiDio({
 @Riverpod(keepAlive: true)
 HttpClientAdapter? apiHttpAdapter(Ref ref) => null;
 
+/// Client of all API calls; it signs requests that need authentication.
 @Riverpod(keepAlive: true)
 Dio apiDio(Ref ref) {
+  final dio = createAppDio(ref, auth: ref.watch(authSessionProvider));
+  ref.onDispose(dio.close);
+  return dio;
+}
+
+/// Client without authentication: refreshes tokens and repeats the
+/// request that the expired access token failed.
+@Riverpod(keepAlive: true)
+Dio authRefreshDio(Ref ref) {
+  final dio = createAppDio(ref);
+  ref.onDispose(dio.close);
+  return dio;
+}
+
+/// Builds a client of the app's API configuration.
+Dio createAppDio(Ref ref, {Interceptor? auth}) {
   final network = ref.read(networkStatusProvider.notifier);
   final update = ref.read(clientUpdateRequiredProvider.notifier);
-  final dio = createApiDio(
+  return createApiDio(
     config: ref.watch(apiConfigProvider),
     client: ref.watch(clientInfoProvider),
     language: () => _language(ref),
@@ -62,9 +83,8 @@ Dio apiDio(Ref ref) {
       onUpdateRequired: update.require,
     ),
     adapter: ref.watch(apiHttpAdapterProvider),
+    auth: auth,
   );
-  ref.onDispose(dio.close);
-  return dio;
 }
 
 /// Generated client of the Campus API.

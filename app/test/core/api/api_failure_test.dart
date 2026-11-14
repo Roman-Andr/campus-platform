@@ -118,6 +118,7 @@ void main() {
       expect(message(en, 404, 'not_found'), en.errorNotFound);
       expect(message(en, 422, 'validation_failed'), en.errorValidation);
       expect(message(en, 400, 'invalid_cursor'), en.errorListChanged);
+      expect(message(en, 429, 'rate_limited'), en.errorRateLimited);
       expect(
         message(en, 426, 'client_update_required'),
         en.errorUpdateRequired,
