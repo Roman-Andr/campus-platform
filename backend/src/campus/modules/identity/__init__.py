@@ -17,7 +17,15 @@ from campus.modules.identity.consents import (
     publish_document,
 )
 from campus.modules.identity.consents import router as consent_router
-from campus.modules.identity.models import RefreshToken, Session, SignInCode, User
+from campus.modules.identity.emails import notify_account_security
+from campus.modules.identity.emails import router as email_router
+from campus.modules.identity.models import (
+    RefreshToken,
+    Session,
+    SignInCode,
+    User,
+    UserEmail,
+)
 from campus.modules.identity.profile import ProfiledUser
 from campus.modules.identity.profile import router as profile_router
 from campus.modules.identity.retention import delete_expired_credentials
@@ -45,6 +53,7 @@ __all__ = [
     "Session",
     "SignInCode",
     "User",
+    "UserEmail",
     "admin_router",
     "check_consents",
     "consent_consumers",
@@ -52,6 +61,8 @@ __all__ = [
     "create_first_admin",
     "cross_border_allowed",
     "delete_expired_credentials",
+    "email_router",
+    "notify_account_security",
     "profile_router",
     "publish_document",
     "replay_consent_events",

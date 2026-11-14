@@ -4,16 +4,34 @@ msgstr ""
 msgid "Bad request"
 msgstr ""
 
+msgid "Campus account security notification"
+msgstr ""
+
+msgid "Cannot remove the last corporate address"
+msgstr ""
+
 msgid "Choose a listing category."
 msgstr ""
 
 msgid "Client version missing"
 msgstr ""
 
+#, python-brace-format
+msgid ""
+"Confirm your e-mail address with code: {code}. It expires in {minutes} "
+"minutes."
+msgstr ""
+
 msgid "Current documents must be accepted"
 msgstr ""
 
-msgid "E-mail domain not allowed"
+msgid "E-mail address already in use"
+msgstr ""
+
+msgid "E-mail address not found"
+msgstr ""
+
+msgid "E-mail domain does not match address kind"
 msgstr ""
 
 msgid "Employees have no course."
@@ -231,9 +249,18 @@ msgstr ""
 msgid "Use RFC 3339 with an explicit UTC offset."
 msgstr ""
 
+msgid "Your Campus e-mail confirmation code"
+msgstr ""
+
 msgid "Your Campus sign-in code"
+msgstr ""
+
+msgid ""
+"Your account e-mail addresses have changed. If this was not you, contact "
+"support."
 msgstr ""
 
 #, python-brace-format
 msgid "Your sign-in code: {code}. It expires in {minutes} minutes."
 msgstr ""
+

@@ -5,6 +5,7 @@ import 'package:dio/dio.dart' as transport;
 import 'exports.dart'
     as clients
     show
+        AccountEmailsClient,
         AuthenticationClient,
         ConsentsClient,
         ListingsClient,
@@ -27,6 +28,8 @@ final class CampusApi {
   CampusApi(this._client);
   final transport.Dio _client;
 
+  late final clients.AccountEmailsClient accountEmails =
+      clients.AccountEmailsClient(_client);
   late final clients.AuthenticationClient authentication =
       clients.AuthenticationClient(_client);
   late final clients.ConsentsClient consents = clients.ConsentsClient(_client);

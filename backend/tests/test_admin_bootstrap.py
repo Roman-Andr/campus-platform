@@ -8,11 +8,13 @@ import pytest
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from campus.core import clock
 from campus.modules.identity import (
     FirstAdminInput,
     Role,
     RoleAssignment,
     User,
+    UserEmail,
     create_first_admin,
 )
 from campus.modules.university import AccountType, EmailDomain
@@ -114,6 +116,12 @@ async def test_bootstrap_reuses_account_and_preserves_profile(
         email=EMAIL, first_name="Original", last_name="Name", account_type="employee"
     )
     allowed.add(user)
+    await allowed.flush()
+    allowed.add(
+        UserEmail(
+            user_id=user.id, email=EMAIL, kind="corporate", verified_at=clock.now()
+        )
+    )
     await allowed.commit()
     user_id = user.id
     data = FirstAdminInput(email=EMAIL.upper(), first_name="New", last_name="Name")

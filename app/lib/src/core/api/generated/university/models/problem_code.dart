@@ -7,7 +7,9 @@ enum ProblemCodeValue {
   clientVersionMissing("client_version_missing"),
   consentInvalid("consent_invalid"),
   consentRequired("consent_required"),
-  emailDomainNotAllowed("email_domain_not_allowed"),
+  emailConflict("email_conflict"),
+  emailKindInvalid("email_kind_invalid"),
+  emailNotFound("email_not_found"),
   forbidden("forbidden"),
   httpError("http_error"),
   idempotencyKeyInvalid("idempotency_key_invalid"),
@@ -15,6 +17,7 @@ enum ProblemCodeValue {
   idempotencyKeyReused("idempotency_key_reused"),
   internalError("internal_error"),
   invalidCursor("invalid_cursor"),
+  lastCorporateEmail("last_corporate_email"),
   listingCategoryInvalid("listing_category_invalid"),
   listingConflict("listing_conflict"),
   listingContentInvalid("listing_content_invalid"),
@@ -55,9 +58,11 @@ sealed class ProblemCode {
   static const consentRequired = ProblemCodeKnown(
     ProblemCodeValue.consentRequired,
   );
-  static const emailDomainNotAllowed = ProblemCodeKnown(
-    ProblemCodeValue.emailDomainNotAllowed,
+  static const emailConflict = ProblemCodeKnown(ProblemCodeValue.emailConflict);
+  static const emailKindInvalid = ProblemCodeKnown(
+    ProblemCodeValue.emailKindInvalid,
   );
+  static const emailNotFound = ProblemCodeKnown(ProblemCodeValue.emailNotFound);
   static const forbidden = ProblemCodeKnown(ProblemCodeValue.forbidden);
   static const httpError = ProblemCodeKnown(ProblemCodeValue.httpError);
   static const idempotencyKeyInvalid = ProblemCodeKnown(
@@ -71,6 +76,9 @@ sealed class ProblemCode {
   );
   static const internalError = ProblemCodeKnown(ProblemCodeValue.internalError);
   static const invalidCursor = ProblemCodeKnown(ProblemCodeValue.invalidCursor);
+  static const lastCorporateEmail = ProblemCodeKnown(
+    ProblemCodeValue.lastCorporateEmail,
+  );
   static const listingCategoryInvalid = ProblemCodeKnown(
     ProblemCodeValue.listingCategoryInvalid,
   );

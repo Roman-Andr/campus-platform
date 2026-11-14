@@ -181,12 +181,12 @@ async def test_registration_and_token_hashes(
 )
 async def test_domain_exact_match(auth: Auth, email: str) -> None:
     response = await auth.post("/sign-in-codes", {"email": email})
-    assert response.status_code == 422
-    assert response.json()["code"] == "email_domain_not_allowed"
+    assert response.status_code == 202
+    assert response.json() is None
     response = await auth.post(
         "/sign-in", {"email": email, "code": "123456", "device_id": DEVICE}
     )
-    assert response.status_code == 422
+    assert response.status_code == 401
     assert await auth.db.scalar(select(User)) is None
     assert await auth.db.scalar(select(OutboxMessage)) is None
 

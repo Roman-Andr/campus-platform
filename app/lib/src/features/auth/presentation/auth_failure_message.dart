@@ -11,7 +11,8 @@ String authFailureMessage(AppLocalizations l10n, Object error) {
   final failure = ApiFailure.from(error);
   if (failure is! ProblemFailure) return apiFailureMessage(l10n, error);
   return switch (failure.code) {
-    ProblemCodeKnown(value: ProblemCodeValue.emailDomainNotAllowed) =>
+    // Older servers can still reject personal addresses.
+    ProblemCodeUnknown(rawValue: 'email_domain_not_allowed') =>
       l10n.authErrorDomain,
     ProblemCodeKnown(value: ProblemCodeValue.signInCodeInvalid) =>
       l10n.authErrorCodeInvalid,
