@@ -656,6 +656,7 @@
   "eventJoinQueue": "Join the queue",
   "eventCancelSignup": "Cancel signup",
   "eventParticipants": "Registered participants",
+  "eventParticipantRegistered": "Registered",
   "eventParticipantsEmpty": "No one has signed up yet",
   "eventSignupClosed": "Signup closed",
   "eventTimeInvalid": "The event must start in the future and end after its start.",

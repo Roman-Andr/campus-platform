@@ -1258,6 +1258,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventParticipants => 'Registered participants';
 
   @override
+  String get eventParticipantRegistered => 'Registered';
+
+  @override
   String get eventParticipantsEmpty => 'No one has signed up yet';
 
   @override

@@ -2294,6 +2294,12 @@ abstract class AppLocalizations {
   /// **'Записавшиеся'**
   String get eventParticipants;
 
+  /// Status of a registered participant in the event list.
+  ///
+  /// In ru, this message translates to:
+  /// **'Записан'**
+  String get eventParticipantRegistered;
+
   /// Nobody has registered for the event yet.
   ///
   /// In ru, this message translates to:

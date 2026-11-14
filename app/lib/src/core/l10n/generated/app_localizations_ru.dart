@@ -1252,6 +1252,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get eventParticipants => 'Записавшиеся';
 
   @override
+  String get eventParticipantRegistered => 'Записан';
+
+  @override
   String get eventParticipantsEmpty => 'Пока никто не записался';
 
   @override

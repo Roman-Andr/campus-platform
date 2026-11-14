@@ -104,6 +104,7 @@ void main() {
       await until(find.text('You are in the queue'));
     } finally {
       container?.dispose();
+      await storage.deleteAll();
     }
   });
 }

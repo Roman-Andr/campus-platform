@@ -52,6 +52,7 @@ class FakeEventBackend {
   String location = 'Hall A';
   int capacity;
   int registered = 0;
+  bool capacityConflict = false;
   final participants = <String>{};
   final queue = <String>[];
   late final DateTime startsAt = DateTime.now().toUtc().add(
@@ -180,6 +181,9 @@ class FakeEventBackend {
       return jsonBody(201, listing());
     }
     if (method == 'PATCH' && path == '/api/v1/listings/$id/event') {
+      if (capacityConflict) {
+        return problemBody(409, 'event_capacity_conflict');
+      }
       final body = jsonDecode(options.data! as String) as Map<String, Object?>;
       capacity = body['capacity']! as int;
       return jsonBody(200, listing());
@@ -277,6 +281,39 @@ void main() {
     expect(backend.capacity, 1);
   });
 
+  testWidgets('an employee publishes for the whole community', (tester) async {
+    english(tester);
+    wide(tester);
+    const employeeId = '01890a5d-ac96-774b-bcce-b302099a8062';
+    final backend = FakeEventBackend(capacity: 5);
+    final server = FakeHttpAdapter(
+      me: {
+        ...userJson,
+        ...filledProfileJson,
+        'id': employeeId,
+        'account_type': 'employee',
+      },
+      feed: pageJson([backend.listing()]),
+    )..route(backend.reply);
+    backend.viewer = employeeId;
+
+    await open(tester, server, '/event/new');
+    expect(find.text('Community'), findsOneWidget);
+
+    await publish(
+      tester,
+      title: 'Staff meeting',
+      location: 'Hall B',
+      capacity: '5',
+    );
+
+    final post = server.sent.singleWhere(
+      (request) =>
+          request.method == 'POST' && request.path == '/api/v1/listings/events',
+    );
+    expect(post.json['audience'], 'community');
+  });
+
   testWidgets('the edit form refuses a limit below the registered count', (
     tester,
   ) async {
@@ -322,6 +359,40 @@ void main() {
     );
     expect(patch.json['capacity'], 3);
     expect(patch.json['version'], 1);
+    expect(backend.capacity, 3);
+  });
+
+  testWidgets('the server conflict explains the seat limit', (tester) async {
+    english(tester);
+    wide(tester);
+    final backend = FakeEventBackend(capacity: 3)
+      ..registered = 1
+      ..participants.add(participantId)
+      ..capacityConflict = true;
+    final server = serverFor(backend, organizerId);
+    await open(tester, server, '/event/event-1/edit');
+
+    // The limit is not below the registered count, so the client sends it and
+    // lets the server decide: somebody could have registered in between.
+    await tester.enterText(find.byKey(const Key('event-capacity')), '1');
+    await tester.tap(find.byKey(const Key('event-submit')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'The seat limit cannot be lower than the number of registered '
+        'participants.',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      server.sent.where(
+        (request) =>
+            request.method == 'PATCH' &&
+            request.path == '/api/v1/listings/event-1/event',
+      ),
+      isNotEmpty,
+    );
     expect(backend.capacity, 3);
   });
 
@@ -431,6 +502,7 @@ void main() {
     await restart(tester, serverFor(backend, organizerId), '/listings/event-1');
     expect(find.text('No seats left'), findsOneWidget);
     expect(find.text('Petr Petrov'), findsOneWidget);
+    expect(find.text('Registered'), findsOneWidget);
     expect(find.text('Registered participants'), findsOneWidget);
   });
 }

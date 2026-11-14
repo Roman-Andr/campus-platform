@@ -117,12 +117,15 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         ),
       );
     } else {
+      final employee =
+          ref.read(myProfileProvider).value?.accountType ==
+          UserOutputAccountType.employee;
       await api.listings.publishEvent(
         body: EventInput(
           title: title.text.trim(),
           description: description.text.trim(),
           visibility: scope,
-          audience: audience,
+          audience: employee ? Audience.community : audience,
           categoryId: categoryId,
           startsAt: startsAt,
           endsAt: endsAt,
@@ -569,7 +572,7 @@ class _EventParticipantsListState extends ConsumerState<EventParticipantsList> {
                   ListTile(
                     key: Key('event-participant-${item.id}'),
                     title: Text(item.participantName),
-                    subtitle: Text(l.reservationAccepted),
+                    subtitle: Text(l.eventParticipantRegistered),
                   ),
                 if (page.nextPage != null)
                   TextButton(

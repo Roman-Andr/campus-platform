@@ -1607,6 +1607,10 @@
   "@eventParticipants": {
     "description": "Registered participants list title."
   },
+  "eventParticipantRegistered": "Записан",
+  "@eventParticipantRegistered": {
+    "description": "Status of a registered participant in the event list."
+  },
   "eventParticipantsEmpty": "Пока никто не записался",
   "@eventParticipantsEmpty": {
     "description": "Nobody has registered for the event yet."
