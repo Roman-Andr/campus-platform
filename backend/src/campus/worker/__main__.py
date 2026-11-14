@@ -14,10 +14,12 @@ import asyncio
 import contextlib
 
 import structlog
+from taskiq import AsyncBroker
 
 import campus.core.mail  # noqa: F401 - registers the mail handler
 from campus import modules
-from campus.core.config import get_settings
+from campus.core.config import Settings, get_settings
+from campus.core.metrics import Metrics, metrics_server
 from campus.core.observability import configure_observability
 from campus.core.outbox import relay_outbox
 from campus.core.runtime import run_until_signal
@@ -31,10 +33,18 @@ async def serve(stop: asyncio.Event) -> None:
     """Relay the outbox and run queued tasks until ``stop`` is set."""
     modules.import_all()
     settings = get_settings()
-    broker = create_broker(settings)
+    metrics = Metrics(settings, "worker")
+    broker = create_broker(settings, metrics)
     broker.is_worker_process = True
     await broker.startup()
     logger.info("worker_started")
+    async with metrics_server(metrics):
+        await _serve_started(broker, settings, stop)
+
+
+async def _serve_started(
+    broker: AsyncBroker, settings: Settings, stop: asyncio.Event
+) -> None:
     try:
         resources = worker_resources(broker)
         loops = [

@@ -1,0 +1,9 @@
+# Optional trial access, confined to the host loopback interface.
+# docker compose -f compose.yaml -f compose.metrics.yaml up -d
+services:
+  api:
+    ports: ["127.0.0.1:19001:9001"]
+  worker:
+    ports: ["127.0.0.1:19002:9001"]
+  scheduler:
+    ports: ["127.0.0.1:19003:9001"]

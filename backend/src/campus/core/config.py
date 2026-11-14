@@ -2,6 +2,7 @@
 
 import base64
 import binascii
+import math
 from datetime import timedelta
 from enum import StrEnum
 from functools import lru_cache
@@ -89,6 +90,34 @@ class Settings(BaseSettings):
             " peers keep their socket address."
         ),
     )
+
+    metrics_host: str = "127.0.0.1"
+    metrics_port: int | None = Field(default=None, ge=1, le=65535)
+    metrics_scrape_timeout: float = Field(default=3.0, gt=0)
+    metrics_http_buckets: tuple[float, ...] = (
+        0.005,
+        0.01,
+        0.025,
+        0.05,
+        0.075,
+        0.1,
+        0.15,
+        0.2,
+        0.3,
+        0.5,
+        1,
+        2.5,
+        5,
+    )
+
+    @field_validator("metrics_http_buckets")
+    @classmethod
+    def _check_metrics_buckets(cls, value: tuple[float, ...]) -> tuple[float, ...]:
+        if not value or any(not math.isfinite(v) or v <= 0 for v in value):
+            raise ValueError("Metrics buckets must be finite and positive")
+        if tuple(sorted(set(value))) != value:
+            raise ValueError("Metrics buckets must be strictly increasing")
+        return value
 
     database_url: SecretStr | None = Field(
         default=None,

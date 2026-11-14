@@ -17,6 +17,9 @@ x-backend: &backend
   environment: &backend-env
     CAMPUS_ENVIRONMENT: ${CAMPUS_ENVIRONMENT:-development}
     CAMPUS_RELEASE: ${CAMPUS_RELEASE:-}
+    # Private container port only; Caddy exposes only /api/* on port 8000.
+    CAMPUS_METRICS_HOST: 0.0.0.0
+    CAMPUS_METRICS_PORT: 9001
     CAMPUS_LOG_LEVEL: ${CAMPUS_LOG_LEVEL:-INFO}
     CAMPUS_LOG_FORMAT: ${CAMPUS_LOG_FORMAT:-json}
     CAMPUS_SENTRY_DSN: ${CAMPUS_SENTRY_DSN:-}

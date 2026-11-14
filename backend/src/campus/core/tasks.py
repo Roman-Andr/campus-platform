@@ -36,7 +36,9 @@ from campus.core.config import Settings
 from campus.core.db import create_engine, create_session_factory
 from campus.core.deadlines import delete_finished_deadlines, process_due_deadlines
 from campus.core.idempotency import delete_expired_idempotency_keys
+from campus.core.metrics import Metrics, TaskMetricsMiddleware
 from campus.core.outbox import delete_finished_messages
+from campus.core.queue_names import CONSUMER_GROUP, QUEUE_NAME
 
 logger = structlog.get_logger(__name__)
 
@@ -45,8 +47,6 @@ task = async_shared_broker.task
 DEADLINES_TASK = "campus.deadlines.process_due"
 CLEANUP_TASK = "campus.cleanup.delete_expired"
 
-QUEUE_NAME = "campus:tasks"
-CONSUMER_GROUP = "campus-worker"
 # Approximate number of entries kept in the stream; delivered entries stay
 # in a Redis stream until trimmed.
 STREAM_MAXLEN = 10_000
@@ -101,7 +101,7 @@ class WorkerResources:
     sessions: async_sessionmaker[AsyncSession]
 
 
-def create_broker(settings: Settings) -> AsyncBroker:
+def create_broker(settings: Settings, metrics: Metrics | None = None) -> AsyncBroker:
     """Create the Redis broker with the tasks of the application."""
     if settings.redis_url is None:
         raise RedisNotConfiguredError
@@ -113,6 +113,8 @@ def create_broker(settings: Settings) -> AsyncBroker:
         unacknowledged_lock_timeout=AUTOCLAIM_LOCK_TIMEOUT,
         retry=Retry(ExponentialWithJitterBackoff(cap=REDIS_BACKOFF_CAP), REDIS_RETRIES),
     )
+    if metrics is not None:
+        broker.add_middlewares(TaskMetricsMiddleware(metrics))
     configure_broker(broker, settings)
     return broker
 

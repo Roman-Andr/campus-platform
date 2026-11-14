@@ -140,3 +140,27 @@ def test_existing_email_is_migrated(empty_database: str) -> None:
     assert rows[0]["email"] == "existing@university.example"
     assert rows[0]["kind"] == "corporate"
     assert rows[0]["verified"]
+
+
+def test_deadline_due_time_is_backfilled(empty_database: str) -> None:
+    run_alembic(empty_database, "upgrade", "77c3f7a00001")
+    asyncio.run(
+        fetch(
+            empty_database,
+            """
+        INSERT INTO deadline (topic, payload, available_at, attempts,
+                              created_at, updated_at)
+        VALUES ('test.metrics', '{}', '2027-03-01T12:00:00Z', 1,
+                '2027-03-01T11:00:00Z', '2027-03-01T11:00:00Z')
+        RETURNING id
+    """,
+        )
+    )
+    run_alembic(empty_database, "upgrade", "head")
+    rows = asyncio.run(
+        fetch(empty_database, "SELECT due_at = available_at AS preserved FROM deadline")
+    )
+    assert len(rows) == 1
+    assert rows[0]["preserved"]
+    run_alembic(empty_database, "downgrade", "77c3f7a00001")
+    assert len(asyncio.run(fetch(empty_database, "SELECT id FROM deadline"))) == 1
