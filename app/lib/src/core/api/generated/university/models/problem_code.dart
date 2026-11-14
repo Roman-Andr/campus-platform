@@ -14,6 +14,7 @@ enum ProblemCodeValue {
   invalidCursor("invalid_cursor"),
   methodNotAllowed("method_not_allowed"),
   notFound("not_found"),
+  profileIncomplete("profile_incomplete"),
   rateLimited("rate_limited"),
   refreshTokenInvalid("refresh_token_invalid"),
   registrationRequired("registration_required"),
@@ -58,6 +59,9 @@ sealed class ProblemCode {
     ProblemCodeValue.methodNotAllowed,
   );
   static const notFound = ProblemCodeKnown(ProblemCodeValue.notFound);
+  static const profileIncomplete = ProblemCodeKnown(
+    ProblemCodeValue.profileIncomplete,
+  );
   static const rateLimited = ProblemCodeKnown(ProblemCodeValue.rateLimited);
   static const refreshTokenInvalid = ProblemCodeKnown(
     ProblemCodeValue.refreshTokenInvalid,

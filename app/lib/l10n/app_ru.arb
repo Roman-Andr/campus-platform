@@ -265,5 +265,78 @@
   "signOut": "Выйти из аккаунта",
   "@signOut": {
     "description": "Settings item that signs out on this device."
+  },
+  "profileTitle": "Профиль",
+  "@profileTitle": {
+    "description": "Title of the own profile screen and tooltip of the button that opens it."
+  },
+  "profileSetupTitle": "Ваш профиль",
+  "@profileSetupTitle": {
+    "description": "Title of the screen that fills in the profile after the first sign-in."
+  },
+  "profileSetupIntro": "Укажите, где вы учитесь и живёте: по этим данным вы увидите объявления своего общежития, факультета и города.",
+  "@profileSetupIntro": {
+    "description": "Introduction on the profile setup screen after the first sign-in."
+  },
+  "profileEditTitle": "Изменить профиль",
+  "@profileEditTitle": {
+    "description": "Title of the profile edit screen and tooltip of the button that opens it."
+  },
+  "profileCity": "Город-кампус",
+  "@profileCity": {
+    "description": "Label of the campus city field and item of the profile."
+  },
+  "profileDormitory": "Общежитие",
+  "@profileDormitory": {
+    "description": "Label of the dormitory field and item of the profile."
+  },
+  "profileNoDormitory": "Не живу в общежитии",
+  "@profileNoDormitory": {
+    "description": "Dormitory option and profile value for users who do not live in a dormitory."
+  },
+  "profileFaculty": "Факультет",
+  "@profileFaculty": {
+    "description": "Label of the faculty field and item of the profile."
+  },
+  "profileCourse": "Курс",
+  "@profileCourse": {
+    "description": "Label of the course (year of study) field and item of the profile."
+  },
+  "profileChoose": "Выберите из списка.",
+  "@profileChoose": {
+    "description": "Error under a profile field left empty or rejected."
+  },
+  "profilePlaceUnavailable": "Этого варианта больше нет, выберите другой.",
+  "@profilePlaceUnavailable": {
+    "description": "Error under a city, dormitory or faculty that the server no longer offers for the city."
+  },
+  "profileContinue": "Продолжить",
+  "@profileContinue": {
+    "description": "Button that saves the profile on the setup screen after the first sign-in."
+  },
+  "profileSave": "Сохранить",
+  "@profileSave": {
+    "description": "Button that saves changes of the profile."
+  },
+  "profileEmail": "Почта",
+  "@profileEmail": {
+    "description": "Item of the profile: the university e-mail address."
+  },
+  "profileAccountStudent": "Студент",
+  "@profileAccountStudent": {
+    "description": "Account type label of students (including postgraduates)."
+  },
+  "profileAccountEmployee": "Сотрудник",
+  "@profileAccountEmployee": {
+    "description": "Account type label of university employees."
+  },
+  "profileCourseValue": "{course} курс",
+  "@profileCourseValue": {
+    "description": "A course (year of study) in the course field and in the profile.",
+    "placeholders": {
+      "course": {
+        "type": "int"
+      }
+    }
   }
 }

@@ -43,7 +43,15 @@ typedef Reply = ResponseBody Function(RequestOptions options);
 
 /// Answers requests with queued replies instead of a server; once the
 /// queue is empty, every request gets the last reply.
+///
+/// `GET /api/v1/me` is answered with [me] (a filled profile by default)
+/// without taking a queued reply, unless [me] is `null`.
 class FakeHttpAdapter implements HttpClientAdapter {
+  FakeHttpAdapter({this.me = const {...userJson, ...filledProfileJson}});
+
+  /// The signed-in user as `GET /api/v1/me` returns it.
+  Map<String, Object?>? me;
+
   final sent = <SentRequest>[];
   final _replies = <Reply>[];
   Reply? _last;
@@ -98,6 +106,10 @@ class FakeHttpAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     sent.add(SentRequest(options));
+    final me = this.me;
+    if (me != null && options.method == 'GET' && options.path == mePath) {
+      return jsonBody(200, me);
+    }
     final reply = _replies.isEmpty ? _last : _replies.removeAt(0);
     if (reply == null) throw StateError('No reply for ${options.path}');
     return reply(options);
@@ -153,11 +165,35 @@ Map<String, Object?> tokensJson(int n, {int expiresIn = 900}) => {
   'refresh_token': 'refresh-$n',
   'token_type': 'bearer',
   'expires_in': expiresIn,
-  'user': {
-    'id': '01890a5d-ac96-774b-bcce-b302099a8058',
-    'email': 'ivanov@edu.hse.ru',
-    'first_name': 'Иван',
-    'last_name': 'Иванов',
-    'account_type': 'student',
-  },
+  'user': {...userJson, ...filledProfileJson},
+};
+
+/// Path of the signed-in user's account and profile.
+const mePath = '/api/v1/me';
+
+/// The account of the test user, without the profile.
+const userJson = <String, Object?>{
+  'id': '01890a5d-ac96-774b-bcce-b302099a8058',
+  'email': 'ivanov@edu.hse.ru',
+  'first_name': 'Иван',
+  'last_name': 'Иванов',
+  'account_type': 'student',
+};
+
+/// Profile fields of a user who has not filled in the profile.
+const emptyProfileJson = <String, Object?>{
+  'city_id': null,
+  'dormitory_id': null,
+  'faculty_id': null,
+  'course': null,
+  'profile_complete': false,
+};
+
+/// Profile fields of a student of Moscow, living in Dubki.
+const filledProfileJson = <String, Object?>{
+  'city_id': 'city-moscow',
+  'dormitory_id': 'dorm-dubki',
+  'faculty_id': 'faculty-economics',
+  'course': 2,
+  'profile_complete': true,
 };

@@ -208,4 +208,59 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get signOut => 'Выйти из аккаунта';
+
+  @override
+  String get profileTitle => 'Профиль';
+
+  @override
+  String get profileSetupTitle => 'Ваш профиль';
+
+  @override
+  String get profileSetupIntro =>
+      'Укажите, где вы учитесь и живёте: по этим данным вы увидите объявления своего общежития, факультета и города.';
+
+  @override
+  String get profileEditTitle => 'Изменить профиль';
+
+  @override
+  String get profileCity => 'Город-кампус';
+
+  @override
+  String get profileDormitory => 'Общежитие';
+
+  @override
+  String get profileNoDormitory => 'Не живу в общежитии';
+
+  @override
+  String get profileFaculty => 'Факультет';
+
+  @override
+  String get profileCourse => 'Курс';
+
+  @override
+  String get profileChoose => 'Выберите из списка.';
+
+  @override
+  String get profilePlaceUnavailable =>
+      'Этого варианта больше нет, выберите другой.';
+
+  @override
+  String get profileContinue => 'Продолжить';
+
+  @override
+  String get profileSave => 'Сохранить';
+
+  @override
+  String get profileEmail => 'Почта';
+
+  @override
+  String get profileAccountStudent => 'Студент';
+
+  @override
+  String get profileAccountEmployee => 'Сотрудник';
+
+  @override
+  String profileCourseValue(int course) {
+    return '$course курс';
+  }
 }

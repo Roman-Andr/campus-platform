@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -6,6 +7,9 @@ import '../../features/auth/presentation/sign_in_code_screen.dart';
 import '../../features/auth/presentation/sign_in_email_screen.dart';
 import '../../features/auth/presentation/sign_in_name_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/profile/application/my_profile.dart';
+import '../../features/profile/presentation/profile_form_screen.dart';
+import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/update/presentation/update_required_screen.dart';
 import '../api/client_update.dart';
@@ -21,6 +25,11 @@ abstract final class AppRoutes {
   static const signIn = '/sign-in';
   static const signInCode = '/sign-in/code';
   static const signInName = '/sign-in/name';
+  static const profile = '/profile';
+  static const profileEdit = '/profile/edit';
+
+  /// Filling in the profile after the first sign-in.
+  static const profileSetup = '/welcome';
 }
 
 @Riverpod(keepAlive: true)
@@ -37,7 +46,21 @@ GoRouter appRouter(Ref ref) {
             path: AppRoutes.settings.substring(1),
             builder: (context, state) => const SettingsScreen(),
           ),
+          GoRoute(
+            path: AppRoutes.profile.substring(1),
+            builder: (context, state) => const ProfileScreen(),
+            routes: [
+              GoRoute(
+                path: AppRoutes.profileEdit.split('/').last,
+                builder: (context, state) => const ProfileFormScreen(),
+              ),
+            ],
+          ),
         ],
+      ),
+      GoRoute(
+        path: AppRoutes.profileSetup,
+        builder: (context, state) => const ProfileFormScreen(onboarding: true),
       ),
       GoRoute(
         path: AppRoutes.signIn,
@@ -62,6 +85,12 @@ GoRouter appRouter(Ref ref) {
   ref
     ..listen(clientUpdateRequiredProvider, (_, _) => router.refresh())
     ..listen(authStatusProvider, (_, _) => router.refresh())
+    // Only whether the profile is filled in matters to the routes; a
+    // refresh on every change would undo a pop after saving an edit.
+    ..listen(
+      myProfileProvider.select((profile) => profile.value?.profileComplete),
+      (_, _) => router.refresh(),
+    )
     ..onDispose(router.dispose);
   return router;
 }
@@ -89,6 +118,15 @@ String? _redirect(Ref ref, String location) {
       }
     case AuthenticationStatus.authenticated:
       if (signingIn) return AppRoutes.home;
+      // Until the profile is filled in, only the screen that fills it in.
+      // While the profile loads (or fails to) the user stays where they are.
+      final user = ref.read(myProfileProvider).value;
+      final settingUp = location == AppRoutes.profileSetup;
+      if (user != null && !user.profileComplete) {
+        if (!settingUp) return AppRoutes.profileSetup;
+      } else if (settingUp) {
+        return AppRoutes.home;
+      }
     case AuthenticationStatus.initial || null:
   }
   return null;

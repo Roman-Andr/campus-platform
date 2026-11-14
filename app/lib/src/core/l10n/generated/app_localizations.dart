@@ -445,6 +445,108 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Выйти из аккаунта'**
   String get signOut;
+
+  /// Title of the own profile screen and tooltip of the button that opens it.
+  ///
+  /// In ru, this message translates to:
+  /// **'Профиль'**
+  String get profileTitle;
+
+  /// Title of the screen that fills in the profile after the first sign-in.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ваш профиль'**
+  String get profileSetupTitle;
+
+  /// Introduction on the profile setup screen after the first sign-in.
+  ///
+  /// In ru, this message translates to:
+  /// **'Укажите, где вы учитесь и живёте: по этим данным вы увидите объявления своего общежития, факультета и города.'**
+  String get profileSetupIntro;
+
+  /// Title of the profile edit screen and tooltip of the button that opens it.
+  ///
+  /// In ru, this message translates to:
+  /// **'Изменить профиль'**
+  String get profileEditTitle;
+
+  /// Label of the campus city field and item of the profile.
+  ///
+  /// In ru, this message translates to:
+  /// **'Город-кампус'**
+  String get profileCity;
+
+  /// Label of the dormitory field and item of the profile.
+  ///
+  /// In ru, this message translates to:
+  /// **'Общежитие'**
+  String get profileDormitory;
+
+  /// Dormitory option and profile value for users who do not live in a dormitory.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не живу в общежитии'**
+  String get profileNoDormitory;
+
+  /// Label of the faculty field and item of the profile.
+  ///
+  /// In ru, this message translates to:
+  /// **'Факультет'**
+  String get profileFaculty;
+
+  /// Label of the course (year of study) field and item of the profile.
+  ///
+  /// In ru, this message translates to:
+  /// **'Курс'**
+  String get profileCourse;
+
+  /// Error under a profile field left empty or rejected.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите из списка.'**
+  String get profileChoose;
+
+  /// Error under a city, dormitory or faculty that the server no longer offers for the city.
+  ///
+  /// In ru, this message translates to:
+  /// **'Этого варианта больше нет, выберите другой.'**
+  String get profilePlaceUnavailable;
+
+  /// Button that saves the profile on the setup screen after the first sign-in.
+  ///
+  /// In ru, this message translates to:
+  /// **'Продолжить'**
+  String get profileContinue;
+
+  /// Button that saves changes of the profile.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сохранить'**
+  String get profileSave;
+
+  /// Item of the profile: the university e-mail address.
+  ///
+  /// In ru, this message translates to:
+  /// **'Почта'**
+  String get profileEmail;
+
+  /// Account type label of students (including postgraduates).
+  ///
+  /// In ru, this message translates to:
+  /// **'Студент'**
+  String get profileAccountStudent;
+
+  /// Account type label of university employees.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сотрудник'**
+  String get profileAccountEmployee;
+
+  /// A course (year of study) in the course field and in the profile.
+  ///
+  /// In ru, this message translates to:
+  /// **'{course} курс'**
+  String profileCourseValue(int course);
 }
 
 class _AppLocalizationsDelegate

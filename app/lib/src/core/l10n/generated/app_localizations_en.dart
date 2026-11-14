@@ -208,4 +208,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signOut => 'Sign out';
+
+  @override
+  String get profileTitle => 'Profile';
+
+  @override
+  String get profileSetupTitle => 'Your profile';
+
+  @override
+  String get profileSetupIntro =>
+      'Tell us where you study and live: you will see listings of your dormitory, faculty and city.';
+
+  @override
+  String get profileEditTitle => 'Edit profile';
+
+  @override
+  String get profileCity => 'Campus city';
+
+  @override
+  String get profileDormitory => 'Dormitory';
+
+  @override
+  String get profileNoDormitory => 'I don\'t live in a dormitory';
+
+  @override
+  String get profileFaculty => 'Faculty';
+
+  @override
+  String get profileCourse => 'Year of study';
+
+  @override
+  String get profileChoose => 'Choose from the list.';
+
+  @override
+  String get profilePlaceUnavailable =>
+      'This option is no longer available, choose another one.';
+
+  @override
+  String get profileContinue => 'Continue';
+
+  @override
+  String get profileSave => 'Save';
+
+  @override
+  String get profileEmail => 'E-mail';
+
+  @override
+  String get profileAccountStudent => 'Student';
+
+  @override
+  String get profileAccountEmployee => 'Employee';
+
+  @override
+  String profileCourseValue(int course) {
+    return 'Year $course';
+  }
 }

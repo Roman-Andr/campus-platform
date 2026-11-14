@@ -1,22 +1,74 @@
-"""Identity tables: one-time challenges and rotating device credentials."""
+"""Identity tables: users with their profiles, one-time challenges and
+rotating device credentials."""
 
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, ForeignKey, String
+from sqlalchemy import (
+    CheckConstraint,
+    ForeignKey,
+    ForeignKeyConstraint,
+    SmallInteger,
+    String,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from campus.core.db import Entity
+from campus.modules.university import AccountType
 
 
 class User(Entity):
+    """An account and its profile (specification, 5.1.1, module 2).
+
+    The profile — campus city, faculty, course and an optional dormitory —
+    is filled in after the first sign-in; until then the city is empty.
+    The dormitory and the faculty must belong to the city: the composite
+    foreign keys enforce it. An empty dormitory of a filled profile means
+    "does not live in a dormitory".
+    """
+
     __tablename__ = "identity_user"
-    __table_args__ = (CheckConstraint("email = lower(email)", name="email_lowercase"),)
+    __table_args__ = (
+        CheckConstraint("email = lower(email)", name="email_lowercase"),
+        # The profile is saved whole: city and faculty together, the rest
+        # only with them.
+        CheckConstraint(
+            "(city_id IS NULL) = (faculty_id IS NULL)"
+            " AND (city_id IS NOT NULL OR (dormitory_id IS NULL AND course IS NULL))",
+            name="profile_whole",
+        ),
+        CheckConstraint("course >= 1", name="course_positive"),
+        ForeignKeyConstraint(
+            ["city_id", "dormitory_id"],
+            ["university_dormitory.city_id", "university_dormitory.id"],
+            name="fk_identity_user_dormitory_of_city",
+            ondelete="RESTRICT",
+        ),
+        ForeignKeyConstraint(
+            ["city_id", "faculty_id"],
+            ["university_faculty.city_id", "university_faculty.id"],
+            name="fk_identity_user_faculty_of_city",
+            ondelete="RESTRICT",
+        ),
+    )
 
     email: Mapped[str] = mapped_column(String(320), unique=True)
     first_name: Mapped[str] = mapped_column(String(100))
     last_name: Mapped[str] = mapped_column(String(100))
     account_type: Mapped[str] = mapped_column(String(16))
+    city_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("university_city.id", ondelete="RESTRICT"), index=True
+    )
+    dormitory_id: Mapped[UUID | None] = mapped_column(index=True)
+    faculty_id: Mapped[UUID | None] = mapped_column(index=True)
+    course: Mapped[int | None] = mapped_column(SmallInteger)
+
+    @property
+    def profile_complete(self) -> bool:
+        """Whether the profile is filled in; required to publish and respond."""
+        return self.city_id is not None and (
+            self.course is not None or self.account_type == AccountType.EMPLOYEE
+        )
 
 
 class SignInCode(Entity):

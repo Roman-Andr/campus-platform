@@ -944,6 +944,234 @@
           }
         }
       }
+    },
+    "/api/v1/me": {
+      "get": {
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Get Me",
+        "description": "The signed-in user's account and profile.",
+        "operationId": "get_me",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/profile": {
+      "put": {
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Update Profile",
+        "description": "Fill in or change the profile; the dormitory and the faculty must be of\nthe city (``validation_failed`` with ``not_of_city`` otherwise).",
+        "operationId": "update_profile",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1241,6 +1469,7 @@
               "invalid_cursor",
               "method_not_allowed",
               "not_found",
+              "profile_incomplete",
               "rate_limited",
               "refresh_token_invalid",
               "registration_required",
@@ -1287,6 +1516,46 @@
         ],
         "title": "Problem",
         "description": "Error response (RFC 9457 Problem Details)."
+      },
+      "ProfileInput": {
+        "properties": {
+          "city_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "City Id"
+          },
+          "dormitory_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "title": "Dormitory Id",
+            "description": "Empty: does not live in a dormitory."
+          },
+          "faculty_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Faculty Id"
+          },
+          "course": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1.0,
+            "title": "Course",
+            "description": "Year of study: required for students, absent for employees."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "city_id",
+          "faculty_id"
+        ],
+        "title": "ProfileInput",
+        "description": "The whole profile; omitted fields are not kept."
       },
       "RefreshInput": {
         "properties": {
@@ -1416,8 +1685,46 @@
             "title": "Last Name"
           },
           "account_type": {
-            "type": "string",
-            "title": "Account Type"
+            "$ref": "#/components/schemas/AccountType"
+          },
+          "city_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "title": "City Id",
+            "description": "Campus city; empty until filled in."
+          },
+          "dormitory_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "title": "Dormitory Id",
+            "description": "Empty when the user does not live in a dormitory."
+          },
+          "faculty_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "title": "Faculty Id"
+          },
+          "course": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "title": "Course",
+            "description": "Year of study; employees have none."
+          },
+          "profile_complete": {
+            "type": "boolean",
+            "title": "Profile Complete",
+            "description": "Whether the profile is filled in; publishing and responding need it."
           }
         },
         "type": "object",
@@ -1426,9 +1733,15 @@
           "email",
           "first_name",
           "last_name",
-          "account_type"
+          "account_type",
+          "city_id",
+          "dormitory_id",
+          "faculty_id",
+          "course",
+          "profile_complete"
         ],
-        "title": "UserOutput"
+        "title": "UserOutput",
+        "description": "The user's account and profile."
       }
     },
     "securitySchemes": {

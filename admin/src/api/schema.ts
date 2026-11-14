@@ -168,6 +168,47 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/me': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Me
+     * @description The signed-in user's account and profile.
+     */
+    get: operations['get_me'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/me/profile': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /**
+     * Update Profile
+     * @description Fill in or change the profile; the dormitory and the faculty must be of
+     *     the city (``validation_failed`` with ``not_of_city`` otherwise).
+     */
+    put: operations['update_profile'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -363,6 +404,7 @@ export interface components {
         | 'invalid_cursor'
         | 'method_not_allowed'
         | 'not_found'
+        | 'profile_incomplete'
         | 'rate_limited'
         | 'refresh_token_invalid'
         | 'registration_required'
@@ -383,6 +425,32 @@ export interface components {
        * @description Oldest supported client version (client_update_required).
        */
       min_version?: string | null;
+    };
+    /**
+     * ProfileInput
+     * @description The whole profile; omitted fields are not kept.
+     */
+    ProfileInput: {
+      /**
+       * City Id
+       * Format: uuid
+       */
+      city_id: string;
+      /**
+       * Dormitory Id
+       * @description Empty: does not live in a dormitory.
+       */
+      dormitory_id?: string | null;
+      /**
+       * Faculty Id
+       * Format: uuid
+       */
+      faculty_id: string;
+      /**
+       * Course
+       * @description Year of study: required for students, absent for employees.
+       */
+      course?: number | null;
     };
     /** RefreshInput */
     RefreshInput: {
@@ -430,7 +498,10 @@ export interface components {
       expires_in: number;
       user: components['schemas']['UserOutput'];
     };
-    /** UserOutput */
+    /**
+     * UserOutput
+     * @description The user's account and profile.
+     */
     UserOutput: {
       /**
        * Id
@@ -443,8 +514,29 @@ export interface components {
       first_name: string;
       /** Last Name */
       last_name: string;
-      /** Account Type */
-      account_type: string;
+      account_type: components['schemas']['AccountType'];
+      /**
+       * City Id
+       * @description Campus city; empty until filled in.
+       */
+      city_id: string | null;
+      /**
+       * Dormitory Id
+       * @description Empty when the user does not live in a dormitory.
+       */
+      dormitory_id: string | null;
+      /** Faculty Id */
+      faculty_id: string | null;
+      /**
+       * Course
+       * @description Year of study; employees have none.
+       */
+      course: number | null;
+      /**
+       * Profile Complete
+       * @description Whether the profile is filled in; publishing and responding need it.
+       */
+      profile_complete: boolean;
     };
   };
   responses: never;
@@ -1077,6 +1169,152 @@ export interface operations {
       };
       /** @description Rate limit exceeded; Retry-After is in seconds. */
       429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  get_me: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not signed in. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  update_profile: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ProfileInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not signed in. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
         headers: {
           [name: string]: unknown;
         };

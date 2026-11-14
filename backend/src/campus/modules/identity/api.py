@@ -26,6 +26,7 @@ from campus.core.web import (
 )
 from campus.core.web.auth import CurrentUser, digest, rate_limit, revoke_access, secret
 from campus.modules.identity.models import RefreshToken, Session, SignInCode, User
+from campus.modules.identity.profile import UserOutput
 from campus.modules.university import EmailDomain
 
 DOMAIN_NOT_ALLOWED = ProblemType(
@@ -97,15 +98,6 @@ class RefreshInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     refresh_token: str = Field(min_length=1, max_length=256)
     device_id: UUID
-
-
-class UserOutput(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    id: UUID
-    email: str
-    first_name: str
-    last_name: str
-    account_type: str
 
 
 class Tokens(BaseModel):

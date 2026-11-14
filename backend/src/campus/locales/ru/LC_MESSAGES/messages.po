@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-14 03:26+0300\n"
+"POT-Creation-Date: 2026-11-14 12:09+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -28,6 +28,12 @@ msgstr "Не указана версия клиента"
 
 msgid "E-mail domain not allowed"
 msgstr "Домен почты не разрешён"
+
+msgid "Employees have no course."
+msgstr "У сотрудников нет курса."
+
+msgid "Fill in your profile first: campus city, faculty and course."
+msgstr "Сначала заполните профиль: город-кампус, факультет и курс."
 
 msgid "First and last names are required"
 msgstr "Укажите имя и фамилию"
@@ -106,12 +112,19 @@ msgid "Must be at most {max_length} characters long."
 msgstr "Максимальная длина — {max_length}."
 
 #, python-brace-format
+msgid "Must be at most {max}."
+msgstr "Должно быть не больше {max}."
+
+#, python-brace-format
 msgid "Must be greater than {gt}."
 msgstr "Должно быть больше {gt}."
 
 #, python-brace-format
 msgid "Must be less than {lt}."
 msgstr "Должно быть меньше {lt}."
+
+msgid "Must be one of the chosen city."
+msgstr "Должно относиться к выбранному городу."
 
 #, python-brace-format
 msgid "Must be one of: {expected}."
@@ -128,8 +141,14 @@ msgstr "Минимальное число элементов — {min_length}."
 msgid "Must have at most {max_length} items."
 msgstr "Максимальное число элементов — {max_length}."
 
+msgid "No such campus city."
+msgstr "Такого города-кампуса нет."
+
 msgid "Not found"
 msgstr "Не найдено"
+
+msgid "Profile incomplete"
+msgstr "Профиль не заполнен"
 
 msgid "Request failed"
 msgstr "Запрос не выполнен"
@@ -148,6 +167,9 @@ msgstr "Некоторые поля запроса заполнены невер
 
 msgid "Something went wrong on our side. Please try again later."
 msgstr "Что-то пошло не так на нашей стороне. Попробуйте позже."
+
+msgid "Students must give their course."
+msgstr "Студенту нужно указать курс."
 
 msgid "The Idempotency-Key header must be a UUID."
 msgstr "Заголовок Idempotency-Key должен быть UUID."

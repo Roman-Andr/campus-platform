@@ -10,6 +10,12 @@ msgstr ""
 msgid "E-mail domain not allowed"
 msgstr ""
 
+msgid "Employees have no course."
+msgstr ""
+
+msgid "Fill in your profile first: campus city, faculty and course."
+msgstr ""
+
 msgid "First and last names are required"
 msgstr ""
 
@@ -87,11 +93,18 @@ msgid "Must be at most {max_length} characters long."
 msgstr ""
 
 #, python-brace-format
+msgid "Must be at most {max}."
+msgstr ""
+
+#, python-brace-format
 msgid "Must be greater than {gt}."
 msgstr ""
 
 #, python-brace-format
 msgid "Must be less than {lt}."
+msgstr ""
+
+msgid "Must be one of the chosen city."
 msgstr ""
 
 #, python-brace-format
@@ -109,7 +122,13 @@ msgstr ""
 msgid "Must have at most {max_length} items."
 msgstr ""
 
+msgid "No such campus city."
+msgstr ""
+
 msgid "Not found"
+msgstr ""
+
+msgid "Profile incomplete"
 msgstr ""
 
 msgid "Request failed"
@@ -128,6 +147,9 @@ msgid "Some fields of the request are invalid."
 msgstr ""
 
 msgid "Something went wrong on our side. Please try again later."
+msgstr ""
+
+msgid "Students must give their course."
 msgstr ""
 
 msgid "The Idempotency-Key header must be a UUID."

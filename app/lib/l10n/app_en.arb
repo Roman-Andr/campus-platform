@@ -57,5 +57,22 @@
   "waitSeconds": "{count} s",
   "waitMinutes": "{count} min",
   "settingsAccount": "Account",
-  "signOut": "Sign out"
+  "signOut": "Sign out",
+  "profileTitle": "Profile",
+  "profileSetupTitle": "Your profile",
+  "profileSetupIntro": "Tell us where you study and live: you will see listings of your dormitory, faculty and city.",
+  "profileEditTitle": "Edit profile",
+  "profileCity": "Campus city",
+  "profileDormitory": "Dormitory",
+  "profileNoDormitory": "I don't live in a dormitory",
+  "profileFaculty": "Faculty",
+  "profileCourse": "Year of study",
+  "profileChoose": "Choose from the list.",
+  "profilePlaceUnavailable": "This option is no longer available, choose another one.",
+  "profileContinue": "Continue",
+  "profileSave": "Save",
+  "profileEmail": "E-mail",
+  "profileAccountStudent": "Student",
+  "profileAccountEmployee": "Employee",
+  "profileCourseValue": "Year {course}"
 }
