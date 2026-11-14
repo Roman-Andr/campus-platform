@@ -3,6 +3,7 @@
 import asyncio
 import os
 import signal
+import uuid
 from collections import defaultdict
 from collections.abc import Iterator
 from datetime import timedelta
@@ -14,6 +15,7 @@ import pytest
 import redis.asyncio
 import uvicorn
 from pydantic import SecretStr
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from campus.api import __main__ as api_main
@@ -21,9 +23,9 @@ from campus.api.app import create_app
 from campus.core import clock
 from campus.core.config import Settings
 from campus.core.db import create_session_factory
-from campus.core.deadlines import deadline_handlers, schedule_deadline
-from campus.core.jobs import JobInfo
-from campus.core.outbox import add_message, outbox_handlers
+from campus.core.deadlines import Deadline, deadline_handlers, schedule_deadline
+from campus.core.jobs import Job, JobInfo
+from campus.core.outbox import OutboxMessage, add_message, outbox_handlers
 from campus.core.runtime import Service, run_until_signal
 from campus.core.tasks import (
     CLEANUP_TASK,
@@ -124,18 +126,38 @@ def sessions(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
 
 
 class Handled:
-    """Kinds of jobs run by the test handler of outbox messages and deadlines."""
+    """Jobs run by the test handler of outbox messages and deadlines.
+
+    A job with ``hold`` in its payload waits until :meth:`release`, then
+    queries the database: a controlled delay of a running job.
+    """
 
     def __init__(self) -> None:
         self.kinds: list[str] = []
+        self.finished: list[str] = []
+        self.cancelled: list[str] = []
         self._events: defaultdict[str, asyncio.Event] = defaultdict(asyncio.Event)
+        self._released = asyncio.Event()
 
-    async def __call__(self, _session: AsyncSession, job: JobInfo) -> None:
-        self.kinds.append(job.payload["kind"])
-        self._events[job.payload["kind"]].set()
+    async def __call__(self, session: AsyncSession, job: JobInfo) -> None:
+        kind = job.payload["kind"]
+        self.kinds.append(kind)
+        self._events[kind].set()
+        if not job.payload.get("hold"):
+            return
+        try:
+            await self._released.wait()
+        except asyncio.CancelledError:
+            self.cancelled.append(kind)
+            raise
+        await session.execute(text("SELECT 1"))
+        self.finished.append(kind)
 
     async def wait(self, kind: str) -> None:
         await asyncio.wait_for(self._events[kind].wait(), timeout=10)
+
+    def release(self) -> None:
+        self._released.set()
 
 
 @pytest.fixture
@@ -183,15 +205,103 @@ async def test_deadline_missed_while_scheduler_was_down_is_processed_on_start(
         )
     stop, tasks = run(worker_main.serve)
     try:
-        await asyncio.sleep(0.5)  # the worker alone does not process deadlines
-        assert handled.kinds == []
+        # The worker is up once it relays a message, however long it starts;
+        # alone it does not process deadlines.
+        async with sessions() as session, session.begin():
+            add_message(session, TOPIC, {"kind": "outbox"})
+        await handled.wait("outbox")
+        assert handled.kinds == ["outbox"]
 
         tasks.append(asyncio.ensure_future(scheduler_main.serve(stop)))
 
         await handled.wait("deadline")
-        assert handled.kinds == ["deadline"]
+        assert handled.kinds == ["outbox", "deadline"]
     finally:
         await finish(stop, tasks)
+
+
+async def add_held_job(
+    sessions: async_sessionmaker[AsyncSession], model: type[Job]
+) -> uuid.UUID:
+    """Add a due job of ``model`` that runs until released."""
+    payload = {"kind": model.__tablename__, "hold": True}
+    async with sessions() as session, session.begin():
+        if model is Deadline:
+            await schedule_deadline(session, TOPIC, clock.now(), payload)
+        else:
+            add_message(session, TOPIC, payload)
+        job_id: uuid.UUID | None = await session.scalar(select(model.id))
+    assert job_id is not None
+    return job_id
+
+
+def start_running(model: type[Job]) -> tuple[asyncio.Event, list[asyncio.Future[None]]]:
+    """Start the worker, and the scheduler that sends the deadline task."""
+    if model is Deadline:
+        return run(worker_main.serve, scheduler_main.serve)
+    return run(worker_main.serve)
+
+
+async def stored_job(
+    sessions: async_sessionmaker[AsyncSession], model: type[Job], job_id: uuid.UUID
+) -> Job:
+    async with sessions() as session:
+        job = await session.get(model, job_id)
+    assert job is not None
+    return job
+
+
+JOB_MODELS = pytest.mark.parametrize(
+    "model", [OutboxMessage, Deadline], ids=["outbox", "deadline"]
+)
+
+
+@pytest.mark.usefixtures("services")
+@JOB_MODELS
+async def test_stopping_worker_finishes_running_job_first(
+    sessions: async_sessionmaker[AsyncSession], handled: Handled, model: type[Job]
+) -> None:
+    job_id = await add_held_job(sessions, model)
+    stop, tasks = start_running(model)
+    worker = tasks[0]
+    await handled.wait(model.__tablename__)
+
+    stop.set()
+    # The job is still running: the worker waits for it.
+    await asyncio.wait([worker], timeout=0.5)
+    assert not worker.done()
+
+    handled.release()
+    await finish(stop, tasks)
+
+    assert handled.finished == [model.__tablename__]
+    assert handled.cancelled == []
+    assert (await stored_job(sessions, model, job_id)).processed_at is not None
+
+
+@pytest.mark.usefixtures("services")
+@JOB_MODELS
+async def test_stopping_worker_cancels_job_running_past_timeout(
+    sessions: async_sessionmaker[AsyncSession],
+    handled: Handled,
+    model: type[Job],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("CAMPUS_WORKER_SHUTDOWN_TIMEOUT", "PT0.2S")
+    job_id = await add_held_job(sessions, model)
+    stop, tasks = start_running(model)
+    await handled.wait(model.__tablename__)
+
+    # Never released: cancelled at the timeout, before the worker closes
+    # the database it uses.
+    await finish(stop, tasks)
+
+    assert handled.cancelled == [model.__tablename__]
+    assert handled.finished == []
+    # Rolled back: the job is retried by the next worker.
+    job = await stored_job(sessions, model, job_id)
+    assert job.processed_at is None
+    assert job.attempts == 0
 
 
 @pytest.mark.usefixtures("services")
