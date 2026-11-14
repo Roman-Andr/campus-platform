@@ -14,7 +14,15 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint, select
+from sqlalchemy import (
+    CheckConstraint,
+    ForeignKey,
+    String,
+    UniqueConstraint,
+    delete,
+    select,
+)
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from campus.core.db import Entity
@@ -68,6 +76,20 @@ class RoleAssignment(Entity):
     )
     faculty_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("university_faculty.id", ondelete="RESTRICT")
+    )
+
+
+async def revoke_headman_roles(session: AsyncSession, user_id: UUID) -> None:
+    """Remove every headman scope in the caller's transaction.
+
+    The caller must hold the user's row lock, also required by future role
+    assignment operations to serialize them with account type changes.
+    Global moderator and administrator assignments are preserved.
+    """
+    await session.execute(
+        delete(RoleAssignment).where(
+            RoleAssignment.user_id == user_id, RoleAssignment.role == Role.HEADMAN
+        )
     )
 
 
