@@ -21,6 +21,7 @@ from campus.modules.identity import User
 from campus.modules.listings.models import (
     PERMANENT_KINDS,
     Audience,
+    CompletionMethod,
     Interaction,
     InteractionStatus,
     LessonOption,
@@ -29,6 +30,7 @@ from campus.modules.listings.models import (
     ListingEvent,
     ListingStatus,
     Meeting,
+    NoMeetingConfirmation,
     Visibility,
     WaitlistEntry,
     WaitlistStatus,
@@ -112,8 +114,19 @@ EXCHANGE_OFFER_DUPLICATE = ProblemType(
     N_("You already offered an item."),
     N_("Wait for the author's decision."),
 )
+NO_MEETING_UNAVAILABLE = ProblemType(
+    "listing_no_meeting_unavailable",
+    409,
+    N_("This interaction cannot be completed without a meeting."),
+    N_(
+        "Only an accepted online lesson or a help interaction without an"
+        " agreed meeting can be completed this way."
+    ),
+)
 
 MEETING_PROPOSED = N_("A meeting time and place were proposed.")
+# Two participants must confirm; the first consent only records the intent.
+NO_MEETING_CONFIRMATIONS = 2
 MEETING_SCHEDULED = N_("The meeting is scheduled.")
 MEETING_RESCHEDULED = N_("The meeting has been rescheduled.")
 MEETING_REMINDER = N_("Your meeting starts soon.")
@@ -1160,7 +1173,7 @@ async def claim_listing(  # noqa: PLR0913, PLR0917 - aggregate claim
     return False
 
 
-async def transition(  # noqa: PLR0912, PLR0913 - aggregate transition
+async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
     session: AsyncSession,
     listing: Listing,
     interaction: Interaction,
@@ -1168,6 +1181,9 @@ async def transition(  # noqa: PLR0912, PLR0913 - aggregate transition
     actor_id: UUID | None,
     *,
     settings: Settings | None = None,
+    completion_method: CompletionMethod | None = None,
+    action: str = "transition",
+    details: dict[str, Any] | None = None,
 ) -> None:
     expected = TRANSITIONS.get((InteractionStatus(interaction.status), target))
     if expected is None:
@@ -1183,13 +1199,21 @@ async def transition(  # noqa: PLR0912, PLR0913 - aggregate transition
         and listing.status != ListingStatus.ACTIVE
     ):
         raise ProblemError(CONFLICT)
-    allowed_id = {
-        "author": listing.author_id,
-        "participant": interaction.participant_id,
-        "system": None,
-    }[expected]
-    if actor_id != allowed_id:
-        raise ProblemError(FORBIDDEN)
+    settings = settings or get_settings()
+    completion = target == InteractionStatus.COMPLETED and completion_method is not None
+    if completion:
+        # A participant confirms the completion; the service-only transition
+        # stays available for the QR module, which passes no actor.
+        if actor_id not in (listing.author_id, interaction.participant_id):
+            raise ProblemError(FORBIDDEN)
+    else:
+        allowed_id = {
+            "author": listing.author_id,
+            "participant": interaction.participant_id,
+            "system": None,
+        }[expected]
+        if actor_id != allowed_id:
+            raise ProblemError(FORBIDDEN)
     if interaction.status == InteractionStatus.PENDING:
         require_live(listing)
         if (
@@ -1204,6 +1228,14 @@ async def transition(  # noqa: PLR0912, PLR0913 - aggregate transition
         if target == InteractionStatus.ACCEPTED
         else None
     )
+    if completion and completion_method is not None:
+        interaction.completion_method = completion_method
+        interaction.completed_at = clock.now()
+        interaction.completion_weight = (
+            settings.rating_weight_no_meeting
+            if completion_method == CompletionMethod.NO_MEETING
+            else settings.rating_weight_qr
+        )
     if previous == InteractionStatus.ACCEPTED:
         # Reminders and the reservation belong to an accepted interaction only.
         await cancel_meeting_reminders(session, interaction.id)
@@ -1246,11 +1278,17 @@ async def transition(  # noqa: PLR0912, PLR0913 - aggregate transition
         await clear_waitlist(session, listing, "listing_completed")
     elif not claimed:
         listing.version += 1
-    record(session, listing, actor_id, "transition", previous, interaction)
+    record(
+        session,
+        listing,
+        actor_id,
+        action,
+        previous,
+        interaction,
+        details=details,
+    )
     if target == InteractionStatus.ACCEPTED:
-        await schedule_reservation(
-            session, listing, interaction, settings or get_settings()
-        )
+        await schedule_reservation(session, listing, interaction, settings)
     if released:
         offer_timeout, open_all_before = offer_timing(settings)
         await offer_next(
@@ -1309,6 +1347,118 @@ def validate_lesson_slot(
     if location is None:
         raise ProblemError(MEETING_PLACE_INVALID)
     return time, validate_place(location, settings), False
+
+
+def no_meeting_time(listing: Listing, interaction: Interaction) -> datetime | None:
+    """The agreed moment of an interaction completed without a meeting.
+
+    An online lesson uses its scheduled time. Help without an agreed meeting
+    has no scheduled moment yet, so the first consent becomes the agreed
+    server moment and the second participant confirms exactly that.
+    """
+    if listing.kind == "skill" and interaction.meeting is not None:
+        return interaction.meeting.scheduled_at
+    return None
+
+
+def require_no_meeting(listing: Listing, interaction: Interaction) -> None:
+    """Reject every interaction that cannot be confirmed without a meeting."""
+    if interaction.status == InteractionStatus.COMPLETED:
+        if interaction.without_meeting:
+            return
+        raise ProblemError(NO_MEETING_UNAVAILABLE)
+    if interaction.status != InteractionStatus.ACCEPTED:
+        raise ProblemError(NO_MEETING_UNAVAILABLE)
+    if listing.kind == "skill":
+        meeting = interaction.meeting
+        if meeting is None or not meeting.online or meeting.scheduled_at is None:
+            raise ProblemError(NO_MEETING_UNAVAILABLE)
+    elif listing.kind == "help":
+        # A help request may be done without a meeting; once a meeting has
+        # been proposed or scheduled, only its QR confirmation can complete it.
+        if interaction.meeting is not None:
+            raise ProblemError(NO_MEETING_UNAVAILABLE)
+    else:
+        raise ProblemError(NO_MEETING_UNAVAILABLE)
+
+
+async def no_meeting_confirmations(
+    session: AsyncSession, interaction: Interaction
+) -> list[NoMeetingConfirmation]:
+    """Both consents of the interaction, earliest first."""
+    return list(
+        await session.scalars(
+            select(NoMeetingConfirmation)
+            .where(NoMeetingConfirmation.interaction_id == interaction.id)
+            .order_by(NoMeetingConfirmation.created_at, NoMeetingConfirmation.id)
+        )
+    )
+
+
+async def confirm_no_meeting(
+    session: AsyncSession,
+    listing: Listing,
+    interaction: Interaction,
+    actor_id: UUID,
+    *,
+    settings: Settings | None = None,
+) -> list[NoMeetingConfirmation]:
+    """Record one participant's consent, completing the interaction on the second.
+
+    The caller locks the listing row, so consents, cancellation and the
+    completion are serialized: two simultaneous consents complete exactly
+    once, and a cancelled interaction is never completed.
+    """
+    require_no_meeting(listing, interaction)
+    if actor_id not in (listing.author_id, interaction.participant_id):
+        raise ProblemError(FORBIDDEN)
+    if interaction.status == InteractionStatus.COMPLETED:
+        return await no_meeting_confirmations(session, interaction)
+    confirmations = await no_meeting_confirmations(session, interaction)
+    if any(item.participant_id == actor_id for item in confirmations):
+        return confirmations
+    agreed_at = (
+        confirmations[0].agreed_at
+        if confirmations
+        else no_meeting_time(listing, interaction) or clock.now()
+    )
+    confirmation = NoMeetingConfirmation(
+        interaction_id=interaction.id,
+        participant_id=actor_id,
+        agreed_at=agreed_at,
+    )
+    session.add(confirmation)
+    await session.flush()
+    confirmations.append(confirmation)
+    details: dict[str, Any] = {
+        "method": CompletionMethod.NO_MEETING.value,
+        "agreed_at": agreed_at.isoformat(),
+        "confirmed_by": [str(item.participant_id) for item in confirmations],
+    }
+    if len(confirmations) >= NO_MEETING_CONFIRMATIONS:
+        await transition(
+            session,
+            listing,
+            interaction,
+            InteractionStatus.COMPLETED,
+            actor_id,
+            settings=settings,
+            completion_method=CompletionMethod.NO_MEETING,
+            action="no_meeting_completed",
+            details=details,
+        )
+    else:
+        record(
+            session,
+            listing,
+            actor_id,
+            "no_meeting_confirmed",
+            interaction.status,
+            interaction,
+            details=details,
+        )
+    await session.flush()
+    return confirmations
 
 
 def record_meeting(  # noqa: PLR0913, PLR0917 - event fields

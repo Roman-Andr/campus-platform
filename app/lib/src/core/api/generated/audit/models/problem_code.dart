@@ -28,6 +28,7 @@ enum ProblemCodeValue {
   listingConflict("listing_conflict"),
   listingContentInvalid("listing_content_invalid"),
   listingForbidden("listing_forbidden"),
+  listingNoMeetingUnavailable("listing_no_meeting_unavailable"),
   listingOfferExpired("listing_offer_expired"),
   listingOfferMissing("listing_offer_missing"),
   listingOfferPending("listing_offer_pending"),
@@ -136,6 +137,9 @@ sealed class ProblemCode {
   );
   static const listingForbidden = ProblemCodeKnown(
     ProblemCodeValue.listingForbidden,
+  );
+  static const listingNoMeetingUnavailable = ProblemCodeKnown(
+    ProblemCodeValue.listingNoMeetingUnavailable,
   );
   static const listingOfferExpired = ProblemCodeKnown(
     ProblemCodeValue.listingOfferExpired,

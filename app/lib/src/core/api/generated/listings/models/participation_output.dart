@@ -3,6 +3,7 @@
 import 'interaction_status.dart';
 import 'lesson_option_output.dart';
 import 'participation_listing.dart';
+import 'participation_output_completion_method.dart';
 import 'participation_output_meeting.dart';
 
 class ParticipationOutput {
@@ -29,6 +30,18 @@ class ParticipationOutput {
 
     /// Time options of a skill lesson; empty for other types.
     this.options,
+
+    /// How the interaction was completed; null until completion.
+    this.completionMethod,
+
+    /// RFC 3339 instant with an explicit offset; returned in UTC.
+    this.completedAt,
+
+    /// Weight of a review of the completed interaction.
+    this.completionWeight,
+
+    /// Whether the interaction was completed by mutual confirmation.
+    this.withoutMeeting = false,
 
     /// RFC 3339 instant with an explicit offset; returned in UTC.
     required this.createdAt,
@@ -76,6 +89,24 @@ class ParticipationOutput {
                 )
                 .toList()
           : null,
+      completionMethod: json.containsKey("completion_method")
+          ? json["completion_method"] == null
+                ? null
+                : ParticipationOutputCompletionMethod.fromJson(
+                    json["completion_method"],
+                  )
+          : null,
+      completedAt: json.containsKey("completed_at")
+          ? json["completed_at"] == null
+                ? null
+                : DateTime.parse(json["completed_at"] as String).toUtc()
+          : null,
+      completionWeight: json.containsKey("completion_weight")
+          ? json["completion_weight"] as num?
+          : null,
+      withoutMeeting: json.containsKey("without_meeting")
+          ? json["without_meeting"] as bool
+          : false,
       createdAt: DateTime.parse(json["created_at"] as String).toUtc(),
       listing: ParticipationListing.fromJson(
         json["listing"] as Map<String, Object?>,
@@ -116,6 +147,18 @@ class ParticipationOutput {
   /// Time options of a skill lesson; empty for other types.
   final List<LessonOptionOutput>? options;
 
+  /// How the interaction was completed; null until completion.
+  final ParticipationOutputCompletionMethod? completionMethod;
+
+  /// RFC 3339 instant with an explicit offset; returned in UTC.
+  final DateTime? completedAt;
+
+  /// Weight of a review of the completed interaction.
+  final num? completionWeight;
+
+  /// Whether the interaction was completed by mutual confirmation.
+  final bool withoutMeeting;
+
   /// RFC 3339 instant with an explicit offset; returned in UTC.
   final DateTime createdAt;
 
@@ -135,6 +178,10 @@ class ParticipationOutput {
     "offer_description",
     "meeting",
     "options",
+    "completion_method",
+    "completed_at",
+    "completion_weight",
+    "without_meeting",
     "created_at",
     "listing",
   };
@@ -159,6 +206,13 @@ class ParticipationOutput {
     "meeting": this.meeting.toJson(),
     if (this.options != null)
       "options": this.options?.map((item) => item.toJson()).toList(),
+    if (this.completionMethod != null)
+      "completion_method": this.completionMethod?.toJson(),
+    if (this.completedAt != null)
+      "completed_at": this.completedAt?.toUtc().toIso8601String(),
+    if (this.completionWeight != null)
+      "completion_weight": this.completionWeight,
+    "without_meeting": this.withoutMeeting,
     "created_at": this.createdAt.toUtc().toIso8601String(),
     "listing": this.listing.toJson(),
   };

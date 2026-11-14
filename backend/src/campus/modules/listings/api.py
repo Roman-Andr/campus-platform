@@ -52,6 +52,7 @@ from campus.modules.listings.models import (
     PERMANENT_KINDS,
     Audience,
     Category,
+    CompletionMethod,
     Favorite,
     Interaction,
     InteractionStatus,
@@ -63,6 +64,7 @@ from campus.modules.listings.models import (
     ListingStatus,
     Meeting,
     MeetingStatus,
+    NoMeetingConfirmation,
     Skill,
     SkillDirection,
     Visibility,
@@ -93,11 +95,14 @@ from campus.modules.listings.service import (
     change_listing,
     claim_offer,
     clear_waitlist,
+    confirm_no_meeting,
     decline_offer,
     extend_reservation,
     join_waitlist,
     leave_waitlist,
     locked,
+    no_meeting_confirmations,
+    no_meeting_time,
     offer_timing,
     propose_lesson_counter,
     rate_limit,
@@ -105,6 +110,7 @@ from campus.modules.listings.service import (
     record_meeting,
     reject_pending,
     require_live,
+    require_no_meeting,
     schedule_meeting_reminders,
     transition,
     validate_lesson_slot,
@@ -367,6 +373,45 @@ class InteractionOutput(BaseModel):
         default_factory=list,
         description="Time options of a skill lesson; empty for other types.",
     )
+    completion_method: CompletionMethod | None = Field(
+        default=None,
+        description="How the interaction was completed; null until completion.",
+    )
+    completed_at: Instant | None = None
+    completion_weight: float | None = Field(
+        default=None,
+        description="Weight of a review of the completed interaction.",
+    )
+    without_meeting: bool = Field(
+        default=False,
+        description="Whether the interaction was completed by mutual confirmation.",
+    )
+
+
+class NoMeetingConfirmationOutput(BaseModel):
+    """One participant's consent to complete the interaction without a meeting."""
+
+    participant_id: UUID
+    confirmed_at: Instant
+
+
+class NoMeetingOutput(BaseModel):
+    """Mutual confirmation state of an online lesson or help interaction."""
+
+    listing_id: UUID
+    interaction_id: UUID
+    status: InteractionStatus
+    method: CompletionMethod = CompletionMethod.NO_MEETING
+    agreed_at: Instant | None = Field(
+        description="Agreed server moment; null before the first consent of help."
+    )
+    confirmed_by_me: bool
+    confirmed_by_other: bool
+    confirmations: list[NoMeetingConfirmationOutput]
+    completed: bool
+    completed_at: Instant | None
+    completion_method: CompletionMethod | None
+    rating_weight: float | None
 
 
 class ExchangeOfferList(BaseModel):
@@ -1788,6 +1833,114 @@ async def transition_interaction(  # noqa: PLR0913, PLR0917 - route fields
         settings=request.app.state.settings,
     )
     return InteractionOutput.model_validate(interaction)
+
+
+async def no_meeting_context(
+    session: DbSession,
+    listing_id: UUID,
+    interaction_id: UUID,
+    actor_id: UUID,
+    *,
+    lock: bool,
+) -> tuple[Listing, Interaction]:
+    """Load the interaction, its listing and check that the actor participates."""
+    listing = (
+        await locked(session, listing_id)
+        if lock
+        else await session.get(Listing, listing_id)
+    )
+    if listing is None:
+        raise ProblemError(NOT_FOUND)
+    interaction = await session.get(Interaction, interaction_id)
+    if interaction is None or interaction.listing_id != listing.id:
+        raise ProblemError(NOT_FOUND)
+    if actor_id not in (listing.author_id, interaction.participant_id):
+        raise ProblemError(FORBIDDEN)
+    return listing, interaction
+
+
+def no_meeting_output(
+    listing: Listing,
+    interaction: Interaction,
+    confirmations: list[NoMeetingConfirmation],
+    actor_id: UUID,
+) -> NoMeetingOutput:
+    other_id = (
+        interaction.participant_id
+        if actor_id == listing.author_id
+        else listing.author_id
+    )
+    confirmed = {item.participant_id for item in confirmations}
+    agreed_at = (
+        confirmations[0].agreed_at
+        if confirmations
+        else no_meeting_time(listing, interaction)
+    )
+    return NoMeetingOutput(
+        listing_id=listing.id,
+        interaction_id=interaction.id,
+        status=InteractionStatus(interaction.status),
+        agreed_at=agreed_at,
+        confirmed_by_me=actor_id in confirmed,
+        confirmed_by_other=other_id in confirmed,
+        confirmations=[
+            NoMeetingConfirmationOutput(
+                participant_id=item.participant_id,
+                confirmed_at=item.created_at,
+            )
+            for item in confirmations
+        ],
+        completed=interaction.status == InteractionStatus.COMPLETED,
+        completed_at=interaction.completed_at,
+        completion_method=(
+            CompletionMethod(interaction.completion_method)
+            if interaction.completion_method is not None
+            else None
+        ),
+        rating_weight=interaction.completion_weight,
+    )
+
+
+@router.get("/{listing_id}/interactions/{interaction_id}/no-meeting")
+async def no_meeting_state(
+    listing_id: UUID,
+    interaction_id: UUID,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> NoMeetingOutput:
+    """Both consents and the result of a no-meeting completion."""
+    listing, interaction = await no_meeting_context(
+        session, listing_id, interaction_id, principal.user_id, lock=False
+    )
+    require_no_meeting(listing, interaction)
+    return no_meeting_output(
+        listing,
+        interaction,
+        await no_meeting_confirmations(session, interaction),
+        principal.user_id,
+    )
+
+
+@router.post("/{listing_id}/interactions/{interaction_id}/no-meeting/confirmations")
+async def confirm_without_meeting(
+    listing_id: UUID,
+    interaction_id: UUID,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> NoMeetingOutput:
+    """Confirm the interaction without a meeting; the second consent completes it."""
+    listing, interaction = await no_meeting_context(
+        session, listing_id, interaction_id, principal.user_id, lock=True
+    )
+    confirmations = await confirm_no_meeting(
+        session,
+        listing,
+        interaction,
+        principal.user_id,
+        settings=request.app.state.settings,
+    )
+    return no_meeting_output(listing, interaction, confirmations, principal.user_id)
 
 
 def other_participant(

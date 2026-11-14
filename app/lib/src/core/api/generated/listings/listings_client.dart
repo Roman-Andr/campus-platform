@@ -20,6 +20,7 @@ import 'models/listing_output.dart' as models show ListingOutput;
 import 'models/listing_status.dart' as models show ListingStatus;
 import 'models/meeting_accept_input.dart' as models show MeetingAcceptInput;
 import 'models/meeting_proposal_input.dart' as models show MeetingProposalInput;
+import 'models/no_meeting_output.dart' as models show NoMeetingOutput;
 import 'models/page_event_output.dart' as models show PageEventOutput;
 import 'models/page_favorite_output.dart' as models show PageFavoriteOutput;
 import 'models/page_interaction_output.dart'
@@ -1106,6 +1107,94 @@ class ListingsClient {
       cancelToken: cancelToken,
     );
     return models.InteractionOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// No Meeting State
+  ///
+  /// Both consents and the result of a no-meeting completion.
+  Future<models.NoMeetingOutput> noMeetingState({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required String interactionId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(interactionId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/interactions/" +
+          Uri.encodeComponent(interactionId) +
+          "/no-meeting",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.NoMeetingOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Confirm Without Meeting
+  ///
+  /// Confirm the interaction without a meeting; the second consent completes it.
+  Future<models.NoMeetingOutput> confirmWithoutMeeting({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required String interactionId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(interactionId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/interactions/" +
+          Uri.encodeComponent(interactionId) +
+          "/no-meeting/confirmations",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.NoMeetingOutput.fromJson(
       response.data as Map<String, Object?>,
     );
   }

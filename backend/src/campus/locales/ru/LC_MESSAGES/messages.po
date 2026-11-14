@@ -5,7 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 01:29+0300\n"
+"POT-Creation-Date: 2026-11-15 00:32+0300
+"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -79,9 +80,6 @@ msgstr ""
 msgid "Current documents must be accepted"
 msgstr "Необходимо принять актуальные документы"
 
-msgid "Describe the item you offer."
-msgstr "Опишите вещь, которую вы предлагаете."
-
 msgid "E-mail address already in use"
 msgstr "Адрес электронной почты уже используется"
 
@@ -138,9 +136,6 @@ msgstr "Неверное место встречи"
 
 msgid "Invalid meeting time"
 msgstr "Неверное время встречи"
-
-msgid "Invalid offer"
-msgstr "Неверное предложение"
 
 msgid "Invalid quiet hours"
 msgstr "Неверные параметры тихих часов"
@@ -244,6 +239,13 @@ msgstr "Такого навыка нет в справочнике."
 
 msgid "Not found"
 msgstr "Не найдено"
+
+msgid ""
+"Only an accepted online lesson or a help interaction without an agreed "
+"meeting can be completed this way."
+msgstr ""
+"Так можно завершить только принятое онлайн-занятие или помощь без "
+"назначенной встречи."
 
 msgid "Photo unavailable"
 msgstr "Фото недоступно"
@@ -431,6 +433,9 @@ msgstr "Это поле недопустимо."
 msgid "This field is required."
 msgstr "Обязательное поле."
 
+msgid "This interaction cannot be completed without a meeting."
+msgstr "Это взаимодействие нельзя завершить без встречи."
+
 msgid "This listing has no queue."
 msgstr "У этого объявления нет очереди."
 
@@ -460,14 +465,8 @@ msgstr "Используйте RFC 3339 с явно указанным смещ�
 msgid "Use a wall time without a UTC offset."
 msgstr "Укажите время без смещения часового пояса."
 
-msgid "Wait for the author's decision."
-msgstr "Дождитесь решения автора."
-
 msgid "Wait for the offer timer to end or join the queue."
 msgstr "Дождитесь окончания таймера предложения или встаньте в очередь."
-
-msgid "You already offered an item."
-msgstr "Вы уже предложили вещь."
 
 msgid "You already participate in this listing."
 msgstr "Вы уже участвуете в этом объявлении."

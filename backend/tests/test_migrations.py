@@ -80,7 +80,9 @@ def test_reservation_and_exchange_columns_migrate(empty_database: str) -> None:
     names = {row["column_name"] for row in asyncio.run(fetch(empty_database, columns))}
     assert {"reservation_due_at", "offer_description"} <= names
 
-    run_alembic(empty_database, "downgrade", "-1")
+    # Later migrations may sit on top of this one, so step back past it
+    # explicitly instead of counting a single revision.
+    run_alembic(empty_database, "downgrade", "86a000000001")
     names = {row["column_name"] for row in asyncio.run(fetch(empty_database, columns))}
     assert "reservation_due_at" not in names
     assert "offer_description" not in names

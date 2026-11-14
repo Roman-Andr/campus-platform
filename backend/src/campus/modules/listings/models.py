@@ -65,6 +65,13 @@ class MeetingStatus(StrEnum):
     SCHEDULED = "scheduled"
 
 
+class CompletionMethod(StrEnum):
+    """How an accepted interaction reached the completed status."""
+
+    QR = "qr"
+    NO_MEETING = "no_meeting"
+
+
 class Visibility(StrEnum):
     UNIVERSITY = "university"
     CITY = "city"
@@ -263,6 +270,17 @@ class Interaction(Entity):
             unique=True,
             postgresql_where=text("status = 'accepted' AND executor"),
         ),
+        CheckConstraint(
+            "completion_method IS NULL OR completion_method IN ('qr','no_meeting')",
+            name="completion_method",
+        ),
+        CheckConstraint(
+            "(completion_method IS NULL AND completed_at IS NULL "
+            "AND completion_weight IS NULL) OR "
+            "(completion_method IS NOT NULL AND completed_at IS NOT NULL "
+            "AND completion_weight IS NOT NULL AND completion_weight >= 0)",
+            name="completion_complete",
+        ),
     )
     listing_id: Mapped[UUID] = mapped_column(ForeignKey("listing.id"))
     # Loaded explicitly by participant views; mutations lock the listing.
@@ -287,6 +305,17 @@ class Interaction(Entity):
     reservation_due_at: Mapped[datetime | None]
     # What a participant offers in exchange; NULL for other scenarios.
     offer_description: Mapped[str | None] = mapped_column(Text)
+
+    # Set together when the interaction is completed: how it was confirmed
+    # and the weight its review contributes to the rating.
+    completion_method: Mapped[str | None] = mapped_column(String(16))
+    completed_at: Mapped[datetime | None]
+    completion_weight: Mapped[float | None]
+
+    @property
+    def without_meeting(self) -> bool:
+        """Whether the interaction was completed by mutual confirmation."""
+        return self.completion_method == CompletionMethod.NO_MEETING
 
     meeting: Mapped[Meeting | None] = relationship(
         lazy="joined", uselist=False, cascade="all, delete-orphan"
@@ -343,6 +372,24 @@ class Meeting(Entity):
     @property
     def status(self) -> MeetingStatus:
         return MeetingStatus.PROPOSED if self.proposed_at else MeetingStatus.SCHEDULED
+
+
+class NoMeetingConfirmation(Entity):
+    """One participant's consent to complete an interaction without a meeting.
+
+    Two rows (one per participant) complete an accepted online lesson or a
+    help interaction that needs no meeting. ``agreed_at`` is the same server
+    moment in both rows: the scheduled online lesson time, or the moment the
+    first participant confirmed a help interaction.
+    """
+
+    __tablename__ = "listing_no_meeting_confirmation"
+    __table_args__ = (UniqueConstraint("interaction_id", "participant_id"),)
+    interaction_id: Mapped[UUID] = mapped_column(
+        ForeignKey("listing_interaction.id", ondelete="CASCADE")
+    )
+    participant_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
+    agreed_at: Mapped[datetime]
 
 
 class LessonOptionStatus(StrEnum):

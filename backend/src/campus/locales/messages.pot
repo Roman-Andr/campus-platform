@@ -222,6 +222,11 @@ msgstr ""
 msgid "Not found"
 msgstr ""
 
+msgid ""
+"Only an accepted online lesson or a help interaction without an agreed "
+"meeting can be completed this way."
+msgstr ""
+
 msgid "Photo unavailable"
 msgstr ""
 
@@ -400,6 +405,9 @@ msgid "This field is not allowed."
 msgstr ""
 
 msgid "This field is required."
+msgstr ""
+
+msgid "This interaction cannot be completed without a meeting."
 msgstr ""
 
 msgid "This listing has no queue."

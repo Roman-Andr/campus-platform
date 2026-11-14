@@ -401,6 +401,20 @@ class Settings(BaseSettings):
         gt=timedelta(0),
         description="Last reminder before a scheduled meeting, e.g. 1 hour.",
     )
+    # Review weights of completed interactions (Appendix 4): a review after
+    # an online lesson or help confirmed without a meeting weighs less.
+    rating_weight_qr: float = Field(
+        default=1.0,
+        ge=0,
+        le=1,
+        description="Weight of a review of a QR-confirmed interaction.",
+    )
+    rating_weight_no_meeting: float = Field(
+        default=0.5,
+        ge=0,
+        le=1,
+        description="Weight of a review of an interaction confirmed without a meeting.",
+    )
 
     # Notification settings (specification, 5.1.1, module 7): the defaults
     # for a user who has not changed them. Quiet hours are wall-clock times
