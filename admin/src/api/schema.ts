@@ -1146,7 +1146,7 @@ export interface components {
       /** Category Id */
       category_id: string | null;
       /** Pinned Until */
-      pinned_until: string | null;
+      pinned_until?: string | null;
       /** Hidden Reason */
       hidden_reason: string | null;
     };

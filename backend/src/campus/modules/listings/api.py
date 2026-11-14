@@ -108,7 +108,7 @@ class ListingOutput(BaseModel):
     created_at: Instant
     expires_at: Instant | None
     category_id: UUID | None
-    pinned_until: Instant | None
+    pinned_until: Instant | None = None
     hidden_reason: str | None
 
 
