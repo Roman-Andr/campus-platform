@@ -61,6 +61,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorNotFound => 'Not found: it may have been deleted.';
 
   @override
+  String get errorForbidden => 'You don\'t have access to this action.';
+
+  @override
   String get errorValidation => 'Please check the information you entered.';
 
   @override
@@ -1181,4 +1184,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String realtimeLastEvent(String time) {
     return 'Last event: $time';
   }
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsMarkAllRead => 'Mark all as read';
+
+  @override
+  String get notificationsNoScreen =>
+      'There is no screen for this notification in the app yet.';
 }

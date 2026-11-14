@@ -16,6 +16,7 @@
   "errorServer": "Something went wrong on the server. Please try again later.",
   "errorRequest": "Couldn't complete the action. Please try again.",
   "errorNotFound": "Not found: it may have been deleted.",
+  "errorForbidden": "You don't have access to this action.",
   "errorValidation": "Please check the information you entered.",
   "errorListChanged": "The list has changed. Please refresh it.",
   "errorUpdateRequired": "This version of the app is out of date. Please update the app.",
@@ -634,5 +635,9 @@
   "realtimeHistoryLost": "Some events are no longer available; the data has been reloaded.",
   "realtimeNetworkLost": "No connection. Reconnecting…",
   "realtimeError": "Could not update realtime. Try again later.",
-  "realtimeLastEvent": "Last event: {time}"
+  "realtimeLastEvent": "Last event: {time}",
+  "notificationsTitle": "Notifications",
+  "notificationsEmpty": "No notifications yet",
+  "notificationsMarkAllRead": "Mark all as read",
+  "notificationsNoScreen": "There is no screen for this notification in the app yet."
 }

@@ -194,6 +194,12 @@ abstract class AppLocalizations {
   /// **'Не найдено: возможно, это уже удалили.'**
   String get errorNotFound;
 
+  /// The server rejected the action because the user has no rights to it.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет доступа к этому действию.'**
+  String get errorForbidden;
+
   /// The server rejected some fields of a form.
   ///
   /// In ru, this message translates to:
@@ -2167,6 +2173,30 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Последнее событие: {time}'**
   String realtimeLastEvent(String time);
+
+  /// Title of the in-app notification centre.
+  ///
+  /// In ru, this message translates to:
+  /// **'Уведомления'**
+  String get notificationsTitle;
+
+  /// The notification centre has no records.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пока нет уведомлений'**
+  String get notificationsEmpty;
+
+  /// Marks every notification of the inbox read.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметить все прочитанными'**
+  String get notificationsMarkAllRead;
+
+  /// The notification type has no known destination; the app does not open a wrong screen.
+  ///
+  /// In ru, this message translates to:
+  /// **'Для этого уведомления в приложении пока нет экрана.'**
+  String get notificationsNoScreen;
 }
 
 class _AppLocalizationsDelegate

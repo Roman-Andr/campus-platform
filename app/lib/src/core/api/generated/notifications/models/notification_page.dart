@@ -2,26 +2,34 @@
 
 import 'notification_output.dart';
 
-class PageNotificationOutput {
-  const PageNotificationOutput({
+/// One page of the inbox and the exact number of unread notifications.
+///
+/// The count covers every page, not only the returned one, so a client
+/// shows the same badge after a cold start and on another device.
+class NotificationPage {
+  const NotificationPage({
     required this.items,
 
     /// Cursor of the next page; null on the last page.
     required this.nextPage,
+
+    /// Unread notifications of the user; they are exactly the ones after the read cursor.
+    required this.unreadCount,
     this.additionalProperties = const {},
   });
 
-  factory PageNotificationOutput.fromJson(Map<String, Object?> json) {
+  factory NotificationPage.fromJson(Map<String, Object?> json) {
     if (!json.containsKey("next_page")) {
       throw ArgumentError("Missing required property: next_page");
     }
-    return PageNotificationOutput(
+    return NotificationPage(
       items: (json["items"] as List<Object?>)
           .map(
             (item) => NotificationOutput.fromJson(item as Map<String, Object?>),
           )
           .toList(),
       nextPage: json["next_page"] as String?,
+      unreadCount: _readJsonInteger(json["unread_count"]),
       additionalProperties: {
         for (final entry in json.entries)
           if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
@@ -34,7 +42,10 @@ class PageNotificationOutput {
   /// Cursor of the next page; null on the last page.
   final String? nextPage;
 
-  static const _knownKeys = <String>{"items", "next_page"};
+  /// Unread notifications of the user; they are exactly the ones after the read cursor.
+  final int unreadCount;
+
+  static const _knownKeys = <String>{"items", "next_page", "unread_count"};
 
   final Map<String, Object?> additionalProperties;
 
@@ -43,5 +54,16 @@ class PageNotificationOutput {
       if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
     "items": this.items.map((item) => item.toJson()).toList(),
     "next_page": this.nextPage,
+    "unread_count": this.unreadCount,
   };
+}
+
+int _readJsonInteger(Object? value) {
+  if (value is int) {
+    return value;
+  }
+  if (value is double && value.isFinite && value == value.toInt()) {
+    return value.toInt();
+  }
+  throw FormatException('Expected a JSON integer.', value);
 }

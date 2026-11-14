@@ -6,6 +6,7 @@ import '../../../core/l10n/l10n.dart';
 import '../../../core/router/app_router.dart';
 import '../../listings/domain/publication.dart';
 import '../../listings/presentation/listings_screens.dart';
+import '../../notifications/presentation/notifications_button.dart';
 import '../../profile/application/my_profile.dart';
 
 /// Listings feed and entry points to account and giveaway workflows.
@@ -21,6 +22,7 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: [
+          const NotificationsButton(),
           if (headman)
             IconButton(
               key: const Key('feed-create-publication'),

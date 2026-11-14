@@ -60,6 +60,11 @@ class FakeHttpAdapter implements HttpClientAdapter {
       ],
     },
     this.feed = const {'items': <Object?>[], 'next_page': null},
+    this.notifications = const {
+      'items': <Object?>[],
+      'next_page': null,
+      'unread_count': 0,
+    },
     this.photos = const {'items': <Object?>[]},
     this.skills = const {'can': <Object?>[], 'wants': <Object?>[]},
     this.photo,
@@ -80,6 +85,11 @@ class FakeHttpAdapter implements HttpClientAdapter {
 
   Map<String, Object?>? feed;
   Map<String, Object?>? categories;
+
+  /// Answer to `GET /api/v1/notifications`; an empty inbox by default, so
+  /// the badge of the home screen does not need a queued reply. `null`
+  /// passes those requests to the queued replies.
+  Map<String, Object?>? notifications;
 
   /// The signed-in user as `GET /api/v1/me` returns it.
   Map<String, Object?>? me;
@@ -145,6 +155,11 @@ class FakeHttpAdapter implements HttpClientAdapter {
         options.method == 'GET' &&
         options.path == '/api/v1/listings') {
       return jsonBody(200, feed);
+    }
+    if (notifications != null &&
+        options.method == 'GET' &&
+        options.path == '/api/v1/notifications') {
+      return jsonBody(200, notifications);
     }
     if (photos != null &&
         options.method == 'GET' &&

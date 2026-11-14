@@ -3,11 +3,15 @@
 class ReadCursor {
   const ReadCursor({
     required this.sequence,
+
+    /// Unread notifications left after the cursor moved.
+    required this.unreadCount,
     this.additionalProperties = const {},
   });
 
   factory ReadCursor.fromJson(Map<String, Object?> json) => ReadCursor(
     sequence: _readJsonInteger(json["sequence"]),
+    unreadCount: _readJsonInteger(json["unread_count"]),
     additionalProperties: {
       for (final entry in json.entries)
         if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
@@ -16,7 +20,10 @@ class ReadCursor {
 
   final int sequence;
 
-  static const _knownKeys = <String>{"sequence"};
+  /// Unread notifications left after the cursor moved.
+  final int unreadCount;
+
+  static const _knownKeys = <String>{"sequence", "unread_count"};
 
   final Map<String, Object?> additionalProperties;
 
@@ -24,6 +31,7 @@ class ReadCursor {
     for (final entry in additionalProperties.entries)
       if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
     "sequence": this.sequence,
+    "unread_count": this.unreadCount,
   };
 }
 

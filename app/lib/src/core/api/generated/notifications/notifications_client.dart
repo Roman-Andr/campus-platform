@@ -4,15 +4,13 @@ import 'dart:convert' as convert;
 
 import 'package:dio/dio.dart' show Dio, Options, ResponseType, CancelToken;
 
+import 'models/notification_page.dart' as models show NotificationPage;
 import 'models/notification_settings_output.dart'
     as models
     show NotificationSettingsOutput;
 import 'models/notification_settings_patch.dart'
     as models
     show NotificationSettingsPatch;
-import 'models/page_notification_output.dart'
-    as models
-    show PageNotificationOutput;
 import 'models/read_cursor.dart' as models show ReadCursor;
 import 'models/read_input.dart' as models show ReadInput;
 
@@ -27,7 +25,7 @@ class NotificationsClient {
   ///
   /// Sequence follows inbox commit order, regardless of source event time.
   /// Poll again after reaching the last page; realtime is only a wakeup.
-  Future<models.PageNotificationOutput> notificationFeed({
+  Future<models.NotificationPage> notificationFeed({
     Map<String, Object?> extra = const {
       "openapi.security": [
         {"HTTPBearer": []},
@@ -65,7 +63,7 @@ class NotificationsClient {
       },
       cancelToken: cancelToken,
     );
-    return models.PageNotificationOutput.fromJson(
+    return models.NotificationPage.fromJson(
       response.data as Map<String, Object?>,
     );
   }

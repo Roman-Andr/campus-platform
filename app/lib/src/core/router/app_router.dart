@@ -15,6 +15,7 @@ import '../../features/listings/presentation/meeting_screen.dart';
 import '../../features/listings/presentation/my_screens.dart';
 import '../../features/listings/presentation/place_offer_screen.dart';
 import '../../features/listings/presentation/publication_screen.dart';
+import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/profile/application/my_profile.dart';
 import '../../features/profile/presentation/profile_form_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -41,6 +42,7 @@ abstract final class AppRoutes {
   static const profileEdit = '/profile/edit';
   static const profileEmails = '/profile/emails';
   static const profileSkills = '/profile/skills';
+  static const notifications = '/notifications';
 
   /// The place offer opened by a notification; the path keeps the listing id.
   static const placeOfferPath = '/offers/:listingId';
@@ -160,6 +162,10 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.profileEmails,
         builder: (context, state) => const AccountEmailsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        builder: (context, state) => const NotificationsScreen(),
       ),
       GoRoute(
         path: AppRoutes.signIn,
