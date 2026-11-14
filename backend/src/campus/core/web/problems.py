@@ -231,6 +231,10 @@ VALIDATION_MESSAGES = {
     "literal_error": N_("Must be one of: {expected}."),
     "datetime_offset": N_("Use RFC 3339 with an explicit UTC offset."),
     "timezone_aware": N_("Use RFC 3339 with an explicit UTC offset."),
+    "quiet_hours_offset": N_("Use a wall time without a UTC offset."),
+    "notification_version_required": N_(
+        "Send the current settings version to replace muted chats."
+    ),
     "datetime_type": N_("Must be a date and time."),
     "datetime_parsing": N_("Must be a date and time."),
     "datetime_from_date_parsing": N_("Must be a date and time."),

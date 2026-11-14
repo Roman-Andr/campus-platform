@@ -1334,6 +1334,30 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/notifications/settings': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Read Settings
+     * @description Owner-only settings; defaults apply until the user changes them.
+     */
+    get: operations['read_settings'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /**
+     * Update Settings
+     * @description Change only the given fields; a stale ``version`` is rejected.
+     */
+    patch: operations['update_settings'];
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2138,6 +2162,59 @@ export interface components {
        */
       read: boolean;
     };
+    /**
+     * NotificationSettingsOutput
+     * @description Current settings of the signed-in user, with defaults filled in.
+     */
+    NotificationSettingsOutput: {
+      /**
+       * Version
+       * @description Incremented by every change; send it back to reject a stale edit.
+       */
+      version: number;
+      /**
+       * Types
+       * @description Every notification type and whether it is enabled.
+       */
+      types: {
+        [key: string]: boolean;
+      };
+      quiet_hours: components['schemas']['QuietHours'];
+      /**
+       * Muted Chat Ids
+       * @description Chats with muted notifications.
+       */
+      muted_chat_ids: string[];
+      /**
+       * Timezone
+       * @description IANA zone of the user's city used for quiet hours.
+       */
+      timezone: string;
+    };
+    /**
+     * NotificationSettingsPatch
+     * @description Partial settings update; omitted fields keep their values.
+     */
+    NotificationSettingsPatch: {
+      /**
+       * Version
+       * @description Version the edit is based on; a different one is rejected. Required when replacing muted chats.
+       */
+      version?: number | null;
+      /**
+       * Types
+       * @description Types to enable or disable; other types keep their state.
+       */
+      types?: {
+        [key: string]: boolean;
+      } | null;
+      quiet_hours?: components['schemas']['QuietHoursPatch'] | null;
+      /**
+       * Muted Chat Ids
+       * @description Replaces the whole set of muted chats; requires version.
+       */
+      muted_chat_ids?: string[] | null;
+    };
     /** Page[AuditRecordOut] */
     Page_AuditRecordOut_: {
       /** Items */
@@ -2383,6 +2460,10 @@ export interface components {
         | 'method_not_allowed'
         | 'name_change_too_soon'
         | 'not_found'
+        | 'notification_chat_forbidden'
+        | 'notification_quiet_hours_invalid'
+        | 'notification_settings_version_conflict'
+        | 'notification_type_unknown'
         | 'photo_unavailable'
         | 'profile_incomplete'
         | 'rate_limited'
@@ -2506,6 +2587,41 @@ export interface components {
       offset: number;
       /** Data */
       data?: unknown;
+    };
+    /**
+     * QuietHours
+     * @description Daily quiet interval in the wall clock of the user's city.
+     */
+    QuietHours: {
+      /**
+       * Enabled
+       * @description Whether quiet hours suppress external notifications.
+       */
+      enabled: boolean;
+      /**
+       * Start
+       * Format: time
+       * @description Start wall time; may be after the end.
+       */
+      start: string;
+      /**
+       * End
+       * Format: time
+       * @description End wall time, exclusive.
+       */
+      end: string;
+    };
+    /**
+     * QuietHoursPatch
+     * @description Fields of quiet hours to change; omitted fields keep their values.
+     */
+    QuietHoursPatch: {
+      /** Enabled */
+      enabled?: boolean | null;
+      /** Start */
+      start?: string | null;
+      /** End */
+      end?: string | null;
     };
     /** ReadCursor */
     ReadCursor: {
@@ -10706,6 +10822,197 @@ export interface operations {
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  read_settings: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['NotificationSettingsOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  update_settings: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['NotificationSettingsPatch'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['NotificationSettingsOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not a member of the chat. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Stale settings version; current_version is returned. */
+      409: {
         headers: {
           [name: string]: unknown;
         };

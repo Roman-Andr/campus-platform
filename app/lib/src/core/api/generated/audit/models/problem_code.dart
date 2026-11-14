@@ -42,6 +42,10 @@ enum ProblemCodeValue {
   methodNotAllowed("method_not_allowed"),
   nameChangeTooSoon("name_change_too_soon"),
   notFound("not_found"),
+  notificationChatForbidden("notification_chat_forbidden"),
+  notificationQuietHoursInvalid("notification_quiet_hours_invalid"),
+  notificationSettingsVersionConflict("notification_settings_version_conflict"),
+  notificationTypeUnknown("notification_type_unknown"),
   photoUnavailable("photo_unavailable"),
   profileIncomplete("profile_incomplete"),
   rateLimited("rate_limited"),
@@ -169,6 +173,18 @@ sealed class ProblemCode {
     ProblemCodeValue.nameChangeTooSoon,
   );
   static const notFound = ProblemCodeKnown(ProblemCodeValue.notFound);
+  static const notificationChatForbidden = ProblemCodeKnown(
+    ProblemCodeValue.notificationChatForbidden,
+  );
+  static const notificationQuietHoursInvalid = ProblemCodeKnown(
+    ProblemCodeValue.notificationQuietHoursInvalid,
+  );
+  static const notificationSettingsVersionConflict = ProblemCodeKnown(
+    ProblemCodeValue.notificationSettingsVersionConflict,
+  );
+  static const notificationTypeUnknown = ProblemCodeKnown(
+    ProblemCodeValue.notificationTypeUnknown,
+  );
   static const photoUnavailable = ProblemCodeKnown(
     ProblemCodeValue.photoUnavailable,
   );

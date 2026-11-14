@@ -11862,6 +11862,282 @@
           }
         }
       }
+    },
+    "/api/v1/notifications/settings": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Read Settings",
+        "description": "Owner-only settings; defaults apply until the user changes them.",
+        "operationId": "read_settings",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationSettingsOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid, expired or revoked authentication (unauthorized).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Update Settings",
+        "description": "Change only the given fields; a stale ``version`` is rejected.",
+        "operationId": "update_settings",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationSettingsPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationSettingsOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not a member of the chat.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid, expired or revoked authentication (unauthorized).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Stale settings version; current_version is returned.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -13534,6 +13810,100 @@
         ],
         "title": "NotificationOutput"
       },
+      "NotificationSettingsOutput": {
+        "properties": {
+          "version": {
+            "type": "integer",
+            "title": "Version",
+            "description": "Incremented by every change; send it back to reject a stale edit."
+          },
+          "types": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "type": "object",
+            "title": "Types",
+            "description": "Every notification type and whether it is enabled."
+          },
+          "quiet_hours": {
+            "$ref": "#/components/schemas/QuietHours"
+          },
+          "muted_chat_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Muted Chat Ids",
+            "description": "Chats with muted notifications."
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone",
+            "description": "IANA zone of the user's city used for quiet hours."
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "types",
+          "quiet_hours",
+          "muted_chat_ids",
+          "timezone"
+        ],
+        "title": "NotificationSettingsOutput",
+        "description": "Current settings of the signed-in user, with defaults filled in."
+      },
+      "NotificationSettingsPatch": {
+        "properties": {
+          "version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0.0,
+            "title": "Version",
+            "description": "Version the edit is based on; a different one is rejected. Required when replacing muted chats."
+          },
+          "types": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "type": [
+              "object",
+              "null"
+            ],
+            "title": "Types",
+            "description": "Types to enable or disable; other types keep their state."
+          },
+          "quiet_hours": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/QuietHoursPatch"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "muted_chat_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": [
+              "array",
+              "null"
+            ],
+            "title": "Muted Chat Ids",
+            "description": "Replaces the whole set of muted chats; requires version."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "NotificationSettingsPatch",
+        "description": "Partial settings update; omitted fields keep their values."
+      },
       "Page_AuditRecordOut_": {
         "properties": {
           "items": {
@@ -14014,6 +14384,10 @@
               "method_not_allowed",
               "name_change_too_soon",
               "not_found",
+              "notification_chat_forbidden",
+              "notification_quiet_hours_invalid",
+              "notification_settings_version_conflict",
+              "notification_type_unknown",
               "photo_unavailable",
               "profile_incomplete",
               "rate_limited",
@@ -14244,6 +14618,66 @@
           "offset"
         ],
         "title": "PublicationOutput"
+      },
+      "QuietHours": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "description": "Whether quiet hours suppress external notifications."
+          },
+          "start": {
+            "type": "string",
+            "format": "time",
+            "title": "Start",
+            "description": "Start wall time; may be after the end."
+          },
+          "end": {
+            "type": "string",
+            "format": "time",
+            "title": "End",
+            "description": "End wall time, exclusive."
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled",
+          "start",
+          "end"
+        ],
+        "title": "QuietHours",
+        "description": "Daily quiet interval in the wall clock of the user's city."
+      },
+      "QuietHoursPatch": {
+        "properties": {
+          "enabled": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "title": "Enabled"
+          },
+          "start": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "time",
+            "title": "Start"
+          },
+          "end": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "time",
+            "title": "End"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "QuietHoursPatch",
+        "description": "Fields of quiet hours to change; omitted fields keep their values."
       },
       "ReadCursor": {
         "properties": {
