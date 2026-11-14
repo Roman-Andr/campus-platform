@@ -15,8 +15,10 @@ import '../application/listing_photo_draft.dart';
 import '../application/listings.dart';
 import '../domain/event.dart';
 import '../domain/feed.dart';
+import '../domain/skills.dart';
 import 'event_screen.dart';
 import 'interaction_timeline_screen.dart';
+import 'lesson_widgets.dart';
 import 'listing_photos.dart';
 import 'meeting_screen.dart';
 import 'my_screens.dart';
@@ -369,6 +371,10 @@ class FeedFiltersBar extends ConsumerWidget {
                 child: Text(l.listingKindGiveaway),
               ),
               DropdownMenuItem(
+                value: FeedKind.skill.apiValue,
+                child: Text(l.listingKindSkill),
+              ),
+              DropdownMenuItem(
                 value: FeedKind.publication.apiValue,
                 child: Text(l.listingKindPublication),
               ),
@@ -442,6 +448,15 @@ class ListingTile extends ConsumerWidget {
     final publication = item.kind == 'publication';
     final event = item.kind == 'event';
     final seats = eventSeatsText(l, item.remainingPlaces);
+    final skill = isSkillListing(item);
+    final direction = skillDirectionOf(item);
+    final kind = publication
+        ? l.listingKindPublication
+        : skill
+        ? l.listingKindSkill
+        : event
+        ? l.listingKindEvent
+        : listingName(l, item.status);
     return Column(
       children: [
         ListTile(
@@ -450,13 +465,9 @@ class ListingTile extends ConsumerWidget {
           subtitle: Text(
             [
               item.authorName,
-              if (event) ...[
-                l.listingKindEvent,
-                if (seats.isNotEmpty) seats,
-              ] else if (publication)
-                l.listingKindPublication
-              else
-                listingName(l, item.status),
+              kind,
+              if (event && seats.isNotEmpty) seats,
+              if (direction != null) skillDirectionLabel(l, direction),
             ].join(' · '),
           ),
           trailing: Row(
@@ -506,6 +517,8 @@ class ListingScreen extends ConsumerWidget {
             data: (item) {
               final publication = item.kind == 'publication';
               final event = item.kind == 'event';
+              final skill = isSkillListing(item);
+              final direction = skillDirectionOf(item);
               final pinned = isPinnedAt(item, clock.now());
               return ListView(
                 padding: const EdgeInsets.all(16),
@@ -529,10 +542,12 @@ class ListingScreen extends ConsumerWidget {
                       listing: item,
                       showEmptySeats: item.authorId == user?.id,
                     ),
-                  ] else if (publication)
+                  ] else if (publication || skill)
                     Text(listingKindName(l, item.kind))
                   else
                     Text(listingName(l, item.status)),
+                  if (direction != null)
+                    Text(skillDirectionLabel(l, direction)),
                   if (publication && pinned) ...[
                     Text(l.feedPinned),
                     Text(
@@ -552,7 +567,10 @@ class ListingScreen extends ConsumerWidget {
                     Text(l.listingHiddenReason(item.hiddenReason!)),
                   if (publication && item.authorId == user?.id)
                     PublicationActions(item: item),
-                  if (!publication && !event && item.authorId == user?.id)
+                  if (!publication &&
+                      !event &&
+                      !skill &&
+                      item.authorId == user?.id)
                     ListingOwnerActions(item: item),
                   if (event && item.authorId == user?.id)
                     EventOwnerActions(item: item),
@@ -562,13 +580,17 @@ class ListingScreen extends ConsumerWidget {
                     EventSeatSection(listing: item),
                   if (!publication &&
                       !event &&
+                      !skill &&
                       item.authorId != user?.id &&
                       user != null)
                     ListingWaitlistSection(listing: item),
                   if (!publication && !event && item.authorId == user?.id)
                     IncomingList(id: id),
+                  if (skill && user != null && item.authorId != user.id)
+                    LessonParticipationSection(listing: item),
                   if (!publication &&
                       !event &&
+                      !skill &&
                       user != null &&
                       item.authorId != user.id)
                     ListingParticipation(id: id),
@@ -896,6 +918,7 @@ class _IncomingListState extends ConsumerState<IncomingList> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final listing = ref.watch(listingProvider(widget.id)).value;
+    final skill = listing != null && isSkillListing(listing);
     return ref
         .watch(incomingProvider(widget.id, cursor))
         .when(
@@ -931,12 +954,16 @@ class _IncomingListState extends ConsumerState<IncomingList> {
                         timezone: listing.cityTimezone,
                         city: listing.cityTimezone,
                       ),
+                    if (listing != null && skill)
+                      LessonOptionsCard(item: item, listing: listing),
+                    if (listing != null && skill)
+                      LessonRepeatButton(item: item, listing: listing),
                     if (item.status == InteractionStatus.pending)
                       Wrap(
                         spacing: 8,
                         children: [
                           for (final status in [
-                            InteractionStatus.accepted,
+                            if (!skill) InteractionStatus.accepted,
                             InteractionStatus.rejected,
                           ])
                             ListingAction(
@@ -1005,8 +1032,9 @@ class ListingOwnerActions extends ConsumerWidget {
                   .publishListing(listingId: item.id);
             },
           ),
-        if (item.status == ListingStatus.active ||
-            item.status == ListingStatus.busy)
+        if (!isSkillListing(item) &&
+            (item.status == ListingStatus.active ||
+                item.status == ListingStatus.busy))
           ListingAction(
             label: l.listingExtend,
             after: () =>
