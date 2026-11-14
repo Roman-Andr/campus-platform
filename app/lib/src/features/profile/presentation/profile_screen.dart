@@ -7,6 +7,9 @@ import '../../../core/l10n/l10n.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/widgets/api_error_view.dart';
 import '../application/my_profile.dart';
+import '../application/skills.dart';
+import 'name_change_dialog.dart';
+import 'profile_photo_editor.dart';
 
 /// The signed-in user's own profile, with a way to change it.
 class ProfileScreen extends ConsumerWidget {
@@ -77,17 +80,41 @@ class _ProfileDetails extends ConsumerWidget {
         : nameOf(dormitories, user.dormitoryId);
     final course = user.course;
 
+    final nextChange = nextNameChange(user);
+    final accountType = switch (user.accountType) {
+      UserOutputAccountType.employee => l10n.profileAccountEmployee,
+      UserOutputAccountType.formerEmployee => l10n.profileAccountFormerEmployee,
+      _ => l10n.profileAccountStudent,
+    };
+
     return ListView(
       children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 16),
+          child: ProfilePhotoEditor(),
+        ),
         ListTile(
+          key: const Key('profile-name'),
           leading: const Icon(Icons.person_outline),
           title: Text('${user.firstName} ${user.lastName}'),
-          subtitle: Text(switch (user.accountType) {
-            UserOutputAccountType.employee => l10n.profileAccountEmployee,
-            UserOutputAccountType.formerEmployee =>
-              l10n.profileAccountFormerEmployee,
-            _ => l10n.profileAccountStudent,
-          }),
+          subtitle: Text(
+            nextChange == null
+                ? accountType
+                : '$accountType\n'
+                      '${l10n.profileNameNextChange(formatDate(context, nextChange))}',
+          ),
+          isThreeLine: nextChange != null,
+          trailing: IconButton(
+            key: const Key('profile-name-change'),
+            icon: const Icon(Icons.drive_file_rename_outline),
+            tooltip: l10n.profileNameChange,
+            onPressed: nextChange != null
+                ? null
+                : () => showDialog<bool>(
+                    context: context,
+                    builder: (context) => NameChangeDialog(user: user),
+                  ),
+          ),
         ),
         ListTile(
           leading: const Icon(Icons.alternate_email),
@@ -122,6 +149,52 @@ class _ProfileDetails extends ConsumerWidget {
             label: l10n.profileCourse,
             value: course == null ? null : l10n.profileCourseValue(course),
           ),
+        const Divider(),
+        const _Skills(),
+      ],
+    );
+  }
+}
+
+/// Both skill lists of the profile, with a way to change them.
+class _Skills extends ConsumerWidget {
+  const _Skills();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final skills = ref.watch(mySkillsProvider).value;
+    String names(List<SkillTagOutput>? tags) => tags == null
+        ? '…'
+        : tags.isEmpty
+        ? l10n.profileSkillsNone
+        : tags.map((tag) => tag.name).join(', ');
+    return Column(
+      children: [
+        ListTile(
+          title: Text(
+            l10n.profileSkills,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          trailing: IconButton(
+            key: const Key('profile-skills-edit'),
+            icon: const Icon(Icons.edit_outlined),
+            tooltip: l10n.profileSkillsEdit,
+            onPressed: () => context.push(AppRoutes.profileSkills),
+          ),
+        ),
+        ListTile(
+          key: const Key('profile-skills-can'),
+          leading: const Icon(Icons.handyman_outlined),
+          title: Text(l10n.profileSkillsCan),
+          subtitle: Text(names(skills?.can)),
+        ),
+        ListTile(
+          key: const Key('profile-skills-wants'),
+          leading: const Icon(Icons.lightbulb_outline),
+          title: Text(l10n.profileSkillsWants),
+          subtitle: Text(names(skills?.wants)),
+        ),
       ],
     );
   }

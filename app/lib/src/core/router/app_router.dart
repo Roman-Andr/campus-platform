@@ -15,6 +15,7 @@ import '../../features/listings/presentation/my_screens.dart';
 import '../../features/profile/application/my_profile.dart';
 import '../../features/profile/presentation/profile_form_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/profile/presentation/profile_steps.dart';
 import '../../features/sessions/presentation/devices_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/update/presentation/update_required_screen.dart';
@@ -36,9 +37,14 @@ abstract final class AppRoutes {
   static const profile = '/profile';
   static const profileEdit = '/profile/edit';
   static const profileEmails = '/profile/emails';
+  static const profileSkills = '/profile/skills';
 
   /// Filling in the profile after the first sign-in.
   static const profileSetup = '/welcome';
+
+  /// Optional steps after the profile is filled in: photo, then skills.
+  static const profileSetupPhoto = '/welcome/photo';
+  static const profileSetupSkills = '/welcome/skills';
 }
 
 @Riverpod(keepAlive: true)
@@ -102,6 +108,10 @@ GoRouter appRouter(Ref ref) {
                 path: AppRoutes.profileEdit.split('/').last,
                 builder: (context, state) => const ProfileFormScreen(),
               ),
+              GoRoute(
+                path: AppRoutes.profileSkills.split('/').last,
+                builder: (context, state) => const SkillsScreen(),
+              ),
             ],
           ),
         ],
@@ -109,6 +119,15 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.profileSetup,
         builder: (context, state) => const ProfileFormScreen(onboarding: true),
+      ),
+      // Not nested under the form: there is no way back to it.
+      GoRoute(
+        path: AppRoutes.profileSetupPhoto,
+        builder: (context, state) => const ProfilePhotoStepScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.profileSetupSkills,
+        builder: (context, state) => const ProfileSkillsStepScreen(),
       ),
       GoRoute(
         path: AppRoutes.profileEmails,
@@ -170,14 +189,14 @@ String? _redirect(Ref ref, String location) {
       }
     case AuthenticationStatus.authenticated:
       if (signingIn) return AppRoutes.home;
-      // Until the profile is filled in, only the screen that fills it in.
-      // While the profile loads (or fails to) the user stays where they are.
+      // Until the profile is filled in, only the screen that fills it in;
+      // once it is, the optional photo and skills steps follow. While the
+      // profile loads (or fails to) the user stays where they are.
       final user = ref.read(myProfileProvider).value;
-      final settingUp = location == AppRoutes.profileSetup;
       if (user != null && !user.profileComplete) {
-        if (!settingUp) return AppRoutes.profileSetup;
-      } else if (settingUp) {
-        return AppRoutes.home;
+        if (location != AppRoutes.profileSetup) return AppRoutes.profileSetup;
+      } else if (location == AppRoutes.profileSetup) {
+        return AppRoutes.profileSetupPhoto;
       }
     case AuthenticationStatus.initial || null:
   }

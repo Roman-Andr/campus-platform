@@ -84,10 +84,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(identity.router, prefix=API_PREFIX)
     app.include_router(identity.consent_router, prefix=API_PREFIX)
     app.include_router(identity.profile_router, prefix=API_PREFIX)
+    app.include_router(identity.skills_router, prefix=API_PREFIX)
     app.include_router(identity.sessions_router, prefix=API_PREFIX)
     app.include_router(identity.email_router, prefix=API_PREFIX)
     app.include_router(listings.router, prefix=API_PREFIX)
     app.include_router(files.router, prefix=API_PREFIX)
+    app.include_router(files.profile_router, prefix=API_PREFIX)
 
     # The last added middleware is the outermost: the request ID is set
     # before the access log record is written.

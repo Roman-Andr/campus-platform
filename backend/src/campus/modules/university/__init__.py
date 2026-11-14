@@ -6,6 +6,8 @@ never its submodules (enforced by import-linter).
 
 from campus.modules.university.api import router
 from campus.modules.university.models import (
+    CODE_MAX_LENGTH,
+    CODE_PATTERN,
     AccountType,
     City,
     Dormitory,
@@ -23,6 +25,8 @@ from campus.modules.university.seed import (
 )
 
 __all__ = [
+    "CODE_MAX_LENGTH",
+    "CODE_PATTERN",
     "DEFAULT_SEED_FILE",
     "AccountType",
     "City",

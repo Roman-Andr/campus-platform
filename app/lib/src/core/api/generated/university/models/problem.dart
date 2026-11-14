@@ -27,6 +27,9 @@ class Problem {
 
     /// Oldest supported client version (client_update_required).
     this.minVersion,
+
+    /// When the refused action becomes possible, e.g. the next name change; RFC 3339 in UTC.
+    this.availableAt,
     this.additionalProperties = const {},
   });
 
@@ -54,6 +57,11 @@ class Problem {
         : null,
     minVersion: json.containsKey("min_version")
         ? json["min_version"] as String?
+        : null,
+    availableAt: json.containsKey("available_at")
+        ? json["available_at"] == null
+              ? null
+              : DateTime.parse(json["available_at"] as String).toUtc()
         : null,
     additionalProperties: {
       for (final entry in json.entries)
@@ -85,6 +93,9 @@ class Problem {
   /// Oldest supported client version (client_update_required).
   final String? minVersion;
 
+  /// When the refused action becomes possible, e.g. the next name change; RFC 3339 in UTC.
+  final DateTime? availableAt;
+
   static const _knownKeys = <String>{
     "type",
     "title",
@@ -95,6 +106,7 @@ class Problem {
     "errors",
     "current_version",
     "min_version",
+    "available_at",
   };
 
   final Map<String, Object?> additionalProperties;
@@ -112,5 +124,7 @@ class Problem {
       "errors": this.errors?.map((item) => item.toJson()).toList(),
     if (this.currentVersion != null) "current_version": this.currentVersion,
     if (this.minVersion != null) "min_version": this.minVersion,
+    if (this.availableAt != null)
+      "available_at": this.availableAt?.toUtc().toIso8601String(),
   };
 }

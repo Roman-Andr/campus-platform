@@ -28,6 +28,21 @@ class MyProfile extends _$MyProfile {
         .updateProfile(body: profile);
     state = AsyncData(user);
   }
+
+  /// Changes the real name; throws when the server rejects it, e.g. with
+  /// `name_change_too_soon` and the date of the next possible change.
+  Future<void> changeName({
+    required String firstName,
+    required String lastName,
+  }) async {
+    final user = await ref
+        .read(campusApiProvider)
+        .profile
+        .changeName(
+          body: NameInput(firstName: firstName, lastName: lastName),
+        );
+    state = AsyncData(user);
+  }
 }
 
 /// Campus cities, by name in the interface language.

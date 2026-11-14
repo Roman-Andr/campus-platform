@@ -119,6 +119,9 @@ void main() {
   }) {
     tester.platformDispatcher.localesTestValue = [Locale(language)];
     addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+    // A phone screen: the whole profile, photo included, fits on it.
+    tester.view.physicalSize = const Size(1080, 2400);
+    addTearDown(tester.view.resetPhysicalSize);
     return tester.pumpCampusApp(InMemorySettingsRepository(), adapter: server);
   }
 
@@ -165,9 +168,17 @@ void main() {
       'faculty_id': 'faculty-economics',
       'course': 3,
     });
-    expect(location(container), AppRoutes.home);
-    expect(find.text('Пока ничего нет'), findsOneWidget);
+    // Optional steps follow: the photo and the skills, both skippable.
+    expect(location(container), AppRoutes.profileSetupPhoto);
     expect(container.read(myProfileProvider).value!.profileComplete, isTrue);
+    for (final step in [AppRoutes.profileSetupSkills, AppRoutes.home]) {
+      final skip = find.byKey(const Key('profile-step-skip'));
+      await tester.ensureVisible(skip);
+      await tester.tap(skip);
+      await tester.pumpAndSettle();
+      expect(location(container), step);
+    }
+    expect(find.text('Пока ничего нет'), findsOneWidget);
   });
 
   testWidgets('dormitories and faculties are those of the chosen city', (
@@ -269,7 +280,7 @@ void main() {
 
     await save(tester);
     expect(sentTo(_profile), hasLength(2));
-    expect(location(container), AppRoutes.home);
+    expect(location(container), AppRoutes.profileSetupPhoto);
   });
 
   testWidgets('a failed save is explained and keeps the screen', (
@@ -307,9 +318,10 @@ void main() {
     final container = await start(tester);
 
     expect(location(container), AppRoutes.home);
+    // Filling in is over: only its optional steps remain.
     container.read(appRouterProvider).go(AppRoutes.profileSetup);
     await tester.pumpAndSettle();
-    expect(location(container), AppRoutes.home);
+    expect(location(container), AppRoutes.profileSetupPhoto);
   });
 
   testWidgets('the own profile shows the choices and can be changed', (

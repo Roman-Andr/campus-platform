@@ -12,6 +12,7 @@ import 'exports.dart'
         PhotosClient,
         ProfileClient,
         SessionsClient,
+        SkillsClient,
         SystemClient,
         UniversityClient;
 
@@ -39,6 +40,7 @@ final class CampusApi {
   late final clients.PhotosClient photos = clients.PhotosClient(_client);
   late final clients.ProfileClient profile = clients.ProfileClient(_client);
   late final clients.SessionsClient sessions = clients.SessionsClient(_client);
+  late final clients.SkillsClient skills = clients.SkillsClient(_client);
   late final clients.SystemClient system = clients.SystemClient(_client);
   late final clients.UniversityClient university = clients.UniversityClient(
     _client,

@@ -235,6 +235,14 @@ void main() {
       await chooseLast<String>(byKeyPrefix('profile-faculty-'));
       await chooseLast<int>(find.byKey(const Key('profile-course')));
       await tester.tap(find.byKey(const Key('profile-save')));
+      // The photo and skills steps are optional.
+      for (var step = 0; step < 2; step++) {
+        final skip = find.byKey(const Key('profile-step-skip'));
+        await pumpUntil(tester, skip);
+        await tester.ensureVisible(skip);
+        await tester.tap(skip);
+        await tester.pumpAndSettle();
+      }
       final settings = find.byIcon(Icons.settings_outlined);
       await pumpUntil(tester, settings);
       expect(

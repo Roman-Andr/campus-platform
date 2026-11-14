@@ -1465,6 +1465,174 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Офлайн-QR'**
   String get timelineOfflineQr;
+
+  /// Title of the profile photo and its step.
+  ///
+  /// In ru, this message translates to:
+  /// **'Фото профиля'**
+  String get profilePhoto;
+
+  /// Button choosing the profile photo from the gallery or files.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выбрать фото'**
+  String get profilePhotoChoose;
+
+  /// Button replacing the profile photo.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заменить фото'**
+  String get profilePhotoReplace;
+
+  /// Button taking the profile photo with the camera.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сделать снимок'**
+  String get profilePhotoCamera;
+
+  /// Button removing the profile photo.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить фото'**
+  String get profilePhotoRemove;
+
+  /// While the profile photo uploads.
+  ///
+  /// In ru, this message translates to:
+  /// **'Фото загружается…'**
+  String get profilePhotoUploading;
+
+  /// While the server checks and re-encodes the photo.
+  ///
+  /// In ru, this message translates to:
+  /// **'Фото проверяется…'**
+  String get profilePhotoProcessing;
+
+  /// The chosen photo file is too large.
+  ///
+  /// In ru, this message translates to:
+  /// **'Файл больше {megabytes} МБ — выберите фото поменьше.'**
+  String profilePhotoTooLarge(int megabytes);
+
+  /// The server rejected the photo.
+  ///
+  /// In ru, this message translates to:
+  /// **'Это не похоже на фото: выберите изображение JPEG, PNG, WebP или HEIC.'**
+  String get profilePhotoRejected;
+
+  /// The server did not finish checking the photo in time.
+  ///
+  /// In ru, this message translates to:
+  /// **'Фото проверяется слишком долго. Попробуйте ещё раз.'**
+  String get profilePhotoTimeout;
+
+  /// Title of the skills section and step.
+  ///
+  /// In ru, this message translates to:
+  /// **'Навыки'**
+  String get profileSkills;
+
+  /// The list of skills the user has.
+  ///
+  /// In ru, this message translates to:
+  /// **'Умею'**
+  String get profileSkillsCan;
+
+  /// The list of skills the user wants to learn.
+  ///
+  /// In ru, this message translates to:
+  /// **'Хочу научиться'**
+  String get profileSkillsWants;
+
+  /// An empty list of skills.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не указаны'**
+  String get profileSkillsNone;
+
+  /// Button and title of changing the skills.
+  ///
+  /// In ru, this message translates to:
+  /// **'Изменить навыки'**
+  String get profileSkillsEdit;
+
+  /// Chip adding a skill to a list.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить'**
+  String get profileSkillsAdd;
+
+  /// Search field of the skill tags.
+  ///
+  /// In ru, this message translates to:
+  /// **'Найти навык'**
+  String get profileSkillsSearch;
+
+  /// No skill tag matches the search.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ничего не найдено'**
+  String get profileSkillsNotFound;
+
+  /// Tooltip of removing a skill from a list.
+  ///
+  /// In ru, this message translates to:
+  /// **'Убрать «{name}»'**
+  String profileSkillRemove(String name);
+
+  /// The server rejected skills removed from the reference.
+  ///
+  /// In ru, this message translates to:
+  /// **'Некоторых навыков больше нет в справочнике — уберите их и сохраните снова.'**
+  String get profileSkillsUnavailable;
+
+  /// Button and title of changing the name.
+  ///
+  /// In ru, this message translates to:
+  /// **'Изменить имя'**
+  String get profileNameChange;
+
+  /// Explanation in the name change dialog.
+  ///
+  /// In ru, this message translates to:
+  /// **'Смена имени записывается в журнал, а следующая будет доступна не сразу. Указывайте настоящие имя и фамилию.'**
+  String get profileNameRule;
+
+  /// When the name may change next.
+  ///
+  /// In ru, this message translates to:
+  /// **'Следующая смена имени — не раньше {date}'**
+  String profileNameNextChange(String date);
+
+  /// The server refused a name change made too soon.
+  ///
+  /// In ru, this message translates to:
+  /// **'Имя недавно менялось. Следующая смена — не раньше {date}.'**
+  String profileNameTooSoon(String date);
+
+  /// Intro of the optional photo step.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавьте фото, чтобы вас узнавали при встрече. Этот шаг можно пропустить.'**
+  String get profileSetupPhotoIntro;
+
+  /// Intro of the optional skills step.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметьте, что вы умеете и чему хотите научиться, — так проще найти, с кем обменяться навыками. Этот шаг можно пропустить.'**
+  String get profileSetupSkillsIntro;
+
+  /// Skips an optional step of filling in the profile.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пропустить'**
+  String get profileSkip;
+
+  /// Finishes filling in the profile.
+  ///
+  /// In ru, this message translates to:
+  /// **'Готово'**
+  String get profileDone;
 }
 
 class _AppLocalizationsDelegate

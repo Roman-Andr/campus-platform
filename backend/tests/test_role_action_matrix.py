@@ -104,12 +104,14 @@ def test_pending_reference_admin_api_is_absent(
         return
     response = client.get("/api/v1/openapi.json")
     assert response.status_code == 200
-    # Public lookup GETs do not implement reference-data administration.
-    # Once an administrative read or any write exists, activate API probes.
+    # Public lookup GETs do not implement reference-data administration,
+    # nor do the user's own lists (e.g. /me/skills). Once an administrative
+    # read or any write exists, activate API probes.
     implemented = {
         f"{method.upper()} {path}"
         for path, operations in response.json()["paths"].items()
         if resources.intersection(path.split("/"))
+        and not path.startswith("/api/v1/me/")
         for method in operations
         if method in {"post", "put", "patch", "delete"}
         or (path.startswith("/api/v1/admin/") and method == "get")

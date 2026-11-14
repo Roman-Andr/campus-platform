@@ -28,12 +28,14 @@ class SentRequest {
       path = options.path,
       uri = options.uri,
       headers = Map.of(options.headers),
+      query = Map.of(options.queryParameters),
       data = options.data;
 
   final String method;
   final String path;
   final Uri uri;
   final Map<String, Object?> headers;
+  final Map<String, Object?> query;
   final Object? data;
 
   /// The JSON body as sent by the generated client.
@@ -59,11 +61,20 @@ class FakeHttpAdapter implements HttpClientAdapter {
     },
     this.feed = const {'items': <Object?>[], 'next_page': null},
     this.photos = const {'items': <Object?>[]},
+    this.skills = const {'can': <Object?>[], 'wants': <Object?>[]},
+    this.photo,
   });
 
   /// Answer to every `GET /api/v1/listings/{id}/photos`; `null` passes
   /// those requests to the queued replies.
   Map<String, Object?>? photos;
+
+  /// Answer to `GET /api/v1/me/skills`; `null` passes those requests to
+  /// the queued replies.
+  Map<String, Object?>? skills;
+
+  /// The profile photo `GET /api/v1/me/photo` returns; `null`: none (404).
+  Map<String, Object?>? photo;
 
   List<Map<String, Object?>>? documents;
 
@@ -148,6 +159,17 @@ class FakeHttpAdapter implements HttpClientAdapter {
     if (me != null && options.method == 'GET' && options.path == mePath) {
       return jsonBody(200, me);
     }
+    if (options.method == 'GET' && options.path == '$mePath/photo') {
+      final photo = this.photo;
+      return photo == null
+          ? problemBody(404, 'not_found')
+          : jsonBody(200, photo);
+    }
+    if (skills != null &&
+        options.method == 'GET' &&
+        options.path == '$mePath/skills') {
+      return jsonBody(200, skills);
+    }
     final reply = _replies.isEmpty ? _last : _replies.removeAt(0);
     if (reply == null && options.path == '/api/v1/auth/token/refresh') {
       return jsonBody(200, tokensJson(1));
@@ -220,6 +242,7 @@ const userJson = <String, Object?>{
   'last_name': 'Иванов',
   'account_type': 'student',
   'roles': <Object?>[],
+  'name_change_available_at': null,
 };
 
 /// Profile fields of a user who has not filled in the profile.

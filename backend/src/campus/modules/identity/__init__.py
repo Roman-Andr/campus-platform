@@ -20,11 +20,14 @@ from campus.modules.identity.consents import router as consent_router
 from campus.modules.identity.emails import notify_account_security
 from campus.modules.identity.emails import router as email_router
 from campus.modules.identity.models import (
+    NameChange,
     RefreshToken,
     Session,
     SignInCode,
+    SkillTag,
     User,
     UserEmail,
+    UserSkill,
 )
 from campus.modules.identity.profile import ProfiledUser
 from campus.modules.identity.profile import router as profile_router
@@ -43,6 +46,8 @@ from campus.modules.identity.session_events import (
     session_consumers,
 )
 from campus.modules.identity.sessions import router as sessions_router
+from campus.modules.identity.skill_seed import seed_skill_tags
+from campus.modules.identity.skills import router as skills_router
 
 __all__ = [
     "ConsentChange",
@@ -50,6 +55,7 @@ __all__ = [
     "DocumentKind",
     "DocumentVersion",
     "FirstAdminInput",
+    "NameChange",
     "PermissionContext",
     "Permissions",
     "ProfiledUser",
@@ -59,8 +65,10 @@ __all__ = [
     "Session",
     "SessionsRevoked",
     "SignInCode",
+    "SkillTag",
     "User",
     "UserEmail",
+    "UserSkill",
     "admin_router",
     "check_consents",
     "consent_consumers",
@@ -77,6 +85,8 @@ __all__ = [
     "require_roles",
     "router",
     "seed_documents",
+    "seed_skill_tags",
     "session_consumers",
     "sessions_router",
+    "skills_router",
 ]

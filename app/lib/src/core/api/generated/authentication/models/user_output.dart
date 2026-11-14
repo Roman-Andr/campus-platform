@@ -27,6 +27,9 @@ class UserOutput {
 
     /// Whether the profile is filled in; publishing and responding need it.
     required this.profileComplete,
+
+    /// When the name may change next; empty: now.
+    required this.nameChangeAvailableAt,
     this.additionalProperties = const {},
   });
 
@@ -45,6 +48,11 @@ class UserOutput {
     }
     if (!json.containsKey("course")) {
       throw ArgumentError("Missing required property: course");
+    }
+    if (!json.containsKey("name_change_available_at")) {
+      throw ArgumentError(
+        "Missing required property: name_change_available_at",
+      );
     }
     return UserOutput(
       crossBorderTransferAllowed:
@@ -65,6 +73,9 @@ class UserOutput {
       facultyId: json["faculty_id"] as String?,
       course: json["course"] as int?,
       profileComplete: json["profile_complete"] as bool,
+      nameChangeAvailableAt: json["name_change_available_at"] == null
+          ? null
+          : DateTime.parse(json["name_change_available_at"] as String).toUtc(),
       additionalProperties: {
         for (final entry in json.entries)
           if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
@@ -102,6 +113,9 @@ class UserOutput {
   /// Whether the profile is filled in; publishing and responding need it.
   final bool profileComplete;
 
+  /// When the name may change next; empty: now.
+  final DateTime? nameChangeAvailableAt;
+
   static const _knownKeys = <String>{
     "cross_border_transfer_allowed",
     "roles",
@@ -116,6 +130,7 @@ class UserOutput {
     "faculty_id",
     "course",
     "profile_complete",
+    "name_change_available_at",
   };
 
   final Map<String, Object?> additionalProperties;
@@ -136,5 +151,8 @@ class UserOutput {
     "faculty_id": this.facultyId,
     "course": this.course,
     "profile_complete": this.profileComplete,
+    "name_change_available_at": this.nameChangeAvailableAt
+        ?.toUtc()
+        .toIso8601String(),
   };
 }

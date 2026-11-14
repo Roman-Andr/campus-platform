@@ -1005,5 +1005,137 @@
   "timelineViaAssistant": "Через ассистента",
   "@timelineViaAssistant": {},
   "timelineOfflineQr": "Офлайн-QR",
-  "@timelineOfflineQr": {}
+  "@timelineOfflineQr": {},
+  "profilePhoto": "Фото профиля",
+  "@profilePhoto": {
+    "description": "Title of the profile photo and its step."
+  },
+  "profilePhotoChoose": "Выбрать фото",
+  "@profilePhotoChoose": {
+    "description": "Button choosing the profile photo from the gallery or files."
+  },
+  "profilePhotoReplace": "Заменить фото",
+  "@profilePhotoReplace": {
+    "description": "Button replacing the profile photo."
+  },
+  "profilePhotoCamera": "Сделать снимок",
+  "@profilePhotoCamera": {
+    "description": "Button taking the profile photo with the camera."
+  },
+  "profilePhotoRemove": "Удалить фото",
+  "@profilePhotoRemove": {
+    "description": "Button removing the profile photo."
+  },
+  "profilePhotoUploading": "Фото загружается…",
+  "@profilePhotoUploading": {
+    "description": "While the profile photo uploads."
+  },
+  "profilePhotoProcessing": "Фото проверяется…",
+  "@profilePhotoProcessing": {
+    "description": "While the server checks and re-encodes the photo."
+  },
+  "profilePhotoTooLarge": "Файл больше {megabytes} МБ — выберите фото поменьше.",
+  "@profilePhotoTooLarge": {
+    "description": "The chosen photo file is too large.",
+    "placeholders": {
+      "megabytes": {
+        "type": "int"
+      }
+    }
+  },
+  "profilePhotoRejected": "Это не похоже на фото: выберите изображение JPEG, PNG, WebP или HEIC.",
+  "@profilePhotoRejected": {
+    "description": "The server rejected the photo."
+  },
+  "profilePhotoTimeout": "Фото проверяется слишком долго. Попробуйте ещё раз.",
+  "@profilePhotoTimeout": {
+    "description": "The server did not finish checking the photo in time."
+  },
+  "profileSkills": "Навыки",
+  "@profileSkills": {
+    "description": "Title of the skills section and step."
+  },
+  "profileSkillsCan": "Умею",
+  "@profileSkillsCan": {
+    "description": "The list of skills the user has."
+  },
+  "profileSkillsWants": "Хочу научиться",
+  "@profileSkillsWants": {
+    "description": "The list of skills the user wants to learn."
+  },
+  "profileSkillsNone": "Не указаны",
+  "@profileSkillsNone": {
+    "description": "An empty list of skills."
+  },
+  "profileSkillsEdit": "Изменить навыки",
+  "@profileSkillsEdit": {
+    "description": "Button and title of changing the skills."
+  },
+  "profileSkillsAdd": "Добавить",
+  "@profileSkillsAdd": {
+    "description": "Chip adding a skill to a list."
+  },
+  "profileSkillsSearch": "Найти навык",
+  "@profileSkillsSearch": {
+    "description": "Search field of the skill tags."
+  },
+  "profileSkillsNotFound": "Ничего не найдено",
+  "@profileSkillsNotFound": {
+    "description": "No skill tag matches the search."
+  },
+  "profileSkillRemove": "Убрать «{name}»",
+  "@profileSkillRemove": {
+    "description": "Tooltip of removing a skill from a list.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileSkillsUnavailable": "Некоторых навыков больше нет в справочнике — уберите их и сохраните снова.",
+  "@profileSkillsUnavailable": {
+    "description": "The server rejected skills removed from the reference."
+  },
+  "profileNameChange": "Изменить имя",
+  "@profileNameChange": {
+    "description": "Button and title of changing the name."
+  },
+  "profileNameRule": "Смена имени записывается в журнал, а следующая будет доступна не сразу. Указывайте настоящие имя и фамилию.",
+  "@profileNameRule": {
+    "description": "Explanation in the name change dialog."
+  },
+  "profileNameNextChange": "Следующая смена имени — не раньше {date}",
+  "@profileNameNextChange": {
+    "description": "When the name may change next.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "profileNameTooSoon": "Имя недавно менялось. Следующая смена — не раньше {date}.",
+  "@profileNameTooSoon": {
+    "description": "The server refused a name change made too soon.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "profileSetupPhotoIntro": "Добавьте фото, чтобы вас узнавали при встрече. Этот шаг можно пропустить.",
+  "@profileSetupPhotoIntro": {
+    "description": "Intro of the optional photo step."
+  },
+  "profileSetupSkillsIntro": "Отметьте, что вы умеете и чему хотите научиться, — так проще найти, с кем обменяться навыками. Этот шаг можно пропустить.",
+  "@profileSetupSkillsIntro": {
+    "description": "Intro of the optional skills step."
+  },
+  "profileSkip": "Пропустить",
+  "@profileSkip": {
+    "description": "Skips an optional step of filling in the profile."
+  },
+  "profileDone": "Готово",
+  "@profileDone": {
+    "description": "Finishes filling in the profile."
+  }
 }

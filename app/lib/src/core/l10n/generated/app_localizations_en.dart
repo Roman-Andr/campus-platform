@@ -794,4 +794,102 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timelineOfflineQr => 'Offline QR';
+
+  @override
+  String get profilePhoto => 'Profile photo';
+
+  @override
+  String get profilePhotoChoose => 'Choose a photo';
+
+  @override
+  String get profilePhotoReplace => 'Change photo';
+
+  @override
+  String get profilePhotoCamera => 'Take a photo';
+
+  @override
+  String get profilePhotoRemove => 'Remove photo';
+
+  @override
+  String get profilePhotoUploading => 'Uploading the photo…';
+
+  @override
+  String get profilePhotoProcessing => 'Checking the photo…';
+
+  @override
+  String profilePhotoTooLarge(int megabytes) {
+    return 'The file is larger than $megabytes MB, choose a smaller photo.';
+  }
+
+  @override
+  String get profilePhotoRejected =>
+      'This doesn\'t look like a photo: choose a JPEG, PNG, WebP or HEIC image.';
+
+  @override
+  String get profilePhotoTimeout =>
+      'Checking the photo takes too long. Please try again.';
+
+  @override
+  String get profileSkills => 'Skills';
+
+  @override
+  String get profileSkillsCan => 'I can';
+
+  @override
+  String get profileSkillsWants => 'I want to learn';
+
+  @override
+  String get profileSkillsNone => 'None yet';
+
+  @override
+  String get profileSkillsEdit => 'Edit skills';
+
+  @override
+  String get profileSkillsAdd => 'Add';
+
+  @override
+  String get profileSkillsSearch => 'Find a skill';
+
+  @override
+  String get profileSkillsNotFound => 'Nothing found';
+
+  @override
+  String profileSkillRemove(String name) {
+    return 'Remove “$name”';
+  }
+
+  @override
+  String get profileSkillsUnavailable =>
+      'Some skills are no longer available: remove them and save again.';
+
+  @override
+  String get profileNameChange => 'Change name';
+
+  @override
+  String get profileNameRule =>
+      'Name changes are logged, and the next one won\'t be available right away. Use your real first and last names.';
+
+  @override
+  String profileNameNextChange(String date) {
+    return 'Next name change: not before $date';
+  }
+
+  @override
+  String profileNameTooSoon(String date) {
+    return 'The name was changed recently. Next change: not before $date.';
+  }
+
+  @override
+  String get profileSetupPhotoIntro =>
+      'Add a photo so that people recognize you when you meet. You can skip this step.';
+
+  @override
+  String get profileSetupSkillsIntro =>
+      'Mark what you can do and what you want to learn: it helps to find someone to swap skills with. You can skip this step.';
+
+  @override
+  String get profileSkip => 'Skip';
+
+  @override
+  String get profileDone => 'Done';
 }
