@@ -28,6 +28,8 @@ from campus.core.web import (
 from tests.models import Note
 
 NOTES_URL = f"{API_PREFIX}/test/notes"
+# Key of stored idempotent responses: 32 bytes, base64.
+ENCRYPTION_KEY = "dGVzdC1pZGVtcG90ZW5jeS1lbmNyeXB0aW9uLWtleSE="
 CLIENT_HEADERS = {"X-Client-Platform": "android", "X-Client-Version": "1.2.0"}
 
 TEST_CONFLICT = ProblemType("test_conflict", 409, N_("Conflict"))

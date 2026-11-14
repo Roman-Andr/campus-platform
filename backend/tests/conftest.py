@@ -10,7 +10,7 @@ from pydantic import SecretStr
 from campus.api.app import create_app
 from campus.core.config import ClientPlatform, Settings, get_settings
 from tests.logging_state import preserved_logging
-from tests.web_app import create_test_app, serve
+from tests.web_app import ENCRYPTION_KEY, create_test_app, serve
 
 pytest_plugins = ["tests.database", "tests.services"]
 
@@ -19,10 +19,15 @@ pytest_plugins = ["tests.database", "tests.services"]
 def isolated_environment(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> Iterator[None]:
-    """Hide the developer's CAMPUS_* variables and .env file from tests."""
+    """Hide the developer's CAMPUS_* variables and .env file from tests.
+
+    The API needs an encryption key of idempotent responses to start; the
+    tests get a fixed one.
+    """
     for name in os.environ:
         if name.startswith("CAMPUS_"):
             monkeypatch.delenv(name)
+    monkeypatch.setenv("CAMPUS_IDEMPOTENCY_ENCRYPTION_KEYS", ENCRYPTION_KEY)
     monkeypatch.chdir(tmp_path)
     get_settings.cache_clear()
     yield

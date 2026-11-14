@@ -9,6 +9,7 @@ dependencies = [
     "asgi-correlation-id>=5.0.1",
     "asyncpg>=0.32.0",
     "babel>=2.18.0",
+    "cryptography>=46",
     "email-validator>=2.3.0",
     "fastapi>=0.162.7",
     "limits[async-redis]>=5",

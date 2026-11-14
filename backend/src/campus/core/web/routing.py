@@ -8,7 +8,9 @@ a route, before FastAPI validates parameters:
 2. a mutating request (POST, PUT, PATCH, DELETE) must carry a UUID
    ``Idempotency-Key``;
 3. a database session is opened for the request (:data:`DbSession`); a
-   mutating request claims its key in it (:mod:`campus.core.idempotency`).
+   mutating request claims its key in it (:mod:`campus.core.idempotency`);
+   its response is stored encrypted with
+   ``CAMPUS_IDEMPOTENCY_ENCRYPTION_KEYS`` (checked when the API starts).
 
 The endpoint runs in that session's transaction and does not commit: a 2xx
 response is committed together with the stored idempotent response; an
@@ -27,12 +29,13 @@ from fastapi.routing import APIRoute
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from campus.core import clock
-from campus.core.config import ClientPlatform, Settings
+from campus.core.config import ClientPlatform, Settings, encryption_key
 from campus.core.db import DatabaseNotConfiguredError
 from campus.core.i18n import N_
 from campus.core.idempotency import (
     ANONYMOUS_SCOPE,
     IdempotencyKeyReusedError,
+    ResponseKeyring,
     StoredResponse,
     claim_idempotency_key,
     store_response,
@@ -144,6 +147,19 @@ DbSession = Annotated[AsyncSession, Depends(_request_session)]
 """The session of the current request; endpoints flush but never commit."""
 
 
+def response_keyring(settings: Settings) -> ResponseKeyring:
+    """The keyring of stored responses; fails without configured keys."""
+    return ResponseKeyring(
+        [encryption_key(key) for key in settings.idempotency_encryption_keys]
+    )
+
+
+def _keyring(request: Request) -> ResponseKeyring:
+    # Set when the API starts, so a missing key stops the start.
+    keyring: ResponseKeyring = request.app.state.idempotency_keyring
+    return keyring
+
+
 def _idempotency_key(request: Request) -> UUID:
     value = request.headers.get(IDEMPOTENCY_KEY_HEADER)
     if not value:
@@ -231,9 +247,11 @@ class ApiRoute(APIRoute):
                 request.state.db_session = session
                 scope = str(principal.user_id) if principal else ANONYMOUS_SCOPE
                 if key is not None:
+                    keyring = _keyring(request)
                     try:
                         stored = await claim_idempotency_key(
                             session,
+                            keyring=keyring,
                             scope=scope,
                             key=key,
                             fingerprint=await _fingerprint(request),
@@ -251,7 +269,11 @@ class ApiRoute(APIRoute):
                     return response
                 if key is not None:
                     await store_response(
-                        session, scope=scope, key=key, response=_stored(response)
+                        session,
+                        keyring=keyring,
+                        scope=scope,
+                        key=key,
+                        response=_stored(response),
                     )
                 await session.commit()
                 return response
