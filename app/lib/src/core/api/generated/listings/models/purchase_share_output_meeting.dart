@@ -4,7 +4,10 @@ import 'meeting_status.dart';
 
 /// The effective meeting plus the proposal awaiting an answer, if any.
 class MeetingOutput
-    implements InteractionOutputMeeting, ParticipationOutputMeeting {
+    implements
+        InteractionOutputMeeting,
+        ParticipationOutputMeeting,
+        PurchaseShareOutputMeeting {
   const MeetingOutput({
     required this.id,
     required this.version,
@@ -152,8 +155,8 @@ class InteractionOutputMeetingNull implements InteractionOutputMeeting {
 sealed class ParticipationOutputMeeting {
   factory ParticipationOutputMeeting.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches29(json)) "MeetingOutput",
-      if (_matches30(json)) "Null",
+      if (_matches32(json)) "MeetingOutput",
+      if (_matches33(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -172,6 +175,35 @@ sealed class ParticipationOutputMeeting {
 
 class ParticipationOutputMeetingNull implements ParticipationOutputMeeting {
   const ParticipationOutputMeetingNull(this.value);
+
+  final Null value;
+
+  Object? toJson() => value;
+}
+
+sealed class PurchaseShareOutputMeeting {
+  factory PurchaseShareOutputMeeting.fromJson(Object? json) {
+    final matches = <String>[
+      if (_matches36(json)) "MeetingOutput",
+      if (_matches37(json)) "Null",
+    ];
+    if (matches.length != 1) {
+      throw FormatException(
+        "Expected exactly one PurchaseShareOutputMeeting variant. Matches: " +
+            matches.toString(),
+      );
+    }
+    if (matches.single == "MeetingOutput") {
+      return MeetingOutput.fromJson(json as Map<String, Object?>);
+    }
+    return PurchaseShareOutputMeetingNull(json as Null);
+  }
+
+  Object? toJson();
+}
+
+class PurchaseShareOutputMeetingNull implements PurchaseShareOutputMeeting {
+  const PurchaseShareOutputMeetingNull(this.value);
 
   final Null value;
 
@@ -238,8 +270,10 @@ bool _matches10(Object? value) => ((value is String) || (value == null));
 bool _matches11(Object? value) => ((value is String) || (value == null));
 bool _matches12(Object? value) => ((value is String) || (value == null));
 bool _matches14(Object? value) => ((value == null));
-bool _matches29(Object? value) => (_matches2(value));
-bool _matches30(Object? value) => ((value == null));
+bool _matches32(Object? value) => (_matches2(value));
+bool _matches33(Object? value) => ((value == null));
+bool _matches36(Object? value) => (_matches2(value));
+bool _matches37(Object? value) => ((value == null));
 int _readJsonInteger(Object? value) {
   if (value is int) {
     return value;

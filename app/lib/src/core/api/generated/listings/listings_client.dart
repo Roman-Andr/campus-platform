@@ -12,6 +12,9 @@ import 'models/exchange_offer_input.dart' as models show ExchangeOfferInput;
 import 'models/exchange_offer_list.dart' as models show ExchangeOfferList;
 import 'models/giveaway_input.dart' as models show GiveawayInput;
 import 'models/help_request_input.dart' as models show HelpRequestInput;
+import 'models/join_listing_waitlist_request.dart'
+    as models
+    show JoinListingWaitlistRequest;
 import 'models/lesson_accept_input.dart' as models show LessonAcceptInput;
 import 'models/lesson_input.dart' as models show LessonInput;
 import 'models/lesson_slot_input.dart' as models show LessonSlotInput;
@@ -33,8 +36,13 @@ import 'models/page_participation_output.dart'
 import 'models/page_waitlist_entry_output.dart'
     as models
     show PageWaitlistEntryOutput;
-import 'models/participation_output_meeting.dart' as models show MeetingOutput;
 import 'models/publication_input.dart' as models show PublicationInput;
+import 'models/purchase_composition.dart' as models show PurchaseComposition;
+import 'models/purchase_edit.dart' as models show PurchaseEdit;
+import 'models/purchase_input.dart' as models show PurchaseInput;
+import 'models/purchase_share_output.dart' as models show PurchaseShareOutput;
+import 'models/purchase_share_output_meeting.dart' as models show MeetingOutput;
+import 'models/share_input.dart' as models show ShareInput;
 import 'models/signup_input.dart' as models show SignupInput;
 import 'models/signup_output.dart' as models show SignupOutput;
 import 'models/signup_output_interaction.dart' as models show InteractionOutput;
@@ -43,6 +51,8 @@ import 'models/transition_input.dart' as models show TransitionInput;
 import 'models/visibility.dart' as models show Visibility;
 import 'models/waitlist_entry_output.dart' as models show WaitlistEntryOutput;
 import 'models/waitlist_queue.dart' as models show WaitlistQueue;
+import 'models/withdrawal_decision.dart' as models show WithdrawalDecision;
+import 'models/withdrawal_input.dart' as models show WithdrawalInput;
 
 class ListingsClient {
   ListingsClient(this._transport);
@@ -1510,6 +1520,7 @@ class ListingsClient {
     CancelToken? cancelToken,
     Options? options,
     required String listingId,
+    models.JoinListingWaitlistRequest? body,
   }) async {
     if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
       throw ArgumentError('Invalid path segment.');
@@ -1518,12 +1529,19 @@ class ListingsClient {
       method: "POST",
       responseType: ResponseType.json,
       extra: {...?options?.extra, ...extra},
-      headers: {...?options?.headers, 'Accept': "application/json"},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
       validateStatus: (status) => status != null && (status == 201),
     );
     final response = await _transport.request<dynamic>(
       "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/waitlist",
       options: _options,
+      data: body == null ? null : convert.jsonEncode(body),
       cancelToken: cancelToken,
     );
     return models.WaitlistEntryOutput.fromJson(
@@ -1706,6 +1724,408 @@ class ListingsClient {
       cancelToken: cancelToken,
     );
     return models.WaitlistEntryOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Publish Purchase
+  ///
+  /// Publish a group purchase with its unit price and volume bounds.
+  Future<models.ListingOutput> publishPurchase({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required models.PurchaseInput body,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 201),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/purchases",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.ListingOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Edit Purchase
+  ///
+  /// Change price, bounds or deadline while collecting.
+  Future<models.ListingOutput> editPurchase({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required models.PurchaseEdit body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "PATCH",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/purchase",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.ListingOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Purchase Composition
+  ///
+  /// The whole composition is visible to the organiser only.
+  Future<models.PurchaseComposition> purchaseComposition({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/shares",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.PurchaseComposition.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Join Listing Purchase
+  ///
+  /// Take a share of units; a purchase share is accepted immediately.
+  Future<models.PurchaseShareOutput> joinListingPurchase({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required models.ShareInput body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 201),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/shares",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.PurchaseShareOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// My Purchase Share
+  Future<models.PurchaseShareOutput> myPurchaseShare({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/shares/me",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.PurchaseShareOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Leave My Purchase Share
+  ///
+  /// Leave while collecting; a fixed purchase needs the organiser's consent.
+  Future<void> leaveMyPurchaseShare({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "DELETE",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 204),
+    );
+    await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/shares/me",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+  }
+
+  /// Change My Purchase Share
+  ///
+  /// Change the number of units while the purchase is collecting.
+  Future<models.PurchaseShareOutput> changeMyPurchaseShare({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required models.ShareInput body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "PATCH",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/shares/me",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.PurchaseShareOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Request My Purchase Withdrawal
+  ///
+  /// Ask the organiser to leave a purchase whose composition is fixed.
+  Future<models.PurchaseShareOutput> requestMyPurchaseWithdrawal({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required models.WithdrawalInput body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 201),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/shares/me/withdrawal",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.PurchaseShareOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Cancel My Purchase Withdrawal
+  Future<void> cancelMyPurchaseWithdrawal({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "DELETE",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 204),
+    );
+    await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/shares/me/withdrawal",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+  }
+
+  /// Decide My Purchase Withdrawal
+  ///
+  /// The organiser approves or rejects a participant's withdrawal request.
+  Future<models.PurchaseShareOutput> decideMyPurchaseWithdrawal({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required String interactionId,
+    required models.WithdrawalDecision body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(interactionId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/shares/" +
+          Uri.encodeComponent(interactionId) +
+          "/withdrawal/decision",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.PurchaseShareOutput.fromJson(
       response.data as Map<String, Object?>,
     );
   }

@@ -8,6 +8,7 @@ import json
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime
+from decimal import Decimal
 from typing import Annotated, Any, Self
 from uuid import UUID
 
@@ -65,6 +66,7 @@ from campus.modules.listings.models import (
     Meeting,
     MeetingStatus,
     NoMeetingConfirmation,
+    PurchaseStage,
     Skill,
     SkillDirection,
     Visibility,
@@ -86,12 +88,14 @@ from campus.modules.listings.service import (
     MEETING_STALE,
     MEETING_STATE,
     OFFER_PENDING,
+    PURCHASE_CLOSED,
     RATE_LIMIT,
     STALE,
     TYPE_POLICIES,
     accept_lesson_option,
     active_offer,
     active_waitlist,
+    cancel_purchase,
     change_listing,
     claim_offer,
     clear_waitlist,
@@ -238,6 +242,15 @@ class ListingOutput(BaseModel):
     event_location: str | None = None
     event_capacity: int | None = None
     remaining_places: int | None = None
+    purchase_unit_price: Decimal | None = Field(
+        default=None, description="Price of one unit of a group purchase."
+    )
+    purchase_min_units: int | None = None
+    purchase_max_units: int | None = None
+    purchase_taken_units: int = 0
+    purchase_fixed_units: int | None = None
+    purchase_collection_deadline: Instant | None = None
+    purchase_stage: PurchaseStage | None = None
     favorite: bool = Field(
         default=False, description="Whether the current user bookmarked it."
     )
@@ -368,6 +381,13 @@ class InteractionOutput(BaseModel):
         default=None,
         description="The item a participant offers for an exchange; null otherwise.",
     )
+    units: int | None = Field(
+        default=None, description="Units taken in a group purchase; null otherwise."
+    )
+    leave_requested_at: Instant | None = Field(
+        default=None,
+        description="When a participant asked to leave a fixed purchase.",
+    )
     meeting: MeetingOutput | None
     options: list[LessonOptionOutput] = Field(
         default_factory=list,
@@ -427,6 +447,7 @@ class ParticipationListing(BaseModel):
     title: str
     status: ListingStatus
     city_timezone: str
+    purchase_unit_price: Decimal | None = None
 
 
 class ParticipationOutput(InteractionOutput):
@@ -514,6 +535,12 @@ class WaitlistEntryOutput(BaseModel):
     offered_at: Instant | None
     offer_expires_at: Instant | None
     interaction_id: UUID | None
+    units: int | None = Field(
+        default=None, description="Requested units of a purchase queue position."
+    )
+    offer_units: int | None = Field(
+        default=None, description="Units held by the active purchase offer."
+    )
     created_at: Instant
 
 
@@ -532,6 +559,8 @@ def waitlist_output(entry: WaitlistEntry, position: int | None) -> WaitlistEntry
         offered_at=entry.offered_at,
         offer_expires_at=entry.offer_expires_at,
         interaction_id=entry.interaction_id,
+        units=entry.units,
+        offer_units=entry.offer_units,
         created_at=entry.created_at,
     )
 
@@ -1410,6 +1439,12 @@ async def cancel_listing(
         raise ProblemError(FORBIDDEN)
     if listing.status != ListingStatus.DRAFT:
         require_live(listing)
+    if listing.kind == "purchase":
+        if listing.purchase_stage != PurchaseStage.COLLECTING:
+            raise ProblemError(PURCHASE_CLOSED)
+        await cancel_purchase(session, listing, "listing_cancelled")
+        await session.flush()
+        return ListingOutput.model_validate(listing)
     change_listing(
         session, listing, ListingStatus.CANCELLED, principal.user_id, "cancelled"
     )
@@ -2295,6 +2330,13 @@ async def interaction_events(  # noqa: PLR0913, PLR0917 - request dependencies
     )
 
 
+class WaitlistJoinInput(BaseModel):
+    """A purchase queue position holds the units the member wants."""
+
+    model_config = ConfigDict(extra="forbid")
+    units: int | None = Field(default=None, ge=1)
+
+
 def check_participant(listing: Listing, user: User) -> None:
     """Reject the author and roles that cannot respond to this audience."""
     if user.id == listing.author_id:
@@ -2313,6 +2355,7 @@ async def join_listing_waitlist(
     listing_id: UUID,
     session: DbSession,
     principal: ProfiledUser,
+    data: WaitlistJoinInput | None = None,
 ) -> WaitlistEntryOutput:
     """Take the last place of the queue; only occupied listings have one."""
     listing = await locked(session, listing_id)
@@ -2323,7 +2366,9 @@ async def join_listing_waitlist(
     require_live(listing)
     if listing.status not in (ListingStatus.ACTIVE, ListingStatus.BUSY):
         raise ProblemError(CONFLICT)
-    entry = await join_waitlist(session, listing, user)
+    entry = await join_waitlist(
+        session, listing, user, units=data.units if data is not None else None
+    )
     await session.flush()
     return await own_waitlist_output(session, entry)
 

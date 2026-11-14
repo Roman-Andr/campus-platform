@@ -5,6 +5,9 @@ msgstr ""
 msgid "A meeting time and place were proposed."
 msgstr ""
 
+msgid "A participant asks to leave the purchase."
+msgstr ""
+
 msgid ""
 "A place in the queue is available for you. Confirm it before the timer "
 "ends."
@@ -15,6 +18,9 @@ msgstr ""
 
 #, python-brace-format
 msgid "Another complaint reason already uses the code {code}."
+msgstr ""
+
+msgid "Ask the organiser before leaving the purchase."
 msgstr ""
 
 #, python-brace-format
@@ -126,6 +132,12 @@ msgstr ""
 msgid "Invalid offer"
 msgstr ""
 
+msgid "Invalid purchase deadline"
+msgstr ""
+
+msgid "Invalid purchase volume"
+msgstr ""
+
 msgid "Invalid quiet hours"
 msgstr ""
 
@@ -142,6 +154,9 @@ msgid "Invalid rules clause"
 msgstr ""
 
 msgid "Invalid sign-in code"
+msgstr ""
+
+msgid "Leave the purchase directly while it is collecting."
 msgstr ""
 
 msgid "Leave the queue before joining it again."
@@ -229,12 +244,22 @@ msgstr ""
 msgid "No such skill tag."
 msgstr ""
 
+msgid "Not enough units left."
+msgstr ""
+
 msgid "Not found"
 msgstr ""
 
 msgid ""
 "Only an accepted online lesson or a help interaction without an agreed "
 "meeting can be completed this way."
+msgstr ""
+
+msgid "Only the composition exchange is available at this stage."
+msgstr ""
+
+#, python-brace-format
+msgid "Only {available} units are available."
 msgstr ""
 
 msgid "Photo unavailable"
@@ -316,10 +341,31 @@ msgstr ""
 msgid "The client platform or version is not recognized."
 msgstr ""
 
+msgid ""
+"The collection deadline must be in the future and within the listing "
+"lifetime."
+msgstr ""
+
+msgid "The collection of the purchase ends soon."
+msgstr ""
+
 msgid "The complaint reason code is already used"
 msgstr ""
 
 msgid "The complaint reason was edited"
+msgstr ""
+
+msgid "The composition is fixed."
+msgstr ""
+
+msgid "The composition is not fixed yet."
+msgstr ""
+
+msgid "The conditions of the purchase have changed."
+msgstr ""
+
+#, python-brace-format
+msgid "The current volume is {taken} units."
 msgstr ""
 
 msgid "The event must start in the future and end after its start."
@@ -354,6 +400,9 @@ msgstr ""
 msgid "The listing was edited."
 msgstr ""
 
+msgid "The maximum is below the taken volume."
+msgstr ""
+
 msgid "The meeting cannot be changed."
 msgstr ""
 
@@ -372,6 +421,9 @@ msgstr ""
 msgid "The meeting time must be in the future."
 msgstr ""
 
+msgid "The minimum must not exceed the maximum, and both must be positive."
+msgstr ""
+
 #, python-brace-format
 msgid "The name can be changed once in {days} days; see available_at."
 msgstr ""
@@ -386,6 +438,9 @@ msgstr ""
 msgid "The offer of a place has expired."
 msgstr ""
 
+msgid "The organiser has decided on your request to leave."
+msgstr ""
+
 msgid "The page cursor is invalid or belongs to another list; start over."
 msgstr ""
 
@@ -393,6 +448,15 @@ msgid "The photo is not processed yet, has expired or is used by a listing."
 msgstr ""
 
 msgid "The place is offered to another participant."
+msgstr ""
+
+msgid "The purchase composition is fixed."
+msgstr ""
+
+msgid "The purchase is cancelled."
+msgstr ""
+
+msgid "The purchase is no longer collecting."
 msgstr ""
 
 msgid "The realtime server is temporarily unavailable. Try again later."
@@ -463,6 +527,12 @@ msgstr ""
 msgid "Wait for the offer timer to end or join the queue."
 msgstr ""
 
+msgid "You already asked to leave the purchase."
+msgstr ""
+
+msgid "You already joined the purchase."
+msgstr ""
+
 msgid "You already offered an item."
 msgstr ""
 
@@ -482,6 +552,9 @@ msgid "You have a new notification."
 msgstr ""
 
 msgid "You have no offer of a place."
+msgstr ""
+
+msgid "You have no pending request to leave."
 msgstr ""
 
 msgid "Your Campus e-mail confirmation code"

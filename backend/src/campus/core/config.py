@@ -375,6 +375,11 @@ class Settings(BaseSettings):
     listing_offer_timeout: timedelta = Field(
         default=timedelta(hours=2), gt=timedelta(0)
     )
+    # How long before a group purchase collection deadline participants are
+    # reminded; the collection itself is closed by the scheduler.
+    listing_purchase_reminder_before: timedelta = Field(
+        default=timedelta(hours=24), gt=timedelta(0)
+    )
     # Closer to the start than this, places are not offered by queue: they
     # open to everyone and the whole queue is notified at once.
     listing_open_to_all_before: timedelta = Field(

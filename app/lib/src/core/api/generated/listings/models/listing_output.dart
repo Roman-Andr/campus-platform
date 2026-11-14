@@ -2,6 +2,7 @@
 
 import 'audience.dart';
 import 'listing_output_direction.dart';
+import 'listing_output_purchase_stage.dart';
 import 'listing_status.dart';
 import 'visibility.dart';
 
@@ -44,6 +45,17 @@ class ListingOutput {
     this.eventLocation,
     this.eventCapacity,
     this.remainingPlaces,
+
+    /// Price of one unit of a group purchase.
+    this.purchaseUnitPrice,
+    this.purchaseMinUnits,
+    this.purchaseMaxUnits,
+    this.purchaseTakenUnits = 0,
+    this.purchaseFixedUnits,
+
+    /// RFC 3339 instant with an explicit offset; returned in UTC.
+    this.purchaseCollectionDeadline,
+    this.purchaseStage,
 
     /// Whether the current user bookmarked it.
     this.favorite = false,
@@ -141,6 +153,39 @@ class ListingOutput {
                 ? null
                 : _readJsonInteger(json["remaining_places"])
           : null,
+      purchaseUnitPrice: json.containsKey("purchase_unit_price")
+          ? json["purchase_unit_price"] as String?
+          : null,
+      purchaseMinUnits: json.containsKey("purchase_min_units")
+          ? json["purchase_min_units"] == null
+                ? null
+                : _readJsonInteger(json["purchase_min_units"])
+          : null,
+      purchaseMaxUnits: json.containsKey("purchase_max_units")
+          ? json["purchase_max_units"] == null
+                ? null
+                : _readJsonInteger(json["purchase_max_units"])
+          : null,
+      purchaseTakenUnits: json.containsKey("purchase_taken_units")
+          ? _readJsonInteger(json["purchase_taken_units"])
+          : 0,
+      purchaseFixedUnits: json.containsKey("purchase_fixed_units")
+          ? json["purchase_fixed_units"] == null
+                ? null
+                : _readJsonInteger(json["purchase_fixed_units"])
+          : null,
+      purchaseCollectionDeadline:
+          json.containsKey("purchase_collection_deadline")
+          ? json["purchase_collection_deadline"] == null
+                ? null
+                : DateTime.parse(json["purchase_collection_deadline"] as String)
+                      .toUtc()
+          : null,
+      purchaseStage: json.containsKey("purchase_stage")
+          ? json["purchase_stage"] == null
+                ? null
+                : ListingOutputPurchaseStage.fromJson(json["purchase_stage"])
+          : null,
       favorite: json.containsKey("favorite") ? json["favorite"] as bool : false,
       archivedAt: json["archived_at"] == null
           ? null
@@ -222,6 +267,22 @@ class ListingOutput {
 
   final int? remainingPlaces;
 
+  /// Price of one unit of a group purchase.
+  final String? purchaseUnitPrice;
+
+  final int? purchaseMinUnits;
+
+  final int? purchaseMaxUnits;
+
+  final int purchaseTakenUnits;
+
+  final int? purchaseFixedUnits;
+
+  /// RFC 3339 instant with an explicit offset; returned in UTC.
+  final DateTime? purchaseCollectionDeadline;
+
+  final ListingOutputPurchaseStage? purchaseStage;
+
   /// Whether the current user bookmarked it.
   final bool favorite;
 
@@ -266,6 +327,13 @@ class ListingOutput {
     "event_location",
     "event_capacity",
     "remaining_places",
+    "purchase_unit_price",
+    "purchase_min_units",
+    "purchase_max_units",
+    "purchase_taken_units",
+    "purchase_fixed_units",
+    "purchase_collection_deadline",
+    "purchase_stage",
     "favorite",
     "archived_at",
     "purged_at",
@@ -307,6 +375,21 @@ class ListingOutput {
     if (this.eventLocation != null) "event_location": this.eventLocation,
     if (this.eventCapacity != null) "event_capacity": this.eventCapacity,
     if (this.remainingPlaces != null) "remaining_places": this.remainingPlaces,
+    if (this.purchaseUnitPrice != null)
+      "purchase_unit_price": this.purchaseUnitPrice,
+    if (this.purchaseMinUnits != null)
+      "purchase_min_units": this.purchaseMinUnits,
+    if (this.purchaseMaxUnits != null)
+      "purchase_max_units": this.purchaseMaxUnits,
+    "purchase_taken_units": this.purchaseTakenUnits,
+    if (this.purchaseFixedUnits != null)
+      "purchase_fixed_units": this.purchaseFixedUnits,
+    if (this.purchaseCollectionDeadline != null)
+      "purchase_collection_deadline": this.purchaseCollectionDeadline
+          ?.toUtc()
+          .toIso8601String(),
+    if (this.purchaseStage != null)
+      "purchase_stage": this.purchaseStage?.toJson(),
     "favorite": this.favorite,
     "archived_at": this.archivedAt?.toUtc().toIso8601String(),
     "purged_at": this.purgedAt?.toUtc().toIso8601String(),
