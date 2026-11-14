@@ -194,6 +194,12 @@ class Settings(BaseSettings):
     cleanup_cron: str = Field(
         default="30 3 * * *", description="When expired records are deleted (UTC)."
     )
+    worker_shutdown_timeout: timedelta = Field(
+        default=timedelta(seconds=20),
+        ge=timedelta(0),
+        description="How long a stopping worker waits for running jobs and tasks "
+        "before cancelling them; below the stop grace period of the container.",
+    )
 
     smtp_host: str | None = Field(
         default=None, description="Outgoing mail server; sending fails when empty."
