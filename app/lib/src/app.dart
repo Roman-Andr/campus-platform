@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'core/l10n/l10n.dart';
+import 'core/realtime/realtime_status_view.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/offline_banner.dart';
@@ -36,8 +37,10 @@ class CampusApp extends ConsumerWidget {
       darkTheme: AppTheme.dark,
       themeMode: settings.themeMode,
       debugShowCheckedModeBanner: false,
-      builder: (context, child) => OfflineBanner(
-        child: ConsentGuard(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => RealtimeStatusBanner(
+        child: OfflineBanner(
+          child: ConsentGuard(child: child ?? const SizedBox.shrink()),
+        ),
       ),
     );
   }

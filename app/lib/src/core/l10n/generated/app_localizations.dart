@@ -2089,6 +2089,84 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Открыть объявление'**
   String get offerOpenListing;
+
+  /// Shown while the realtime client connects.
+  ///
+  /// In ru, this message translates to:
+  /// **'Подключение к реальному времени…'**
+  String get realtimeConnecting;
+
+  /// Shown while the realtime client reconnects after a dropped connection.
+  ///
+  /// In ru, this message translates to:
+  /// **'Связь с реальным временем потеряна. Переподключение…'**
+  String get realtimeReconnecting;
+
+  /// Realtime connection is healthy.
+  ///
+  /// In ru, this message translates to:
+  /// **'Реальное время подключено'**
+  String get realtimeConnected;
+
+  /// Realtime is not connected.
+  ///
+  /// In ru, this message translates to:
+  /// **'Реальное время отключено'**
+  String get realtimeOffline;
+
+  /// The screen is reloading data through the API, e.g. after returning from the background.
+  ///
+  /// In ru, this message translates to:
+  /// **'Обновляем данные…'**
+  String get realtimeUpdating;
+
+  /// A realtime token was rejected because the session ended.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сессия завершена. Войдите снова.'**
+  String get realtimeSessionEnded;
+
+  /// The user is not a member of the realtime channel.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет доступа к этому каналу.'**
+  String get realtimeChannelForbidden;
+
+  /// The realtime channel name was rejected by the server.
+  ///
+  /// In ru, this message translates to:
+  /// **'Канал недоступен.'**
+  String get realtimeChannelInvalid;
+
+  /// The realtime server or its API is temporarily unavailable.
+  ///
+  /// In ru, this message translates to:
+  /// **'Реальное время временно недоступно. Попробуем снова.'**
+  String get realtimeUnavailable;
+
+  /// Centrifugo no longer kept the stream position, so the state was reloaded through the API.
+  ///
+  /// In ru, this message translates to:
+  /// **'Часть событий уже недоступна — данные обновлены.'**
+  String get realtimeHistoryLost;
+
+  /// The device or the realtime server cannot be reached.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет связи. Переподключение…'**
+  String get realtimeNetworkLost;
+
+  /// An unexpected realtime failure.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось обновить реальное время. Попробуйте позже.'**
+  String get realtimeError;
+
+  /// Time of the last realtime event, already formatted in the city time zone.
+  ///
+  /// In ru, this message translates to:
+  /// **'Последнее событие: {time}'**
+  String realtimeLastEvent(String time);
 }
 
 class _AppLocalizationsDelegate

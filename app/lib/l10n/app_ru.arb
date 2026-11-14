@@ -1455,5 +1455,62 @@
   "offerOpenListing": "Открыть объявление",
   "@offerOpenListing": {
     "description": "Opens the listing of an unavailable place offer."
+  },
+  "realtimeConnecting": "Подключение к реальному времени…",
+  "@realtimeConnecting": {
+    "description": "Shown while the realtime client connects."
+  },
+  "realtimeReconnecting": "Связь с реальным временем потеряна. Переподключение…",
+  "@realtimeReconnecting": {
+    "description": "Shown while the realtime client reconnects after a dropped connection."
+  },
+  "realtimeConnected": "Реальное время подключено",
+  "@realtimeConnected": {
+    "description": "Realtime connection is healthy."
+  },
+  "realtimeOffline": "Реальное время отключено",
+  "@realtimeOffline": {
+    "description": "Realtime is not connected."
+  },
+  "realtimeUpdating": "Обновляем данные…",
+  "@realtimeUpdating": {
+    "description": "The screen is reloading data through the API, e.g. after returning from the background."
+  },
+  "realtimeSessionEnded": "Сессия завершена. Войдите снова.",
+  "@realtimeSessionEnded": {
+    "description": "A realtime token was rejected because the session ended."
+  },
+  "realtimeChannelForbidden": "Нет доступа к этому каналу.",
+  "@realtimeChannelForbidden": {
+    "description": "The user is not a member of the realtime channel."
+  },
+  "realtimeChannelInvalid": "Канал недоступен.",
+  "@realtimeChannelInvalid": {
+    "description": "The realtime channel name was rejected by the server."
+  },
+  "realtimeUnavailable": "Реальное время временно недоступно. Попробуем снова.",
+  "@realtimeUnavailable": {
+    "description": "The realtime server or its API is temporarily unavailable."
+  },
+  "realtimeHistoryLost": "Часть событий уже недоступна — данные обновлены.",
+  "@realtimeHistoryLost": {
+    "description": "Centrifugo no longer kept the stream position, so the state was reloaded through the API."
+  },
+  "realtimeNetworkLost": "Нет связи. Переподключение…",
+  "@realtimeNetworkLost": {
+    "description": "The device or the realtime server cannot be reached."
+  },
+  "realtimeError": "Не удалось обновить реальное время. Попробуйте позже.",
+  "@realtimeError": {
+    "description": "An unexpected realtime failure."
+  },
+  "realtimeLastEvent": "Последнее событие: {time}",
+  "@realtimeLastEvent": {
+    "description": "Time of the last realtime event, already formatted in the city time zone.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }
