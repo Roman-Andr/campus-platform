@@ -408,7 +408,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** My Listings */
+    /**
+     * My Listings
+     * @description Own listings of every status: drafts, active, busy and the archive.
+     */
     get: operations['my_listings'];
     put?: never;
     post?: never;
@@ -425,11 +428,58 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** My Reservations */
+    /**
+     * My Reservations
+     * @description Own participation in listings of every kind, with status and stage.
+     */
     get: operations['my_reservations'];
     put?: never;
     post?: never;
     delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/favorites': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * My Favorites
+     * @description Recently bookmarked first; unavailable listings carry no content.
+     */
+    get: operations['my_favorites'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{listing_id}/favorite': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /**
+     * Add Favorite
+     * @description Repeating the request, even concurrently, keeps a single bookmark.
+     */
+    put: operations['add_favorite'];
+    post?: never;
+    /**
+     * Remove Favorite
+     * @description Removal works for unavailable listings too and is a no-op if absent.
+     */
+    delete: operations['remove_favorite'];
     options?: never;
     head?: never;
     patch?: never;
@@ -925,6 +975,27 @@ export interface components {
       /** Offline Qr */
       offline_qr: boolean;
     };
+    /** FavoriteOutput */
+    FavoriteOutput: {
+      /**
+       * Listing Id
+       * Format: uuid
+       */
+      listing_id: string;
+      /**
+       * Created At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      created_at: string;
+      /**
+       * Available
+       * @description False when hidden, expired, closed or out of the user's area.
+       */
+      available: boolean;
+      /** @description The listing; absent, with no content, when unavailable. */
+      listing?: components['schemas']['ListingOutput'];
+    };
     /**
      * FieldError
      * @description One invalid part of the request.
@@ -1101,6 +1172,12 @@ export interface components {
       category_id: string | null;
       /** Hidden Reason */
       hidden_reason: string | null;
+      /**
+       * Favorite
+       * @description Whether the current user bookmarked it.
+       * @default false
+       */
+      favorite: boolean;
     };
     /**
      * ListingStatus
@@ -1111,6 +1188,16 @@ export interface components {
     Page_EventOutput_: {
       /** Items */
       items: components['schemas']['EventOutput'][];
+      /**
+       * Next Page
+       * @description Cursor of the next page; null on the last page.
+       */
+      next_page: string | null;
+    };
+    /** Page[FavoriteOutput] */
+    Page_FavoriteOutput_: {
+      /** Items */
+      items: components['schemas']['FavoriteOutput'][];
       /**
        * Next Page
        * @description Cursor of the next page; null on the last page.
@@ -1136,6 +1223,66 @@ export interface components {
        * @description Cursor of the next page; null on the last page.
        */
       next_page: string | null;
+    };
+    /** Page[ParticipationOutput] */
+    Page_ParticipationOutput_: {
+      /** Items */
+      items: components['schemas']['ParticipationOutput'][];
+      /**
+       * Next Page
+       * @description Cursor of the next page; null on the last page.
+       */
+      next_page: string | null;
+    };
+    /**
+     * ParticipationListing
+     * @description Enough of the listing to show a participation row without a fetch.
+     */
+    ParticipationListing: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Kind */
+      kind: string;
+      /** Title */
+      title: string;
+      status: components['schemas']['ListingStatus'];
+      /** City Timezone */
+      city_timezone: string;
+    };
+    /** ParticipationOutput */
+    ParticipationOutput: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Listing Id
+       * Format: uuid
+       */
+      listing_id: string;
+      /** Participant Name */
+      participant_name: string;
+      /**
+       * Participant Id
+       * Format: uuid
+       */
+      participant_id: string;
+      status: components['schemas']['InteractionStatus'];
+      /** Stage */
+      stage: string | null;
+      /** Response Due At */
+      response_due_at: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      created_at: string;
+      listing: components['schemas']['ParticipationListing'];
     };
     /** PhotoOrder */
     PhotoOrder: {
@@ -3576,6 +3723,8 @@ export interface operations {
   my_listings: {
     parameters: {
       query?: {
+        /** @description Only these statuses; all of them by default. */
+        status?: components['schemas']['ListingStatus'][] | null;
         /** @description Number of items; the default (20) and the maximum (100) are set in the server configuration. */
         size?: number | null;
         /** @description `next_page` of the previous page. */
@@ -3709,8 +3858,335 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['Page_InteractionOutput_'];
+          'application/json': components['schemas']['Page_ParticipationOutput_'];
         };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  my_favorites: {
+    parameters: {
+      query?: {
+        /** @description Number of items; the default (20) and the maximum (100) are set in the server configuration. */
+        size?: number | null;
+        /** @description `next_page` of the previous page. */
+        cursor?: string | null;
+      };
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Page_FavoriteOutput_'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  add_favorite: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  remove_favorite: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
       400: {
