@@ -47,6 +47,9 @@ jobs:
             backend:
               - *ci
               - backend/**
+              # The backend suite also tests the coordinator's merge guard.
+              - .github/scripts/merge-pr.sh
+              - .github/scripts/required-checks.sh
             app:
               - *ci
               - app/**

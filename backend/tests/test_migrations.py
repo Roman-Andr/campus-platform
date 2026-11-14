@@ -5,7 +5,8 @@ from collections.abc import Iterator
 
 import asyncpg
 import pytest
-from alembic.config import CommandLine
+from alembic.config import CommandLine, Config
+from alembic.script import ScriptDirectory
 from sqlalchemy import Column, Integer, Table
 from sqlalchemy.engine import URL
 
@@ -18,6 +19,16 @@ from tests.database import (
     run_alembic,
     unique_database_name,
 )
+
+
+def test_migrations_have_single_head() -> None:
+    scripts = ScriptDirectory.from_config(Config(toml_file=str(PYPROJECT)))
+    heads = scripts.get_heads()
+
+    assert len(heads) == 1, (
+        f"Expected exactly one Alembic migration head, found {len(heads)}: {heads}. "
+        "Multiple heads must be merged with an Alembic merge revision."
+    )
 
 
 @pytest.fixture
