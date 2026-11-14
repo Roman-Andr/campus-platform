@@ -95,7 +95,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(sentTo(_signIn).single.json['code'], '123456');
-    expect(find.text('Добро пожаловать в Кампус'), findsOneWidget);
+    expect(find.text('Пока ничего нет'), findsOneWidget);
     expect(
       container.read(authStatusProvider).value,
       AuthenticationStatus.authenticated,
@@ -150,7 +150,7 @@ void main() {
       'first_name': 'Иван',
       'last_name': 'Иванова-Петрова',
     });
-    expect(find.text('Добро пожаловать в Кампус'), findsOneWidget);
+    expect(find.text('Пока ничего нет'), findsOneWidget);
   });
 
   testWidgets('a wrong code is explained in Russian', (tester) async {
@@ -313,7 +313,7 @@ void main() {
     tester,
   ) async {
     final container = await start(tester, secure: signedInStorage);
-    expect(find.text('Добро пожаловать в Кампус'), findsOneWidget);
+    expect(find.text('Пока ничего нет'), findsOneWidget);
     server.route(
       (options) => options.path == _refresh
           ? problemBody(401, 'refresh_token_invalid')

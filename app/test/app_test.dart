@@ -16,7 +16,7 @@ void main() {
     await tester.pumpCampusApp(repository);
 
     expect(find.text('Кампус'), findsOneWidget);
-    expect(find.text('Добро пожаловать в Кампус'), findsOneWidget);
+    expect(find.text('Пока ничего нет'), findsOneWidget);
   });
 
   testWidgets('falls back to English for an unsupported device language', (
@@ -27,7 +27,7 @@ void main() {
 
     await tester.pumpCampusApp(repository);
 
-    expect(find.text('Welcome to Campus'), findsOneWidget);
+    expect(find.text('Nothing here yet'), findsOneWidget);
   });
 
   testWidgets('follows the device theme by default', (tester) async {
@@ -62,7 +62,7 @@ void main() {
 
     await tester.pageBack();
     await tester.pumpAndSettle();
-    expect(find.text('Welcome to Campus'), findsOneWidget);
+    expect(find.text('Nothing here yet'), findsOneWidget);
     expect(_brightness(tester), Brightness.dark);
 
     expect(
@@ -85,7 +85,7 @@ void main() {
 
     await tester.pumpCampusApp(repository);
 
-    expect(find.text('Welcome to Campus'), findsOneWidget);
+    expect(find.text('Nothing here yet'), findsOneWidget);
     expect(_brightness(tester), Brightness.dark);
   });
 }

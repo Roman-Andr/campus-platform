@@ -21,6 +21,10 @@ String apiFailureMessage(AppLocalizations l10n, Object error) =>
           l10n.errorListChanged,
         ProblemCodeKnown(value: ProblemCodeValue.rateLimited) =>
           l10n.errorRateLimited,
+        ProblemCodeKnown(value: ProblemCodeValue.listingConflict) =>
+          l10n.listingConflict,
+        ProblemCodeKnown(value: ProblemCodeValue.listingForbidden) =>
+          l10n.listingForbidden,
         _ when status >= 500 => l10n.errorServer,
         _ => l10n.errorRequest,
       },

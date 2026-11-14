@@ -61,7 +61,7 @@ def visible(listing: Listing, user: User) -> bool:
 
 async def locked(session: AsyncSession, listing_id: UUID) -> Listing:
     listing = await session.scalar(
-        select(Listing).where(Listing.id == listing_id).with_for_update()
+        select(Listing).where(Listing.id == listing_id).with_for_update(of=Listing)
     )
     if listing is None:
         raise ProblemError(NOT_FOUND)

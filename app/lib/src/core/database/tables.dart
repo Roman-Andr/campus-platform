@@ -10,3 +10,13 @@ class Preferences extends Table {
   @override
   Set<Column<Object>> get primaryKey => {key};
 }
+
+/// Server feed snapshots, partitioned by local session and scope.
+class ListingFeeds extends Table {
+  TextColumn get owner => text()();
+  TextColumn get area => text()();
+  TextColumn get payload => text()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {owner, area};
+}

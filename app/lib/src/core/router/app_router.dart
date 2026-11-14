@@ -7,6 +7,7 @@ import '../../features/auth/presentation/sign_in_code_screen.dart';
 import '../../features/auth/presentation/sign_in_email_screen.dart';
 import '../../features/auth/presentation/sign_in_name_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/listings/presentation/listings_screens.dart';
 import '../../features/profile/application/my_profile.dart';
 import '../../features/profile/presentation/profile_form_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -38,6 +39,19 @@ GoRouter appRouter(Ref ref) {
     initialLocation: AppRoutes.home,
     redirect: (context, state) => _redirect(ref, state.matchedLocation),
     routes: [
+      GoRoute(
+        path: '/giveaway/new',
+        builder: (context, state) => const CreateListingScreen(),
+      ),
+      GoRoute(
+        path: '/my-listings',
+        builder: (context, state) => const MyListingsScreen(),
+      ),
+      GoRoute(
+        path: '/listings/:id',
+        builder: (context, state) =>
+            ListingScreen(id: state.pathParameters['id']!),
+      ),
       GoRoute(
         path: AppRoutes.home,
         builder: (context, state) => const HomeScreen(),

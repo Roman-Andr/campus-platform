@@ -1492,6 +1492,482 @@
         }
       }
     },
+    "/api/v1/listings/mine": {
+      "get": {
+        "tags": [
+          "Listings"
+        ],
+        "summary": "My Listings",
+        "description": "All own listings, including those no longer in the public feed.",
+        "operationId": "my_listings",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Number of items; the default (20) and the maximum (100) are set in the server configuration.",
+              "title": "Size"
+            },
+            "description": "Number of items; the default (20) and the maximum (100) are set in the server configuration."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "`next_page` of the previous page.",
+              "title": "Cursor"
+            },
+            "description": "`next_page` of the previous page."
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_ListingOutput_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid, expired or revoked authentication (unauthorized).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/listings/reservations/mine": {
+      "get": {
+        "tags": [
+          "Listings"
+        ],
+        "summary": "My Reservations",
+        "operationId": "my_reservations",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Number of items; the default (20) and the maximum (100) are set in the server configuration.",
+              "title": "Size"
+            },
+            "description": "Number of items; the default (20) and the maximum (100) are set in the server configuration."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "`next_page` of the previous page.",
+              "title": "Cursor"
+            },
+            "description": "`next_page` of the previous page."
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_InteractionOutput_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid, expired or revoked authentication (unauthorized).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/listings/{listing_id}/interactions": {
+      "get": {
+        "tags": [
+          "Listings"
+        ],
+        "summary": "Listing Interactions",
+        "operationId": "listing_interactions",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Number of items; the default (20) and the maximum (100) are set in the server configuration.",
+              "title": "Size"
+            },
+            "description": "Number of items; the default (20) and the maximum (100) are set in the server configuration."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "`next_page` of the previous page.",
+              "title": "Cursor"
+            },
+            "description": "`next_page` of the previous page."
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_InteractionOutput_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid, expired or revoked authentication (unauthorized).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        }
+      }
+    },
     "/api/v1/listings/{listing_id}": {
       "get": {
         "tags": [
@@ -2805,6 +3281,10 @@
             "format": "uuid",
             "title": "Listing Id"
           },
+          "participant_name": {
+            "type": "string",
+            "title": "Participant Name"
+          },
           "participant_id": {
             "type": "string",
             "format": "uuid",
@@ -2818,6 +3298,7 @@
         "required": [
           "id",
           "listing_id",
+          "participant_name",
           "participant_id",
           "status"
         ],
@@ -2864,6 +3345,10 @@
             "type": "string",
             "format": "uuid",
             "title": "Id"
+          },
+          "author_name": {
+            "type": "string",
+            "title": "Author Name"
           },
           "author_id": {
             "type": "string",
@@ -2930,6 +3415,7 @@
         "type": "object",
         "required": [
           "id",
+          "author_name",
           "author_id",
           "kind",
           "title",
@@ -2980,6 +3466,31 @@
           "next_page"
         ],
         "title": "Page[EventOutput]"
+      },
+      "Page_InteractionOutput_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/InteractionOutput"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_page": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Next Page",
+            "description": "Cursor of the next page; null on the last page."
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "next_page"
+        ],
+        "title": "Page[InteractionOutput]"
       },
       "Page_ListingOutput_": {
         "properties": {

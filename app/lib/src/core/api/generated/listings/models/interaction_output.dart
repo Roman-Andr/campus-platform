@@ -6,6 +6,7 @@ class InteractionOutput {
   const InteractionOutput({
     required this.id,
     required this.listingId,
+    required this.participantName,
     required this.participantId,
     required this.status,
     this.additionalProperties = const {},
@@ -15,6 +16,7 @@ class InteractionOutput {
       InteractionOutput(
         id: json["id"] as String,
         listingId: json["listing_id"] as String,
+        participantName: json["participant_name"] as String,
         participantId: json["participant_id"] as String,
         status: InteractionStatus.fromJson(json["status"]),
         additionalProperties: {
@@ -27,6 +29,8 @@ class InteractionOutput {
 
   final String listingId;
 
+  final String participantName;
+
   final String participantId;
 
   final InteractionStatus status;
@@ -34,6 +38,7 @@ class InteractionOutput {
   static const _knownKeys = <String>{
     "id",
     "listing_id",
+    "participant_name",
     "participant_id",
     "status",
   };
@@ -45,6 +50,7 @@ class InteractionOutput {
       if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
     "id": this.id,
     "listing_id": this.listingId,
+    "participant_name": this.participantName,
     "participant_id": this.participantId,
     "status": this.status.toJson(),
   };

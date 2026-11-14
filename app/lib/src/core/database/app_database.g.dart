@@ -211,15 +211,281 @@ class PreferencesCompanion extends UpdateCompanion<PreferenceRow> {
   }
 }
 
+class $ListingFeedsTable extends ListingFeeds
+    with TableInfo<$ListingFeedsTable, ListingFeed> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ListingFeedsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _ownerMeta = const VerificationMeta('owner');
+  @override
+  late final GeneratedColumn<String> owner = GeneratedColumn<String>(
+    'owner',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _areaMeta = const VerificationMeta('area');
+  @override
+  late final GeneratedColumn<String> area = GeneratedColumn<String>(
+    'area',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payloadMeta = const VerificationMeta(
+    'payload',
+  );
+  @override
+  late final GeneratedColumn<String> payload = GeneratedColumn<String>(
+    'payload',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [owner, area, payload];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'listing_feeds';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ListingFeed> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('owner')) {
+      context.handle(
+        _ownerMeta,
+        owner.isAcceptableOrUnknown(data['owner']!, _ownerMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerMeta);
+    }
+    if (data.containsKey('area')) {
+      context.handle(
+        _areaMeta,
+        area.isAcceptableOrUnknown(data['area']!, _areaMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_areaMeta);
+    }
+    if (data.containsKey('payload')) {
+      context.handle(
+        _payloadMeta,
+        payload.isAcceptableOrUnknown(data['payload']!, _payloadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_payloadMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {owner, area};
+  @override
+  ListingFeed map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ListingFeed(
+      owner: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner'],
+      )!,
+      area: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}area'],
+      )!,
+      payload: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload'],
+      )!,
+    );
+  }
+
+  @override
+  $ListingFeedsTable createAlias(String alias) {
+    return $ListingFeedsTable(attachedDatabase, alias);
+  }
+}
+
+class ListingFeed extends DataClass implements Insertable<ListingFeed> {
+  final String owner;
+  final String area;
+  final String payload;
+  const ListingFeed({
+    required this.owner,
+    required this.area,
+    required this.payload,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['owner'] = Variable<String>(owner);
+    map['area'] = Variable<String>(area);
+    map['payload'] = Variable<String>(payload);
+    return map;
+  }
+
+  ListingFeedsCompanion toCompanion(bool nullToAbsent) {
+    return ListingFeedsCompanion(
+      owner: Value(owner),
+      area: Value(area),
+      payload: Value(payload),
+    );
+  }
+
+  factory ListingFeed.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ListingFeed(
+      owner: serializer.fromJson<String>(json['owner']),
+      area: serializer.fromJson<String>(json['area']),
+      payload: serializer.fromJson<String>(json['payload']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'owner': serializer.toJson<String>(owner),
+      'area': serializer.toJson<String>(area),
+      'payload': serializer.toJson<String>(payload),
+    };
+  }
+
+  ListingFeed copyWith({String? owner, String? area, String? payload}) =>
+      ListingFeed(
+        owner: owner ?? this.owner,
+        area: area ?? this.area,
+        payload: payload ?? this.payload,
+      );
+  ListingFeed copyWithCompanion(ListingFeedsCompanion data) {
+    return ListingFeed(
+      owner: data.owner.present ? data.owner.value : this.owner,
+      area: data.area.present ? data.area.value : this.area,
+      payload: data.payload.present ? data.payload.value : this.payload,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ListingFeed(')
+          ..write('owner: $owner, ')
+          ..write('area: $area, ')
+          ..write('payload: $payload')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(owner, area, payload);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ListingFeed &&
+          other.owner == this.owner &&
+          other.area == this.area &&
+          other.payload == this.payload);
+}
+
+class ListingFeedsCompanion extends UpdateCompanion<ListingFeed> {
+  final Value<String> owner;
+  final Value<String> area;
+  final Value<String> payload;
+  final Value<int> rowid;
+  const ListingFeedsCompanion({
+    this.owner = const Value.absent(),
+    this.area = const Value.absent(),
+    this.payload = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ListingFeedsCompanion.insert({
+    required String owner,
+    required String area,
+    required String payload,
+    this.rowid = const Value.absent(),
+  }) : owner = Value(owner),
+       area = Value(area),
+       payload = Value(payload);
+  static Insertable<ListingFeed> custom({
+    Expression<String>? owner,
+    Expression<String>? area,
+    Expression<String>? payload,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (owner != null) 'owner': owner,
+      if (area != null) 'area': area,
+      if (payload != null) 'payload': payload,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ListingFeedsCompanion copyWith({
+    Value<String>? owner,
+    Value<String>? area,
+    Value<String>? payload,
+    Value<int>? rowid,
+  }) {
+    return ListingFeedsCompanion(
+      owner: owner ?? this.owner,
+      area: area ?? this.area,
+      payload: payload ?? this.payload,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (owner.present) {
+      map['owner'] = Variable<String>(owner.value);
+    }
+    if (area.present) {
+      map['area'] = Variable<String>(area.value);
+    }
+    if (payload.present) {
+      map['payload'] = Variable<String>(payload.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ListingFeedsCompanion(')
+          ..write('owner: $owner, ')
+          ..write('area: $area, ')
+          ..write('payload: $payload, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $PreferencesTable preferences = $PreferencesTable(this);
+  late final $ListingFeedsTable listingFeeds = $ListingFeedsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [preferences];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    preferences,
+    listingFeeds,
+  ];
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);
@@ -372,12 +638,185 @@ typedef $$PreferencesTableProcessedTableManager =
       PreferenceRow,
       PrefetchHooks Function()
     >;
+typedef $$ListingFeedsTableCreateCompanionBuilder =
+    ListingFeedsCompanion Function({
+      required String owner,
+      required String area,
+      required String payload,
+      Value<int> rowid,
+    });
+typedef $$ListingFeedsTableUpdateCompanionBuilder =
+    ListingFeedsCompanion Function({
+      Value<String> owner,
+      Value<String> area,
+      Value<String> payload,
+      Value<int> rowid,
+    });
+
+class $$ListingFeedsTableFilterComposer
+    extends Composer<_$AppDatabase, $ListingFeedsTable> {
+  $$ListingFeedsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get owner => $composableBuilder(
+    column: $table.owner,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get area => $composableBuilder(
+    column: $table.area,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ListingFeedsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ListingFeedsTable> {
+  $$ListingFeedsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get owner => $composableBuilder(
+    column: $table.owner,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get area => $composableBuilder(
+    column: $table.area,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ListingFeedsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ListingFeedsTable> {
+  $$ListingFeedsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get owner =>
+      $composableBuilder(column: $table.owner, builder: (column) => column);
+
+  GeneratedColumn<String> get area =>
+      $composableBuilder(column: $table.area, builder: (column) => column);
+
+  GeneratedColumn<String> get payload =>
+      $composableBuilder(column: $table.payload, builder: (column) => column);
+}
+
+class $$ListingFeedsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ListingFeedsTable,
+          ListingFeed,
+          $$ListingFeedsTableFilterComposer,
+          $$ListingFeedsTableOrderingComposer,
+          $$ListingFeedsTableAnnotationComposer,
+          $$ListingFeedsTableCreateCompanionBuilder,
+          $$ListingFeedsTableUpdateCompanionBuilder,
+          (
+            ListingFeed,
+            BaseReferences<_$AppDatabase, $ListingFeedsTable, ListingFeed>,
+          ),
+          ListingFeed,
+          PrefetchHooks Function()
+        > {
+  $$ListingFeedsTableTableManager(_$AppDatabase db, $ListingFeedsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ListingFeedsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ListingFeedsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ListingFeedsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> owner = const Value.absent(),
+                Value<String> area = const Value.absent(),
+                Value<String> payload = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ListingFeedsCompanion(
+                owner: owner,
+                area: area,
+                payload: payload,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String owner,
+                required String area,
+                required String payload,
+                Value<int> rowid = const Value.absent(),
+              }) => ListingFeedsCompanion.insert(
+                owner: owner,
+                area: area,
+                payload: payload,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ListingFeedsTable, ListingFeed>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $ListingFeedsTable,
+                    ListingFeed
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ListingFeedsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ListingFeedsTable,
+      ListingFeed,
+      $$ListingFeedsTableFilterComposer,
+      $$ListingFeedsTableOrderingComposer,
+      $$ListingFeedsTableAnnotationComposer,
+      $$ListingFeedsTableCreateCompanionBuilder,
+      $$ListingFeedsTableUpdateCompanionBuilder,
+      (
+        ListingFeed,
+        BaseReferences<_$AppDatabase, $ListingFeedsTable, ListingFeed>,
+      ),
+      ListingFeed,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
   $$PreferencesTableTableManager get preferences =>
       $$PreferencesTableTableManager(_db, _db.preferences);
+  $$ListingFeedsTableTableManager get listingFeeds =>
+      $$ListingFeedsTableTableManager(_db, _db.listingFeeds);
 }
 
 // **************************************************************************

@@ -47,7 +47,12 @@ typedef Reply = ResponseBody Function(RequestOptions options);
 /// `GET /api/v1/me` is answered with [me] (a filled profile by default)
 /// without taking a queued reply, unless [me] is `null`.
 class FakeHttpAdapter implements HttpClientAdapter {
-  FakeHttpAdapter({this.me = const {...userJson, ...filledProfileJson}});
+  FakeHttpAdapter({
+    this.me = const {...userJson, ...filledProfileJson},
+    this.feed = const {'items': <Object?>[], 'next_page': null},
+  });
+
+  Map<String, Object?>? feed;
 
   /// The signed-in user as `GET /api/v1/me` returns it.
   Map<String, Object?>? me;
@@ -106,11 +111,19 @@ class FakeHttpAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     sent.add(SentRequest(options));
+    if (feed != null &&
+        options.method == 'GET' &&
+        options.path == '/api/v1/listings') {
+      return jsonBody(200, feed);
+    }
     final me = this.me;
     if (me != null && options.method == 'GET' && options.path == mePath) {
       return jsonBody(200, me);
     }
     final reply = _replies.isEmpty ? _last : _replies.removeAt(0);
+    if (reply == null && options.path == '/api/v1/auth/token/refresh') {
+      return jsonBody(200, tokensJson(1));
+    }
     if (reply == null) throw StateError('No reply for ${options.path}');
     return reply(options);
   }

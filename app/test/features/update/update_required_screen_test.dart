@@ -67,7 +67,7 @@ void main() {
 
     expect(find.text('Update required'), findsOneWidget);
     expect(find.textContaining('version 1.2.0 or newer'), findsOneWidget);
-    expect(find.text('Welcome to Campus'), findsNothing);
+    expect(find.text('Nothing here yet'), findsNothing);
   });
 
   testWidgets('is shown in Russian without the minimum version', (

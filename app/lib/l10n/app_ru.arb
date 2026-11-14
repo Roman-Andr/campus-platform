@@ -338,5 +338,130 @@
         "type": "int"
       }
     }
+  },
+  "listingsCity": "Город",
+  "listingsEmpty": "Пока ничего нет",
+  "listingsMore": "Загрузить ещё",
+  "listingsFirst": "В начало",
+  "listingDetails": "Объявление",
+  "listingAuthor": "Автор: {name}",
+  "listingReserve": "Забронировать",
+  "listingCreate": "Отдам вещь",
+  "listingTitle": "Название",
+  "listingDescription": "Описание",
+  "listingScope": "Область видимости",
+  "listingAudience": "Аудитория",
+  "listingStudents": "Студенты",
+  "listingCommunity": "Все участники",
+  "listingPublish": "Опубликовать",
+  "listingsMine": "Мои объявления и брони",
+  "listingsOwn": "Мои объявления",
+  "listingsReservations": "Мои брони",
+  "listingIncoming": "Входящие заявки",
+  "reservationPending": "Ожидает решения",
+  "reservationAccepted": "Принята",
+  "reservationRejected": "Отклонена",
+  "reservationCancelled": "Отменена",
+  "reservationAccept": "Принять",
+  "reservationReject": "Отклонить",
+  "listingActive": "Доступно",
+  "listingBusy": "Уже забронировано",
+  "listingExpired": "Срок истёк",
+  "listingConflict": "Вещь уже забронирована или больше недоступна. Обновите объявление.",
+  "listingForbidden": "Это действие недоступно для вашего аккаунта.",
+  "@listingsCity": {
+    "description": "listingsCity"
+  },
+  "@listingsEmpty": {
+    "description": "listingsEmpty"
+  },
+  "@listingsMore": {
+    "description": "listingsMore"
+  },
+  "@listingsFirst": {
+    "description": "listingsFirst"
+  },
+  "@listingDetails": {
+    "description": "listingDetails"
+  },
+  "@listingAuthor": {
+    "description": "listingAuthor",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@listingReserve": {
+    "description": "listingReserve"
+  },
+  "@listingCreate": {
+    "description": "listingCreate"
+  },
+  "@listingTitle": {
+    "description": "listingTitle"
+  },
+  "@listingDescription": {
+    "description": "listingDescription"
+  },
+  "@listingScope": {
+    "description": "listingScope"
+  },
+  "@listingAudience": {
+    "description": "listingAudience"
+  },
+  "@listingStudents": {
+    "description": "listingStudents"
+  },
+  "@listingCommunity": {
+    "description": "listingCommunity"
+  },
+  "@listingPublish": {
+    "description": "listingPublish"
+  },
+  "@listingsMine": {
+    "description": "listingsMine"
+  },
+  "@listingsOwn": {
+    "description": "listingsOwn"
+  },
+  "@listingsReservations": {
+    "description": "listingsReservations"
+  },
+  "@listingIncoming": {
+    "description": "listingIncoming"
+  },
+  "@reservationPending": {
+    "description": "reservationPending"
+  },
+  "@reservationAccepted": {
+    "description": "reservationAccepted"
+  },
+  "@reservationRejected": {
+    "description": "reservationRejected"
+  },
+  "@reservationCancelled": {
+    "description": "reservationCancelled"
+  },
+  "@reservationAccept": {
+    "description": "reservationAccept"
+  },
+  "@reservationReject": {
+    "description": "reservationReject"
+  },
+  "@listingActive": {
+    "description": "listingActive"
+  },
+  "@listingBusy": {
+    "description": "listingBusy"
+  },
+  "@listingExpired": {
+    "description": "listingExpired"
+  },
+  "@listingConflict": {
+    "description": "listingConflict"
+  },
+  "@listingForbidden": {
+    "description": "listingForbidden"
   }
 }

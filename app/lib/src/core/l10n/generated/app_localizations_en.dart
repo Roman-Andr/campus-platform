@@ -263,4 +263,97 @@ class AppLocalizationsEn extends AppLocalizations {
   String profileCourseValue(int course) {
     return 'Year $course';
   }
+
+  @override
+  String get listingsCity => 'City';
+
+  @override
+  String get listingsEmpty => 'Nothing here yet';
+
+  @override
+  String get listingsMore => 'Load more';
+
+  @override
+  String get listingsFirst => 'First page';
+
+  @override
+  String get listingDetails => 'Listing';
+
+  @override
+  String listingAuthor(String name) {
+    return 'Author: $name';
+  }
+
+  @override
+  String get listingReserve => 'Reserve';
+
+  @override
+  String get listingCreate => 'Give away an item';
+
+  @override
+  String get listingTitle => 'Title';
+
+  @override
+  String get listingDescription => 'Description';
+
+  @override
+  String get listingScope => 'Visibility area';
+
+  @override
+  String get listingAudience => 'Audience';
+
+  @override
+  String get listingStudents => 'Students';
+
+  @override
+  String get listingCommunity => 'Community';
+
+  @override
+  String get listingPublish => 'Publish';
+
+  @override
+  String get listingsMine => 'My listings and reservations';
+
+  @override
+  String get listingsOwn => 'My listings';
+
+  @override
+  String get listingsReservations => 'My reservations';
+
+  @override
+  String get listingIncoming => 'Incoming requests';
+
+  @override
+  String get reservationPending => 'Pending';
+
+  @override
+  String get reservationAccepted => 'Accepted';
+
+  @override
+  String get reservationRejected => 'Rejected';
+
+  @override
+  String get reservationCancelled => 'Cancelled';
+
+  @override
+  String get reservationAccept => 'Accept';
+
+  @override
+  String get reservationReject => 'Reject';
+
+  @override
+  String get listingActive => 'Available';
+
+  @override
+  String get listingBusy => 'Reserved';
+
+  @override
+  String get listingExpired => 'Expired';
+
+  @override
+  String get listingConflict =>
+      'This item is already reserved or no longer available. Refresh the listing.';
+
+  @override
+  String get listingForbidden => 'This action is unavailable for your account.';
 }
