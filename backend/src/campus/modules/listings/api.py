@@ -5,7 +5,8 @@ import binascii
 import hashlib
 import hmac
 import json
-from collections.abc import Sequence
+from collections.abc import Awaitable, Callable, Sequence
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Annotated, Any
 from uuid import UUID
@@ -20,6 +21,7 @@ from pydantic import (
 )
 from sqlalchemy import and_, case, delete, or_, select
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from campus.core import clock
@@ -164,6 +166,72 @@ class ListingOutput(BaseModel):
             " a purged listing cannot be published again."
         )
     )
+    preview_url: str | None = Field(
+        default=None,
+        description="Signed link to the first photo's preview; null without photos.",
+    )
+    preview_file_id: UUID | None = Field(
+        default=None,
+        description="The photo whose preview is linked; null without photos.",
+    )
+    preview_expires_at: Instant | None = Field(
+        default=None,
+        description="When the preview link expires; null without photos.",
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class Preview:
+    """A signed preview of the first listing photo, issued by its module."""
+
+    file_id: UUID
+    url: str
+    expires_at: datetime
+
+
+type PreviewLoader = Callable[
+    [AsyncSession, Settings, Sequence[UUID]], Awaitable[dict[UUID, Preview]]
+]
+
+preview_loaders: dict[str, PreviewLoader] = {}
+
+
+def register_preview_loader(
+    name: str,
+) -> Callable[[PreviewLoader], PreviewLoader]:
+    """Decorator: issue signed previews of listing photos; see the files module."""
+
+    def decorator(loader: PreviewLoader) -> PreviewLoader:
+        if name in preview_loaders:
+            msg = f"a preview loader {name!r} is already registered"
+            raise ValueError(msg)
+        preview_loaders[name] = loader
+        return loader
+
+    return decorator
+
+
+async def attach_previews(
+    session: DbSession, settings: Settings, items: Sequence[ListingOutput]
+) -> None:
+    """Add the first photo's preview to already visible listings.
+
+    A single query serves the whole page: a feed row must not cost a photo
+    request. Visibility is decided by the endpoint that selected the rows;
+    this helper never widens it.
+    """
+    if not items or not preview_loaders:
+        return
+    ids = [item.id for item in items]
+    previews: dict[UUID, Preview] = {}
+    for loader in preview_loaders.values():
+        previews.update(await loader(session, settings, ids))
+    for item in items:
+        preview = previews.get(item.id)
+        if preview is not None:
+            item.preview_url = preview.url
+            item.preview_file_id = preview.file_id
+            item.preview_expires_at = preview.expires_at
 
 
 class MeetingOutput(BaseModel):
@@ -533,6 +601,7 @@ async def listing_feed(  # noqa: PLR0913, PLR0917 - independent feed filters
     result = await paginate(
         session, query, params, ListingOutput, settings=settings, context=context
     )
+    await attach_previews(session, settings, result.items)
     if result.next_page:
         result.next_page = feed_cursor(settings, snapshot, result.next_page)
     await mark_favorites(session, user.id, result.items)
@@ -616,13 +685,15 @@ async def my_listings(
         {"created_at": Listing.created_at},
         Listing.id,
     )
-    return await paginate(
+    result = await paginate(
         session,
         query,
         page,
         ListingOutput,
         settings=request.app.state.settings,
     )
+    await attach_previews(session, request.app.state.settings, result.items)
+    return result
 
 
 @router.get("/reservations/mine")
@@ -683,6 +754,11 @@ async def my_favorites(
     for item in items:
         if item.listing is not None:
             item.listing.favorite = True
+    await attach_previews(
+        session,
+        request.app.state.settings,
+        [item.listing for item in items if item.listing is not None],
+    )
     return Page[FavoriteOutput](items=items, next_page=rows.next_page)
 
 
@@ -835,11 +911,13 @@ async def unpin_publication(
 @router.get("/{listing_id}")
 async def get_listing(
     listing_id: UUID,
+    request: Request,
     session: DbSession,
     principal: CurrentUser,
 ) -> ListingOutput:
     user = await user_for(session, principal)
     result = ListingOutput.model_validate(await readable(session, listing_id, user))
+    await attach_previews(session, request.app.state.settings, [result])
     await mark_favorites(session, user.id, [result])
     return result
 

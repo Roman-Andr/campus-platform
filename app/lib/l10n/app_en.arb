@@ -314,6 +314,7 @@
   "photoTooLarge": "{name}: the file is larger than {megabytes} MB",
   "photoWait": "Wait until the photos finish uploading",
   "photoOf": "Photo {index} of {count}",
+  "photoPreview": "Photo preview",
   "listingSaveDraft": "Save draft",
   "listingSaveChanges": "Save changes",
   "listingEditDraft": "Edit draft",

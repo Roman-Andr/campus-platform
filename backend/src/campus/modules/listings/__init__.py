@@ -1,6 +1,13 @@
 """Public listing API and aggregate persistence."""
 
-from campus.modules.listings.api import readable, router, user_for
+from campus.modules.listings.api import (
+    Preview,
+    attach_previews,
+    readable,
+    register_preview_loader,
+    router,
+    user_for,
+)
 from campus.modules.listings.models import (
     Audience,
     Category,
@@ -66,12 +73,14 @@ __all__ = [
     "ListingStatus",
     "Meeting",
     "MeetingStatus",
+    "Preview",
     "TypePolicy",
     "Visibility",
     "WaitlistEntry",
     "WaitlistStatus",
     "active_offer",
     "active_waitlist",
+    "attach_previews",
     "change_listing",
     "change_stage",
     "claim_offer",
@@ -86,6 +95,7 @@ __all__ = [
     "offer_timing",
     "readable",
     "register_archive_purger",
+    "register_preview_loader",
     "router",
     "transition",
     "user_for",

@@ -10858,6 +10858,32 @@
             "format": "date-time",
             "description": "When archive cleanup removed the description and photos; a purged listing cannot be published again.",
             "title": "Purged At"
+          },
+          "preview_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Preview Url",
+            "description": "Signed link to the first photo's preview; null without photos."
+          },
+          "preview_file_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "title": "Preview File Id",
+            "description": "The photo whose preview is linked; null without photos."
+          },
+          "preview_expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the preview link expires; null without photos.",
+            "title": "Preview Expires At"
           }
         },
         "type": "object",

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:campus/src/core/photos/photo_image.dart';
 import 'package:campus/src/core/photos/photo_upload.dart';
 import 'package:campus/src/core/router/app_router.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -187,7 +188,14 @@ void main() {
   ) async {
     final server =
         FakeHttpAdapter(
-          feed: pageJson([listingJson(author: 'other')]),
+          feed: pageJson([
+            listingJson(
+              author: 'other',
+              previewUrl: 'https://storage.test/preview/file-1?sig=1',
+              previewFileId: 'file-1',
+              previewExpiresAt: '2999-01-01T00:00:00Z',
+            ),
+          ]),
           photos: {
             'items': [photoJson('file-1'), photoJson('file-2')],
           },
@@ -200,10 +208,12 @@ void main() {
       InMemorySettingsRepository(),
       adapter: server,
     );
-    expect(
+    // The row carries the preview: the feed makes no photo request.
+    final thumbnail = tester.widget<CampusPhoto>(
       find.byKey(const Key('listing-thumbnail-listing-1')),
-      findsOneWidget,
     );
+    expect(thumbnail.url, 'https://storage.test/preview/file-1?sig=1');
+    expect(server.sent.where((r) => r.path.endsWith('/photos')), isEmpty);
     unawaited(container.read(appRouterProvider).push('/listings/listing-1'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('listing-gallery')), findsOneWidget);
@@ -214,6 +224,60 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Photo 2 of 2'), findsOneWidget);
+  });
+
+  testWidgets('a feed page of 20 rows needs no photo request', (tester) async {
+    final server = FakeHttpAdapter(
+      feed: pageJson([
+        for (var i = 0; i < 20; i++)
+          listingJson(
+            id: 'listing-$i',
+            author: 'other',
+            previewUrl: 'https://storage.test/preview/file-$i?sig=1',
+            previewFileId: 'file-$i',
+            previewExpiresAt: '2999-01-01T00:00:00Z',
+          ),
+      ]),
+    );
+    await tester.pumpCampusApp(InMemorySettingsRepository(), adapter: server);
+    expect(
+      find.byKey(const Key('listing-thumbnail-listing-0')),
+      findsOneWidget,
+    );
+    expect(server.sent.where((r) => r.path.endsWith('/photos')), isEmpty);
+  });
+
+  testWidgets('own listings take the preview from the page', (tester) async {
+    final server = FakeHttpAdapter()
+      ..route((options) {
+        if (options.path.endsWith('/token/refresh')) {
+          return jsonBody(200, tokensJson(1));
+        }
+        if (options.path.endsWith('/mine')) {
+          return jsonBody(
+            200,
+            pageJson([
+              listingJson(
+                previewUrl: 'https://storage.test/preview/file-7?sig=1',
+                previewFileId: 'file-7',
+                previewExpiresAt: '2999-01-01T00:00:00Z',
+              ),
+            ]),
+          );
+        }
+        return jsonBody(200, listingJson());
+      });
+    final container = await tester.pumpCampusApp(
+      InMemorySettingsRepository(),
+      adapter: server,
+    );
+    unawaited(container.read(appRouterProvider).push('/my-listings'));
+    await tester.pumpAndSettle();
+    final thumbnail = tester.widget<CampusPhoto>(
+      find.byKey(const Key('listing-thumbnail-listing-1')),
+    );
+    expect(thumbnail.url, 'https://storage.test/preview/file-7?sig=1');
+    expect(server.sent.where((r) => r.path.endsWith('/photos')), isEmpty);
   });
 
   testWidgets('card without photos has no gallery', (tester) async {

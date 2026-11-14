@@ -379,7 +379,7 @@ class ListingTile extends ConsumerWidget {
     return Column(
       children: [
         ListTile(
-          leading: ListingThumbnail(id: item.id),
+          leading: ListingThumbnail(listing: item),
           title: Text(item.title),
           subtitle: Text(
             '${item.authorName} · '
@@ -601,6 +601,10 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final initial = widget.initial;
+    // Keeps the signed photo list alive while the form loads the attached
+    // photos: nothing else watches it on this screen any more.
+    if (initial != null) ref.watch(listingPhotosProvider(initial.id));
     final user = ref.watch(myProfileProvider).value;
     final categories = ref.watch(listingCategoriesProvider);
     final photosBusy = ref.watch(
