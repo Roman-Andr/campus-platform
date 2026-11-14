@@ -1137,4 +1137,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get offerOpenListing => 'Open listing';
+
+  @override
+  String get realtimeConnecting => 'Connecting to realtime…';
+
+  @override
+  String get realtimeReconnecting => 'Realtime connection lost. Reconnecting…';
+
+  @override
+  String get realtimeConnected => 'Realtime connected';
+
+  @override
+  String get realtimeOffline => 'Realtime is offline';
+
+  @override
+  String get realtimeUpdating => 'Updating data…';
+
+  @override
+  String get realtimeSessionEnded => 'Your session has ended. Sign in again.';
+
+  @override
+  String get realtimeChannelForbidden =>
+      'You no longer have access to this channel.';
+
+  @override
+  String get realtimeChannelInvalid => 'This channel is unavailable.';
+
+  @override
+  String get realtimeUnavailable =>
+      'Realtime is temporarily unavailable. We will try again.';
+
+  @override
+  String get realtimeHistoryLost =>
+      'Some events are no longer available; the data has been reloaded.';
+
+  @override
+  String get realtimeNetworkLost => 'No connection. Reconnecting…';
+
+  @override
+  String get realtimeError => 'Could not update realtime. Try again later.';
+
+  @override
+  String realtimeLastEvent(String time) {
+    return 'Last event: $time';
+  }
 }

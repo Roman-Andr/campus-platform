@@ -621,5 +621,18 @@
   "offerConfirmed": "Offer confirmed. The application is waiting for the author.",
   "offerDeclined": "Offer declined.",
   "offerUnavailable": "This offer is no longer available.",
-  "offerOpenListing": "Open listing"
+  "offerOpenListing": "Open listing",
+  "realtimeConnecting": "Connecting to realtime…",
+  "realtimeReconnecting": "Realtime connection lost. Reconnecting…",
+  "realtimeConnected": "Realtime connected",
+  "realtimeOffline": "Realtime is offline",
+  "realtimeUpdating": "Updating data…",
+  "realtimeSessionEnded": "Your session has ended. Sign in again.",
+  "realtimeChannelForbidden": "You no longer have access to this channel.",
+  "realtimeChannelInvalid": "This channel is unavailable.",
+  "realtimeUnavailable": "Realtime is temporarily unavailable. We will try again.",
+  "realtimeHistoryLost": "Some events are no longer available; the data has been reloaded.",
+  "realtimeNetworkLost": "No connection. Reconnecting…",
+  "realtimeError": "Could not update realtime. Try again later.",
+  "realtimeLastEvent": "Last event: {time}"
 }

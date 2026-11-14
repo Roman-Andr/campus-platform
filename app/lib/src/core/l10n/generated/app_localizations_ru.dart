@@ -1128,4 +1128,49 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get offerOpenListing => 'Открыть объявление';
+
+  @override
+  String get realtimeConnecting => 'Подключение к реальному времени…';
+
+  @override
+  String get realtimeReconnecting =>
+      'Связь с реальным временем потеряна. Переподключение…';
+
+  @override
+  String get realtimeConnected => 'Реальное время подключено';
+
+  @override
+  String get realtimeOffline => 'Реальное время отключено';
+
+  @override
+  String get realtimeUpdating => 'Обновляем данные…';
+
+  @override
+  String get realtimeSessionEnded => 'Сессия завершена. Войдите снова.';
+
+  @override
+  String get realtimeChannelForbidden => 'Нет доступа к этому каналу.';
+
+  @override
+  String get realtimeChannelInvalid => 'Канал недоступен.';
+
+  @override
+  String get realtimeUnavailable =>
+      'Реальное время временно недоступно. Попробуем снова.';
+
+  @override
+  String get realtimeHistoryLost =>
+      'Часть событий уже недоступна — данные обновлены.';
+
+  @override
+  String get realtimeNetworkLost => 'Нет связи. Переподключение…';
+
+  @override
+  String get realtimeError =>
+      'Не удалось обновить реальное время. Попробуйте позже.';
+
+  @override
+  String realtimeLastEvent(String time) {
+    return 'Последнее событие: $time';
+  }
 }
