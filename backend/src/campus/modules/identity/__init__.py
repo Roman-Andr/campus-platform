@@ -37,6 +37,11 @@ from campus.modules.identity.roles import (
     admin_router,
     require_roles,
 )
+from campus.modules.identity.session_events import (
+    SessionsRevoked,
+    replay_session_events,
+    session_consumers,
+)
 from campus.modules.identity.sessions import router as sessions_router
 
 __all__ = [
@@ -52,6 +57,7 @@ __all__ = [
     "Role",
     "RoleAssignment",
     "Session",
+    "SessionsRevoked",
     "SignInCode",
     "User",
     "UserEmail",
@@ -67,8 +73,10 @@ __all__ = [
     "profile_router",
     "publish_document",
     "replay_consent_events",
+    "replay_session_events",
     "require_roles",
     "router",
     "seed_documents",
+    "session_consumers",
     "sessions_router",
 ]
