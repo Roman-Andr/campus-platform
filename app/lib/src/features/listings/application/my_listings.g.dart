@@ -164,6 +164,66 @@ abstract class _$MyParticipation
   }
 }
 
+/// Active queues and place offers of the user (ТЗ п. 5.1.1, модуль 4, п. 9).
+
+@ProviderFor(MyWaitlist)
+final myWaitlistProvider = MyWaitlistProvider._();
+
+/// Active queues and place offers of the user (ТЗ п. 5.1.1, модуль 4, п. 9).
+final class MyWaitlistProvider
+    extends
+        $AsyncNotifierProvider<MyWaitlist, Snapshot<PageWaitlistEntryOutput>> {
+  /// Active queues and place offers of the user (ТЗ п. 5.1.1, модуль 4, п. 9).
+  MyWaitlistProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: listingRetry,
+        name: r'myWaitlistProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$myWaitlistHash();
+
+  @$internal
+  @override
+  MyWaitlist create() => MyWaitlist();
+}
+
+String _$myWaitlistHash() => r'7fce79d83435f2da78d96aa48f745c9fca3f1292';
+
+/// Active queues and place offers of the user (ТЗ п. 5.1.1, модуль 4, п. 9).
+
+abstract class _$MyWaitlist
+    extends $AsyncNotifier<Snapshot<PageWaitlistEntryOutput>> {
+  FutureOr<Snapshot<PageWaitlistEntryOutput>> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref =
+        this.ref
+            as $Ref<
+              AsyncValue<Snapshot<PageWaitlistEntryOutput>>,
+              Snapshot<PageWaitlistEntryOutput>
+            >;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<
+                AsyncValue<Snapshot<PageWaitlistEntryOutput>>,
+                Snapshot<PageWaitlistEntryOutput>
+              >,
+              AsyncValue<Snapshot<PageWaitlistEntryOutput>>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(Favorites)
 final favoritesProvider = FavoritesProvider._();
 

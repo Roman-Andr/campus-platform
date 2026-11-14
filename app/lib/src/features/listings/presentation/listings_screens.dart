@@ -20,6 +20,7 @@ import 'meeting_screen.dart';
 import 'my_screens.dart';
 import 'publication_screen.dart';
 import 'status_labels.dart';
+import 'waitlist_widgets.dart';
 
 export 'status_labels.dart';
 
@@ -531,18 +532,7 @@ class ListingScreen extends ConsumerWidget {
                   if (!publication && item.authorId == user?.id)
                     ListingOwnerActions(item: item),
                   if (!publication && item.authorId != user?.id && user != null)
-                    if (item.status == ListingStatus.active)
-                      ListingAction(
-                        label: l.listingReserve,
-                        failureMessage: apiFailureMessage,
-                        run: () async {
-                          await ref
-                              .read(campusApiProvider)
-                              .listings
-                              .reserveGiveaway(listingId: id);
-                        },
-                        after: () => context.push('/my-listings'),
-                      ),
+                    ListingWaitlistSection(listing: item),
                   if (!publication && item.authorId == user?.id)
                     IncomingList(id: id),
                   if (!publication && user != null && item.authorId != user.id)

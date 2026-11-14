@@ -1045,4 +1045,87 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get feedSearchEmpty => 'Объявления не найдены';
+
+  @override
+  String get listingsQueue => 'Очереди и предложения';
+
+  @override
+  String get waitlistJoin => 'Встать в очередь';
+
+  @override
+  String get waitlistLeave => 'Выйти из очереди';
+
+  @override
+  String waitlistPosition(int position) {
+    return 'Ваше место в очереди: $position';
+  }
+
+  @override
+  String get waitlistRefresh => 'Обновить позицию';
+
+  @override
+  String get waitlistWaiting => 'Ожидание в очереди';
+
+  @override
+  String get waitlistEmpty => 'Вы не стоите в очередях, предложений места нет';
+
+  @override
+  String get waitlistSection => 'Ваши очереди';
+
+  @override
+  String get waitlistFree => 'Место уже свободно: забронируйте вещь.';
+
+  @override
+  String get waitlistDuplicate => 'Вы уже стоите в этой очереди.';
+
+  @override
+  String get waitlistParticipating => 'Вы уже участвуете в этом объявлении.';
+
+  @override
+  String get waitlistUnavailable => 'У этого объявления нет очереди.';
+
+  @override
+  String get waitlistOfferPending => 'Место предложено другому участнику.';
+
+  @override
+  String get waitlistOfferMissing => 'Предложение места больше не действует.';
+
+  @override
+  String get waitlistOfferExpired => 'Срок предложения места истёк.';
+
+  @override
+  String get offerSection => 'Предложения места';
+
+  @override
+  String get offerTitle => 'Предложение места';
+
+  @override
+  String get offerOffered => 'Вам предложили место';
+
+  @override
+  String offerCountdown(String time) {
+    return 'Предложение истекает через $time';
+  }
+
+  @override
+  String get offerExpired => 'Срок предложения истёк.';
+
+  @override
+  String get offerAccept => 'Подтвердить';
+
+  @override
+  String get offerDecline => 'Отказаться';
+
+  @override
+  String get offerConfirmed =>
+      'Предложение подтверждено. Заявка ждёт ответа автора.';
+
+  @override
+  String get offerDeclined => 'Вы отказались от предложения.';
+
+  @override
+  String get offerUnavailable => 'Это предложение больше не действует.';
+
+  @override
+  String get offerOpenListing => 'Открыть объявление';
 }

@@ -1050,4 +1050,91 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedSearchEmpty => 'No matching listings';
+
+  @override
+  String get listingsQueue => 'Queues and offers';
+
+  @override
+  String get waitlistJoin => 'Join queue';
+
+  @override
+  String get waitlistLeave => 'Leave queue';
+
+  @override
+  String waitlistPosition(int position) {
+    return 'Your place in the queue: $position';
+  }
+
+  @override
+  String get waitlistRefresh => 'Refresh position';
+
+  @override
+  String get waitlistWaiting => 'Waiting in the queue';
+
+  @override
+  String get waitlistEmpty =>
+      'You are not in any queue and have no place offers';
+
+  @override
+  String get waitlistSection => 'Your queues';
+
+  @override
+  String get waitlistFree =>
+      'A place is already free: reserve the item instead.';
+
+  @override
+  String get waitlistDuplicate => 'You are already in this queue.';
+
+  @override
+  String get waitlistParticipating =>
+      'You already participate in this listing.';
+
+  @override
+  String get waitlistUnavailable => 'This listing has no queue.';
+
+  @override
+  String get waitlistOfferPending =>
+      'The place is offered to another participant.';
+
+  @override
+  String get waitlistOfferMissing => 'This place offer is no longer active.';
+
+  @override
+  String get waitlistOfferExpired => 'The place offer has expired.';
+
+  @override
+  String get offerSection => 'Place offers';
+
+  @override
+  String get offerTitle => 'Place offer';
+
+  @override
+  String get offerOffered => 'A place is offered to you';
+
+  @override
+  String offerCountdown(String time) {
+    return 'Offer expires in $time';
+  }
+
+  @override
+  String get offerExpired => 'The offer has expired.';
+
+  @override
+  String get offerAccept => 'Confirm';
+
+  @override
+  String get offerDecline => 'Decline';
+
+  @override
+  String get offerConfirmed =>
+      'Offer confirmed. The application is waiting for the author.';
+
+  @override
+  String get offerDeclined => 'Offer declined.';
+
+  @override
+  String get offerUnavailable => 'This offer is no longer available.';
+
+  @override
+  String get offerOpenListing => 'Open listing';
 }

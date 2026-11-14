@@ -39,3 +39,24 @@ Map<String, Object?> pageJson(List<Object?> items, {String? next}) => {
   'items': items,
   'next_page': next,
 };
+
+Map<String, Object?> waitlistJson({
+  String id = 'entry-1',
+  String listingId = 'listing-1',
+  String status = 'waiting',
+  int? position,
+  DateTime? expires,
+}) => {
+  'id': id,
+  'listing_id': listingId,
+  'participant_name': 'Ivan Ivanov',
+  'participant_id': userJson['id'],
+  'status': status,
+  'position': position,
+  'offered_at': status == 'offered' && expires != null
+      ? expires.subtract(const Duration(hours: 2)).toIso8601String()
+      : null,
+  'offer_expires_at': expires?.toIso8601String(),
+  'interaction_id': null,
+  'created_at': '2026-11-14T00:00:00Z',
+};

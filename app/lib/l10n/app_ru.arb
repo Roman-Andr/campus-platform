@@ -1341,5 +1341,119 @@
   "@feedSearchEmpty": {"description": "No full-text search matches"},
   "feedSearch": "Поиск объявлений",
   "feedSearchClear": "Сбросить поиск",
-  "feedSearchEmpty": "Объявления не найдены"
+  "feedSearchEmpty": "Объявления не найдены",
+  "listingsQueue": "Очереди и предложения",
+  "@listingsQueue": {
+    "description": "Tab of own queues and place offers."
+  },
+  "waitlistJoin": "Встать в очередь",
+  "@waitlistJoin": {
+    "description": "Joins the queue of an occupied listing."
+  },
+  "waitlistLeave": "Выйти из очереди",
+  "@waitlistLeave": {
+    "description": "Leaves the own place in a listing queue."
+  },
+  "waitlistPosition": "Ваше место в очереди: {position}",
+  "@waitlistPosition": {
+    "description": "Own one-based place in the listing queue.",
+    "placeholders": {
+      "position": {
+        "type": "int"
+      }
+    }
+  },
+  "waitlistRefresh": "Обновить позицию",
+  "@waitlistRefresh": {
+    "description": "Re-reads the own place in the queue."
+  },
+  "waitlistWaiting": "Ожидание в очереди",
+  "@waitlistWaiting": {
+    "description": "Queue entry without a place yet."
+  },
+  "waitlistEmpty": "Вы не стоите в очередях, предложений места нет",
+  "@waitlistEmpty": {
+    "description": "The queues and offers tab without active entries."
+  },
+  "waitlistSection": "Ваши очереди",
+  "@waitlistSection": {
+    "description": "Heading of active queues in the My tab."
+  },
+  "waitlistFree": "Место уже свободно: забронируйте вещь.",
+  "@waitlistFree": {
+    "description": "The listing has a free place, so a queue is not available."
+  },
+  "waitlistDuplicate": "Вы уже стоите в этой очереди.",
+  "@waitlistDuplicate": {
+    "description": "The user already has an active queue entry."
+  },
+  "waitlistParticipating": "Вы уже участвуете в этом объявлении.",
+  "@waitlistParticipating": {
+    "description": "A participant cannot join the queue of their own application."
+  },
+  "waitlistUnavailable": "У этого объявления нет очереди.",
+  "@waitlistUnavailable": {
+    "description": "The listing type has no limited places to wait for."
+  },
+  "waitlistOfferPending": "Место предложено другому участнику.",
+  "@waitlistOfferPending": {
+    "description": "A place offer is already active for another participant."
+  },
+  "waitlistOfferMissing": "Предложение места больше не действует.",
+  "@waitlistOfferMissing": {
+    "description": "The own place offer is no longer active."
+  },
+  "waitlistOfferExpired": "Срок предложения места истёк.",
+  "@waitlistOfferExpired": {
+    "description": "The own place offer expired before confirmation."
+  },
+  "offerSection": "Предложения места",
+  "@offerSection": {
+    "description": "Heading of place offers in the My tab."
+  },
+  "offerTitle": "Предложение места",
+  "@offerTitle": {
+    "description": "Screen opened by the place offer notification."
+  },
+  "offerOffered": "Вам предложили место",
+  "@offerOffered": {
+    "description": "Heading of the place offer card."
+  },
+  "offerCountdown": "Предложение истекает через {time}",
+  "@offerCountdown": {
+    "description": "Remaining offer time counted from the server expiry.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "offerExpired": "Срок предложения истёк.",
+  "@offerExpired": {
+    "description": "The countdown reached the server expiry instant."
+  },
+  "offerAccept": "Подтвердить",
+  "@offerAccept": {
+    "description": "Confirms the place offer and creates an application."
+  },
+  "offerDecline": "Отказаться",
+  "@offerDecline": {
+    "description": "Declines the place offer; it goes to the next member."
+  },
+  "offerConfirmed": "Предложение подтверждено. Заявка ждёт ответа автора.",
+  "@offerConfirmed": {
+    "description": "The place offer was confirmed."
+  },
+  "offerDeclined": "Вы отказались от предложения.",
+  "@offerDeclined": {
+    "description": "The place offer was declined."
+  },
+  "offerUnavailable": "Это предложение больше не действует.",
+  "@offerUnavailable": {
+    "description": "The notification opens a place offer that is already gone."
+  },
+  "offerOpenListing": "Открыть объявление",
+  "@offerOpenListing": {
+    "description": "Opens the listing of an unavailable place offer."
+  }
 }

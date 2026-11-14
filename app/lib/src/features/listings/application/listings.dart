@@ -12,6 +12,7 @@ import '../domain/feed.dart';
 import 'feed_filters.dart';
 import 'interaction_timeline.dart';
 import 'my_listings.dart';
+import 'waitlist.dart';
 
 part 'listings.g.dart';
 
@@ -158,6 +159,8 @@ void refreshListings(WidgetRef ref) {
   ref.invalidate(interactionRejectionProvider);
   ref.invalidate(listingParticipationProvider);
   ref.invalidate(interactionTimelineProvider);
+  ref.invalidate(myWaitlistProvider);
+  ref.invalidate(myWaitlistEntryProvider);
 }
 
 /// Events are ascending and paginated. Keep the latest rejection only.

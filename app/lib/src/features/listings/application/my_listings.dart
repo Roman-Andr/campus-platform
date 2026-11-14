@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -6,6 +8,7 @@ import '../../../core/api/network_status.dart';
 import '../../../core/auth/auth_session.dart';
 import '../data/my_cache.dart';
 import 'listings.dart';
+import 'waitlist.dart';
 
 part 'my_listings.g.dart';
 
@@ -163,6 +166,51 @@ class MyParticipation extends _$MyParticipation
   );
   @override
   Map<String, Object?> encode(PageParticipationOutput page) => page.toJson();
+}
+
+/// Active queues and place offers of the user (ТЗ п. 5.1.1, модуль 4, п. 9).
+@Riverpod(retry: listingRetry)
+class MyWaitlist extends _$MyWaitlist with _Paged<PageWaitlistEntryOutput> {
+  @override
+  Future<Snapshot<PageWaitlistEntryOutput>> build() async {
+    final snapshot = await _cachedFirstPage(
+      ref,
+      cacheKey,
+      fetch: () => ref.read(campusApiProvider).listings.myWaitlist(),
+      decode: PageWaitlistEntryOutput.fromJson,
+      encode: encode,
+    );
+    // While a queue is active, its positions are refreshed: the server sends
+    // no event when somebody ahead leaves.
+    if (!snapshot.offline &&
+        snapshot.page.items.any(
+          (item) => item.status == WaitlistStatus.waiting,
+        )) {
+      final timer = Timer(waitlistPollInterval, ref.invalidateSelf);
+      ref.onDispose(timer.cancel);
+    }
+    return snapshot;
+  }
+
+  @override
+  String get cacheKey => 'waitlist';
+  @override
+  String? nextOf(PageWaitlistEntryOutput page) => page.nextPage;
+  @override
+  Future<PageWaitlistEntryOutput> fetchAfter(String cursor) =>
+      ref.read(campusApiProvider).listings.myWaitlist(cursor: cursor);
+  @override
+  PageWaitlistEntryOutput merge(
+    PageWaitlistEntryOutput loaded,
+    PageWaitlistEntryOutput next,
+  ) => PageWaitlistEntryOutput(
+    items: {
+      for (final item in [...loaded.items, ...next.items]) item.id: item,
+    }.values.toList(),
+    nextPage: next.nextPage,
+  );
+  @override
+  Map<String, Object?> encode(PageWaitlistEntryOutput page) => page.toJson();
 }
 
 @Riverpod(retry: listingRetry)
