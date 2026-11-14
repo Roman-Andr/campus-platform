@@ -1324,8 +1324,8 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String lessonParticipant(String name) {
-    return 'Участник: $name';
+  String lessonCounterpart(String name) {
+    return 'С кем: $name';
   }
 
   @override
@@ -1355,8 +1355,9 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get lessonOptionsInvalid =>
-      'У занятия должно быть от 2 до 3 вариантов времени в будущем.';
+  String lessonOptionsInvalid(int min, int max) {
+    return 'У занятия должно быть от $min до $max вариантов времени в будущем.';
+  }
 
   @override
   String get lessonConflict => 'На занятие уже ответили. Обновите объявление.';
@@ -1427,6 +1428,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get lessonAwaitingYourAnswer => 'Ждёт вашего ответа';
+
+  @override
+  String get lessonAwaitingParticipant => 'Ждём ответа участника';
 
   @override
   String lessonResponseDue(String time) {

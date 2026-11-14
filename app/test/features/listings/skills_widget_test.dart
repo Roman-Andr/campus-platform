@@ -74,6 +74,15 @@ Future<void> openLessonForm(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+/// A tall screen: long lesson screens fit entirely, so collapsing an inline
+/// form does not leave a scrolled lazy list bouncing at the end of the test.
+void tallScreen(WidgetTester tester) {
+  tester.view.physicalSize = const Size(800, 1600);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
+
 /// Scrolls [finder] into view and taps it: a jump of the list needs a frame
 /// to relayout before hit testing.
 Future<void> tapVisible(WidgetTester tester, Finder finder) async {
@@ -293,14 +302,14 @@ void main() {
     tester,
   ) async {
     english(tester);
+    final incoming = [
+      lessonInteractionJson(options: [lessonOptionJson(proposedBy: 'other')]),
+    ];
     final server = skillServer(
       listing: skillListingJson(),
-      incoming: [
-        lessonInteractionJson(options: [lessonOptionJson(proposedBy: 'other')]),
-      ],
-      onCounter: (options) => jsonBody(
-        200,
-        lessonInteractionJson(
+      incoming: incoming,
+      onCounter: (options) {
+        final countered = lessonInteractionJson(
           options: [
             lessonOptionJson(proposedBy: 'other'),
             lessonOptionJson(
@@ -309,15 +318,14 @@ void main() {
               proposedBy: userJson['id']! as String,
             ),
           ],
-        ),
-      ),
+        );
+        incoming
+          ..clear()
+          ..add(countered);
+        return jsonBody(200, countered);
+      },
     );
-    // The whole screen fits: collapsing the inline form shrinks the content
-    // under a scrolled lazy list and leaves it bouncing in the test.
-    tester.view.physicalSize = const Size(800, 1600);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+    tallScreen(tester);
     await tester.pumpCampusApp(InMemorySettingsRepository(), adapter: server);
     await openSkillListing(tester);
     await tester.tap(find.byKey(const Key('lesson-counter')));
@@ -333,6 +341,7 @@ void main() {
     expect(sent.json['location'], 'Cafe');
     expect(sent.json['online'], isFalse);
     expect(find.text('Another time offered.'), findsOneWidget);
+    expect(find.text('Waiting for the participant'), findsOneWidget);
   });
 
   testWidgets('another lesson opens the form with the same participant', (
@@ -354,32 +363,45 @@ void main() {
       'proposed_location': null,
       'proposed_by_id': null,
     };
+    final participations = [
+      lessonParticipationJson(
+        status: 'accepted',
+        options: [
+          lessonOptionJson(online: true, location: null, status: 'selected'),
+        ],
+        meeting: meeting,
+      ),
+    ];
     final server = skillServer(
-      participations: [
-        lessonParticipationJson(
-          status: 'accepted',
-          options: [
-            lessonOptionJson(online: true, location: null, status: 'selected'),
-          ],
-          meeting: meeting,
-        ),
-      ],
-      onRepeat: (_) => jsonBody(
-        201,
-        lessonInteractionJson(
+      listing: skillListingJson(author: 'other', authorName: 'Petr Petrov'),
+      participations: participations,
+      onRepeat: (_) {
+        final repeated = lessonInteractionJson(
           id: 'request-2',
           participant: userJson['id']! as String,
           participantName: 'Ivan Ivanov',
-        ),
-      ),
+          options: [lessonOptionJson(proposedBy: userJson['id']! as String)],
+        );
+        participations
+          ..clear()
+          ..add(
+            lessonParticipationJson(
+              id: 'request-2',
+              options: [
+                lessonOptionJson(proposedBy: userJson['id']! as String),
+              ],
+            ),
+          );
+        return jsonBody(201, repeated);
+      },
     );
     await tester.pumpCampusApp(InMemorySettingsRepository(), adapter: server);
     await openSkillListing(tester);
     expect(find.text('Online meeting'), findsOneWidget);
     await tester.tap(find.byKey(const Key('lesson-repeat-request-1')));
     await tester.pumpAndSettle();
-    expect(find.textContaining('Another lesson with'), findsOneWidget);
-    expect(find.text('Participant: Ivan Ivanov'), findsOneWidget);
+    expect(find.text('Another lesson with Petr Petrov'), findsOneWidget);
+    expect(find.text('With: Petr Petrov'), findsOneWidget);
     await tester.enterText(
       find.byKey(const Key('lesson-slot-0-place')),
       'Library',
@@ -394,5 +416,165 @@ void main() {
     );
     expect(sent.json['options'], hasLength(2));
     expect(find.text('Another lesson offered.'), findsOneWidget);
+    expect(find.text('Waiting for the author'), findsOneWidget);
+  });
+
+  testWidgets('three options lead to a meeting both sides see', (tester) async {
+    english(tester);
+    tallScreen(tester);
+    final meeting = {
+      'id': 'meeting-1',
+      'version': 1,
+      'status': 'scheduled',
+      'scheduled_at': DateTime.now()
+          .toUtc()
+          .add(const Duration(days: 2))
+          .toIso8601String(),
+      'location': 'Cafe',
+      'online': false,
+      'scheduled_by_id': userJson['id'],
+      'proposed_at': null,
+      'proposed_location': null,
+      'proposed_by_id': null,
+    };
+    final options = [
+      lessonOptionJson(proposedBy: 'other'),
+      lessonOptionJson(
+        id: 'option-2',
+        position: 1,
+        proposedBy: 'other',
+        location: 'Cafe',
+      ),
+      lessonOptionJson(
+        id: 'option-3',
+        position: 2,
+        proposedBy: 'other',
+        location: 'Hall',
+      ),
+    ];
+    final accepted = lessonInteractionJson(
+      status: 'accepted',
+      options: [
+        lessonOptionJson(proposedBy: 'other', status: 'declined'),
+        lessonOptionJson(
+          id: 'option-2',
+          position: 1,
+          proposedBy: 'other',
+          location: 'Cafe',
+          status: 'selected',
+        ),
+        lessonOptionJson(
+          id: 'option-3',
+          position: 2,
+          proposedBy: 'other',
+          location: 'Hall',
+          status: 'declined',
+        ),
+      ],
+      meeting: meeting,
+    );
+    final incoming = [lessonInteractionJson(options: options)];
+    final server = skillServer(
+      listing: skillListingJson(),
+      incoming: incoming,
+      onAccept: (_) {
+        incoming
+          ..clear()
+          ..add(accepted);
+        return jsonBody(200, accepted);
+      },
+    );
+
+    // The author answers one of the three options and sees the meeting.
+    await tester.pumpCampusApp(InMemorySettingsRepository(), adapter: server);
+    await openSkillListing(tester);
+    expect(find.byKey(const Key('lesson-option-option-1')), findsOneWidget);
+    expect(find.byKey(const Key('lesson-option-option-2')), findsOneWidget);
+    expect(find.byKey(const Key('lesson-option-option-3')), findsOneWidget);
+    await tapVisible(tester, find.byKey(const Key('lesson-accept-option-2')));
+    expect(find.text('Lesson scheduled.'), findsOneWidget);
+    expect(find.text('Current meeting'), findsOneWidget);
+    expect(find.text('Place: Cafe'), findsOneWidget);
+
+    // The same scheduled meeting is shown to the participant.
+    final participantServer = skillServer(
+      listing: skillListingJson(author: 'other', authorName: 'Petr Petrov'),
+      participations: [
+        lessonParticipationJson(
+          status: 'accepted',
+          options: [
+            lessonOptionJson(
+              id: 'option-2',
+              position: 1,
+              proposedBy: 'other',
+              location: 'Cafe',
+              status: 'selected',
+            ),
+          ],
+          meeting: meeting,
+        ),
+      ],
+    );
+    await tester.pumpCampusApp(
+      InMemorySettingsRepository(),
+      adapter: participantServer,
+    );
+    await openSkillListing(tester);
+    expect(find.text('Current meeting'), findsOneWidget);
+    expect(find.text('Place: Cafe'), findsOneWidget);
+  });
+
+  testWidgets('the author repeats the lesson and waits for the participant', (
+    tester,
+  ) async {
+    english(tester);
+    tallScreen(tester);
+    final incoming = [
+      lessonInteractionJson(
+        status: 'accepted',
+        options: [lessonOptionJson(proposedBy: 'other', status: 'selected')],
+      ),
+    ];
+    final repeated = lessonInteractionJson(
+      id: 'request-2',
+      options: [
+        lessonOptionJson(proposedBy: userJson['id']! as String),
+        lessonOptionJson(
+          id: 'option-2',
+          position: 1,
+          proposedBy: userJson['id']! as String,
+        ),
+      ],
+    );
+    final server = skillServer(
+      listing: skillListingJson(),
+      incoming: incoming,
+      onRepeat: (_) {
+        incoming
+          ..clear()
+          ..add(repeated);
+        return jsonBody(201, repeated);
+      },
+    );
+    await tester.pumpCampusApp(InMemorySettingsRepository(), adapter: server);
+    await openSkillListing(tester);
+    await tapVisible(tester, find.byKey(const Key('lesson-repeat-request-1')));
+    expect(find.text('Another lesson with Boris'), findsOneWidget);
+    expect(find.text('With: Boris'), findsOneWidget);
+    await tester.enterText(
+      find.byKey(const Key('lesson-slot-0-place')),
+      'Library',
+    );
+    await tester.enterText(
+      find.byKey(const Key('lesson-slot-1-place')),
+      'Cafe',
+    );
+    await tapVisible(tester, find.byKey(const Key('lesson-submit')));
+    final sent = server.sent.singleWhere(
+      (request) => request.path.endsWith('/repeat'),
+    );
+    expect(sent.json['options'], hasLength(2));
+    expect(find.text('Another lesson offered.'), findsOneWidget);
+    expect(find.text('Waiting for the participant'), findsOneWidget);
   });
 }

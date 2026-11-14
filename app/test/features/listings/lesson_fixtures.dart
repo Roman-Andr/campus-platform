@@ -4,11 +4,13 @@ import 'fixtures.dart';
 Map<String, Object?> skillListingJson({
   String id = 'listing-1',
   String? author,
+  String? authorName,
   String status = 'active',
   String? direction = 'teach',
 }) => listingJson(
   id: id,
   author: author,
+  authorName: authorName,
   status: status,
   kind: 'skill',
   direction: direction,

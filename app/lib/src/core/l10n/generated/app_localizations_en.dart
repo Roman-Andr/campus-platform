@@ -1330,8 +1330,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String lessonParticipant(String name) {
-    return 'Participant: $name';
+  String lessonCounterpart(String name) {
+    return 'With: $name';
   }
 
   @override
@@ -1361,8 +1361,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get lessonOptionsInvalid =>
-      'A lesson needs 2 to 3 time options in the future.';
+  String lessonOptionsInvalid(int min, int max) {
+    return 'A lesson needs $min to $max time options in the future.';
+  }
 
   @override
   String get lessonConflict =>
@@ -1434,6 +1435,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lessonAwaitingYourAnswer => 'Waiting for your response';
+
+  @override
+  String get lessonAwaitingParticipant => 'Waiting for the participant';
 
   @override
   String lessonResponseDue(String time) {

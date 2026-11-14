@@ -2420,11 +2420,11 @@ abstract class AppLocalizations {
   /// **'Ещё занятие с {name}'**
   String lessonRepeatTitle(String name);
 
-  /// Участник повторного занятия.
+  /// Вторая сторона повторного занятия.
   ///
   /// In ru, this message translates to:
-  /// **'Участник: {name}'**
-  String lessonParticipant(String name);
+  /// **'С кем: {name}'**
+  String lessonCounterpart(String name);
 
   /// Подсказка о числе вариантов времени.
   ///
@@ -2465,8 +2465,8 @@ abstract class AppLocalizations {
   /// Сервер отклонил число или значения вариантов времени.
   ///
   /// In ru, this message translates to:
-  /// **'У занятия должно быть от 2 до 3 вариантов времени в будущем.'**
-  String get lessonOptionsInvalid;
+  /// **'У занятия должно быть от {min} до {max} вариантов времени в будущем.'**
+  String lessonOptionsInvalid(int min, int max);
 
   /// Занятие уже обработано, вариант времени недоступен.
   ///
@@ -2605,6 +2605,12 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Ждёт вашего ответа'**
   String get lessonAwaitingYourAnswer;
+
+  /// Автор ждёт ответа участника на свои варианты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ждём ответа участника'**
+  String get lessonAwaitingParticipant;
 
   /// Срок ответа автора на заявку.
   ///

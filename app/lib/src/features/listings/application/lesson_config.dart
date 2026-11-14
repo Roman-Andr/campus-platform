@@ -7,7 +7,9 @@ part 'lesson_config.g.dart';
 /// Values come from `--dart-define` at build time; they must match the
 /// server's `CAMPUS_LESSON_OPTIONS_MIN` and `CAMPUS_LESSON_OPTIONS_MAX`.
 class LessonConfig {
-  const LessonConfig({required this.minOptions, required this.maxOptions});
+  const LessonConfig({required this.minOptions, required this.maxOptions})
+    : assert(minOptions > 0, 'a lesson needs at least one time option'),
+      assert(minOptions <= maxOptions, 'the minimum cannot exceed the maximum');
 
   factory LessonConfig.fromEnvironment() => const LessonConfig(
     minOptions: int.fromEnvironment(

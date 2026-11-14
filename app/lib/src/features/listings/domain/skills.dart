@@ -80,6 +80,33 @@ bool lessonHasAnswer(
 ) => lessonOptionsOf(item)
     .any((option) => lessonOptionCanBeAccepted(item, listing, option, userId));
 
+/// The status line of a pending lesson: whose answer it waits for.
+///
+/// The side that proposed the latest time option is the one being answered:
+/// after a counter-proposal or a repeat the author waits for the participant,
+/// after the participant's options the author answers.
+String lessonAwaitingLabel(
+  AppLocalizations l,
+  InteractionOutput item,
+  ListingOutput listing,
+  String? userId,
+) {
+  if (userId == null) return l.lessonAwaitingAnswer;
+  final proposed = lessonOptionsOf(item)
+      .where((option) => option.status == LessonOptionStatus.proposed)
+      .toList();
+  if (proposed.isEmpty) {
+    return userId == listing.authorId
+        ? l.lessonAwaitingParticipant
+        : l.lessonAwaitingAnswer;
+  }
+  final latest = proposed.reduce((a, b) => a.position >= b.position ? a : b);
+  if (latest.proposedById != userId) return l.lessonAwaitingYourAnswer;
+  return userId == listing.authorId
+      ? l.lessonAwaitingParticipant
+      : l.lessonAwaitingAnswer;
+}
+
 /// Whether the author may replace the participant's options with their own
 /// counter-option.
 bool lessonCanCounter(
@@ -158,28 +185,32 @@ String? lessonCountError(
 }
 
 /// A message for a failed lesson request (Problem Details).
-String lessonFailureMessage(AppLocalizations l, Object error) =>
-    switch (ApiFailure.from(error)) {
-      ProblemFailure(
-        code: ProblemCodeKnown(value: ProblemCodeValue.lessonOptionsInvalid),
-      ) =>
-        l.lessonOptionsInvalid,
-      ProblemFailure(
-        code: ProblemCodeKnown(value: ProblemCodeValue.meetingTimeInvalid),
-      ) =>
-        l.meetingTimeInvalid,
-      ProblemFailure(
-        code: ProblemCodeKnown(value: ProblemCodeValue.meetingPlaceInvalid),
-      ) =>
-        l.meetingPlaceInvalid,
-      ProblemFailure(
-        code: ProblemCodeKnown(value: ProblemCodeValue.listingConflict),
-      ) =>
-        l.lessonConflict,
-      ProblemFailure(status: 403) => l.lessonForbidden,
-      ProblemFailure(status: 404) => l.listingUnavailable,
-      _ => apiFailureMessage(l, error),
-    };
+String lessonFailureMessage(
+  AppLocalizations l,
+  Object error, {
+  required int minOptions,
+  required int maxOptions,
+}) => switch (ApiFailure.from(error)) {
+  ProblemFailure(
+    code: ProblemCodeKnown(value: ProblemCodeValue.lessonOptionsInvalid),
+  ) =>
+    l.lessonOptionsInvalid(minOptions, maxOptions),
+  ProblemFailure(
+    code: ProblemCodeKnown(value: ProblemCodeValue.meetingTimeInvalid),
+  ) =>
+    l.meetingTimeInvalid,
+  ProblemFailure(
+    code: ProblemCodeKnown(value: ProblemCodeValue.meetingPlaceInvalid),
+  ) =>
+    l.meetingPlaceInvalid,
+  ProblemFailure(
+    code: ProblemCodeKnown(value: ProblemCodeValue.listingConflict),
+  ) =>
+    l.lessonConflict,
+  ProblemFailure(status: 403) => l.lessonForbidden,
+  ProblemFailure(status: 404) => l.listingUnavailable,
+  _ => apiFailureMessage(l, error),
+};
 
 /// The single slot of a counter-proposal.
 LessonSlotInput counterSlot(LessonSlotDraft draft) => draft.toInput();

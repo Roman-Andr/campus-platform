@@ -6,6 +6,7 @@ Map<String, Object?> listingJson({
   String status = 'active',
   String kind = 'giveaway',
   String? direction,
+  String? authorName,
   String? pinnedUntil,
   String? previewUrl,
   String? previewFileId,
@@ -13,7 +14,7 @@ Map<String, Object?> listingJson({
 }) => {
   'id': id,
   'author_id': author ?? userJson['id'],
-  'author_name': 'Ivan Ivanov',
+  'author_name': authorName ?? 'Ivan Ivanov',
   'category_id': 'category-items',
   'hidden_reason': null,
   'archived_at': null,

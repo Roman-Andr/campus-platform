@@ -141,6 +141,39 @@ void main() {
       },
     );
 
+    test('the status line waits for the side that must answer', () {
+      final skill = listing();
+      final fromParticipant = interaction(options: [option().toJson()]);
+      final fromAuthor = interaction(
+        options: [option(proposedBy: 'author').toJson()],
+      );
+
+      expect(
+        lessonAwaitingLabel(en, fromParticipant, skill, 'author'),
+        'Waiting for your response',
+      );
+      expect(
+        lessonAwaitingLabel(en, fromParticipant, skill, 'participant'),
+        'Waiting for the author',
+      );
+      expect(
+        lessonAwaitingLabel(en, fromAuthor, skill, 'author'),
+        'Waiting for the participant',
+      );
+      expect(
+        lessonAwaitingLabel(ru, fromAuthor, skill, 'participant'),
+        'Ждёт вашего ответа',
+      );
+      expect(
+        lessonAwaitingLabel(ru, fromParticipant, skill, 'participant'),
+        'Ждём ответа автора',
+      );
+      expect(
+        lessonAwaitingLabel(ru, fromAuthor, skill, 'author'),
+        'Ждём ответа участника',
+      );
+    });
+
     test('labels every status in RU and EN', () {
       expect(
         lessonOptionStatusLabel(en, LessonOptionStatus.proposed),
@@ -285,34 +318,92 @@ void main() {
     });
   });
 
+  group('lesson config', () {
+    test('rejects an unsatisfiable option range', () {
+      expect(
+        () => LessonConfig(minOptions: 3, maxOptions: 2),
+        throwsA(isA<AssertionError>()),
+      );
+      expect(
+        () => LessonConfig(minOptions: 0, maxOptions: 3),
+        throwsA(isA<AssertionError>()),
+      );
+      expect(const LessonConfig(minOptions: 1, maxOptions: 1).minOptions, 1);
+    });
+  });
+
   group('Problem Details', () {
     test('every lesson problem has its own localized message', () {
       expect(
-        lessonFailureMessage(en, problem(422, 'lesson_options_invalid')),
+        lessonFailureMessage(
+          en,
+          problem(422, 'lesson_options_invalid'),
+          minOptions: 2,
+          maxOptions: 3,
+        ),
         'A lesson needs 2 to 3 time options in the future.',
       );
       expect(
-        lessonFailureMessage(ru, problem(422, 'meeting_time_invalid')),
+        lessonFailureMessage(
+          en,
+          problem(422, 'lesson_options_invalid'),
+          minOptions: 1,
+          maxOptions: 5,
+        ),
+        'A lesson needs 1 to 5 time options in the future.',
+      );
+      expect(
+        lessonFailureMessage(
+          ru,
+          problem(422, 'meeting_time_invalid'),
+          minOptions: 2,
+          maxOptions: 3,
+        ),
         'Выберите время в будущем.',
       );
       expect(
-        lessonFailureMessage(en, problem(422, 'meeting_place_invalid')),
+        lessonFailureMessage(
+          en,
+          problem(422, 'meeting_place_invalid'),
+          minOptions: 2,
+          maxOptions: 3,
+        ),
         'Check the meeting place.',
       );
       expect(
-        lessonFailureMessage(en, problem(409, 'listing_conflict')),
+        lessonFailureMessage(
+          en,
+          problem(409, 'listing_conflict'),
+          minOptions: 2,
+          maxOptions: 3,
+        ),
         'The lesson has already been answered. Refresh the listing.',
       );
       expect(
-        lessonFailureMessage(ru, problem(403, 'listing_forbidden')),
+        lessonFailureMessage(
+          ru,
+          problem(403, 'listing_forbidden'),
+          minOptions: 2,
+          maxOptions: 3,
+        ),
         'Отвечать на занятие могут только автор и участник.',
       );
       expect(
-        lessonFailureMessage(en, problem(404, 'not_found')),
+        lessonFailureMessage(
+          en,
+          problem(404, 'not_found'),
+          minOptions: 2,
+          maxOptions: 3,
+        ),
         'The listing is unavailable. It may have been removed or access has changed.',
       );
       expect(
-        lessonFailureMessage(en, problem(500, 'internal_error')),
+        lessonFailureMessage(
+          en,
+          problem(500, 'internal_error'),
+          minOptions: 2,
+          maxOptions: 3,
+        ),
         'Something went wrong on the server. Please try again later.',
       );
     });

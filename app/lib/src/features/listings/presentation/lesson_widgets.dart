@@ -69,7 +69,15 @@ class _LessonActionState extends ConsumerState<LessonAction> {
       widget.after?.call();
     } on Object catch (e) {
       if (mounted) {
-        setState(() => error = lessonFailureMessage(context.l10n, e));
+        final config = ref.read(lessonConfigProvider);
+        setState(
+          () => error = lessonFailureMessage(
+            context.l10n,
+            e,
+            minOptions: config.minOptions,
+            maxOptions: config.maxOptions,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => busy = false);
@@ -286,7 +294,15 @@ class _LessonSlotsFormState extends ConsumerState<LessonSlotsForm> {
       await widget.onSubmit([for (final slot in _slots) slot.draft.toInput()]);
     } on Object catch (e) {
       if (mounted) {
-        setState(() => _error = lessonFailureMessage(context.l10n, e));
+        final config = ref.read(lessonConfigProvider);
+        setState(
+          () => _error = lessonFailureMessage(
+            context.l10n,
+            e,
+            minOptions: config.minOptions,
+            maxOptions: config.maxOptions,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -372,20 +388,28 @@ class LessonFormScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final config = ref.watch(lessonConfigProvider);
+    final me = ref.watch(myProfileProvider).value?.id;
     final repeat = repeatOf;
+    // The participant repeats with the author and the author with the
+    // participant: show the other side, never the current user's own name.
+    final counterpart = repeat == null
+        ? null
+        : listing.authorId == me
+        ? repeat.participantName
+        : listing.authorName;
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          repeat == null
+          counterpart == null
               ? l.lessonProposeTitle
-              : l.lessonRepeatTitle(repeat.participantName),
+              : l.lessonRepeatTitle(counterpart),
         ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          if (repeat != null) ...[
-            Text(l.lessonParticipant(repeat.participantName)),
+          if (counterpart != null) ...[
+            Text(l.lessonCounterpart(counterpart)),
             const SizedBox(height: 8),
           ],
           LessonSlotsForm(
@@ -490,7 +514,7 @@ class _LessonOptionsCardState extends ConsumerState<LessonOptionsCard> {
     final options = lessonOptionsOf(widget.item);
     final city = lessonCity(ref, widget.listing);
     final pending = widget.item.status == InteractionStatus.pending;
-    final answer = lessonHasAnswer(widget.item, widget.listing, me);
+    final awaiting = lessonAwaitingLabel(l, widget.item, widget.listing, me);
     return Card(
       key: Key('lesson-options-${widget.item.id}'),
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -514,10 +538,7 @@ class _LessonOptionsCardState extends ConsumerState<LessonOptionsCard> {
                 onChanged: widget.onChanged,
               ),
             if (pending) ...[
-              Text(
-                answer ? l.lessonAwaitingYourAnswer : l.lessonAwaitingAnswer,
-                key: Key('lesson-awaiting-${widget.item.id}'),
-              ),
+              Text(awaiting, key: Key('lesson-awaiting-${widget.item.id}')),
               if (widget.item.responseDueAt != null)
                 Text(
                   l.lessonResponseDue(
@@ -671,7 +692,15 @@ class _LessonCounterFormState extends ConsumerState<_LessonCounterForm> {
       widget.onDone();
     } on Object catch (e) {
       if (mounted) {
-        setState(() => _error = lessonFailureMessage(context.l10n, e));
+        final config = ref.read(lessonConfigProvider);
+        setState(
+          () => _error = lessonFailureMessage(
+            context.l10n,
+            e,
+            minOptions: config.minOptions,
+            maxOptions: config.maxOptions,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -735,6 +764,7 @@ class LessonParticipationSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
+    final config = ref.watch(lessonConfigProvider);
     return ref
         .watch(listingParticipationProvider(listing.id))
         .when(
@@ -742,7 +772,14 @@ class LessonParticipationSection extends ConsumerWidget {
           error: (e, _) => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(lessonFailureMessage(l, e)),
+              Text(
+                lessonFailureMessage(
+                  l,
+                  e,
+                  minOptions: config.minOptions,
+                  maxOptions: config.maxOptions,
+                ),
+              ),
               TextButton(
                 onPressed: () =>
                     ref.invalidate(listingParticipationProvider(listing.id)),

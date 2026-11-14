@@ -336,6 +336,75 @@ async def test_author_accepts_one_option_and_meeting_is_scheduled(
     ] == "active"
 
 
+def meeting_identity(
+    meeting: dict[str, Any],
+) -> tuple[str, str, datetime, Any, bool, str]:
+    return (
+        meeting["id"],
+        meeting["status"],
+        parse_instant(meeting["scheduled_at"]),
+        meeting["location"],
+        meeting["online"],
+        meeting["scheduled_by_id"],
+    )
+
+
+async def test_three_option_meeting_is_visible_to_both_sides(
+    owner: Account, borrower: Account
+) -> None:
+    listing = await publish_skill(owner)
+    first_at = clock.now() + timedelta(days=1)
+    second_at = clock.now() + timedelta(days=2)
+    third_at = clock.now() + timedelta(days=3)
+    interaction = (
+        await propose(
+            borrower,
+            listing,
+            [
+                slot(first_at),
+                slot(second_at, "Cafe"),
+                slot(third_at, "Faculty hall"),
+            ],
+        )
+    ).json()
+    assert len(interaction["options"]) == 3
+
+    response = await accept_option(
+        owner, listing, interaction, interaction["options"][1]["id"]
+    )
+    assert response.status_code == 200, response.text
+    accepted = response.json()
+    meeting = accepted["meeting"]
+    assert meeting["status"] == "scheduled"
+    assert parse_instant(meeting["scheduled_at"]) == second_at
+    assert meeting["location"] == "Cafe"
+    assert meeting["online"] is False
+    assert meeting["scheduled_by_id"] == borrower.tokens["user"]["id"]
+
+    # The author reads the same scheduled meeting in the incoming list.
+    incoming = (await request(owner, "GET", f"/{listing['id']}/interactions")).json()
+    author_view = next(
+        item for item in incoming["items"] if item["id"] == interaction["id"]
+    )
+    assert author_view["status"] == "accepted"
+    assert meeting_identity(author_view["meeting"]) == meeting_identity(meeting)
+
+    # The participant reads the same scheduled meeting in own participation.
+    mine = (await request(borrower, "GET", "/reservations/mine")).json()
+    participant_view = next(
+        item for item in mine["items"] if item["id"] == interaction["id"]
+    )
+    assert participant_view["status"] == "accepted"
+    assert participant_view["listing"]["id"] == listing["id"]
+    assert meeting_identity(participant_view["meeting"]) == meeting_identity(meeting)
+    selected = next(
+        option
+        for option in participant_view["options"]
+        if option["status"] == "selected"
+    )
+    assert parse_instant(selected["time"]) == second_at
+
+
 async def test_online_lesson_has_no_place(owner: Account, borrower: Account) -> None:
     listing = await publish_skill(owner)
     first_at = clock.now() + timedelta(days=1)
