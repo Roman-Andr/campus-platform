@@ -298,7 +298,9 @@ void main() {
       return pageJson([listingJson(status: 'expired')]);
     });
     await tester.pumpCampusApp(InMemorySettingsRepository(), adapter: server);
-    await tester.tap(find.byIcon(Icons.inventory_2_outlined));
+    await tester.tap(find.byKey(const Key('home-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('home-my-listings')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('my-section-archive')));
     await tester.pumpAndSettle();

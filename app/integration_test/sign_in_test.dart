@@ -243,7 +243,11 @@ void main() {
         await tester.tap(skip);
         await tester.pumpAndSettle();
       }
-      final settings = find.byIcon(Icons.settings_outlined);
+      final menu = find.byKey(const Key('home-menu'));
+      await pumpUntil(tester, menu);
+      await tester.tap(menu);
+      await tester.pumpAndSettle();
+      final settings = find.byKey(const Key('home-settings'));
       await pumpUntil(tester, settings);
       expect(
         container.read(authStatusProvider).value,
