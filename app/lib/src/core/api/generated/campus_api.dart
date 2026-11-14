@@ -2,7 +2,9 @@
 
 import 'package:dio/dio.dart' as transport;
 
-import 'exports.dart' as clients show SystemClient, UniversityClient;
+import 'exports.dart'
+    as clients
+    show AuthenticationClient, SystemClient, UniversityClient;
 
 export 'exports.dart';
 
@@ -19,6 +21,8 @@ final class CampusApi {
   CampusApi(this._client);
   final transport.Dio _client;
 
+  late final clients.AuthenticationClient authentication =
+      clients.AuthenticationClient(_client);
   late final clients.SystemClient system = clients.SystemClient(_client);
   late final clients.UniversityClient university = clients.UniversityClient(
     _client,

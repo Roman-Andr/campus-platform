@@ -5,6 +5,7 @@ enum ProblemCodeValue {
   clientUpdateRequired("client_update_required"),
   clientVersionInvalid("client_version_invalid"),
   clientVersionMissing("client_version_missing"),
+  emailDomainNotAllowed("email_domain_not_allowed"),
   httpError("http_error"),
   idempotencyKeyInvalid("idempotency_key_invalid"),
   idempotencyKeyMissing("idempotency_key_missing"),
@@ -13,6 +14,13 @@ enum ProblemCodeValue {
   invalidCursor("invalid_cursor"),
   methodNotAllowed("method_not_allowed"),
   notFound("not_found"),
+  rateLimited("rate_limited"),
+  refreshTokenInvalid("refresh_token_invalid"),
+  registrationRequired("registration_required"),
+  signInCodeAttemptsExceeded("sign_in_code_attempts_exceeded"),
+  signInCodeExpired("sign_in_code_expired"),
+  signInCodeInvalid("sign_in_code_invalid"),
+  unauthorized("unauthorized"),
   validationFailed("validation_failed");
 
   const ProblemCodeValue(this.value);
@@ -31,6 +39,9 @@ sealed class ProblemCode {
   static const clientVersionMissing = ProblemCodeKnown(
     ProblemCodeValue.clientVersionMissing,
   );
+  static const emailDomainNotAllowed = ProblemCodeKnown(
+    ProblemCodeValue.emailDomainNotAllowed,
+  );
   static const httpError = ProblemCodeKnown(ProblemCodeValue.httpError);
   static const idempotencyKeyInvalid = ProblemCodeKnown(
     ProblemCodeValue.idempotencyKeyInvalid,
@@ -47,6 +58,23 @@ sealed class ProblemCode {
     ProblemCodeValue.methodNotAllowed,
   );
   static const notFound = ProblemCodeKnown(ProblemCodeValue.notFound);
+  static const rateLimited = ProblemCodeKnown(ProblemCodeValue.rateLimited);
+  static const refreshTokenInvalid = ProblemCodeKnown(
+    ProblemCodeValue.refreshTokenInvalid,
+  );
+  static const registrationRequired = ProblemCodeKnown(
+    ProblemCodeValue.registrationRequired,
+  );
+  static const signInCodeAttemptsExceeded = ProblemCodeKnown(
+    ProblemCodeValue.signInCodeAttemptsExceeded,
+  );
+  static const signInCodeExpired = ProblemCodeKnown(
+    ProblemCodeValue.signInCodeExpired,
+  );
+  static const signInCodeInvalid = ProblemCodeKnown(
+    ProblemCodeValue.signInCodeInvalid,
+  );
+  static const unauthorized = ProblemCodeKnown(ProblemCodeValue.unauthorized);
   static const validationFailed = ProblemCodeKnown(
     ProblemCodeValue.validationFailed,
   );
