@@ -906,6 +906,46 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/listings/{listing_id}/interactions/{interaction_id}/no-meeting': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * No Meeting State
+     * @description Both consents and the result of a no-meeting completion.
+     */
+    get: operations['no_meeting_state'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{listing_id}/interactions/{interaction_id}/no-meeting/confirmations': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Confirm Without Meeting
+     * @description Confirm the interaction without a meeting; the second consent completes it.
+     */
+    post: operations['confirm_without_meeting'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/listings/{listing_id}/interactions/{interaction_id}/meeting/proposals': {
     parameters: {
       query?: never;
@@ -1616,6 +1656,12 @@ export interface components {
      * @enum {string}
      */
     ClientPlatform: 'android' | 'web' | 'desktop' | 'telegram' | 'admin';
+    /**
+     * CompletionMethod
+     * @description How an accepted interaction reached the completed status.
+     * @enum {string}
+     */
+    CompletionMethod: 'qr' | 'no_meeting';
     /** ConfirmAddressInput */
     ConfirmAddressInput: {
       /**
@@ -1978,6 +2024,21 @@ export interface components {
        * @description Time options of a skill lesson; empty for other types.
        */
       options?: components['schemas']['LessonOptionOutput'][];
+      /** @description How the interaction was completed; null until completion. */
+      completion_method?: components['schemas']['CompletionMethod'] | null;
+      /** Completed At */
+      completed_at?: string | null;
+      /**
+       * Completion Weight
+       * @description Weight of a review of the completed interaction.
+       */
+      completion_weight?: number | null;
+      /**
+       * Without Meeting
+       * @description Whether the interaction was completed by mutual confirmation.
+       * @default false
+       */
+      without_meeting: boolean;
     };
     /**
      * InteractionStatus
@@ -2218,6 +2279,60 @@ export interface components {
       first_name: string;
       /** Last Name */
       last_name: string;
+    };
+    /**
+     * NoMeetingConfirmationOutput
+     * @description One participant's consent to complete the interaction without a meeting.
+     */
+    NoMeetingConfirmationOutput: {
+      /**
+       * Participant Id
+       * Format: uuid
+       */
+      participant_id: string;
+      /**
+       * Confirmed At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      confirmed_at: string;
+    };
+    /**
+     * NoMeetingOutput
+     * @description Mutual confirmation state of an online lesson or help interaction.
+     */
+    NoMeetingOutput: {
+      /**
+       * Listing Id
+       * Format: uuid
+       */
+      listing_id: string;
+      /**
+       * Interaction Id
+       * Format: uuid
+       */
+      interaction_id: string;
+      status: components['schemas']['InteractionStatus'];
+      /** @default no_meeting */
+      method: components['schemas']['CompletionMethod'];
+      /**
+       * Agreed At
+       * @description Agreed server moment; null before the first consent of help.
+       */
+      agreed_at: string | null;
+      /** Confirmed By Me */
+      confirmed_by_me: boolean;
+      /** Confirmed By Other */
+      confirmed_by_other: boolean;
+      /** Confirmations */
+      confirmations: components['schemas']['NoMeetingConfirmationOutput'][];
+      /** Completed */
+      completed: boolean;
+      /** Completed At */
+      completed_at: string | null;
+      completion_method: components['schemas']['CompletionMethod'] | null;
+      /** Rating Weight */
+      rating_weight: number | null;
     };
     /** NotificationOutput */
     NotificationOutput: {
@@ -2465,6 +2580,21 @@ export interface components {
        * @description Time options of a skill lesson; empty for other types.
        */
       options?: components['schemas']['LessonOptionOutput'][];
+      /** @description How the interaction was completed; null until completion. */
+      completion_method?: components['schemas']['CompletionMethod'] | null;
+      /** Completed At */
+      completed_at?: string | null;
+      /**
+       * Completion Weight
+       * @description Weight of a review of the completed interaction.
+       */
+      completion_weight?: number | null;
+      /**
+       * Without Meeting
+       * @description Whether the interaction was completed by mutual confirmation.
+       * @default false
+       */
+      without_meeting: boolean;
       /**
        * Created At
        * Format: date-time
@@ -2563,6 +2693,7 @@ export interface components {
         | 'listing_conflict'
         | 'listing_content_invalid'
         | 'listing_forbidden'
+        | 'listing_no_meeting_unavailable'
         | 'listing_offer_expired'
         | 'listing_offer_missing'
         | 'listing_offer_pending'
@@ -8195,6 +8326,226 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['InteractionOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  no_meeting_state: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path: {
+        listing_id: string;
+        interaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['NoMeetingOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  confirm_without_meeting: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+        interaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['NoMeetingOutput'];
         };
       };
       /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */

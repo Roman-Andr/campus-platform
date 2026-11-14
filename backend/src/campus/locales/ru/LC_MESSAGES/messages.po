@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 01:29+0300\n"
+"POT-Creation-Date: 2026-11-15 02:02+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -80,7 +80,7 @@ msgid "Current documents must be accepted"
 msgstr "Необходимо принять актуальные документы"
 
 msgid "Describe the item you offer."
-msgstr "Опишите вещь, которую вы предлагаете."
+msgstr "Опишите вещь, которую предлагаете."
 
 msgid "E-mail address already in use"
 msgstr "Адрес электронной почты уже используется"
@@ -244,6 +244,13 @@ msgstr "Такого навыка нет в справочнике."
 
 msgid "Not found"
 msgstr "Не найдено"
+
+msgid ""
+"Only an accepted online lesson or a help interaction without an agreed "
+"meeting can be completed this way."
+msgstr ""
+"Так можно завершить только принятое онлайн-занятие или помощь без "
+"назначенной встречи."
 
 msgid "Photo unavailable"
 msgstr "Фото недоступно"
@@ -430,6 +437,9 @@ msgstr "Это поле недопустимо."
 
 msgid "This field is required."
 msgstr "Обязательное поле."
+
+msgid "This interaction cannot be completed without a meeting."
+msgstr "Это взаимодействие нельзя завершить без встречи."
 
 msgid "This listing has no queue."
 msgstr "У этого объявления нет очереди."
