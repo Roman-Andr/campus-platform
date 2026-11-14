@@ -491,5 +491,31 @@
   "listingStatusUnknown": "Статус недоступен",
   "@listingStatusUnknown": {
     "description": "listingStatusUnknown"
-  }
+  },
+  "cityTimeZone": "{time}, {city}, {offset}",
+  "@cityTimeZone": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "city": {
+        "type": "String"
+      },
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "cityDateTimeHelp": "Дата и время: {city}",
+  "@cityDateTimeHelp": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseCityDateTime": "Выбрать дату и время",
+  "cityTimeDoesNotExist": "Такого времени нет в часовом поясе города. Выберите другое время.",
+  "@chooseCityDateTime": {},
+  "@cityTimeDoesNotExist": {}
 }

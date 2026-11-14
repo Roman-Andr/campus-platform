@@ -4309,6 +4309,10 @@
             "format": "uuid",
             "title": "City Id"
           },
+          "city_timezone": {
+            "type": "string",
+            "title": "City Timezone"
+          },
           "code": {
             "type": "string",
             "title": "Code",
@@ -4329,6 +4333,7 @@
         "required": [
           "id",
           "city_id",
+          "city_timezone",
           "code",
           "name"
         ],
@@ -4398,7 +4403,8 @@
           "published_at": {
             "type": "string",
             "format": "date-time",
-            "title": "Published At"
+            "title": "Published At",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC."
           },
           "required": {
             "type": "boolean",
@@ -4514,7 +4520,8 @@
           "created_at": {
             "type": "string",
             "format": "date-time",
-            "title": "Created At"
+            "title": "Created At",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC."
           },
           "reason": {
             "type": [
@@ -4697,6 +4704,7 @@
               "null"
             ],
             "format": "date-time",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC.",
             "title": "Response Due At"
           }
         },
@@ -4796,6 +4804,10 @@
             "format": "uuid",
             "title": "City Id"
           },
+          "city_timezone": {
+            "type": "string",
+            "title": "City Timezone"
+          },
           "dormitory_id": {
             "type": [
               "string",
@@ -4822,7 +4834,8 @@
           "created_at": {
             "type": "string",
             "format": "date-time",
-            "title": "Created At"
+            "title": "Created At",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC."
           },
           "expires_at": {
             "type": [
@@ -4830,6 +4843,7 @@
               "null"
             ],
             "format": "date-time",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC.",
             "title": "Expires At"
           },
           "category_id": {
@@ -4859,6 +4873,7 @@
           "visibility",
           "audience",
           "city_id",
+          "city_timezone",
           "dormitory_id",
           "faculty_id",
           "status",
@@ -5328,6 +5343,13 @@
             "title": "City Id",
             "description": "Campus city; empty until filled in."
           },
+          "city_timezone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "City Timezone"
+          },
           "dormitory_id": {
             "type": [
               "string",
@@ -5368,6 +5390,7 @@
           "last_name",
           "account_type",
           "city_id",
+          "city_timezone",
           "dormitory_id",
           "faculty_id",
           "course",

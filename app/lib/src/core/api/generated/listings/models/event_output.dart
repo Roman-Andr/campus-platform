@@ -9,6 +9,8 @@ class EventOutput {
     required this.previousStatus,
     required this.status,
     required this.version,
+
+    /// RFC 3339 instant with an explicit offset; returned in UTC.
     required this.createdAt,
     required this.reason,
     required this.stage,
@@ -67,6 +69,7 @@ class EventOutput {
 
   final int version;
 
+  /// RFC 3339 instant with an explicit offset; returned in UTC.
   final DateTime createdAt;
 
   final String? reason;

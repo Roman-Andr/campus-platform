@@ -598,6 +598,8 @@ export interface components {
        * Format: uuid
        */
       city_id: string;
+      /** City Timezone */
+      city_timezone: string;
       /**
        * Code
        * @example dubki
@@ -647,6 +649,7 @@ export interface components {
       /**
        * Published At
        * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
        */
       published_at: string;
       /** Required */
@@ -700,6 +703,7 @@ export interface components {
       /**
        * Created At
        * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
        */
       created_at: string;
       /** Reason */
@@ -844,6 +848,8 @@ export interface components {
        * Format: uuid
        */
       city_id: string;
+      /** City Timezone */
+      city_timezone: string;
       /** Dormitory Id */
       dormitory_id: string | null;
       /** Faculty Id */
@@ -854,6 +860,7 @@ export interface components {
       /**
        * Created At
        * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
        */
       created_at: string;
       /** Expires At */
@@ -1103,6 +1110,8 @@ export interface components {
        * @description Campus city; empty until filled in.
        */
       city_id: string | null;
+      /** City Timezone */
+      city_timezone: string | null;
       /**
        * Dormitory Id
        * @description Empty when the user does not live in a dormitory.
