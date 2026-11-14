@@ -180,7 +180,7 @@ void main() {
     );
     expect(
       meetingFailureMessage(en, problem(403, 'forbidden')),
-      en.errorRequest,
+      en.errorForbidden,
     );
   });
 

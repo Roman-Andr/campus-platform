@@ -61,6 +61,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get errorNotFound => 'Не найдено: возможно, это уже удалили.';
 
   @override
+  String get errorForbidden => 'Нет доступа к этому действию.';
+
+  @override
   String get errorValidation => 'Проверьте введённые данные.';
 
   @override
@@ -1173,4 +1176,17 @@ class AppLocalizationsRu extends AppLocalizations {
   String realtimeLastEvent(String time) {
     return 'Последнее событие: $time';
   }
+
+  @override
+  String get notificationsTitle => 'Уведомления';
+
+  @override
+  String get notificationsEmpty => 'Пока нет уведомлений';
+
+  @override
+  String get notificationsMarkAllRead => 'Отметить все прочитанными';
+
+  @override
+  String get notificationsNoScreen =>
+      'Для этого уведомления в приложении пока нет экрана.';
 }
