@@ -272,16 +272,16 @@ abstract class AppLocalizations {
   /// **'Вход'**
   String get signInTitle;
 
-  /// Explanation on the e-mail step of sign-in.
+  /// Explanation on the e-mail step of sign-in; a backup personal address works too.
   ///
   /// In ru, this message translates to:
-  /// **'Войдите с почтой вуза: мы пришлём на неё код для входа.'**
+  /// **'Войдите с почтой вуза или резервным личным адресом: мы пришлём на него код для входа.'**
   String get signInEmailIntro;
 
-  /// Label of the e-mail field on the sign-in screen.
+  /// Label of the e-mail field on the sign-in screen; a backup personal address works too.
   ///
   /// In ru, this message translates to:
-  /// **'Почта вуза'**
+  /// **'Почта вуза или резервная'**
   String get signInEmailLabel;
 
   /// The entered e-mail address is malformed.
@@ -553,6 +553,132 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'{course} курс'**
   String profileCourseValue(int course);
+
+  /// Profile item and screen title listing the account's e-mail addresses.
+  ///
+  /// In ru, this message translates to:
+  /// **'Адреса почты'**
+  String get profileEmails;
+
+  /// Explanation of what a backup personal address is for.
+  ///
+  /// In ru, this message translates to:
+  /// **'Резервный адрес нужен только для входа и уведомлений о безопасности. Он не даёт прав и не меняет тип аккаунта.'**
+  String get emailsBackupHint;
+
+  /// Kind label of a corporate university address in the list.
+  ///
+  /// In ru, this message translates to:
+  /// **'Корпоративный'**
+  String get emailsKindCorporate;
+
+  /// Kind label of the backup personal address in the list.
+  ///
+  /// In ru, this message translates to:
+  /// **'Резервный'**
+  String get emailsKindBackup;
+
+  /// Button that starts adding a second corporate address.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить корпоративный адрес'**
+  String get emailsAddCorporate;
+
+  /// Button that starts adding a backup personal address.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить резервный адрес'**
+  String get emailsAddBackup;
+
+  /// Button that starts replacing the existing backup personal address.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заменить резервный адрес'**
+  String get emailsReplaceBackup;
+
+  /// Label of the address field when adding an e-mail address.
+  ///
+  /// In ru, this message translates to:
+  /// **'Адрес почты'**
+  String get emailsEmailLabel;
+
+  /// Button that requests a confirmation code for a new address.
+  ///
+  /// In ru, this message translates to:
+  /// **'Получить код'**
+  String get emailsGetCode;
+
+  /// Explanation on the code step of adding an e-mail address.
+  ///
+  /// In ru, this message translates to:
+  /// **'Мы отправили код на {email}.'**
+  String emailsCodeSent(String email);
+
+  /// Button that confirms the address with the code.
+  ///
+  /// In ru, this message translates to:
+  /// **'Подтвердить'**
+  String get emailsConfirm;
+
+  /// Tooltip and confirmation button that delete an e-mail address.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить'**
+  String get emailsDelete;
+
+  /// Button that closes the e-mail address dialog without changes.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отмена'**
+  String get emailsCancel;
+
+  /// Confirmation dialog before deleting an e-mail address.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить адрес {email}?'**
+  String emailsDeleteConfirm(String email);
+
+  /// Confirmation after an e-mail address was deleted.
+  ///
+  /// In ru, this message translates to:
+  /// **'Адрес удалён'**
+  String get emailsDeleted;
+
+  /// Confirmation after an e-mail address was added.
+  ///
+  /// In ru, this message translates to:
+  /// **'Адрес добавлен'**
+  String get emailsSaved;
+
+  /// Note that the last corporate address cannot be deleted.
+  ///
+  /// In ru, this message translates to:
+  /// **'Единственный корпоративный адрес нельзя удалить.'**
+  String get emailsLastCorporateNote;
+
+  /// The address belongs to another account.
+  ///
+  /// In ru, this message translates to:
+  /// **'Этот адрес уже занят. Укажите другой.'**
+  String get emailsErrorTaken;
+
+  /// A new corporate address must be in a university domain.
+  ///
+  /// In ru, this message translates to:
+  /// **'Укажите адрес в домене вуза.'**
+  String get emailsErrorCorporateDomain;
+
+  /// A backup address must not be in a university domain.
+  ///
+  /// In ru, this message translates to:
+  /// **'Резервный адрес не должен быть в домене вуза.'**
+  String get emailsErrorBackupDomain;
+
+  /// Address changes are rate limited; shows how long to wait.
+  ///
+  /// In ru, this message translates to:
+  /// **'Слишком много запросов. Повторите через {wait}.'**
+  String emailsErrorRateLimitedFor(String wait);
 
   /// listingsCity
   ///
