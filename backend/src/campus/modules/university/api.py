@@ -118,7 +118,8 @@ async def _places(
     if city_id is not None:
         query = query.where(model.city_id == city_id)
     places = await session.scalars(_by_name(query, model, locale))
-    timezones = dict((await session.execute(select(City.id, City.timezone))).tuples())
+    city_zones = await session.execute(select(City.id, City.timezone))
+    timezones = dict(city_zones.all())
     return CityPlaceList(
         items=[
             CityPlaceOut(
