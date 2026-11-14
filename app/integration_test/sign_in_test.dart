@@ -19,6 +19,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../test/helpers/sign_in_code.dart';
+
 const _mailpitUrl = String.fromEnvironment(
   'CAMPUS_TEST_MAILPIT_URL',
   defaultValue: 'http://127.0.0.1:8025',
@@ -59,11 +61,15 @@ void main() {
     throw StateError('No e-mail to $email');
   }
 
-  Future<void> pumpUntil(WidgetTester tester, Finder finder) async {
+  Future<void> pumpUntil(
+    WidgetTester tester,
+    Finder finder, {
+    String Function()? diagnostic,
+  }) async {
     for (var i = 0; i < 100 && finder.evaluate().isEmpty; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
-    expect(finder, findsWidgets);
+    expect(finder, findsWidgets, reason: diagnostic?.call());
   }
 
   testWidgets(
@@ -79,6 +85,40 @@ void main() {
         tester.element(find.byType(Scaffold).first),
       );
 
+      // Record only outcomes: never log addresses, codes or tokens.
+      final signInOutcomes = <(int?, String?)>[];
+      void record(Response<Object?> response) {
+        final problem = switch (response.data) {
+          {'code': final String code} => code,
+          _ => null,
+        };
+        signInOutcomes.add((response.statusCode, problem));
+        debugPrint('Sign-in outcome: ${signInOutcomes.last}');
+      }
+
+      final dio = container.read(apiDioProvider);
+      final observer = InterceptorsWrapper(
+        onResponse: (response, handler) {
+          if (response.requestOptions.path == '/api/v1/auth/sign-in') {
+            record(response);
+          }
+          handler.next(response);
+        },
+        onError: (error, handler) {
+          if (error.requestOptions.path == '/api/v1/auth/sign-in') {
+            final response = error.response;
+            if (response != null) {
+              record(response);
+            } else {
+              signInOutcomes.add((null, null));
+            }
+          }
+          handler.next(error);
+        },
+      );
+      dio.interceptors.add(observer);
+      addTearDown(() => dio.interceptors.remove(observer));
+
       // E-mail step.
       final emailField = find.byKey(const Key('sign-in-email'));
       await pumpUntil(tester, emailField);
@@ -90,35 +130,97 @@ void main() {
 
       // A wrong code is explained, without the server's text.
       final wrong = code == '000000' ? '111111' : '000000';
-      await tester.enterText(codeField, wrong);
+      await enterSignInCode(tester, wrong);
       await pumpUntil(tester, find.byKey(const Key('auth-error')));
+      expect(signInOutcomes, [(401, 'sign_in_code_invalid')]);
 
       // The right code leads a new user to registration.
-      await tester.enterText(codeField, code);
+      await enterSignInCode(tester, code);
       final firstName = find.byKey(const Key('sign-in-first-name'));
-      await pumpUntil(tester, firstName);
+      await pumpUntil(
+        tester,
+        firstName,
+        diagnostic: () => 'Sign-in outcomes: $signInOutcomes',
+      );
+      expect(signInOutcomes, [
+        (401, 'sign_in_code_invalid'),
+        (422, 'registration_required'),
+      ]);
       await tester.enterText(firstName, 'Иван');
       await tester.enterText(
         find.byKey(const Key('sign-in-last-name')),
         'Интеграционный',
       );
+      // The real IME can still be resizing the viewport after text entry.
+      FocusManager.instance.primaryFocus?.unfocus();
+      for (var i = 0; i < 100 && tester.view.viewInsets.bottom > 0; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(
+        tester.view.viewInsets.bottom,
+        0,
+        reason: 'The IME must be hidden',
+      );
       await container.read(documentsProvider.future);
       await tester.pumpAndSettle();
+      // Text fields also contain Scrollables; target the page's list.
+      final pageScroll = find.byWidgetPredicate(
+        (widget) =>
+            widget is Scrollable && widget.axisDirection == AxisDirection.down,
+      );
       final requiredConsent = find.byKey(const Key('consent-required'));
-      await tester.scrollUntilVisible(requiredConsent, 200);
+      await tester.scrollUntilVisible(
+        requiredConsent.hitTestable(),
+        200,
+        scrollable: pageScroll,
+      );
       await tester.tap(requiredConsent);
+      await tester.pump();
+      expect(tester.widget<CheckboxListTile>(requiredConsent).value, isTrue);
       final finish = find.byKey(const Key('sign-in-finish'));
-      await tester.scrollUntilVisible(finish, 200);
+      await tester.scrollUntilVisible(finish, 200, scrollable: pageScroll);
       await tester.tap(finish);
 
       // A new user fills in the profile from the stand's reference data.
       Future<void> chooseLast<T>(Finder field) async {
-        await pumpUntil(tester, field);
-        await tester.ensureVisible(field);
-        await tester.tap(field);
+        final dropdown = find.descendant(
+          of: field,
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is DropdownButton<T> &&
+                widget.onChanged != null &&
+                widget.items?.isNotEmpty == true,
+          ),
+          matchRoot: true,
+        );
+        await pumpUntil(tester, dropdown);
+        final value = tester
+            .widget<DropdownButton<T>>(dropdown)
+            .items!
+            .last
+            .value;
+        await tester.ensureVisible(dropdown);
         await tester.pumpAndSettle();
-        await tester.tap(find.byType(DropdownMenuItem<T>).last);
+        await pumpUntil(tester, dropdown.hitTestable());
+        await tester.tap(dropdown);
         await tester.pumpAndSettle();
+
+        // The field also builds copies of its items under IgnorePointer.
+        // Only the popup's item is outside the profile form.
+        final item = find.byElementPredicate((element) {
+          final widget = element.widget;
+          return widget is DropdownMenuItem<T> &&
+              widget.value == value &&
+              element.findAncestorWidgetOfExactType<Form>() == null;
+        });
+        await pumpUntil(tester, item);
+        final button = find.ancestor(of: item, matching: find.byType(InkWell));
+        await tester.ensureVisible(button);
+        await tester.pumpAndSettle();
+        await pumpUntil(tester, button.hitTestable());
+        await tester.tap(button);
+        await tester.pumpAndSettle();
+        expect(tester.widget<DropdownButton<T>>(dropdown).value, value);
       }
 
       Finder byKeyPrefix(String prefix) => find.byWidgetPredicate(
@@ -162,7 +264,9 @@ void main() {
       // Signing out from settings ends the session on the server too.
       await tester.tap(settings);
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('sign-out')));
+      final signOut = find.byKey(const Key('sign-out'));
+      await tester.scrollUntilVisible(signOut, 200, scrollable: pageScroll);
+      await tester.tap(signOut);
       await pumpUntil(tester, emailField);
 
       final deviceId = await storage.read(key: AuthStorage.deviceIdKey);
