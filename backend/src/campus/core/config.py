@@ -276,6 +276,24 @@ class Settings(BaseSettings):
     photo_unattached_ttl: timedelta = Field(default=timedelta(days=1), gt=timedelta(0))
 
     listing_lifetime: timedelta = Field(default=timedelta(days=30), gt=timedelta(0))
+    listing_archive_retention: timedelta = Field(
+        default=timedelta(days=365),
+        gt=timedelta(0),
+        description=(
+            "How long an expired, completed or cancelled listing keeps its"
+            " description and photos; counted from when it entered the archive."
+        ),
+    )
+    listing_archive_cleanup_batch: int = Field(
+        default=50,
+        ge=1,
+        description="Archived listings selected per cleanup batch.",
+    )
+    listing_archive_cleanup_limit: int = Field(
+        default=1000,
+        ge=1,
+        description="Most archived listings cleaned in one cleanup run.",
+    )
     listing_response_timeout: timedelta = Field(
         default=timedelta(hours=24), gt=timedelta(0)
     )

@@ -8924,6 +8924,24 @@
             "title": "Favorite",
             "description": "Whether the current user bookmarked it.",
             "default": false
+          },
+          "archived_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the listing entered the archive; null outside it.",
+            "title": "Archived At"
+          },
+          "purged_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When archive cleanup removed the description and photos; a purged listing cannot be published again.",
+            "title": "Purged At"
           }
         },
         "type": "object",
@@ -8945,7 +8963,9 @@
           "created_at",
           "expires_at",
           "category_id",
-          "hidden_reason"
+          "hidden_reason",
+          "archived_at",
+          "purged_at"
         ],
         "title": "ListingOutput"
       },

@@ -10,6 +10,8 @@ Map<String, Object?> listingJson({
   'author_name': 'Ivan Ivanov',
   'category_id': 'category-items',
   'hidden_reason': null,
+  'archived_at': null,
+  'purged_at': null,
   'kind': 'giveaway',
   'title': 'A desk',
   'description': 'Collect on campus',

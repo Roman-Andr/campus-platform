@@ -15,6 +15,7 @@ from campus.core.jobs import JobInfo
 from campus.core.outbox import outbox_handlers
 from campus.core.storage import Storage, storage_io
 from campus.modules.files.models import File
+from campus.modules.listings import Listing, register_archive_purger
 
 register_heif_opener()
 
@@ -105,3 +106,32 @@ async def expire_photo(session: AsyncSession, job: JobInfo) -> None:
         for suffix in ("/photo", "/preview"):
             await storage_io(storage.delete, file.key + suffix)
         await session.delete(file)
+
+
+@register_archive_purger("photos")
+async def purge_listing_photos(
+    session: AsyncSession, listing: Listing, settings: Settings
+) -> int:
+    """Delete photos still attached to a purged listing, objects first.
+
+    The caller holds the listing lock, which attachment changes take before
+    file locks: a file moved to another listing or detached earlier is no
+    longer selected here. S3 deletion of a missing object succeeds, so a
+    rolled-back purge is simply repeated.
+    """
+    files = list(
+        await session.scalars(
+            select(File)
+            .where(File.listing_id == listing.id)
+            .order_by(File.id)
+            .with_for_update()
+        )
+    )
+    if not files:
+        return 0
+    storage = Storage(settings)
+    for file in files:
+        for suffix in ("/photo", "/preview", "/source"):
+            await storage_io(storage.delete, file.key + suffix)
+        await session.delete(file)
+    return len(files)

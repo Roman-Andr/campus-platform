@@ -135,6 +135,15 @@ class ListingOutput(BaseModel):
     favorite: bool = Field(
         default=False, description="Whether the current user bookmarked it."
     )
+    archived_at: Instant | None = Field(
+        description="When the listing entered the archive; null outside it."
+    )
+    purged_at: Instant | None = Field(
+        description=(
+            "When archive cleanup removed the description and photos;"
+            " a purged listing cannot be published again."
+        )
+    )
 
 
 class MeetingOutput(BaseModel):
@@ -1101,7 +1110,10 @@ async def publish_listing(
         raise ProblemError(FORBIDDEN)
     if listing.kind == "publication":
         raise ProblemError(CONFLICT)
-    if listing.status not in (ListingStatus.DRAFT, ListingStatus.EXPIRED):
+    if (
+        listing.status not in (ListingStatus.DRAFT, ListingStatus.EXPIRED)
+        or listing.purged_at is not None
+    ):
         raise ProblemError(CONFLICT)
     user = await user_for(session, principal)
     if user.account_type not in (AccountType.STUDENT, AccountType.EMPLOYEE):

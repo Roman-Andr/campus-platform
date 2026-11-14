@@ -26,7 +26,9 @@ void main() {
       final legacy = listingJson()
         ..remove('category_id')
         ..remove('hidden_reason')
-        ..remove('pinned_until');
+        ..remove('pinned_until')
+        ..remove('archived_at')
+        ..remove('purged_at');
       await db
           .into(db.listingFeeds)
           .insert(
@@ -43,6 +45,8 @@ void main() {
       expect(restored.categoryId, isNull);
       expect(restored.hiddenReason, isNull);
       expect(restored.pinnedUntil, isNull);
+      expect(restored.archivedAt, isNull);
+      expect(restored.purgedAt, isNull);
       expect(restored.title, 'A desk');
       for (final status in ['draft', 'completed', 'hidden']) {
         await cache.save(

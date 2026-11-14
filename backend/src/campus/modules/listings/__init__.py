@@ -15,7 +15,12 @@ from campus.modules.listings.models import (
     MeetingStatus,
     Visibility,
 )
+from campus.modules.listings.retention import (
+    ArchivePurger,
+    register_archive_purger,
+)
 from campus.modules.listings.service import (
+    ARCHIVED,
     CONFLICT,
     FORBIDDEN,
     LISTING_TRANSITIONS,
@@ -30,11 +35,13 @@ from campus.modules.listings.service import (
 )
 
 __all__ = [
+    "ARCHIVED",
     "CONFLICT",
     "FORBIDDEN",
     "LISTING_TRANSITIONS",
     "TRANSITIONS",
     "TYPE_POLICIES",
+    "ArchivePurger",
     "Audience",
     "Category",
     "Favorite",
@@ -53,6 +60,7 @@ __all__ = [
     "hide",
     "locked",
     "readable",
+    "register_archive_purger",
     "router",
     "transition",
     "user_for",

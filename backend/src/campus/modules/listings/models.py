@@ -93,6 +93,12 @@ class Listing(Entity):
             name="scope",
         ),
         Index("ix_listing_feed", "city_id", "created_at", "id"),
+        Index(
+            "ix_listing_archive_cleanup",
+            "archived_at",
+            "id",
+            postgresql_where=text("archived_at IS NOT NULL AND purged_at IS NULL"),
+        ),
     )
 
     author_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
@@ -127,6 +133,12 @@ class Listing(Entity):
     category_id: Mapped[UUID | None] = mapped_column(ForeignKey("listing_category.id"))
     pinned_until: Mapped[datetime | None]
     hidden_reason: Mapped[str | None] = mapped_column(Text)
+    # When the listing last entered the archive (expired, completed or
+    # cancelled); cleared when it leaves it. Retention counts from here.
+    archived_at: Mapped[datetime | None]
+    # Archive cleanup removed the description and photos; the row stays
+    # so interactions, history and reviews remain readable.
+    purged_at: Mapped[datetime | None]
 
 
 class Item(Base):

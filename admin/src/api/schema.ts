@@ -1371,6 +1371,16 @@ export interface components {
        * @default false
        */
       favorite: boolean;
+      /**
+       * Archived At
+       * @description When the listing entered the archive; null outside it.
+       */
+      archived_at: string | null;
+      /**
+       * Purged At
+       * @description When archive cleanup removed the description and photos; a purged listing cannot be published again.
+       */
+      purged_at: string | null;
     };
     /**
      * ListingStatus

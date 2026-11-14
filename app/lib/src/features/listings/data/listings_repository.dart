@@ -35,7 +35,13 @@ class DriftListingsCache implements ListingsCache {
       ...json,
       'items': [
         for (final item in items)
-          {'category_id': null, 'hidden_reason': null, ...item},
+          {
+            'category_id': null,
+            'hidden_reason': null,
+            'archived_at': null,
+            'purged_at': null,
+            ...item,
+          },
       ],
     });
   }
