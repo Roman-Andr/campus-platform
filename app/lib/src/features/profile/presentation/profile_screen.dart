@@ -94,6 +94,12 @@ class _ProfileDetails extends ConsumerWidget {
           title: Text(l10n.profileEmail),
           subtitle: Text(user.email),
         ),
+        ListTile(
+          key: const Key('profile-emails'),
+          leading: const Icon(Icons.mail_outline),
+          title: Text(l10n.profileEmails),
+          onTap: () => context.push(AppRoutes.profileEmails),
+        ),
         const Divider(),
         _Detail(
           icon: Icons.location_city_outlined,

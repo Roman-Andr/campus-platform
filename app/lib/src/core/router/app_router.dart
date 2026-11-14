@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../features/account_emails/presentation/account_emails_screen.dart';
 import '../../features/auth/application/sign_in_flow.dart';
 import '../../features/auth/presentation/sign_in_code_screen.dart';
 import '../../features/auth/presentation/sign_in_email_screen.dart';
@@ -32,6 +33,7 @@ abstract final class AppRoutes {
   static const signInName = '/sign-in/name';
   static const profile = '/profile';
   static const profileEdit = '/profile/edit';
+  static const profileEmails = '/profile/emails';
 
   /// Filling in the profile after the first sign-in.
   static const profileSetup = '/welcome';
@@ -89,6 +91,10 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.profileSetup,
         builder: (context, state) => const ProfileFormScreen(onboarding: true),
+      ),
+      GoRoute(
+        path: AppRoutes.profileEmails,
+        builder: (context, state) => const AccountEmailsScreen(),
       ),
       GoRoute(
         path: AppRoutes.signIn,

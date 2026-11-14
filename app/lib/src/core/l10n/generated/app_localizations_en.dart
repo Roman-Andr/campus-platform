@@ -106,10 +106,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signInEmailIntro =>
-      'Sign in with your university e-mail: we will send a sign-in code to it.';
+      'Sign in with your university e-mail or a backup personal address: we will send a sign-in code to it.';
 
   @override
-  String get signInEmailLabel => 'University e-mail';
+  String get signInEmailLabel => 'University or backup e-mail';
 
   @override
   String get signInEmailInvalid =>
@@ -265,6 +265,80 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String profileCourseValue(int course) {
     return 'Year $course';
+  }
+
+  @override
+  String get profileEmails => 'E-mail addresses';
+
+  @override
+  String get emailsBackupHint =>
+      'The backup address is only for signing in and security notifications. It gives no rights and does not change the account type.';
+
+  @override
+  String get emailsKindCorporate => 'Corporate';
+
+  @override
+  String get emailsKindBackup => 'Backup';
+
+  @override
+  String get emailsAddCorporate => 'Add corporate address';
+
+  @override
+  String get emailsAddBackup => 'Add backup address';
+
+  @override
+  String get emailsReplaceBackup => 'Replace backup address';
+
+  @override
+  String get emailsEmailLabel => 'E-mail address';
+
+  @override
+  String get emailsGetCode => 'Get code';
+
+  @override
+  String emailsCodeSent(String email) {
+    return 'We sent a code to $email.';
+  }
+
+  @override
+  String get emailsConfirm => 'Confirm';
+
+  @override
+  String get emailsDelete => 'Delete';
+
+  @override
+  String get emailsCancel => 'Cancel';
+
+  @override
+  String emailsDeleteConfirm(String email) {
+    return 'Delete the address $email?';
+  }
+
+  @override
+  String get emailsDeleted => 'Address deleted';
+
+  @override
+  String get emailsSaved => 'Address added';
+
+  @override
+  String get emailsLastCorporateNote =>
+      'The only corporate address cannot be deleted.';
+
+  @override
+  String get emailsErrorTaken =>
+      'This address is already in use. Use another one.';
+
+  @override
+  String get emailsErrorCorporateDomain =>
+      'Use an address in a university domain.';
+
+  @override
+  String get emailsErrorBackupDomain =>
+      'A backup address must not be in a university domain.';
+
+  @override
+  String emailsErrorRateLimitedFor(String wait) {
+    return 'Too many requests. Try again in $wait.';
   }
 
   @override

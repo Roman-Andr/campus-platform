@@ -122,13 +122,13 @@
   "@signInTitle": {
     "description": "Title of the sign-in screens."
   },
-  "signInEmailIntro": "Войдите с почтой вуза: мы пришлём на неё код для входа.",
+  "signInEmailIntro": "Войдите с почтой вуза или резервным личным адресом: мы пришлём на него код для входа.",
   "@signInEmailIntro": {
-    "description": "Explanation on the e-mail step of sign-in."
+    "description": "Explanation on the e-mail step of sign-in; a backup personal address works too."
   },
-  "signInEmailLabel": "Почта вуза",
+  "signInEmailLabel": "Почта вуза или резервная",
   "@signInEmailLabel": {
-    "description": "Label of the e-mail field on the sign-in screen."
+    "description": "Label of the e-mail field on the sign-in screen; a backup personal address works too."
   },
   "signInEmailInvalid": "Введите адрес почты, например ivanov@edu.hse.ru.",
   "@signInEmailInvalid": {
@@ -340,6 +340,108 @@
     "placeholders": {
       "course": {
         "type": "int"
+      }
+    }
+  },
+  "profileEmails": "Адреса почты",
+  "@profileEmails": {
+    "description": "Profile item and screen title listing the account's e-mail addresses."
+  },
+  "emailsBackupHint": "Резервный адрес нужен только для входа и уведомлений о безопасности. Он не даёт прав и не меняет тип аккаунта.",
+  "@emailsBackupHint": {
+    "description": "Explanation of what a backup personal address is for."
+  },
+  "emailsKindCorporate": "Корпоративный",
+  "@emailsKindCorporate": {
+    "description": "Kind label of a corporate university address in the list."
+  },
+  "emailsKindBackup": "Резервный",
+  "@emailsKindBackup": {
+    "description": "Kind label of the backup personal address in the list."
+  },
+  "emailsAddCorporate": "Добавить корпоративный адрес",
+  "@emailsAddCorporate": {
+    "description": "Button that starts adding a second corporate address."
+  },
+  "emailsAddBackup": "Добавить резервный адрес",
+  "@emailsAddBackup": {
+    "description": "Button that starts adding a backup personal address."
+  },
+  "emailsReplaceBackup": "Заменить резервный адрес",
+  "@emailsReplaceBackup": {
+    "description": "Button that starts replacing the existing backup personal address."
+  },
+  "emailsEmailLabel": "Адрес почты",
+  "@emailsEmailLabel": {
+    "description": "Label of the address field when adding an e-mail address."
+  },
+  "emailsGetCode": "Получить код",
+  "@emailsGetCode": {
+    "description": "Button that requests a confirmation code for a new address."
+  },
+  "emailsCodeSent": "Мы отправили код на {email}.",
+  "@emailsCodeSent": {
+    "description": "Explanation on the code step of adding an e-mail address.",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "ivanov@edu.hse.ru"
+      }
+    }
+  },
+  "emailsConfirm": "Подтвердить",
+  "@emailsConfirm": {
+    "description": "Button that confirms the address with the code."
+  },
+  "emailsDelete": "Удалить",
+  "@emailsDelete": {
+    "description": "Tooltip and confirmation button that delete an e-mail address."
+  },
+  "emailsCancel": "Отмена",
+  "@emailsCancel": {
+    "description": "Button that closes the e-mail address dialog without changes."
+  },
+  "emailsDeleteConfirm": "Удалить адрес {email}?",
+  "@emailsDeleteConfirm": {
+    "description": "Confirmation dialog before deleting an e-mail address.",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "ivanov@edu.hse.ru"
+      }
+    }
+  },
+  "emailsDeleted": "Адрес удалён",
+  "@emailsDeleted": {
+    "description": "Confirmation after an e-mail address was deleted."
+  },
+  "emailsSaved": "Адрес добавлен",
+  "@emailsSaved": {
+    "description": "Confirmation after an e-mail address was added."
+  },
+  "emailsLastCorporateNote": "Единственный корпоративный адрес нельзя удалить.",
+  "@emailsLastCorporateNote": {
+    "description": "Note that the last corporate address cannot be deleted."
+  },
+  "emailsErrorTaken": "Этот адрес уже занят. Укажите другой.",
+  "@emailsErrorTaken": {
+    "description": "The address belongs to another account."
+  },
+  "emailsErrorCorporateDomain": "Укажите адрес в домене вуза.",
+  "@emailsErrorCorporateDomain": {
+    "description": "A new corporate address must be in a university domain."
+  },
+  "emailsErrorBackupDomain": "Резервный адрес не должен быть в домене вуза.",
+  "@emailsErrorBackupDomain": {
+    "description": "A backup address must not be in a university domain."
+  },
+  "emailsErrorRateLimitedFor": "Слишком много запросов. Повторите через {wait}.",
+  "@emailsErrorRateLimitedFor": {
+    "description": "Address changes are rate limited; shows how long to wait.",
+    "placeholders": {
+      "wait": {
+        "type": "String",
+        "example": "30 с"
       }
     }
   },

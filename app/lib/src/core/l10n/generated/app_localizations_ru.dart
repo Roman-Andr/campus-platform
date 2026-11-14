@@ -106,10 +106,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get signInEmailIntro =>
-      'Войдите с почтой вуза: мы пришлём на неё код для входа.';
+      'Войдите с почтой вуза или резервным личным адресом: мы пришлём на него код для входа.';
 
   @override
-  String get signInEmailLabel => 'Почта вуза';
+  String get signInEmailLabel => 'Почта вуза или резервная';
 
   @override
   String get signInEmailInvalid =>
@@ -265,6 +265,78 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String profileCourseValue(int course) {
     return '$course курс';
+  }
+
+  @override
+  String get profileEmails => 'Адреса почты';
+
+  @override
+  String get emailsBackupHint =>
+      'Резервный адрес нужен только для входа и уведомлений о безопасности. Он не даёт прав и не меняет тип аккаунта.';
+
+  @override
+  String get emailsKindCorporate => 'Корпоративный';
+
+  @override
+  String get emailsKindBackup => 'Резервный';
+
+  @override
+  String get emailsAddCorporate => 'Добавить корпоративный адрес';
+
+  @override
+  String get emailsAddBackup => 'Добавить резервный адрес';
+
+  @override
+  String get emailsReplaceBackup => 'Заменить резервный адрес';
+
+  @override
+  String get emailsEmailLabel => 'Адрес почты';
+
+  @override
+  String get emailsGetCode => 'Получить код';
+
+  @override
+  String emailsCodeSent(String email) {
+    return 'Мы отправили код на $email.';
+  }
+
+  @override
+  String get emailsConfirm => 'Подтвердить';
+
+  @override
+  String get emailsDelete => 'Удалить';
+
+  @override
+  String get emailsCancel => 'Отмена';
+
+  @override
+  String emailsDeleteConfirm(String email) {
+    return 'Удалить адрес $email?';
+  }
+
+  @override
+  String get emailsDeleted => 'Адрес удалён';
+
+  @override
+  String get emailsSaved => 'Адрес добавлен';
+
+  @override
+  String get emailsLastCorporateNote =>
+      'Единственный корпоративный адрес нельзя удалить.';
+
+  @override
+  String get emailsErrorTaken => 'Этот адрес уже занят. Укажите другой.';
+
+  @override
+  String get emailsErrorCorporateDomain => 'Укажите адрес в домене вуза.';
+
+  @override
+  String get emailsErrorBackupDomain =>
+      'Резервный адрес не должен быть в домене вуза.';
+
+  @override
+  String emailsErrorRateLimitedFor(String wait) {
+    return 'Слишком много запросов. Повторите через $wait.';
   }
 
   @override

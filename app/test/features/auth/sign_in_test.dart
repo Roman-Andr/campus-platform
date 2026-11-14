@@ -73,7 +73,8 @@ void main() {
     await start(tester);
 
     expect(find.text('Вход'), findsOneWidget);
-    expect(find.text('Почта вуза'), findsOneWidget);
+    expect(find.text('Почта вуза или резервная'), findsOneWidget);
+    expect(find.textContaining('или резервным личным адресом'), findsOneWidget);
   });
 
   testWidgets('an existing user signs in with the code from the e-mail', (
