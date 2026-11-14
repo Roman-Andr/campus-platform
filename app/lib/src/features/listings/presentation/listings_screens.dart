@@ -10,6 +10,7 @@ import '../../../core/l10n/l10n.dart';
 import '../../profile/application/my_profile.dart';
 import '../application/listing_photo_draft.dart';
 import '../application/listings.dart';
+import 'interaction_timeline_screen.dart';
 import 'listing_photos.dart';
 import 'my_screens.dart';
 import 'status_labels.dart';
@@ -535,6 +536,7 @@ class ReservationTile extends ConsumerWidget {
           subtitle: InteractionStatusText(item: item),
           onTap: () => context.push('/listings/${item.listingId}'),
         ),
+        TimelineButton(item: item),
         ParticipantCancel(item: item),
       ],
     );
@@ -608,6 +610,7 @@ class _IncomingListState extends ConsumerState<IncomingList> {
                   children: [
                     Text(item.participantName),
                     InteractionStatusText(item: item),
+                    TimelineButton(item: item),
                     if (item.status == InteractionStatus.pending)
                       Wrap(
                         spacing: 8,

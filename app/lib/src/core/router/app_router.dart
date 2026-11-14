@@ -9,6 +9,7 @@ import '../../features/auth/presentation/sign_in_email_screen.dart';
 import '../../features/auth/presentation/sign_in_name_screen.dart';
 import '../../features/consents/presentation/consents_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/listings/presentation/interaction_timeline_screen.dart';
 import '../../features/listings/presentation/listings_screens.dart';
 import '../../features/listings/presentation/my_screens.dart';
 import '../../features/profile/application/my_profile.dart';
@@ -62,6 +63,18 @@ GoRouter appRouter(Ref ref) {
         path: '/listings/:id',
         builder: (context, state) =>
             ListingScreen(id: state.pathParameters['id']!),
+        routes: [
+          GoRoute(
+            path: 'interactions/:interactionId',
+            builder: (context, state) => InteractionTimelineScreen(
+              listingId: state.pathParameters['id']!,
+              interactionId: state.pathParameters['interactionId']!,
+              participantName: state.extra is String
+                  ? state.extra! as String
+                  : null,
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.home,

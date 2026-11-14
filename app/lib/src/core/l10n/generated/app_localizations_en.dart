@@ -738,4 +738,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String participationStage(String stage) {
     return 'Stage: $stage';
   }
+
+  @override
+  String get timelineTitle => 'Interaction history';
+
+  @override
+  String get timelineOpen => 'History';
+
+  @override
+  String get timelineEmpty => 'No events yet';
+
+  @override
+  String get timelineForbidden =>
+      'Only the listing author and the participant can see this history.';
+
+  @override
+  String get timelineSystem => 'System';
+
+  @override
+  String get timelineYou => 'You';
+
+  @override
+  String get timelineParticipant => 'Participant';
+
+  @override
+  String get timelineRequested => 'Request sent';
+
+  @override
+  String get timelineTransition => 'Status changed';
+
+  @override
+  String get timelineAutoRejected => 'Request rejected automatically';
+
+  @override
+  String get timelineStageChanged => 'Stage changed';
+
+  @override
+  String get timelineOther => 'Action';
+
+  @override
+  String timelineStatusChange(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String timelineReason(String reason) {
+    return 'Reason: $reason';
+  }
+
+  @override
+  String get timelineReasonHidden => 'The listing was hidden by moderation.';
+
+  @override
+  String get timelineViaAssistant => 'Via assistant';
+
+  @override
+  String get timelineOfflineQr => 'Offline QR';
 }

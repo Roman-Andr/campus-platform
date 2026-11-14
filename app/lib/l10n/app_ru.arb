@@ -956,5 +956,54 @@
         "type": "String"
       }
     }
-  }
+  },
+  "timelineTitle": "История взаимодействия",
+  "@timelineTitle": {},
+  "timelineOpen": "История",
+  "@timelineOpen": {},
+  "timelineEmpty": "Событий пока нет",
+  "@timelineEmpty": {},
+  "timelineForbidden": "История доступна только автору объявления и участнику.",
+  "@timelineForbidden": {},
+  "timelineSystem": "Система",
+  "@timelineSystem": {},
+  "timelineYou": "Вы",
+  "@timelineYou": {},
+  "timelineParticipant": "Участник",
+  "@timelineParticipant": {},
+  "timelineRequested": "Заявка отправлена",
+  "@timelineRequested": {},
+  "timelineTransition": "Статус изменён",
+  "@timelineTransition": {},
+  "timelineAutoRejected": "Заявка отклонена автоматически",
+  "@timelineAutoRejected": {},
+  "timelineStageChanged": "Этап изменён",
+  "@timelineStageChanged": {},
+  "timelineOther": "Действие",
+  "@timelineOther": {},
+  "timelineStatusChange": "{from} → {to}",
+  "@timelineStatusChange": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "timelineReason": "Причина: {reason}",
+  "@timelineReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "timelineReasonHidden": "Объявление скрыто модерацией.",
+  "@timelineReasonHidden": {},
+  "timelineViaAssistant": "Через ассистента",
+  "@timelineViaAssistant": {},
+  "timelineOfflineQr": "Офлайн-QR",
+  "@timelineOfflineQr": {}
 }

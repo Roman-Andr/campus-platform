@@ -8,6 +8,7 @@ import '../../../core/l10n/l10n.dart';
 import '../../profile/application/my_profile.dart';
 import '../application/listings.dart';
 import '../application/my_listings.dart';
+import 'interaction_timeline_screen.dart';
 import 'listings_screens.dart';
 
 String mySectionName(AppLocalizations l, MySection section) =>
@@ -138,6 +139,7 @@ class ParticipationTile extends StatelessWidget {
           ),
           onTap: () => context.push('/listings/${item.listing.id}'),
         ),
+        TimelineButton(item: interaction),
         ParticipantCancel(item: interaction),
       ],
     );
