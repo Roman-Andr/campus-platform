@@ -17,6 +17,7 @@ analyzer:
   exclude:
     - "**/*.g.dart"
     - lib/src/core/l10n/generated/**
+    - lib/src/core/api/generated/**
     - test/drift/*/generated/**
     - build/**
     - android/**

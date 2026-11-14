@@ -1,12 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'src/app.dart';
+import 'src/core/api/client_info.dart';
 import 'src/features/settings/application/settings_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final container = ProviderContainer();
+  final package = await PackageInfo.fromPlatform();
+  final container = ProviderContainer(
+    overrides: [
+      clientInfoProvider.overrideWithValue(ClientInfo.current(package)),
+    ],
+  );
   // Load language and theme before the first frame to avoid a flash of
   // default settings; a failure falls back to defaults inside the app.
   await container

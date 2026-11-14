@@ -1,0 +1,728 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Campus API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Check that the API is alive",
+        "description": "Return 200 while the API process is able to serve requests.",
+        "operationId": "get_health",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/university/cities": {
+      "get": {
+        "tags": [
+          "university"
+        ],
+        "summary": "List Cities",
+        "description": "All campus cities, by name.",
+        "operationId": "list_cities",
+        "parameters": [
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CityList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/university/dormitories": {
+      "get": {
+        "tags": [
+          "university"
+        ],
+        "summary": "List Dormitories",
+        "description": "Dormitories of all cities or of one city, by name.",
+        "operationId": "list_dormitories",
+        "parameters": [
+          {
+            "name": "city_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Only those of this city.",
+              "title": "City Id"
+            },
+            "description": "Only those of this city."
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CityPlaceList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/university/faculties": {
+      "get": {
+        "tags": [
+          "university"
+        ],
+        "summary": "List Faculties",
+        "description": "Faculties of all cities or of one city, by name.",
+        "operationId": "list_faculties",
+        "parameters": [
+          {
+            "name": "city_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Only those of this city.",
+              "title": "City Id"
+            },
+            "description": "Only those of this city."
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CityPlaceList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/university/email-domains": {
+      "get": {
+        "tags": [
+          "university"
+        ],
+        "summary": "List Email Domains",
+        "description": "E-mail domains whose addresses may register, by domain.",
+        "operationId": "list_email_domains",
+        "parameters": [
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailDomainList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccountType": {
+        "type": "string",
+        "enum": [
+          "student",
+          "employee"
+        ],
+        "title": "AccountType",
+        "description": "Account type given by the e-mail domain an address belongs to."
+      },
+      "CityList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CityOut"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "CityList"
+      },
+      "CityOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "examples": [
+              "moscow"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "In the request language.",
+            "examples": [
+              "Moscow"
+            ]
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone",
+            "description": "IANA time zone; times in the city are shown in it.",
+            "examples": [
+              "Europe/Moscow"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "timezone"
+        ],
+        "title": "CityOut",
+        "description": "A campus city."
+      },
+      "CityPlaceList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CityPlaceOut"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "CityPlaceList"
+      },
+      "CityPlaceOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "city_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "City Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "examples": [
+              "dubki"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "In the request language.",
+            "examples": [
+              "Dubki"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "city_id",
+          "code",
+          "name"
+        ],
+        "title": "CityPlaceOut",
+        "description": "A dormitory or faculty of a campus city."
+      },
+      "ClientPlatform": {
+        "type": "string",
+        "enum": [
+          "android",
+          "web",
+          "desktop",
+          "telegram",
+          "admin"
+        ],
+        "title": "ClientPlatform",
+        "description": "Client applications, sent in the ``X-Client-Platform`` header."
+      },
+      "EmailDomainList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EmailDomainOut"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "EmailDomainList"
+      },
+      "EmailDomainOut": {
+        "properties": {
+          "domain": {
+            "type": "string",
+            "title": "Domain",
+            "examples": [
+              "edu.hse.ru"
+            ]
+          },
+          "account_type": {
+            "$ref": "#/components/schemas/AccountType",
+            "description": "Type of the accounts registered with addresses of the domain."
+          }
+        },
+        "type": "object",
+        "required": [
+          "domain",
+          "account_type"
+        ],
+        "title": "EmailDomainOut",
+        "description": "An e-mail domain allowed to register."
+      },
+      "FieldError": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail",
+            "description": "What is wrong, in the request language."
+          },
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "Machine-readable reason, e.g. 'missing'."
+          },
+          "pointer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Pointer",
+            "examples": [
+              "#/title"
+            ]
+          },
+          "parameter": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Parameter",
+            "examples": [
+              "size"
+            ]
+          },
+          "header": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Header",
+            "examples": [
+              "Idempotency-Key"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail",
+          "code"
+        ],
+        "title": "FieldError",
+        "description": "One invalid part of the request.\n\nExactly one of ``pointer`` (JSON Pointer into the body, RFC 6901, as a\nURI fragment), ``parameter`` (query or path parameter) and ``header``\nnames the part."
+      },
+      "Health": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "title": "Health",
+        "description": "Liveness of the API process."
+      },
+      "Problem": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "examples": [
+              "urn:problem:campus:not_found"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "Short summary in the request language."
+          },
+          "status": {
+            "type": "integer",
+            "title": "Status"
+          },
+          "detail": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Detail",
+            "description": "Explanation in the request language."
+          },
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "Machine-readable error code.",
+            "enum": [
+              "bad_request",
+              "client_update_required",
+              "client_version_invalid",
+              "client_version_missing",
+              "http_error",
+              "idempotency_key_invalid",
+              "idempotency_key_missing",
+              "idempotency_key_reused",
+              "internal_error",
+              "invalid_cursor",
+              "method_not_allowed",
+              "not_found",
+              "validation_failed"
+            ]
+          },
+          "request_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Request Id",
+            "description": "X-Request-ID of the request, for support."
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/FieldError"
+            },
+            "type": [
+              "array",
+              "null"
+            ],
+            "title": "Errors"
+          },
+          "min_version": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Min Version",
+            "description": "Oldest supported client version (client_update_required)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code"
+        ],
+        "title": "Problem",
+        "description": "Error response (RFC 9457 Problem Details)."
+      }
+    }
+  }
+}

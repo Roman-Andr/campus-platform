@@ -8,6 +8,7 @@ import 'package:material_ui/material_ui.dart';
 import 'core/l10n/l10n.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/widgets/offline_banner.dart';
 import 'features/settings/application/settings_controller.dart';
 import 'features/settings/domain/app_settings.dart';
 
@@ -34,6 +35,8 @@ class CampusApp extends ConsumerWidget {
       darkTheme: AppTheme.dark,
       themeMode: settings.themeMode,
       debugShowCheckedModeBanner: false,
+      builder: (context, child) =>
+          OfflineBanner(child: child ?? const SizedBox.shrink()),
     );
   }
 }
