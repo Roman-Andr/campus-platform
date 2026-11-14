@@ -424,6 +424,81 @@ async def test_deadline_catch_up(owner: Account, borrower: Account, state: str) 
         assert len(events) == (0 if state == "cancelled" else 1)
 
 
+async def test_null_slots_allow_concurrent_interactions(owner: Account) -> None:
+    listing = await publish(owner)
+    listing_id = UUID(listing["id"])
+    participant_id = UUID(listing["author_id"])
+    db = owner.auth.db
+    assert isinstance(db.bind, AsyncEngine)
+    sessions = create_session_factory(db.bind)
+
+    async def join(status: InteractionStatus) -> UUID:
+        async with sessions() as session:
+            interaction = Interaction(
+                listing_id=listing_id,
+                participant_id=participant_id,
+                slot=None,
+                status=status,
+            )
+            session.add(interaction)
+            await session.commit()
+            return interaction.id
+
+    ids = await asyncio.gather(
+        *(
+            join(status)
+            for status in (InteractionStatus.PENDING, InteractionStatus.ACCEPTED) * 2
+        )
+    )
+    # Read column values from PostgreSQL rather than the ORM identity map.
+    slots = list(
+        await db.scalars(select(Interaction.slot).where(Interaction.id.in_(ids)))
+    )
+    assert slots == [None] * 4
+    default = Interaction(listing_id=listing_id, participant_id=participant_id)
+    db.add(default)
+    await db.commit()
+    assert (
+        await db.scalar(select(Interaction.slot).where(Interaction.id == default.id))
+        == 1
+    )
+
+
+@pytest.mark.parametrize(
+    "first_status", [InteractionStatus.PENDING, InteractionStatus.ACCEPTED]
+)
+@pytest.mark.parametrize(
+    "second_status", [InteractionStatus.PENDING, InteractionStatus.ACCEPTED]
+)
+async def test_default_slot_is_exclusive(
+    owner: Account,
+    first_status: InteractionStatus,
+    second_status: InteractionStatus,
+) -> None:
+    listing = await publish(owner)
+    db = owner.auth.db
+    first = Interaction(
+        listing_id=UUID(listing["id"]),
+        participant_id=UUID(listing["author_id"]),
+        status=first_status,
+    )
+    db.add(first)
+    await db.commit()
+    assert (
+        await db.scalar(select(Interaction.slot).where(Interaction.id == first.id)) == 1
+    )
+    db.add(
+        Interaction(
+            listing_id=UUID(listing["id"]),
+            participant_id=UUID(listing["author_id"]),
+            status=second_status,
+        )
+    )
+    with pytest.raises(IntegrityError, match="uq_listing_one_active_interaction"):
+        await db.commit()
+    await db.rollback()
+
+
 async def test_database_invariants(owner: Account, borrower: Account) -> None:
     listing = await publish(owner)
     interaction = (await reserve(borrower, listing)).json()
