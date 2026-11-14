@@ -247,6 +247,24 @@ class Settings(BaseSettings):
         "before cancelling them; below the stop grace period of the container.",
     )
 
+    s3_endpoint_url: str | None = None
+    s3_region: str = "us-east-1"
+    s3_bucket: str = "campus-private"
+    s3_access_key: SecretStr | None = None
+    s3_secret_key: SecretStr | None = None
+    photo_max_bytes: int = Field(default=10 * 1024 * 1024, ge=1, le=10 * 1024 * 1024)
+    photo_max_pixels: int = Field(default=40_000_000, ge=1)
+    photo_listing_limit: int = Field(default=10, ge=1, le=10)
+    photo_preview_size: int = Field(default=480, ge=1)
+    photo_jpeg_quality: int = Field(default=85, ge=1, le=95)
+    photo_upload_ttl: timedelta = Field(
+        default=timedelta(minutes=15), ge=timedelta(seconds=1), le=timedelta(days=7)
+    )
+    photo_read_ttl: timedelta = Field(
+        default=timedelta(minutes=5), ge=timedelta(seconds=1), le=timedelta(days=7)
+    )
+    photo_unattached_ttl: timedelta = Field(default=timedelta(days=1), gt=timedelta(0))
+
     listing_lifetime: timedelta = Field(default=timedelta(days=30), gt=timedelta(0))
     listing_response_timeout: timedelta = Field(
         default=timedelta(hours=24), gt=timedelta(0)

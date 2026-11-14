@@ -704,3 +704,45 @@ IANA-пояс города профиля, объявления, общежит�
 несуществующее время при весеннем переходе отклоняется для ввода и
 пропускается для еженедельного расписания. Границы интервалов и местное
 время передаются без смещения; сами моменты должны иметь смещение.
+
+### Private photos
+
+Provision `CAMPUS_S3_BUCKET` in RustFS without public ACLs or public bucket
+policies. Set `CAMPUS_S3_ENDPOINT_URL`, region and access credentials (see
+`.env.example`). The endpoint must be reachable by clients and the worker;
+preserve its Host header through Caddy because SigV4 signs it. Configure
+bucket CORS for the actual browser origins and POST/GET/HEAD methods. Local
+Caddy certificates must be trusted by the backend as well as the browser.
+
+`POST /api/v1/files/photo-uploads` returns metadata, a POST URL, exact form
+fields and expiration. Send those fields as multipart form data, with the
+file field last. The signed policy fixes the source key and limits the
+actual object length to 10 MiB. `POST /api/v1/files/{id}/complete` enqueues
+processing atomically; poll `GET /api/v1/files/{id}` for `ready` or `rejected`
+and its machine-readable reason. Never display the unprocessed source.
+All API writes require `Idempotency-Key`; a replay returns the original
+credential and original expiration, not a renewed credential.
+
+`PUT /api/v1/listings/{id}/photos` replaces the ordered `file_ids` list
+(empty removes all). It locks the listing and the selected files, verifies
+ownership, readiness, purpose and expiration, and permits up to ten files.
+A file belongs to at most one listing. `GET .../photos` returns private,
+short-lived photo and preview URLs after the normal listing access check.
+A previously issued URL remains a bearer credential until its expiration.
+
+Pillow and pillow-heif decode JPEG, PNG, WebP and HEIC by content. The worker
+bounds downloaded bytes and decoded pixels, applies EXIF orientation, then
+encodes fresh JPEG pixels and a thumbnail without EXIF/GPS, ICC or XMP.
+No input filename or client MIME declaration is trusted.
+
+Processing uses durable outbox jobs and the standard retry/backoff policy.
+Deterministic output keys tolerate partial writes and transaction retries;
+the source stays private until expiry so rollback never loses retry input.
+Deadlines delete expired unbound files and their three object keys, keeping
+the database row until every delete succeeds. Bound files retain outputs;
+the source is deleted after the upload credential has expired. Detaching a
+file starts a new unbound retention period. Expiry never precedes upload
+credential expiration, preventing a valid POST from recreating a cleaned
+source. Monitor failed outbox/deadline jobs under the existing job policy;
+retry exhausted failures after repairing storage. Retention and URL TTLs
+come from configuration; server time comes from `campus.core.clock`.

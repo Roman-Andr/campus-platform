@@ -1,6 +1,6 @@
 """Public listing API and aggregate persistence."""
 
-from campus.modules.listings.api import router
+from campus.modules.listings.api import readable, router, user_for
 from campus.modules.listings.models import (
     Audience,
     Category,
@@ -13,6 +13,8 @@ from campus.modules.listings.models import (
     Visibility,
 )
 from campus.modules.listings.service import (
+    CONFLICT,
+    FORBIDDEN,
     LISTING_TRANSITIONS,
     TRANSITIONS,
     TYPE_POLICIES,
@@ -25,6 +27,8 @@ from campus.modules.listings.service import (
 )
 
 __all__ = [
+    "CONFLICT",
+    "FORBIDDEN",
     "LISTING_TRANSITIONS",
     "TRANSITIONS",
     "TYPE_POLICIES",
@@ -42,6 +46,8 @@ __all__ = [
     "change_stage",
     "hide",
     "locked",
+    "readable",
     "router",
     "transition",
+    "user_for",
 ]
