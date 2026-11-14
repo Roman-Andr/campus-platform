@@ -390,6 +390,23 @@ class Settings(BaseSettings):
     lesson_options_min: int = Field(default=2, ge=1)
     lesson_options_max: int = Field(default=3, ge=1)
 
+    # Chat messages (specification, 5.1.1, module 6; Appendix 4).
+    chat_message_max_length: int = Field(
+        default=4000,
+        ge=1,
+        description="Longest message text, in characters (Appendix 4).",
+    )
+    chat_message_limit: int = Field(
+        default=60,
+        ge=1,
+        description="Messages one user may send per chat_message_window.",
+    )
+    chat_message_window: timedelta = Field(
+        default=timedelta(minutes=1),
+        gt=timedelta(0),
+        description="Rate-limit window of chat messages (Appendix 4: a minute).",
+    )
+
     meeting_place_max_length: int = Field(default=200, ge=1)
     return_reminder_before: timedelta = Field(
         default=timedelta(hours=24),
