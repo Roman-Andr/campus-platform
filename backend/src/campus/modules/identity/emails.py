@@ -34,6 +34,7 @@ from campus.modules.identity.api import (
     send_code,
 )
 from campus.modules.identity.models import SignInCode, User, UserEmail
+from campus.modules.identity.roles import revoke_headman_roles
 from campus.modules.university import AccountType, EmailDomain
 
 EMAIL_KIND_INVALID = ProblemType(
@@ -163,6 +164,7 @@ async def recalculate_account(session: DbSession, user: User) -> None:
     )
     if user.account_type == AccountType.EMPLOYEE:
         user.course = None
+        await revoke_headman_roles(session, user.id)
     if user.email not in {row.email for row in corporate}:
         user.email = corporate[0].email
 
