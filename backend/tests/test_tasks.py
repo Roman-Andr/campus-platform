@@ -14,7 +14,11 @@ from taskiq import AsyncBroker, InMemoryBroker
 
 from campus.core.config import Settings
 from campus.core.deadlines import Deadline, deadline_handlers, schedule_deadline
-from campus.core.idempotency import IdempotencyKey, claim_idempotency_key
+from campus.core.idempotency import (
+    IdempotencyKey,
+    ResponseKeyring,
+    claim_idempotency_key,
+)
 from campus.core.jobs import Handlers, JobInfo
 from campus.core.outbox import (
     OutboxMessage,
@@ -92,6 +96,7 @@ async def test_cleanup_task_deletes_expired_records(broker: InMemoryBroker) -> N
             for ttl in (timedelta(days=1), timedelta(days=30)):
                 await claim_idempotency_key(
                     session,
+                    keyring=ResponseKeyring([bytes(32)]),
                     scope="anonymous",
                     key=uuid4(),
                     fingerprint=bytes(32),

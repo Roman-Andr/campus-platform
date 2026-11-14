@@ -1,17 +1,34 @@
 """Application settings read from environment variables."""
 
+import base64
+import binascii
 from datetime import timedelta
 from enum import StrEnum
 from functools import lru_cache
 from ipaddress import ip_address, ip_network
-from typing import Literal, Self
+from typing import Annotated, Literal, Self
 
 from limits import parse_many
 from packaging.version import InvalidVersion, Version
 from pydantic import Field, SecretStr, field_validator, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import ArgumentError
+
+ENCRYPTION_KEY_SIZE = 32
+
+
+def encryption_key(value: SecretStr) -> bytes:
+    """Decode a base64 AES-256 key of the settings."""
+    try:
+        key = base64.b64decode(value.get_secret_value(), validate=True)
+    except binascii.Error:
+        raise ValueError("An encryption key must be base64") from None
+    if len(key) != ENCRYPTION_KEY_SIZE:
+        msg = f"An encryption key must be {ENCRYPTION_KEY_SIZE} bytes"
+        raise ValueError(msg)
+    return key
+
 
 type Environment = Literal["development", "test", "staging", "production"]
 type LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
@@ -98,6 +115,14 @@ class Settings(BaseSettings):
         gt=timedelta(0),
         description="How long an Idempotency-Key and its response are kept.",
     )
+    idempotency_encryption_keys: Annotated[list[SecretStr], NoDecode] = Field(
+        default_factory=list,
+        description=(
+            "Keys that encrypt stored idempotent responses (AES-256-GCM):"
+            " comma-separated base64 32-byte keys. The first one encrypts, all"
+            " decrypt; required by endpoints that change data."
+        ),
+    )
     page_size_default: int = Field(default=20, ge=1)
     page_size_max: int = Field(default=100, ge=1)
     redis_url: SecretStr | None = Field(
@@ -150,6 +175,21 @@ class Settings(BaseSettings):
             else:
                 ip_address(entry)
         return ",".join(entries)
+
+    @field_validator("idempotency_encryption_keys", mode="before")
+    @classmethod
+    def _split_encryption_keys(cls, value: object) -> object:
+        if isinstance(value, str):
+            return [key.strip() for key in value.split(",") if key.strip()]
+        return value
+
+    @field_validator("idempotency_encryption_keys")
+    @classmethod
+    def _check_encryption_keys(cls, value: list[SecretStr]) -> list[SecretStr]:
+        keys = [encryption_key(key) for key in value]
+        if len(set(keys)) != len(keys):
+            raise ValueError("Encryption keys must be different")
+        return value
 
     @field_validator("sign_in_email_limits", "sign_in_ip_limits")
     @classmethod

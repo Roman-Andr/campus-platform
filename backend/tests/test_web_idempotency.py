@@ -1,6 +1,9 @@
-"""Idempotency-Key: repeats, concurrent repeats, reuse, rollback, expiry."""
+"""Idempotency-Key: repeats, concurrent repeats, reuse, rollback, expiry,
+encryption of stored responses and rotation of their keys."""
 
 import asyncio
+import base64
+import secrets
 import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -8,12 +11,21 @@ from typing import Any
 import httpx2
 import pytest
 import time_machine
-from sqlalchemy import func, select
+from pydantic import SecretStr, ValidationError
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from campus.core.idempotency import IdempotencyKey, delete_expired_idempotency_keys
+from campus.core.config import Settings
+from campus.core.idempotency import (
+    IdempotencyKey,
+    ResponseKeyring,
+    ResponseUnreadableError,
+    StoredResponse,
+    delete_expired_idempotency_keys,
+)
+from tests.conftest import web_settings
 from tests.models import Note
-from tests.web_app import NOTES_URL
+from tests.web_app import ENCRYPTION_KEY, NOTES_URL, create_test_app, serve
 
 NOTE = {"title": "Lecture notes", "body": "Chapter 1"}
 
@@ -215,3 +227,130 @@ async def test_expired_keys_are_deleted(
     assert deleted == 1
     assert await count(session, IdempotencyKey) == 1
     assert await count(session, Note) == 2
+
+
+def new_key() -> str:
+    return base64.b64encode(secrets.token_bytes(32)).decode()
+
+
+def keyring_settings(database_url: str, *keys: str) -> Settings:
+    return web_settings(database_url).model_copy(
+        update={"idempotency_encryption_keys": [SecretStr(key) for key in keys]}
+    )
+
+
+async def test_stored_response_is_encrypted(
+    api: httpx2.AsyncClient, session: AsyncSession
+) -> None:
+    response = await api.post(NOTES_URL, json=NOTE, headers=key_header())
+
+    stored = await session.scalar(select(IdempotencyKey.response))
+    assert stored is not None
+    for plaintext in (b"Lecture notes", b"Chapter 1", b"application/json"):
+        assert plaintext not in stored
+    assert response.json()["id"].encode() not in stored
+
+
+async def test_response_cannot_be_moved_to_another_key(
+    api: httpx2.AsyncClient, session: AsyncSession
+) -> None:
+    first, second = uuid.uuid4(), uuid.uuid4()
+    await api.post(NOTES_URL, json=NOTE, headers=key_header(first))
+    await api.post(NOTES_URL, json=NOTE, headers=key_header(second))
+    stored = await session.scalar(
+        select(IdempotencyKey.response).where(IdempotencyKey.key == first)
+    )
+    await session.execute(
+        update(IdempotencyKey)
+        .where(IdempotencyKey.key == second)
+        .values(response=stored)
+    )
+    await session.commit()
+
+    # The ciphertext is bound to its scope and key: it fails to open, and
+    # the operation is not run again.
+    response = await api.post(NOTES_URL, json=NOTE, headers=key_header(second))
+
+    assert response.status_code == 500
+    assert await count(session, Note) == 2
+
+
+async def test_keys_rotate_without_losing_responses(
+    database_url: str, session: AsyncSession
+) -> None:
+    old, new = ENCRYPTION_KEY, new_key()
+    headers = key_header()
+    async with serve(create_test_app(keyring_settings(database_url, old))) as api:
+        first = await api.post(NOTES_URL, json=NOTE, headers=headers)
+
+    # The new key is put first: it seals new responses, the old one still
+    # opens responses sealed before the rotation.
+    async with serve(create_test_app(keyring_settings(database_url, new, old))) as api:
+        replayed = await api.post(NOTES_URL, json=NOTE, headers=headers)
+        other = key_header()
+        await api.post(NOTES_URL, json=NOTE, headers=other)
+    assert replayed.content == first.content
+    assert replayed.headers["Idempotent-Replayed"] == "true"
+
+    # Once the old responses expired, the old key is removed.
+    async with serve(create_test_app(keyring_settings(database_url, new))) as api:
+        assert (await api.post(NOTES_URL, json=NOTE, headers=other)).status_code == 201
+        assert (await api.post(NOTES_URL, json=NOTE, headers=headers)).status_code == (
+            500
+        )
+    assert await count(session, Note) == 2
+
+
+async def test_mutating_request_without_keys_fails(
+    database_url: str, session: AsyncSession
+) -> None:
+    async with serve(create_test_app(keyring_settings(database_url))) as api:
+        response = await api.post(NOTES_URL, json=NOTE, headers=key_header())
+        listed = await api.get(NOTES_URL)
+
+    assert response.status_code == 500
+    assert listed.status_code == 200
+    assert await count(session, Note) == 0
+    assert await count(session, IdempotencyKey) == 0
+
+
+def test_keyring_round_trip_and_tampering() -> None:
+    keyring = ResponseKeyring([secrets.token_bytes(32)])
+    key = uuid.uuid4()
+    response = StoredResponse(201, b"\x00\xffbody", [("set-cookie", "a=b")])
+
+    sealed = keyring.seal("anonymous", key, response)
+
+    assert keyring.open("anonymous", key, sealed) == StoredResponse(
+        201, b"\x00\xffbody", [("set-cookie", "a=b")]
+    )
+    assert sealed != keyring.seal("anonymous", key, response)
+    tampered = sealed[:-1] + bytes([sealed[-1] ^ 1])
+    for scope, value in (("anonymous", tampered), ("user", sealed)):
+        with pytest.raises(ResponseUnreadableError):
+            keyring.open(scope, key, value)
+    with pytest.raises(RuntimeError, match="IDEMPOTENCY_ENCRYPTION_KEYS"):
+        ResponseKeyring([])
+
+
+@pytest.mark.parametrize(
+    "keys",
+    [
+        ["not base64!"],
+        [base64.b64encode(b"short").decode()],
+        [ENCRYPTION_KEY, ENCRYPTION_KEY],
+    ],
+)
+def test_invalid_encryption_keys(keys: list[str]) -> None:
+    with pytest.raises(ValidationError):
+        Settings(idempotency_encryption_keys=[SecretStr(key) for key in keys])
+
+
+def test_encryption_keys_from_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    new, old = new_key(), new_key()
+    monkeypatch.setenv("CAMPUS_IDEMPOTENCY_ENCRYPTION_KEYS", f"{new}, {old}")
+
+    keys = Settings().idempotency_encryption_keys
+
+    assert [value.get_secret_value() for value in keys] == [new, old]
+    assert new not in repr(Settings())

@@ -10,7 +10,7 @@ from pydantic import SecretStr
 from campus.api.app import create_app
 from campus.core.config import ClientPlatform, Settings, get_settings
 from tests.logging_state import preserved_logging
-from tests.web_app import create_test_app, serve
+from tests.web_app import ENCRYPTION_KEY, create_test_app, serve
 
 pytest_plugins = ["tests.database", "tests.services"]
 
@@ -52,6 +52,7 @@ def web_settings(database_url: str | None = None) -> Settings:
     return Settings(
         database_url=SecretStr(database_url) if database_url else None,
         client_min_versions={ClientPlatform.ANDROID: "1.2.0"},
+        idempotency_encryption_keys=[SecretStr(ENCRYPTION_KEY)],
     )
 
 

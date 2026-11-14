@@ -22,7 +22,7 @@ from campus.api.app import create_app
 from campus.core import clock
 from campus.core.config import Settings
 from campus.core.db import create_engine, create_session_factory
-from campus.core.idempotency import store_response
+from campus.core.idempotency import IdempotencyKey, store_response
 from campus.core.logging import configure_logging
 from campus.core.outbox import OutboxMessage
 from campus.core.web import api_router
@@ -35,7 +35,7 @@ from campus.modules.identity import (
     delete_expired_credentials,
 )
 from campus.modules.university import AccountType, EmailDomain
-from tests.web_app import CLIENT_HEADERS, serve
+from tests.web_app import CLIENT_HEADERS, ENCRYPTION_KEY, serve
 
 EMAIL = "student@university.example"
 DEVICE = str(uuid4())
@@ -103,6 +103,7 @@ async def auth(database_url: str, redis_url: str) -> AsyncIterator[Auth]:
         database_url=SecretStr(database_url),
         redis_url=SecretStr(redis_url),
         auth_secret_key=SecretStr(SECRET),
+        idempotency_encryption_keys=[SecretStr(ENCRYPTION_KEY)],
     )
     engine = create_engine(settings)
     async with (
@@ -600,22 +601,151 @@ async def test_refresh_is_idempotent(auth: Auth) -> None:
     ).status_code == 200
 
 
-async def test_refresh_rollback_preserves_token(
-    auth: Auth, monkeypatch: pytest.MonkeyPatch
+async def stored_responses(auth: Auth) -> list[bytes]:
+    auth.db.expire_all()
+    rows = (await auth.db.scalars(select(IdempotencyKey.response))).all()
+    await auth.db.rollback()
+    return [row for row in rows if row is not None]
+
+
+async def test_stored_responses_hold_no_plaintext_tokens(auth: Auth) -> None:
+    tokens = await auth.login()
+    refreshed = await auth.post(
+        "/token/refresh",
+        {"refresh_token": tokens["refresh_token"], "device_id": DEVICE},
+    )
+    assert refreshed.status_code == 200
+
+    stored = await stored_responses(auth)
+    # Code request, sign-in and refresh.
+    assert len(stored) == 3
+    for response in stored:
+        for secret in (
+            tokens["access_token"],
+            tokens["refresh_token"],
+            refreshed.json()["access_token"],
+            refreshed.json()["refresh_token"],
+            "access_token",
+            EMAIL,
+        ):
+            assert secret.encode() not in response
+
+
+async def test_lost_sign_in_response_is_recovered(auth: Auth) -> None:
+    code = await auth.code()
+    data = {
+        "email": EMAIL,
+        "code": code,
+        "device_id": DEVICE,
+        "first_name": "John",
+        "last_name": "Smith",
+    }
+    key = {"Idempotency-Key": str(uuid4())}
+    await auth.post("/sign-in", data, **key)  # The response is lost.
+
+    recovered = await auth.post("/sign-in", data, **key)
+    assert recovered.status_code == 200
+    assert recovered.headers["Idempotent-Replayed"] == "true"
+    tokens = recovered.json()
+    private = await auth.client.get(
+        "/api/v1/private", headers={"Authorization": "Bearer " + tokens["access_token"]}
+    )
+    assert private.status_code == 200
+    refreshed = await auth.post(
+        "/token/refresh",
+        {"refresh_token": tokens["refresh_token"], "device_id": DEVICE},
+    )
+    assert refreshed.status_code == 200
+    # One session: the repeat did not sign in again.
+    assert len((await auth.db.scalars(select(Session))).all()) == 1
+
+
+async def test_lost_refresh_response_is_recovered(auth: Auth) -> None:
+    tokens = await auth.login()
+    data = {"refresh_token": tokens["refresh_token"], "device_id": DEVICE}
+    key = {"Idempotency-Key": str(uuid4())}
+    await auth.post("/token/refresh", data, **key)  # The response is lost.
+
+    recovered = await auth.post("/token/refresh", data, **key)
+    assert recovered.status_code == 200
+    assert recovered.headers["Idempotent-Replayed"] == "true"
+    # The recovered refresh token continues the chain; the session lives.
+    refreshed = await auth.post(
+        "/token/refresh",
+        {"refresh_token": recovered.json()["refresh_token"], "device_id": DEVICE},
+    )
+    assert refreshed.status_code == 200
+    auth.db.expire_all()
+    device = await auth.db.scalar(select(Session))
+    assert device is not None
+    assert device.revoked_at is None
+    assert len((await auth.db.scalars(select(RefreshToken))).all()) == 3
+
+
+async def test_lost_refresh_response_with_new_key_revokes_session(auth: Auth) -> None:
+    """A repeat must reuse its key: a new key is a reuse of the old token."""
+    tokens = await auth.login()
+    data = {"refresh_token": tokens["refresh_token"], "device_id": DEVICE}
+    await auth.post("/token/refresh", data)
+
+    assert (await auth.post("/token/refresh", data)).status_code == 401
+    auth.db.expire_all()
+    device = await auth.db.scalar(select(Session))
+    assert device is not None
+    assert device.revoked_at is not None
+
+
+@pytest.mark.parametrize("failure", ["store", "commit"])
+async def test_failure_between_rotation_and_stored_response(
+    auth: Auth, monkeypatch: pytest.MonkeyPatch, failure: str
 ) -> None:
     tokens = await auth.login()
     data = {"refresh_token": tokens["refresh_token"], "device_id": DEVICE}
+    key = {"Idempotency-Key": str(uuid4())}
+    failures = 1
 
-    async def fail_to_store(*args: Any, **kwargs: Any) -> None:
-        del args, kwargs
-        raise RuntimeError("Simulated response storage failure")
+    def fail_once() -> None:
+        nonlocal failures
+        if failures:
+            failures -= 1
+            raise RuntimeError("Simulated failure after the rotation")
 
-    monkeypatch.setattr("campus.core.web.routing.store_response", fail_to_store)
-    response = await auth.post("/token/refresh", data)
+    async def failing_store(*args: Any, **kwargs: Any) -> None:
+        fail_once()
+        await store_response(*args, **kwargs)
+
+    commit = AsyncSession.commit
+
+    async def failing_commit(self: AsyncSession) -> None:
+        fail_once()
+        await commit(self)
+
+    if failure == "store":
+        monkeypatch.setattr("campus.core.web.routing.store_response", failing_store)
+    else:
+        monkeypatch.setattr(AsyncSession, "commit", failing_commit)
+
+    response = await auth.post("/token/refresh", data, **key)
     assert response.status_code == 500
-    monkeypatch.setattr("campus.core.web.routing.store_response", store_response)
-    response = await auth.post("/token/refresh", data)
-    assert response.status_code == 200
+    assert failures == 0
+    # The rotation rolled back together with the key: the old token is
+    # unused, the session lives, nothing is stored.
+    auth.db.expire_all()
+    rows = (await auth.db.scalars(select(RefreshToken))).all()
+    assert len(rows) == 1
+    assert rows[0].used_at is None
+    device = await auth.db.scalar(select(Session))
+    assert device is not None
+    assert device.revoked_at is None
+    assert len(await stored_responses(auth)) == 2
+
+    # The repeat with the same key rotates once and stores the result.
+    retried = await auth.post("/token/refresh", data, **key)
+    assert retried.status_code == 200
+    assert "Idempotent-Replayed" not in retried.headers
+    replayed = await auth.post("/token/refresh", data, **key)
+    assert replayed.json() == retried.json()
+    auth.db.expire_all()
     assert len((await auth.db.scalars(select(RefreshToken))).all()) == 2
 
 
