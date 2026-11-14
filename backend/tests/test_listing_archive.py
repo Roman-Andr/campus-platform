@@ -25,6 +25,7 @@ from tests.test_listings import (
     publish,
     request,
     reserve,
+    schedule_meeting,
 )
 from tests.test_photos import at, attach, ready, rustfs, storage, tick_jobs
 from tests.test_profile import Account
@@ -213,6 +214,11 @@ async def test_active_drafts_and_unfinished_obligations_are_kept(
     occupied = await publish(owner)
     interaction = (await reserve(borrower, occupied)).json()
     assert (await move(owner, occupied, interaction, "accepted")).status_code == 200
+    # Keep the reservation past the listing lifetime so the obligation is
+    # still unfinished when the listing is archived.
+    await schedule_meeting(
+        owner, borrower, occupied, interaction, clock.now() + timedelta(days=40)
+    )
     await expire_all(owner)
     assert (await row(owner, occupied)).status == "expired"
     await due(owner, occupied)

@@ -1,7 +1,7 @@
 """Giveaway acceptance and concurrency on real PostgreSQL and HTTP requests."""
 
 import asyncio
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -89,6 +89,34 @@ async def move(
         f"/{listing['id']}/interactions/{interaction['id']}/transition",
         {"status": status},
     )
+
+
+async def schedule_meeting(
+    owner: Account,
+    borrower: Account,
+    listing: dict[str, Any],
+    interaction: dict[str, Any],
+    at: datetime,
+) -> None:
+    """Agree on a meeting so the item reservation lasts until that time."""
+    proposed = await request(
+        owner,
+        "POST",
+        f"/{listing['id']}/interactions/{interaction['id']}/meeting/proposals",
+        {
+            "time": at.astimezone(UTC).isoformat().replace("+00:00", "Z"),
+            "location": "Main library",
+        },
+    )
+    assert proposed.status_code == 200, proposed.text
+    proposals = proposed.json()
+    accepted = await request(
+        borrower,
+        "POST",
+        f"/{listing['id']}/interactions/{interaction['id']}/meeting/accept",
+        {"version": proposals["version"]},
+    )
+    assert accepted.status_code == 200, accepted.text
 
 
 @pytest.fixture
