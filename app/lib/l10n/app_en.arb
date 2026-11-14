@@ -301,6 +301,139 @@
   "@listingTransitionConflict": {},
   "listingExtended": "The listing has been extended.",
   "@listingExtended": {},
+  "meetingTitle": "Meeting",
+  "meetingNotScheduled": "No meeting scheduled yet",
+  "meetingCurrent": "Current meeting",
+  "meetingYourProposal": "Your proposal",
+  "meetingNewProposal": "New proposal",
+  "meetingPlace": "Place: {place}",
+  "meetingAwaitingAnswer": "Waiting for the other participant to respond",
+  "meetingAwaitingYourAnswer": "Waiting for your response",
+  "meetingOpen": "Open meeting",
+  "meetingAccept": "Confirm",
+  "meetingReschedule": "Reschedule",
+  "meetingSuggest": "Suggest a time and place",
+  "meetingChangeProposal": "Change proposal",
+  "meetingFormTitle": "Time and place",
+  "meetingPlaceLabel": "Meeting place",
+  "meetingPlaceRequired": "Enter a meeting place.",
+  "meetingTimeRequired": "Choose a meeting time.",
+  "meetingTimePast": "The time can't be in the past.",
+  "meetingSaveProposal": "Send proposal",
+  "meetingDismiss": "Cancel",
+  "meetingStale": "The proposal has changed. Check the new time and place.",
+  "meetingStateConflict": "A meeting can only be scheduled for an accepted interaction.",
+  "meetingTimeInvalid": "Choose a time in the future.",
+  "meetingPlaceInvalid": "Check the meeting place.",
+  "meetingUnavailable": "The meeting is unavailable.",
+  "meetingConfirmed": "Meeting confirmed.",
+  "meetingProposalSent": "Proposal sent.",
+  "meetingCancelInteraction": "Cancel interaction",
+  "meetingCancelTitle": "Cancel the interaction?",
+  "meetingCancelBody": "The meeting and its reminders will be cancelled.",
+  "meetingCancelKeep": "Keep",
+  "meetingCancelConfirm": "Cancel",
+  "@meetingTitle": {
+    "description": "Title of the meeting screen and of the meeting card."
+  },
+  "@meetingNotScheduled": {
+    "description": "An accepted interaction without a meeting yet."
+  },
+  "@meetingCurrent": {
+    "description": "Label of the effective meeting before a pending transfer."
+  },
+  "@meetingYourProposal": {
+    "description": "A proposal made by the current user and awaiting the answer."
+  },
+  "@meetingNewProposal": {
+    "description": "A proposal made by the other participant."
+  },
+  "@meetingPlace": {
+    "description": "Meeting place.",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "@meetingAwaitingAnswer": {
+    "description": "The user proposed a meeting and waits for the answer."
+  },
+  "@meetingAwaitingYourAnswer": {
+    "description": "The other participant proposed a meeting."
+  },
+  "@meetingOpen": {
+    "description": "Opens the meeting screen from an interaction card."
+  },
+  "@meetingAccept": {
+    "description": "Accepts the current meeting proposal."
+  },
+  "@meetingReschedule": {
+    "description": "Proposes a new time and place for a scheduled meeting."
+  },
+  "@meetingSuggest": {
+    "description": "Proposes the first time and place."
+  },
+  "@meetingChangeProposal": {
+    "description": "Replaces the pending proposal."
+  },
+  "@meetingFormTitle": {
+    "description": "Title of the meeting proposal form."
+  },
+  "@meetingPlaceLabel": {
+    "description": "Field label of the meeting place."
+  },
+  "@meetingPlaceRequired": {
+    "description": "A meeting place is required."
+  },
+  "@meetingTimeRequired": {
+    "description": "A meeting time is required."
+  },
+  "@meetingTimePast": {
+    "description": "A meeting cannot be proposed in the past."
+  },
+  "@meetingSaveProposal": {
+    "description": "Sends the meeting proposal."
+  },
+  "@meetingDismiss": {
+    "description": "Closes the proposal form without sending it."
+  },
+  "@meetingStale": {
+    "description": "The server rejected an outdated proposal with 409."
+  },
+  "@meetingStateConflict": {
+    "description": "The interaction is not accepted, so a meeting cannot change."
+  },
+  "@meetingTimeInvalid": {
+    "description": "The server rejected the meeting time."
+  },
+  "@meetingPlaceInvalid": {
+    "description": "The server rejected the meeting place."
+  },
+  "@meetingUnavailable": {
+    "description": "The interaction or its meeting is not available to the user."
+  },
+  "@meetingConfirmed": {
+    "description": "The meeting was accepted."
+  },
+  "@meetingProposalSent": {
+    "description": "A meeting proposal was sent to the other participant."
+  },
+  "@meetingCancelInteraction": {
+    "description": "Withdraws the accepted interaction and its meeting."
+  },
+  "@meetingCancelTitle": {
+    "description": "Confirmation title before withdrawing the interaction."
+  },
+  "@meetingCancelBody": {
+    "description": "Explains that withdrawing the interaction cancels the meeting."
+  },
+  "@meetingCancelKeep": {
+    "description": "Keeps the interaction in the confirmation dialog."
+  },
+  "@meetingCancelConfirm": {
+    "description": "Confirms withdrawing the interaction."
+  },
   "mySectionDrafts": "Drafts",
   "@mySectionDrafts": {
     "description": "Own listings filter: drafts."
