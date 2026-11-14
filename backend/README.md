@@ -520,8 +520,56 @@ Every cross-border permission change writes
 `user_id`, `document_id` and `allowed`. This includes invalidation of a
 previous grant by publication. Consumers (#86, Telegram, AI) must recheck
 `identity.cross_border_allowed` before sending: outbox retries may reorder
-events. Channel behavior and handlers are implemented with those consumers.
+events. The identity worker handler fans out to independently retried jobs
+for registered consumers; no connected consumers is a successful no-op.
+Channel behavior is implemented with those consumers.
 Withdrawal of personal-data processing consent uses account deletion (#76).
+
+Consumers register through the public identity interface on module import:
+
+```python
+@consent_consumers.register("fcm")
+async def update_fcm(session: AsyncSession, change: ConsentChange) -> None:
+    # change.allowed is authoritative current state, not the event snapshot.
+    # Use change.delivery_id as the provider's idempotency key.
+    ...
+```
+
+The callback holds the same user/publication locks as consent decisions.
+Perform any immediate external transfer inside the callback; a later queued
+transfer must recheck `cross_border_allowed` in its own transaction. A
+permission notification is not a stored authorization for future sends.
+Callbacks must reconcile current state and make external effects idempotent
+using `delivery_id` (or an equivalent provider-supported deduplication key).
+A database rollback cannot undo an external request; a provider without
+idempotency support cannot guarantee exactly-once irreversible effects.
+Database effects and job completion commit together.
+
+When deploying a new consumer, apply migrations, deploy its registration
+on all workers, and run (with the backend environment configured):
+
+```sh
+uv run python -m campus.worker.replay_consents
+```
+
+This transaction fans out every retained source event, including processed
+and failed events, only to consumers without a dispatch receipt. Legacy
+`UnknownTopicError` failures are marked recovered; unrelated failures stay
+visible. Repeating the command is safe. Each consumer's delivery then uses
+the normal outbox retries. Exhausted consumer jobs require an explicit
+operator retry after fixing the cause; replay does not silently reset them.
+`identity_consent_dispatch` receipts intentionally survive outbox cleanup
+and have no source-row foreign key, preventing replay from repeating a
+completed delivery after retention removes its job. Do not prune receipts
+while source events can still be replayed. They contain only event UUIDs
+and consumer identifiers, without consent payloads or user identifiers.
+
+Replay covers retained outbox history, not events already removed by the
+configured retention policy. A consumer enabled beyond that window must
+bootstrap its complete state from current users and `cross_border_allowed`;
+no deployment may infer consent from an absent event. Keep transfer checks
+active during bootstrap. No FCM, Telegram or AI transport is enabled here.
+
 
 ### Общая механика объявлений
 

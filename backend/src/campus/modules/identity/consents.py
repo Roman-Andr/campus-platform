@@ -297,10 +297,15 @@ async def get_documents(request: Request, session: DbSession) -> list[DocumentOu
 
 
 async def lock_decisions(session: AsyncSession, principal: Principal) -> None:
+    await lock_consent_state(session, principal.user_id)
+
+
+async def lock_consent_state(session: AsyncSession, user_id: UUID) -> None:
+    """Keep current permission stable through a decision or external transfer."""
     await publication_lock(session)
     await session.execute(
         text("SELECT pg_advisory_xact_lock(hashtextextended(:user_id, 0))"),
-        {"user_id": str(principal.user_id)},
+        {"user_id": str(user_id)},
     )
 
 
