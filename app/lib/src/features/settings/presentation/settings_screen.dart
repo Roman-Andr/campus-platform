@@ -68,6 +68,13 @@ class SettingsScreen extends ConsumerWidget {
             const Divider(),
             _SectionHeader(l10n.settingsAccount),
             ListTile(
+              key: const Key('devices'),
+              leading: const Icon(Icons.devices),
+              title: Text(l10n.devicesTitle),
+              onTap: () => context.push(AppRoutes.devices),
+            ),
+            ListTile(
+              key: const Key('consents'),
               title: Text(l10n.consentDocuments),
               leading: const Icon(Icons.description_outlined),
               onTap: () => context.push(AppRoutes.consents),

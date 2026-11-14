@@ -242,6 +242,9 @@ async def check_consents(
         "accept_documents",
         "change_cross_border_consent",
         "sign_out",
+        "list_sessions",
+        "revoke_session",
+        "revoke_all_sessions",
         "export_my_data",
         "delete_my_account",
     }:

@@ -154,5 +154,65 @@
   "consentCancel": "Cancel",
   "consentRevoke": "Revoke consent",
   "consentRevokeTitle": "Revoke data transfer consent?",
-  "consentRevokeEffects": "Push notifications will contain no names or message text. The Telegram bot and AI features will be disabled."
+  "consentRevokeEffects": "Push notifications will contain no names or message text. The Telegram bot and AI features will be disabled.",
+  "devicesTitle": "Devices",
+  "devicesCurrent": "This device",
+  "devicesUnknown": "Unnamed device",
+  "devicesSignOutAll": "Sign out of all devices",
+  "devicesConfirmAll": "Sign out of all devices, including this one?",
+  "devicesConfirmOne": "Sign out of {device}?",
+  "@devicesConfirmOne": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "devicesCancel": "Cancel",
+  "devicesSignedIn": "Signed in: {time}",
+  "@devicesSignedIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "devicesLastActive": "Last active: {time}",
+  "@devicesLastActive": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "devicesEmpty": "No active sessions",
+  "devicesPlatform": "{platform, select, android{Android} web{Web browser} desktop{Desktop} telegram{Telegram} admin{Admin panel} other{Other platform}}",
+  "@devicesPlatform": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "@devicesTitle": {
+    "description": "devicesTitle"
+  },
+  "@devicesCurrent": {
+    "description": "devicesCurrent"
+  },
+  "@devicesUnknown": {
+    "description": "devicesUnknown"
+  },
+  "@devicesSignOutAll": {
+    "description": "devicesSignOutAll"
+  },
+  "@devicesConfirmAll": {
+    "description": "devicesConfirmAll"
+  },
+  "@devicesCancel": {
+    "description": "devicesCancel"
+  },
+  "@devicesEmpty": {
+    "description": "devicesEmpty"
+  }
 }
