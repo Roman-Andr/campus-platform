@@ -95,6 +95,9 @@ msgstr ""
 msgid "Invalid cursor"
 msgstr ""
 
+msgid "Invalid help deadline"
+msgstr ""
+
 msgid "Invalid idempotency key"
 msgstr ""
 
@@ -276,6 +279,11 @@ msgid "The event must start in the future and end after its start."
 msgstr ""
 
 msgid "The event time or location has changed."
+msgstr ""
+
+msgid ""
+"The help request must expire in the future and within the listing "
+"lifetime."
 msgstr ""
 
 msgid "The interaction must be accepted and have a current meeting proposal."

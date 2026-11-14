@@ -9,6 +9,7 @@ import 'models/category_list.dart' as models show CategoryList;
 import 'models/event_edit.dart' as models show EventEdit;
 import 'models/event_input.dart' as models show EventInput;
 import 'models/giveaway_input.dart' as models show GiveawayInput;
+import 'models/help_request_input.dart' as models show HelpRequestInput;
 import 'models/lesson_accept_input.dart' as models show LessonAcceptInput;
 import 'models/lesson_input.dart' as models show LessonInput;
 import 'models/lesson_slot_input.dart' as models show LessonSlotInput;
@@ -74,6 +75,48 @@ class ListingsClient {
     );
     final response = await _transport.request<dynamic>(
       "/api/v1/listings/giveaways",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.ListingOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Publish Help Request
+  ///
+  /// Publish a help request with an author-set relevance deadline.
+  ///
+  /// The deadline is the listing's expiry: the request leaves the feed and
+  /// closes automatically at that time unless the author has selected an
+  /// executor. It may not exceed the ordinary listing lifetime.
+  Future<models.ListingOutput> publishHelpRequest({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required models.HelpRequestInput body,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 201),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/help-requests",
       options: _options,
       data: convert.jsonEncode(body),
       cancelToken: cancelToken,
@@ -850,6 +893,46 @@ class ListingsClient {
           "/repeat",
       options: _options,
       data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.InteractionOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Respond To Help
+  ///
+  /// Apply to a help request; several applications stay pending at once.
+  ///
+  /// The author later selects one of them. An application does not occupy
+  /// the listing's single executor slot, so the listing stays active until
+  /// the selection.
+  Future<models.InteractionOutput> respondToHelp({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 201),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/responses",
+      options: _options,
       cancelToken: cancelToken,
     );
     return models.InteractionOutput.fromJson(

@@ -16,6 +16,9 @@ class ParticipationOutput {
 
     /// RFC 3339 instant with an explicit offset; returned in UTC.
     required this.responseDueAt,
+
+    /// Whether this application is the selected help executor.
+    required this.executor,
     required this.meeting,
 
     /// Time options of a skill lesson; empty for other types.
@@ -49,6 +52,7 @@ class ParticipationOutput {
       responseDueAt: json["response_due_at"] == null
           ? null
           : DateTime.parse(json["response_due_at"] as String).toUtc(),
+      executor: json["executor"] as bool,
       meeting: ParticipationOutputMeeting.fromJson(json["meeting"]),
       options: json.containsKey("options")
           ? (json["options"] as List<Object?>)
@@ -84,6 +88,9 @@ class ParticipationOutput {
   /// RFC 3339 instant with an explicit offset; returned in UTC.
   final DateTime? responseDueAt;
 
+  /// Whether this application is the selected help executor.
+  final bool executor;
+
   final ParticipationOutputMeeting meeting;
 
   /// Time options of a skill lesson; empty for other types.
@@ -103,6 +110,7 @@ class ParticipationOutput {
     "status",
     "stage",
     "response_due_at",
+    "executor",
     "meeting",
     "options",
     "created_at",
@@ -121,6 +129,7 @@ class ParticipationOutput {
     "status": this.status.toJson(),
     "stage": this.stage,
     "response_due_at": this.responseDueAt?.toUtc().toIso8601String(),
+    "executor": this.executor,
     "meeting": this.meeting.toJson(),
     if (this.options != null)
       "options": this.options?.map((item) => item.toJson()).toList(),

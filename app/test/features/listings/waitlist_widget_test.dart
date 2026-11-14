@@ -40,6 +40,7 @@ Map<String, Object?> interactionJson() => {
   'status': 'pending',
   'stage': null,
   'response_due_at': null,
+  'executor': false,
   'meeting': null,
 };
 

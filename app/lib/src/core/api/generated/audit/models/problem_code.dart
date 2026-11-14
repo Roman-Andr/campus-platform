@@ -13,6 +13,7 @@ enum ProblemCodeValue {
   eventCapacityConflict("event_capacity_conflict"),
   eventTimeInvalid("event_time_invalid"),
   forbidden("forbidden"),
+  helpDeadlineInvalid("help_deadline_invalid"),
   httpError("http_error"),
   idempotencyKeyInvalid("idempotency_key_invalid"),
   idempotencyKeyMissing("idempotency_key_missing"),
@@ -91,6 +92,9 @@ sealed class ProblemCode {
     ProblemCodeValue.eventTimeInvalid,
   );
   static const forbidden = ProblemCodeKnown(ProblemCodeValue.forbidden);
+  static const helpDeadlineInvalid = ProblemCodeKnown(
+    ProblemCodeValue.helpDeadlineInvalid,
+  );
   static const httpError = ProblemCodeKnown(ProblemCodeValue.httpError);
   static const idempotencyKeyInvalid = ProblemCodeKnown(
     ProblemCodeValue.idempotencyKeyInvalid,

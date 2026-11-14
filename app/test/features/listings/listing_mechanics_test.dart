@@ -20,6 +20,7 @@ Map<String, Object?> interactionJson(String status) => {
   'participant_name': 'Ivan',
   'stage': null,
   'response_due_at': null,
+  'executor': false,
   'status': status,
   'created_at': '2026-11-14T00:00:00Z',
   'listing': {
