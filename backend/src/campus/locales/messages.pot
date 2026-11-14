@@ -28,6 +28,9 @@ msgstr ""
 msgid "Cannot remove the last corporate address"
 msgstr ""
 
+msgid "Channel is not available"
+msgstr ""
+
 msgid "Choose a listing category."
 msgstr ""
 
@@ -92,6 +95,9 @@ msgid "Invalid meeting place"
 msgstr ""
 
 msgid "Invalid meeting time"
+msgstr ""
+
+msgid "Invalid realtime channel"
 msgstr ""
 
 msgid "Invalid refresh token"
@@ -200,6 +206,12 @@ msgstr ""
 msgid "Profile incomplete"
 msgstr ""
 
+msgid "Realtime history expired"
+msgstr ""
+
+msgid "Realtime is unavailable"
+msgstr ""
+
 #, python-brace-format
 msgid "Reload the interaction. The current meeting version is {version}."
 msgstr ""
@@ -239,6 +251,9 @@ msgid "The Idempotency-Key header must be a UUID."
 msgstr ""
 
 msgid "The X-Client-Platform and X-Client-Version headers are required."
+msgstr ""
+
+msgid "The channel name is not a Campus realtime channel."
 msgstr ""
 
 msgid "The client platform or version is not recognized."
@@ -299,7 +314,15 @@ msgstr ""
 msgid "The place is offered to another participant."
 msgstr ""
 
+msgid "The realtime server is temporarily unavailable. Try again later."
+msgstr ""
+
 msgid "The request body is not valid JSON."
+msgstr ""
+
+msgid ""
+"The requested position is no longer in realtime history. Reload the "
+"channel state through the API."
 msgstr ""
 
 msgid "The requested resource does not exist."
@@ -351,6 +374,9 @@ msgid "You already participate in this listing."
 msgstr ""
 
 msgid "You are already in the queue."
+msgstr ""
+
+msgid "You are not a member of this channel."
 msgstr ""
 
 msgid "You have no offer of a place."

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-14 20:18+0300\n"
+"POT-Creation-Date: 2026-11-14 20:42+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -20,8 +20,12 @@ msgstr ""
 msgid "A meeting time and place were proposed."
 msgstr "Второй участник предложил время и место встречи."
 
-msgid "A place in the queue is available for you. Confirm it before the timer ends."
-msgstr "Для вас освободилось место в очереди. Подтвердите его до истечения таймера."
+msgid ""
+"A place in the queue is available for you. Confirm it before the timer "
+"ends."
+msgstr ""
+"Для вас освободилось место в очереди. Подтвердите его до истечения "
+"таймера."
 
 #, python-brace-format
 msgid "At most {max} skills."
@@ -45,6 +49,9 @@ msgstr "Отмените заявку, чтобы встать в очередь
 msgid "Cannot remove the last corporate address"
 msgstr "Нельзя удалить последний корпоративный адрес"
 
+msgid "Channel is not available"
+msgstr "Канал недоступен"
+
 msgid "Choose a listing category."
 msgstr "Выберите категорию объявления."
 
@@ -56,8 +63,8 @@ msgid ""
 "Confirm your e-mail address with code: {code}. It expires in {minutes} "
 "minutes."
 msgstr ""
-"Подтвердите адрес электронной почты кодом: {code}. Он действует {minutes} "
-"минут."
+"Подтвердите адрес электронной почты кодом: {code}. Он действует {minutes}"
+" минут."
 
 msgid "Current documents must be accepted"
 msgstr "Необходимо принять актуальные документы"
@@ -112,6 +119,9 @@ msgstr "Неверное место встречи"
 
 msgid "Invalid meeting time"
 msgstr "Неверное время встречи"
+
+msgid "Invalid realtime channel"
+msgstr "Неверный канал реального времени"
 
 msgid "Invalid refresh token"
 msgstr "Недействительный токен обновления"
@@ -219,6 +229,12 @@ msgstr "Места открыты для всех; бронируйте сейч
 msgid "Profile incomplete"
 msgstr "Профиль не заполнен"
 
+msgid "Realtime history expired"
+msgstr "История реального времени устарела"
+
+msgid "Realtime is unavailable"
+msgstr "Реальное время недоступно"
+
 #, python-brace-format
 msgid "Reload the interaction. The current meeting version is {version}."
 msgstr "Обновите взаимодействие. Текущая версия встречи: {version}."
@@ -259,6 +275,9 @@ msgstr "Заголовок Idempotency-Key должен быть UUID."
 
 msgid "The X-Client-Platform and X-Client-Version headers are required."
 msgstr "Нужны заголовки X-Client-Platform и X-Client-Version."
+
+msgid "The channel name is not a Campus realtime channel."
+msgstr "Имя канала не является каналом реального времени Кампуса."
 
 msgid "The client platform or version is not recognized."
 msgstr "Платформа или версия клиента не распознаны."
@@ -320,8 +339,18 @@ msgstr "Фото ещё обрабатывается, устарело или у
 msgid "The place is offered to another participant."
 msgstr "Место предложено другому участнику."
 
+msgid "The realtime server is temporarily unavailable. Try again later."
+msgstr "Сервер реального времени временно недоступен. Повторите попытку позже."
+
 msgid "The request body is not valid JSON."
 msgstr "Тело запроса — некорректный JSON."
+
+msgid ""
+"The requested position is no longer in realtime history. Reload the "
+"channel state through the API."
+msgstr ""
+"Запрошенная позиция уже отсутствует в истории реального времени. "
+"Перезагрузите состояние канала через API."
 
 msgid "The requested resource does not exist."
 msgstr "Запрошенный ресурс не существует."
@@ -349,8 +378,8 @@ msgstr "У этого объявления нет очереди."
 
 #, python-brace-format
 msgid ""
-"This version of the app is no longer supported. Please update to {version} "
-"or newer."
+"This version of the app is no longer supported. Please update to "
+"{version} or newer."
 msgstr ""
 "Эта версия приложения больше не поддерживается. Обновите его до версии "
 "{version} или новее."
@@ -376,6 +405,9 @@ msgstr "Вы уже участвуете в этом объявлении."
 msgid "You are already in the queue."
 msgstr "Вы уже стоите в очереди."
 
+msgid "You are not a member of this channel."
+msgstr "Вы не участник этого канала."
+
 msgid "You have no offer of a place."
 msgstr "У вас нет предложения места."
 
@@ -389,8 +421,8 @@ msgid ""
 "Your account e-mail addresses have changed. If this was not you, contact "
 "support."
 msgstr ""
-"Адреса электронной почты вашего аккаунта изменены. Если это сделали не вы, "
-"обратитесь в поддержку."
+"Адреса электронной почты вашего аккаунта изменены. Если это сделали не "
+"вы, обратитесь в поддержку."
 
 msgid "Your meeting starts soon."
 msgstr "Скоро встреча."

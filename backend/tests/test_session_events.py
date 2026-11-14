@@ -32,6 +32,13 @@ from campus.modules.identity.session_events import SESSIONS_REVOKED, SessionDisp
 from tests.models import Note
 
 
+@pytest.fixture(autouse=True)
+def only_test_consumers() -> Iterator[None]:
+    """Hide consumers of imported modules: each test owns the registry."""
+    with session_consumers.suspend():
+        yield
+
+
 @pytest.fixture
 def consumers() -> Iterator[list[str]]:
     names: list[str] = []
@@ -235,6 +242,8 @@ from campus.core.outbox import outbox_handlers
 modules.import_all()
 assert callable(outbox_handlers.get('identity.sessions_revoked'))
 assert callable(outbox_handlers.get('identity.cross_border_consent_changed'))
+assert callable(outbox_handlers.get('identity.session.realtime_connections'))
+assert callable(outbox_handlers.get('realtime.unsubscribe'))
 """,
         ],
         capture_output=True,

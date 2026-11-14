@@ -134,6 +134,16 @@ override), `CAMPUS_ENVIRONMENT=production`, домены, новые секре�
 `POSTGRES_*`, адрес брокера задач `CAMPUS_REDIS_URL` — из
 `REDIS_PASSWORD`.
 
+Centrifugo получает `CENTRIFUGO_TOKEN_HMAC_SECRET` (им же подписывает
+токены API; не короче 32 байт) и `CENTRIFUGO_HTTP_API_KEY`. История
+включена для личных каналов `user#<id>` и namespace `chat`:
+`CENTRIFUGO_HISTORY_SIZE` публикаций на канал и `CENTRIFUGO_HISTORY_TTL`
+хранения; клиенты догоняют пропущенное через
+`POST /api/v1/realtime/recover`, а если позиция уже удалена — получают
+`409 realtime_history_lost` и перезагружают состояние через API.
+Серверный API Centrifugo (порт 8000) доступен только внутри сети
+`edge`; Caddy проксирует клиентские транспорты `/connection/*`.
+
 ## Образ сервера
 
 `backend/Dockerfile` — многоэтапная сборка на uv: зависимости ставятся
