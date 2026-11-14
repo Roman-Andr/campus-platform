@@ -5,14 +5,14 @@ import 'notification_settings_patch_quiet_hours.dart';
 /// Partial settings update; omitted fields keep their values.
 class NotificationSettingsPatch {
   const NotificationSettingsPatch({
-    /// Version the edit is based on; a different one is rejected.
+    /// Version the edit is based on; a different one is rejected. Required when replacing muted chats.
     this.version,
 
     /// Types to enable or disable; other types keep their state.
     this.types,
     this.quietHours,
 
-    /// Replaces the whole set of muted chats.
+    /// Replaces the whole set of muted chats; requires version.
     this.mutedChatIds,
   });
 
@@ -50,7 +50,7 @@ class NotificationSettingsPatch {
     );
   }
 
-  /// Version the edit is based on; a different one is rejected.
+  /// Version the edit is based on; a different one is rejected. Required when replacing muted chats.
   final int? version;
 
   /// Types to enable or disable; other types keep their state.
@@ -58,7 +58,7 @@ class NotificationSettingsPatch {
 
   final NotificationSettingsPatchQuietHours? quietHours;
 
-  /// Replaces the whole set of muted chats.
+  /// Replaces the whole set of muted chats; requires version.
   final List<String>? mutedChatIds;
 
   static const _knownKeys = <String>{

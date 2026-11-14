@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-14 23:10+0300\n"
+"POT-Creation-Date: 2026-11-14 23:50+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -275,6 +275,10 @@ msgstr "Запрос не выполнен"
 msgid "Requests that change data need an Idempotency-Key header."
 msgstr "Изменяющему запросу нужен заголовок Idempotency-Key."
 
+msgid "Send the current settings version to replace muted chats."
+msgstr ""
+"Укажите текущую версию настроек, чтобы заменить список отключённых чатов."
+
 msgid "Session not found"
 msgstr "Сессия не найдена"
 
@@ -447,6 +451,9 @@ msgstr "Требуется обновление"
 
 msgid "Use RFC 3339 with an explicit UTC offset."
 msgstr "Используйте RFC 3339 с явно указанным смещением UTC."
+
+msgid "Use a wall time without a UTC offset."
+msgstr "Укажите время без смещения часового пояса."
 
 msgid "Wait for the offer timer to end or join the queue."
 msgstr "Дождитесь окончания таймера предложения или встаньте в очередь."

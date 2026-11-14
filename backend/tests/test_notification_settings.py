@@ -90,6 +90,23 @@ def external() -> Iterator[list[UUID]]:
     notification_consumers.remove("test_settings_external")
 
 
+async def test_settings_errors_are_documented(auth: Auth) -> None:
+    schema = (await auth.client.get("/api/v1/openapi.json")).json()
+    operation = schema["paths"][ROOT]["patch"]
+
+    assert {"403", "409"} <= set(operation["responses"])
+    for status in ("403", "409"):
+        content = operation["responses"][status]["content"]
+        assert "application/problem+json" in content
+
+    problem = schema["components"]["schemas"]["Problem"]["properties"]
+    assert "current_version" in problem
+    assert {
+        "notification_chat_forbidden",
+        "notification_settings_version_conflict",
+    } <= set(problem["code"]["enum"])
+
+
 async def test_defaults_are_all_enabled_with_quiet_hours(
     auth: Auth, owner: Account
 ) -> None:
@@ -197,26 +214,67 @@ async def test_only_member_can_mute_chat(
     await grant_chat_access(auth.db, foreign_chat, borrower_id)
     await auth.db.commit()
 
-    muted = await patch_settings(owner, {"muted_chat_ids": [str(own_chat)]})
+    version = (await get_settings(owner))["version"]
+    muted = await patch_settings(
+        owner, {"version": version, "muted_chat_ids": [str(own_chat)]}
+    )
     assert muted.status_code == 200, muted.text
     assert muted.json()["muted_chat_ids"] == [str(own_chat)]
 
-    forbidden = await patch_settings(owner, {"muted_chat_ids": [str(foreign_chat)]})
+    version = (await get_settings(owner))["version"]
+    forbidden = await patch_settings(
+        owner, {"version": version, "muted_chat_ids": [str(foreign_chat)]}
+    )
     assert forbidden.status_code == 403
     assert forbidden.headers["content-type"] == "application/problem+json"
     assert forbidden.json()["code"] == "notification_chat_forbidden"
 
+    borrower_version = (await get_settings(borrower))["version"]
     foreign_attempt = await patch_settings(
-        borrower, {"muted_chat_ids": [str(own_chat)]}
+        borrower,
+        {"version": borrower_version, "muted_chat_ids": [str(own_chat)]},
     )
     assert foreign_attempt.status_code == 403
 
-    assert (await patch_settings(owner, {"muted_chat_ids": []})).status_code == 200
+    version = (await get_settings(owner))["version"]
+    unmuted = await patch_settings(owner, {"version": version, "muted_chat_ids": []})
+    assert unmuted.status_code == 200
     assert await auth.db.scalar(select(func.count()).select_from(MutedChat)) == 0
     await revoke_chat_access(auth.db, own_chat, owner_id)
     await auth.db.commit()
-    revoked = await patch_settings(owner, {"muted_chat_ids": [str(own_chat)]})
+    version = (await get_settings(owner))["version"]
+    revoked = await patch_settings(
+        owner, {"version": version, "muted_chat_ids": [str(own_chat)]}
+    )
     assert revoked.status_code == 403
+
+
+async def test_mute_replacement_requires_current_version(
+    auth: Auth, owner: Account
+) -> None:
+    chat_id = uuid4()
+    await grant_chat_access(auth.db, chat_id, UUID(owner.tokens["user"]["id"]))
+    await auth.db.commit()
+
+    missing = await patch_settings(owner, {"muted_chat_ids": [str(chat_id)]})
+    assert missing.status_code == 422
+    assert missing.json()["code"] == "validation_failed"
+    assert missing.json()["errors"][0]["code"] == "notification_version_required"
+
+    # A version from before another change is rejected instead of dropping
+    # the mute the other request added.
+    await patch_settings(owner, {"version": 0, "types": {"status.changed": False}})
+    stale = await patch_settings(owner, {"version": 0, "muted_chat_ids": []})
+    assert stale.status_code == 409
+    assert stale.json()["code"] == "notification_settings_version_conflict"
+    assert stale.json()["current_version"] == 1
+
+    current = (await get_settings(owner))["version"]
+    muted = await patch_settings(
+        owner, {"version": current, "muted_chat_ids": [str(chat_id)]}
+    )
+    assert muted.status_code == 200, muted.text
+    assert muted.json()["muted_chat_ids"] == [str(chat_id)]
 
 
 async def test_unknown_type_and_invalid_quiet_hours(
@@ -240,6 +298,11 @@ async def test_unknown_type_and_invalid_quiet_hours(
     aware = await patch_settings(owner, {"quiet_hours": {"start": "22:00:00+03:00"}})
     assert aware.status_code == 422
     assert aware.json()["code"] == "validation_failed"
+    assert aware.json()["errors"][0]["code"] == "quiet_hours_offset"
+    assert (
+        aware.json()["errors"][0]["detail"]
+        == "Укажите время без смещения часового пояса."
+    )
 
 
 async def test_idempotent_repeat_and_concurrent_stale_edit(
@@ -397,7 +460,10 @@ async def test_disabled_type_and_muted_chat_suppress_external(
         assert external == []
         assert len((await feed(owner))["items"]) == 1
 
-        muted = await patch_settings(owner, {"muted_chat_ids": [str(chat_id)]})
+        version = (await get_settings(owner))["version"]
+        muted = await patch_settings(
+            owner, {"version": version, "muted_chat_ids": [str(chat_id)]}
+        )
         assert muted.status_code == 200, muted.text
         await enqueue(
             auth, owner, kind="message.received", params={"chat_id": str(chat_id)}
@@ -406,7 +472,10 @@ async def test_disabled_type_and_muted_chat_suppress_external(
         assert external == []
         assert len((await feed(owner))["items"]) == 2
 
-        unmuted = await patch_settings(owner, {"muted_chat_ids": []})
+        version = (await get_settings(owner))["version"]
+        unmuted = await patch_settings(
+            owner, {"version": version, "muted_chat_ids": []}
+        )
         assert unmuted.status_code == 200, unmuted.text
         await enqueue(
             auth, owner, kind="message.received", params={"chat_id": str(chat_id)}

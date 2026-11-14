@@ -1,11 +1,18 @@
 """Owner-only inbox, monotone read cursor and delivery settings."""
 
 from datetime import time
-from typing import Annotated, Any
+from typing import Annotated, Any, Self
 from uuid import UUID
 
 from fastapi import Query, Request
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
+from pydantic_core import PydanticCustomError
 from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert
 
@@ -197,7 +204,10 @@ class QuietHoursPatch(BaseModel):
     @classmethod
     def wall_time(cls, value: time | None) -> time | None:
         if value is not None and value.tzinfo is not None:
-            raise ValueError("Quiet hours are wall times without an offset.")
+            raise PydanticCustomError(
+                "quiet_hours_offset",
+                "Quiet hours are wall times without an offset.",
+            )
         return value
 
 
@@ -209,7 +219,10 @@ class NotificationSettingsPatch(BaseModel):
     version: int | None = Field(
         default=None,
         ge=0,
-        description="Version the edit is based on; a different one is rejected.",
+        description=(
+            "Version the edit is based on; a different one is rejected."
+            " Required when replacing muted chats."
+        ),
     )
     types: dict[str, bool] | None = Field(
         default=None,
@@ -217,8 +230,20 @@ class NotificationSettingsPatch(BaseModel):
     )
     quiet_hours: QuietHoursPatch | None = None
     muted_chat_ids: list[UUID] | None = Field(
-        default=None, description="Replaces the whole set of muted chats."
+        default=None,
+        description="Replaces the whole set of muted chats; requires version.",
     )
+
+    @model_validator(mode="after")
+    def mute_requires_version(self) -> Self:
+        # The list replaces every muted chat, so without a version two clients
+        # could silently drop each other's mutes. Other fields are partial.
+        if self.muted_chat_ids is not None and self.version is None:
+            raise PydanticCustomError(
+                "notification_version_required",
+                "Send the current version to replace muted chats.",
+            )
+        return self
 
 
 def settings_output(
@@ -313,7 +338,17 @@ async def apply_patch(  # noqa: PLR0912 - independent optional fields
     return changed
 
 
-@router.patch("/settings", response_model=NotificationSettingsOutput)
+@router.patch(
+    "/settings",
+    response_model=NotificationSettingsOutput,
+    responses={
+        403: {"model": Problem, "description": "Not a member of the chat."},
+        409: {
+            "model": Problem,
+            "description": "Stale settings version; current_version is returned.",
+        },
+    },
+)
 async def update_settings(
     data: NotificationSettingsPatch,
     request: Request,

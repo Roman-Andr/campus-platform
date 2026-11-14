@@ -252,6 +252,9 @@ msgstr ""
 msgid "Requests that change data need an Idempotency-Key header."
 msgstr ""
 
+msgid "Send the current settings version to replace muted chats."
+msgstr ""
+
 msgid "Session not found"
 msgstr ""
 
@@ -415,6 +418,9 @@ msgid "Update required"
 msgstr ""
 
 msgid "Use RFC 3339 with an explicit UTC offset."
+msgstr ""
+
+msgid "Use a wall time without a UTC offset."
 msgstr ""
 
 msgid "Wait for the offer timer to end or join the queue."

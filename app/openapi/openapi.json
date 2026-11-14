@@ -12067,7 +12067,7 @@
             }
           },
           "403": {
-            "description": "Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs.",
+            "description": "Not a member of the chat.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -12125,6 +12125,16 @@
               }
             },
             "description": "Not Found"
+          },
+          "409": {
+            "description": "Stale settings version; current_version is returned.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
           }
         }
       }
@@ -13853,7 +13863,7 @@
             ],
             "minimum": 0.0,
             "title": "Version",
-            "description": "Version the edit is based on; a different one is rejected."
+            "description": "Version the edit is based on; a different one is rejected. Required when replacing muted chats."
           },
           "types": {
             "additionalProperties": {
@@ -13886,7 +13896,7 @@
               "null"
             ],
             "title": "Muted Chat Ids",
-            "description": "Replaces the whole set of muted chats."
+            "description": "Replaces the whole set of muted chats; requires version."
           }
         },
         "additionalProperties": false,

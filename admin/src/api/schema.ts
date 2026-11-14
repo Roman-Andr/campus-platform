@@ -2198,7 +2198,7 @@ export interface components {
     NotificationSettingsPatch: {
       /**
        * Version
-       * @description Version the edit is based on; a different one is rejected.
+       * @description Version the edit is based on; a different one is rejected. Required when replacing muted chats.
        */
       version?: number | null;
       /**
@@ -2211,7 +2211,7 @@ export interface components {
       quiet_hours?: components['schemas']['QuietHoursPatch'] | null;
       /**
        * Muted Chat Ids
-       * @description Replaces the whole set of muted chats.
+       * @description Replaces the whole set of muted chats; requires version.
        */
       muted_chat_ids?: string[] | null;
     };
@@ -10993,7 +10993,7 @@ export interface operations {
           'application/problem+json': components['schemas']['Problem'];
         };
       };
-      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      /** @description Not a member of the chat. */
       403: {
         headers: {
           [name: string]: unknown;
@@ -11004,6 +11004,15 @@ export interface operations {
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Stale settings version; current_version is returned. */
+      409: {
         headers: {
           [name: string]: unknown;
         };
