@@ -3,7 +3,8 @@
 import 'meeting_status.dart';
 
 /// The effective meeting plus the proposal awaiting an answer, if any.
-class MeetingOutput implements InteractionOutputMeeting {
+class MeetingOutput
+    implements InteractionOutputMeeting, ParticipationOutputMeeting {
   const MeetingOutput({
     required this.id,
     required this.version,
@@ -142,6 +143,35 @@ class InteractionOutputMeetingNull implements InteractionOutputMeeting {
   Object? toJson() => value;
 }
 
+sealed class ParticipationOutputMeeting {
+  factory ParticipationOutputMeeting.fromJson(Object? json) {
+    final matches = <String>[
+      if (_matches14(json)) "MeetingOutput",
+      if (_matches15(json)) "Null",
+    ];
+    if (matches.length != 1) {
+      throw FormatException(
+        "Expected exactly one ParticipationOutputMeeting variant. Matches: " +
+            matches.toString(),
+      );
+    }
+    if (matches.single == "MeetingOutput") {
+      return MeetingOutput.fromJson(json as Map<String, Object?>);
+    }
+    return ParticipationOutputMeetingNull(json as Null);
+  }
+
+  Object? toJson();
+}
+
+class ParticipationOutputMeetingNull implements ParticipationOutputMeeting {
+  const ParticipationOutputMeetingNull(this.value);
+
+  final Null value;
+
+  Object? toJson() => value;
+}
+
 bool _matches1(Object? value) => (_matches2(value));
 bool _matches2(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("id")) &&
@@ -197,6 +227,8 @@ bool _matches9(Object? value) => ((value is String) || (value == null));
 bool _matches10(Object? value) => ((value is String) || (value == null));
 bool _matches11(Object? value) => ((value is String) || (value == null));
 bool _matches13(Object? value) => ((value == null));
+bool _matches14(Object? value) => (_matches2(value));
+bool _matches15(Object? value) => ((value == null));
 int _readJsonInteger(Object? value) {
   if (value is int) {
     return value;

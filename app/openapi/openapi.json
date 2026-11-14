@@ -8366,6 +8366,16 @@
             "description": "RFC 3339 instant with an explicit offset; returned in UTC.",
             "title": "Response Due At"
           },
+          "meeting": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MeetingOutput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -8385,6 +8395,7 @@
           "status",
           "stage",
           "response_due_at",
+          "meeting",
           "created_at",
           "listing"
         ],

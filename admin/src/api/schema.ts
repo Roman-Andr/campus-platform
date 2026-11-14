@@ -1417,6 +1417,7 @@ export interface components {
       stage: string | null;
       /** Response Due At */
       response_due_at: string | null;
+      meeting: components['schemas']['MeetingOutput'] | null;
       /**
        * Created At
        * Format: date-time

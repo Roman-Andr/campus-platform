@@ -18,7 +18,7 @@ class ListingEdit {
     return ListingEdit(
       title: json["title"] as String,
       description: json["description"] as String,
-      version: json["version"] as int,
+      version: _readJsonInteger(json["version"]),
       pinnedUntil: json.containsKey("pinned_until")
           ? json["pinned_until"] == null
                 ? null
@@ -57,4 +57,14 @@ class ListingEdit {
       "pinned_until": this.pinnedUntil?.toUtc().toIso8601String(),
     if (this.categoryId != null) "category_id": this.categoryId,
   };
+}
+
+int _readJsonInteger(Object? value) {
+  if (value is int) {
+    return value;
+  }
+  if (value is double && value.isFinite && value == value.toInt()) {
+    return value.toInt();
+  }
+  throw FormatException('Expected a JSON integer.', value);
 }

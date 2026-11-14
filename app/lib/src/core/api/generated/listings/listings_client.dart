@@ -11,6 +11,8 @@ import 'models/interaction_output.dart' as models show InteractionOutput;
 import 'models/listing_edit.dart' as models show ListingEdit;
 import 'models/listing_output.dart' as models show ListingOutput;
 import 'models/listing_status.dart' as models show ListingStatus;
+import 'models/meeting_accept_input.dart' as models show MeetingAcceptInput;
+import 'models/meeting_proposal_input.dart' as models show MeetingProposalInput;
 import 'models/page_event_output.dart' as models show PageEventOutput;
 import 'models/page_favorite_output.dart' as models show PageFavoriteOutput;
 import 'models/page_interaction_output.dart'
@@ -20,6 +22,7 @@ import 'models/page_listing_output.dart' as models show PageListingOutput;
 import 'models/page_participation_output.dart'
     as models
     show PageParticipationOutput;
+import 'models/participation_output_meeting.dart' as models show MeetingOutput;
 import 'models/publication_input.dart' as models show PublicationInput;
 import 'models/transition_input.dart' as models show TransitionInput;
 import 'models/visibility.dart' as models show Visibility;
@@ -644,6 +647,106 @@ class ListingsClient {
     return models.InteractionOutput.fromJson(
       response.data as Map<String, Object?>,
     );
+  }
+
+  /// Propose Meeting
+  ///
+  /// Propose a time and place; a counter-proposal replaces the pending one.
+  Future<models.MeetingOutput> proposeMeeting({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required String interactionId,
+    required models.MeetingProposalInput body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(interactionId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/interactions/" +
+          Uri.encodeComponent(interactionId) +
+          "/meeting/proposals",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.MeetingOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Accept Meeting
+  ///
+  /// Accept the current proposal; a stale one is rejected with 409.
+  Future<models.MeetingOutput> acceptMeeting({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required String interactionId,
+    required models.MeetingAcceptInput body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(interactionId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/interactions/" +
+          Uri.encodeComponent(interactionId) +
+          "/meeting/accept",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.MeetingOutput.fromJson(response.data as Map<String, Object?>);
   }
 
   /// Listing Events

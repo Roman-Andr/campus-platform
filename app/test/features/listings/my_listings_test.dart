@@ -25,6 +25,7 @@ Map<String, Object?> participationJson({
   'status': status,
   'stage': stage,
   'response_due_at': null,
+  'meeting': null,
   'created_at': '2026-11-14T00:00:00Z',
   'listing': {
     'id': 'listing-1',
