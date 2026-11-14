@@ -11,6 +11,11 @@ export const en = {
       title: 'Welcome',
       description: 'Campus administration panel. Sections will appear here as they are built.',
     },
+    clientUpdate: {
+      message: 'This panel version is no longer supported. Reload the panel to update.',
+      reload: 'Reload panel',
+      minimum: 'Minimum version: %{version}.',
+    },
     apiStatus: {
       menu: 'API status',
       title: 'API status',

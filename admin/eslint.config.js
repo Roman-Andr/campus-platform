@@ -25,6 +25,11 @@ export default defineConfig([
     },
   },
   {
+    // Generated declarations follow the upstream generator's style.
+    files: ['src/api/schema.ts'],
+    rules: { '@typescript-eslint/consistent-indexed-object-style': 'off' },
+  },
+  {
     files: ['eslint.config.js'],
     extends: [js.configs.recommended],
     languageOptions: { globals: globals.node },

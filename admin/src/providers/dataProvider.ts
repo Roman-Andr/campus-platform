@@ -20,8 +20,6 @@ export interface CursorPage<T = unknown> {
   items: T[];
   /** Cursor of the next page; absent or `null` on the last page. */
   next_page?: string | null;
-  /** Total number of records, if the endpoint counts them. */
-  total?: number | null;
 }
 
 export interface DataProviderOptions {
@@ -116,7 +114,6 @@ export const createDataProvider = ({ apiUrl, httpClient }: DataProviderOptions):
         const reached = current === page;
         return {
           data: (reached ? result.items : []) as RecordType[],
-          ...(typeof result.total === 'number' ? { total: result.total } : {}),
           pageInfo: { hasNextPage: reached && next !== null, hasPreviousPage: page > 1 },
         };
       }
