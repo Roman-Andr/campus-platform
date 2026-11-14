@@ -16,6 +16,10 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.exc import ArgumentError
 
 ENCRYPTION_KEY_SIZE = 32
+# Specification, 5.3.2: moderation and audit records are kept for three years.
+# Three calendar years span at most 1096 days; the purge function in the
+# database refuses anything shorter.
+AUDIT_RETENTION_MINIMUM = timedelta(days=1096)
 
 
 def encryption_key(value: SecretStr) -> bytes:
@@ -243,6 +247,14 @@ class Settings(BaseSettings):
         default=timedelta(days=7),
         gt=timedelta(0),
         description="How long finished deadlines are kept.",
+    )
+    audit_retention: timedelta = Field(
+        default=AUDIT_RETENTION_MINIMUM,
+        ge=AUDIT_RETENTION_MINIMUM,
+        description=(
+            "How long records of moderator and administrator actions are"
+            " kept; three years at least (the database refuses less)."
+        ),
     )
     deadlines_cron: str = Field(
         default="* * * * *", description="When due deadlines are processed (UTC)."
