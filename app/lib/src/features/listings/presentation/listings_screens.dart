@@ -15,6 +15,7 @@ import '../application/listing_photo_draft.dart';
 import '../application/listings.dart';
 import '../domain/event.dart';
 import '../domain/feed.dart';
+import '../domain/help.dart';
 import '../domain/skills.dart';
 import 'event_screen.dart';
 import 'interaction_timeline_screen.dart';
@@ -48,10 +49,12 @@ class ListingAction extends ConsumerStatefulWidget {
     this.after,
     this.failureMessage = listingFailureMessage,
     this.enabled = true,
+    this.buttonKey,
     super.key,
   });
   final String label;
   final bool enabled;
+  final Key? buttonKey;
   final Future<void> Function() run;
   final VoidCallback? after;
   final String Function(AppLocalizations, Object) failureMessage;
@@ -68,6 +71,7 @@ class _ListingActionState extends ConsumerState<ListingAction> {
     children: [
       if (error != null) Text(error!, key: const Key('listing-error')),
       FilledButton(
+        key: widget.buttonKey,
         onPressed: busy || !widget.enabled
             ? null
             : () async {
@@ -382,6 +386,10 @@ class FeedFiltersBar extends ConsumerWidget {
                 value: FeedKind.event.apiValue,
                 child: Text(l.listingKindEvent),
               ),
+              DropdownMenuItem(
+                value: FeedKind.help.apiValue,
+                child: Text(l.listingKindHelp),
+              ),
             ],
             onChanged: (value) => onChanged(
               filters.withKind(
@@ -447,6 +455,7 @@ class ListingTile extends ConsumerWidget {
     final l = context.l10n;
     final publication = item.kind == 'publication';
     final event = item.kind == 'event';
+    final help = isHelpRequest(item);
     final seats = eventSeatsText(l, item.remainingPlaces);
     final skill = isSkillListing(item);
     final direction = skillDirectionOf(item);
@@ -456,6 +465,8 @@ class ListingTile extends ConsumerWidget {
         ? l.listingKindSkill
         : event
         ? l.listingKindEvent
+        : help
+        ? l.listingKindHelp
         : listingName(l, item.status);
     return Column(
       children: [
@@ -519,6 +530,7 @@ class ListingScreen extends ConsumerWidget {
               final event = item.kind == 'event';
               final skill = isSkillListing(item);
               final direction = skillDirectionOf(item);
+              final help = isHelpRequest(item);
               final pinned = isPinnedAt(item, clock.now());
               return ListView(
                 padding: const EdgeInsets.all(16),
@@ -544,6 +556,11 @@ class ListingScreen extends ConsumerWidget {
                     ),
                   ] else if (publication || skill)
                     Text(listingKindName(l, item.kind))
+                  else if (help)
+                    Text(
+                      '${listingKindName(l, item.kind)} · '
+                      '${listingName(l, item.status)}',
+                    )
                   else
                     Text(listingName(l, item.status)),
                   if (direction != null)
@@ -563,6 +580,19 @@ class ListingScreen extends ConsumerWidget {
                     ),
                   ],
                   Text(item.description),
+                  if (help && item.expiresAt != null)
+                    Text(
+                      l.helpRelevantUntil(
+                        formatCityTime(
+                          item.expiresAt!,
+                          timezone: item.cityTimezone,
+                          city: item.cityTimezone,
+                          l10n: l,
+                          includeDate: true,
+                        ),
+                      ),
+                      key: const Key('help-relevant-until'),
+                    ),
                   if (item.hiddenReason != null)
                     Text(l.listingHiddenReason(item.hiddenReason!)),
                   if (publication && item.authorId == user?.id)
@@ -570,6 +600,7 @@ class ListingScreen extends ConsumerWidget {
                   if (!publication &&
                       !event &&
                       !skill &&
+                      !help &&
                       item.authorId == user?.id)
                     ListingOwnerActions(item: item),
                   if (event && item.authorId == user?.id)
@@ -581,6 +612,7 @@ class ListingScreen extends ConsumerWidget {
                   if (!publication &&
                       !event &&
                       !skill &&
+                      !help &&
                       item.authorId != user?.id &&
                       user != null)
                     ListingWaitlistSection(listing: item),
@@ -588,9 +620,12 @@ class ListingScreen extends ConsumerWidget {
                     IncomingList(id: id),
                   if (skill && user != null && item.authorId != user.id)
                     LessonParticipationSection(listing: item),
+                  if (help && user != null && item.authorId != user.id)
+                    HelpRequestSection(listing: item),
                   if (!publication &&
                       !event &&
                       !skill &&
+                      !help &&
                       user != null &&
                       item.authorId != user.id)
                     ListingParticipation(id: id),
@@ -919,6 +954,7 @@ class _IncomingListState extends ConsumerState<IncomingList> {
     final l = context.l10n;
     final listing = ref.watch(listingProvider(widget.id)).value;
     final skill = listing != null && isSkillListing(listing);
+    final help = listing != null && isHelpRequest(listing);
     return ref
         .watch(incomingProvider(widget.id, cursor))
         .when(
@@ -937,7 +973,7 @@ class _IncomingListState extends ConsumerState<IncomingList> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                l.listingIncoming,
+                help ? l.helpIncoming : l.listingIncoming,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               if (page.items.isEmpty) Text(l.listingsEmpty),
@@ -947,6 +983,13 @@ class _IncomingListState extends ConsumerState<IncomingList> {
                   children: [
                     Text(item.participantName),
                     InteractionStatusText(item: item),
+                    if (help && helpIsExecutor(item))
+                      Text(
+                        l.helpExecutor,
+                        key: Key('help-executor-${item.id}'),
+                      ),
+                    if (help && helpIsReserve(listing, item))
+                      Text(l.helpReserve, key: Key('help-reserve-${item.id}')),
                     TimelineButton(item: item),
                     if (listing != null)
                       MeetingSummary(
@@ -963,13 +1006,37 @@ class _IncomingListState extends ConsumerState<IncomingList> {
                         spacing: 8,
                         children: [
                           for (final status in [
-                            if (!skill) InteractionStatus.accepted,
+                            if (!skill &&
+                                (!help ||
+                                    listing.status == ListingStatus.active))
+                              InteractionStatus.accepted,
                             InteractionStatus.rejected,
                           ])
                             ListingAction(
                               label: status == InteractionStatus.accepted
-                                  ? l.reservationAccept
+                                  ? help
+                                        ? l.helpSelectExecutor
+                                        : l.reservationAccept
                                   : l.reservationReject,
+                              buttonKey: help
+                                  ? Key(
+                                      status == InteractionStatus.accepted
+                                          ? 'help-select-${item.id}'
+                                          : 'help-reject-${item.id}',
+                                    )
+                                  : null,
+                              failureMessage: help
+                                  ? helpFailureMessage
+                                  : listingFailureMessage,
+                              after:
+                                  help && status == InteractionStatus.accepted
+                                  ? () => ScaffoldMessenger.maybeOf(context)
+                                        ?.showSnackBar(
+                                          SnackBar(
+                                            content: Text(l.helpSelected),
+                                          ),
+                                        )
+                                  : null,
                               run: () async {
                                 await ref
                                     .read(campusApiProvider)
@@ -1119,4 +1186,73 @@ class ListingParticipation extends ConsumerWidget {
           children: [for (final item in items) ReservationTile(item: item)],
         ),
       );
+}
+
+/// The participant's state and actions on a help request: respond, wait for
+/// the author, or stay in the reserve behind the selected executor.
+class HelpRequestSection extends ConsumerWidget {
+  const HelpRequestSection({required this.listing, super.key});
+
+  final ListingOutput listing;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final me = ref.watch(myProfileProvider).value?.id;
+    return ref
+        .watch(listingParticipationProvider(listing.id))
+        .when(
+          loading: () => const LinearProgressIndicator(),
+          error: (e, _) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(helpFailureMessage(l, e)),
+              TextButton(
+                onPressed: () =>
+                    ref.invalidate(listingParticipationProvider(listing.id)),
+                child: Text(l.errorRetry),
+              ),
+            ],
+          ),
+          data: (items) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final item in items) ...[
+                ReservationTile(item: item),
+                if (helpIsExecutor(item))
+                  Text(
+                    l.helpYouAreExecutor,
+                    key: Key('help-executor-${item.id}'),
+                  ),
+                if (helpIsReserve(listing, item))
+                  Text(
+                    l.helpReserveNotice,
+                    key: Key('help-reserve-${item.id}'),
+                  ),
+                if (item.status == InteractionStatus.pending &&
+                    listing.status == ListingStatus.active)
+                  Text(l.helpApplicationPending),
+              ],
+              if (helpCanRespond(listing, me, items))
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: ListingAction(
+                    label: l.helpRespond,
+                    buttonKey: const Key('help-respond'),
+                    failureMessage: helpFailureMessage,
+                    after: () => ScaffoldMessenger.maybeOf(
+                      context,
+                    )?.showSnackBar(SnackBar(content: Text(l.helpResponded))),
+                    run: () async {
+                      await ref
+                          .read(campusApiProvider)
+                          .listings
+                          .respondToHelp(listingId: listing.id);
+                    },
+                  ),
+                ),
+            ],
+          ),
+        );
+  }
 }

@@ -126,6 +126,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Notice').last);
     await tester.pumpAndSettle();
+    // The bar is horizontally scrollable; the extra kind widened it.
+    await tester.ensureVisible(find.byKey(const Key('feed-filter-dormitory')));
+    await tester.pump();
     await tester.tap(find.byKey(const Key('feed-filter-dormitory')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Dubki').last);

@@ -2623,6 +2623,138 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Онлайн-встреча'**
   String get meetingOnline;
+
+  /// Listing kind name: help request.
+  ///
+  /// In ru, this message translates to:
+  /// **'Помощь'**
+  String get listingKindHelp;
+
+  /// Entry point to a new help request.
+  ///
+  /// In ru, this message translates to:
+  /// **'Попросить помощь'**
+  String get feedCreateHelp;
+
+  /// Title of the help request form.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новый запрос о помощи'**
+  String get helpCreateTitle;
+
+  /// The help request was created.
+  ///
+  /// In ru, this message translates to:
+  /// **'Запрос о помощи опубликован.'**
+  String get helpPublished;
+
+  /// Field of the help request relevance deadline.
+  ///
+  /// In ru, this message translates to:
+  /// **'Актуален до'**
+  String get helpDeadline;
+
+  /// The relevance deadline is in the past.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите срок в будущем.'**
+  String get helpDeadlinePast;
+
+  /// The server rejected the relevance deadline.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок должен быть в будущем и не позже срока жизни объявления.'**
+  String get helpDeadlineInvalid;
+
+  /// Applies to a help request.
+  ///
+  /// In ru, this message translates to:
+  /// **'Откликнуться'**
+  String get helpRespond;
+
+  /// The application to a help request was sent.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отклик отправлен.'**
+  String get helpResponded;
+
+  /// The application is pending while the request is active.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отклик ждёт решения автора.'**
+  String get helpApplicationPending;
+
+  /// An application kept in reserve behind the selected executor.
+  ///
+  /// In ru, this message translates to:
+  /// **'Резерв'**
+  String get helpReserve;
+
+  /// The respondent is kept in reserve because an executor was chosen.
+  ///
+  /// In ru, this message translates to:
+  /// **'Исполнитель уже выбран; вы остаётесь в резерве.'**
+  String get helpReserveNotice;
+
+  /// The selected executor of a help request.
+  ///
+  /// In ru, this message translates to:
+  /// **'Исполнитель'**
+  String get helpExecutor;
+
+  /// The current user was selected as the executor.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы исполнитель.'**
+  String get helpYouAreExecutor;
+
+  /// The author selects one application as the executor.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выбрать исполнителя'**
+  String get helpSelectExecutor;
+
+  /// The author selected an executor.
+  ///
+  /// In ru, this message translates to:
+  /// **'Исполнитель выбран.'**
+  String get helpSelected;
+
+  /// The help request changed after it was loaded.
+  ///
+  /// In ru, this message translates to:
+  /// **'Запрос уже изменился. Обновите объявление.'**
+  String get helpConflict;
+
+  /// The user may not act on this help request.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы не можете действовать по этому запросу.'**
+  String get helpForbidden;
+
+  /// Heading of the applications to a help request.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отклики'**
+  String get helpIncoming;
+
+  /// Hint about the earliest acceptable deadline.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не позже срока жизни объявления ({days} дн.).'**
+  String helpDeadlineHint(int days);
+
+  /// The deadline exceeds the listing lifetime.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок не может быть больше срока жизни объявления ({days} дн.).'**
+  String helpDeadlineTooLate(int days);
+
+  /// Relevance deadline shown on a help request.
+  ///
+  /// In ru, this message translates to:
+  /// **'Актуален до {date}'**
+  String helpRelevantUntil(String date);
 }
 
 class _AppLocalizationsDelegate

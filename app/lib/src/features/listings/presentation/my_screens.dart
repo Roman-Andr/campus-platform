@@ -9,6 +9,7 @@ import '../../profile/application/my_profile.dart';
 import '../application/listings.dart';
 import '../application/my_listings.dart';
 import '../application/waitlist.dart';
+import '../domain/help.dart';
 import '../domain/skills.dart';
 import 'interaction_timeline_screen.dart';
 import 'lesson_widgets.dart';
@@ -29,6 +30,7 @@ String listingKindName(AppLocalizations l, String kind) => switch (kind) {
   'skill' => l.listingKindSkill,
   'publication' => l.listingKindPublication,
   'event' => l.listingKindEvent,
+  'help' => l.listingKindHelp,
   _ => kind,
 };
 
@@ -213,6 +215,19 @@ class ParticipationTile extends StatelessWidget {
           timezone: item.listing.cityTimezone,
           city: item.listing.cityTimezone,
         ),
+        if (item.listing.kind == helpKind) ...[
+          if (interaction.executor)
+            Text(
+              l.helpYouAreExecutor,
+              key: Key('help-executor-${interaction.id}'),
+            ),
+          if (interaction.status == InteractionStatus.pending &&
+              item.listing.status == ListingStatus.busy)
+            Text(
+              l.helpReserveNotice,
+              key: Key('help-reserve-${interaction.id}'),
+            ),
+        ],
         if (item.listing.kind == skillKind)
           _SkillLessonActions(item: interaction),
         ParticipantCancel(item: interaction),
