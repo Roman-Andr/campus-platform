@@ -289,6 +289,35 @@ async def test_a_loan_is_booked_like_an_item(owner: Account, borrower: Account) 
     assert second.status_code == 409, second.text
 
 
+async def test_a_loan_queue_and_reservation_work_like_a_giveaway(
+    owner: Account, borrower: Account, places: Places
+) -> None:
+    """#214: the item keeps the shared booking, queue and reservation rules."""
+    set_settings(owner, listing_reservation_timeout=timedelta(hours=1))
+    now = clock.now()
+    with time_machine.travel(now, tick=False):
+        listing, interaction = await loan(owner, borrower)
+        next_in_line = await new_account(
+            owner.auth, places, "queuer1@university.example"
+        )
+        joined = await request(next_in_line, "POST", f"/{listing['id']}/waitlist")
+        assert joined.status_code == 201, joined.text
+
+    # The reservation runs out before the handover: the loan is cancelled
+    # without a late mark, the item reopens and the queue gets its offer.
+    with time_machine.travel(now + timedelta(hours=1, minutes=1), tick=False):
+        assert await deadlines(owner) >= 1
+        entry = (
+            await request(next_in_line, "GET", f"/{listing['id']}/waitlist/me")
+        ).json()
+        assert entry["status"] == "offered"
+        row = await row_of(owner, interaction)
+        assert row.status == "cancelled"
+        assert row.stage is None
+        assert row.cancelled_by == "system"
+        assert (await listing_row(owner, listing)).status == "active"
+
+
 async def test_the_handover_starts_the_loan_without_completing_it(
     owner: Account, borrower: Account, places: Places
 ) -> None:
