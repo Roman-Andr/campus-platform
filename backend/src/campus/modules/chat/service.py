@@ -13,6 +13,7 @@ worker and the tests exercise the same code:
   written in one transaction, so a rollback publishes nothing.
 """
 
+import base64
 import hashlib
 import math
 import re
@@ -119,9 +120,34 @@ def canonical_pair(first: UUID, second: UUID) -> tuple[UUID, UUID]:
     return (first, second) if first < second else (second, first)
 
 
+FINGERPRINT_VERSION = "v1"
+
+
 def content_hash(text_value: str) -> str:
-    """Hash that makes one client identifier stand for exactly one text."""
+    """SHA-256 of the text; the durable text identity of a dedup row."""
     return hashlib.sha256(text_value.encode()).hexdigest()
+
+
+def body_fingerprint(
+    text_hash: str, reply_to_id: UUID | None, photo_ids: Sequence[UUID]
+) -> str:
+    """Fingerprint of the whole message body: text hash, quote and photos.
+
+    The text enters through its SHA-256, not its plaintext, so the same
+    fingerprint can be backfilled for a row whose message was already
+    edited or deleted. The quote is either a canonical UUID or ``-``, and
+    the ordered photo UUIDs are comma-separated; UUID text never contains
+    a delimiter, so the representation is unambiguous. The base64url
+    encoding without padding keeps the versioned value inside the
+    ``String(64)`` column.
+    """
+    quote = "-" if reply_to_id is None else str(reply_to_id)
+    photos = ",".join(str(photo_id) for photo_id in photo_ids)
+    canonical = f"{text_hash}|{quote}|{photos}"
+    encoded = base64.urlsafe_b64encode(
+        hashlib.sha256(canonical.encode()).digest()
+    ).rstrip(b"=")
+    return f"{FINGERPRINT_VERSION}:{encoded.decode('ascii')}"
 
 
 def message_snippet(text_value: str, query: str, limit: int) -> str:
@@ -601,6 +627,29 @@ async def stored_message(
     return message
 
 
+def replay_matches(
+    dedup: ChatMessageDedup, *, sender_id: UUID, text_hash: str, fingerprint: str
+) -> bool:
+    """Whether a repeated request is exactly the body the dedup row recorded.
+
+    New rows carry the full-body fingerprint, so a change of the quote, the
+    photo set or the photo order is rejected even after the message was
+    edited, deleted or archived.
+
+    A row without a fingerprint predates #356 and its attachment metadata
+    could not be restored by the migration, or the stored message was
+    already gone. Its old hash still identifies the text, but the full body
+    is unknowable, so the replay fails closed instead of accepting a body
+    that might have lost attachments.
+    """
+    return (
+        dedup.sender_id == sender_id
+        and dedup.content_hash == text_hash
+        and dedup.content_fingerprint is not None
+        and dedup.content_fingerprint == fingerprint
+    )
+
+
 async def post_message(  # noqa: PLR0913 - message fields
     session: AsyncSession,
     *,
@@ -646,7 +695,9 @@ async def post_message(  # noqa: PLR0913 - message fields
     if not text.strip() or len(text) > settings.chat_message_max_length:
         raise ProblemError(CHAT_MESSAGE_INVALID)
     await serialize_sender(session, sender_id)
-    digest = content_hash(text)
+    photo_ids = list(photo_ids or [])
+    text_hash = content_hash(text)
+    fingerprint = body_fingerprint(text_hash, reply_to_id, photo_ids)
     existing = await session.scalar(
         select(ChatMessageDedup).where(
             ChatMessageDedup.chat_id == chat_id,
@@ -654,7 +705,12 @@ async def post_message(  # noqa: PLR0913 - message fields
         )
     )
     if existing is not None:
-        if existing.sender_id != sender_id or existing.content_hash != digest:
+        if not replay_matches(
+            existing,
+            sender_id=sender_id,
+            text_hash=text_hash,
+            fingerprint=fingerprint,
+        ):
             raise ProblemError(CHAT_MESSAGE_CONFLICT)
         return await stored_message(session, existing), False
     if (
@@ -662,7 +718,6 @@ async def post_message(  # noqa: PLR0913 - message fields
         and await visible_message(session, chat_id, reply_to_id) is None
     ):
         raise ProblemError(NOT_FOUND)
-    photo_ids = list(photo_ids or [])
     if len(photo_ids) > settings.chat_photo_limit:
         raise ProblemError(CHAT_PHOTO_INVALID)
     photos = await lock_message_photos(session, chat_id, sender_id, photo_ids)
@@ -688,7 +743,8 @@ async def post_message(  # noqa: PLR0913 - message fields
             sequence=sequence,
             message_id=message_id,
             message_created_at=now,
-            content_hash=digest,
+            content_hash=text_hash,
+            content_fingerprint=fingerprint,
             created_at=now,
         )
         .on_conflict_do_nothing()
@@ -703,13 +759,14 @@ async def post_message(  # noqa: PLR0913 - message fields
                 ChatMessageDedup.client_id == client_id,
             )
         )
-        if (
-            stored is not None
-            and stored.sender_id == sender_id
-            and stored.content_hash == digest
+        if stored is None or not replay_matches(
+            stored,
+            sender_id=sender_id,
+            text_hash=text_hash,
+            fingerprint=fingerprint,
         ):
-            return await stored_message(session, stored), False
-        raise ProblemError(CHAT_MESSAGE_CONFLICT)
+            raise ProblemError(CHAT_MESSAGE_CONFLICT)
+        return await stored_message(session, stored), False
     message = ChatMessage(
         id=message_id,
         chat_id=chat_id,

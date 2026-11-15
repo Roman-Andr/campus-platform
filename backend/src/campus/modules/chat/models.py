@@ -147,8 +147,13 @@ class ChatMessageDedup(Base):
     sequence: Mapped[int] = mapped_column(BigInteger)
     message_id: Mapped[UUID]
     message_created_at: Mapped[datetime]
-    # SHA-256 of the text: the same UUID must carry the same content.
+    # SHA-256 of the text; kept as the durable text identity of every row.
     content_hash: Mapped[str] = mapped_column(String(64))
+    # Versioned fingerprint of the text hash, the quote and the ordered
+    # photos. Migration 56a000000001 backfills it where the metadata is
+    # provable; a NULL row fails closed instead of accepting a body whose
+    # legacy attachments may have been purged.
+    content_fingerprint: Mapped[str | None] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(default=clock.now)
 
 
