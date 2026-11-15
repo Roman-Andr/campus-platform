@@ -319,6 +319,8 @@ async def test_hidden_revisions_are_erased_but_snapshot_survives(
         settings=chat_auth.settings,
     )
     await chat_auth.db.commit()
+    snapshot_id = snapshot.id
+    snapshot_text = snapshot.text
     assert (await remove(alice, chat_id, message_id)).status_code == 204
 
     stored = await chat_auth.db.scalar(
@@ -329,6 +331,9 @@ async def test_hidden_revisions_are_erased_but_snapshot_survives(
     boundary = stored.deleted_at + chat_auth.settings.chat_message_version_retention
 
     with time_machine.travel(boundary - timedelta(seconds=1)):
+        # The access token lives 15 minutes; sign in again at the travelled
+        # time instead of weakening authentication for the test.
+        alice.tokens = await alice.auth.login(email=alice.tokens["user"]["email"])
         assert (await evidence(alice, chat_id, message_id)).status_code == 200
         within = await snapshot_message(
             chat_auth.db,
@@ -339,6 +344,7 @@ async def test_hidden_revisions_are_erased_but_snapshot_survives(
         await chat_auth.db.commit()
         assert within.text == "will disappear"
         assert within.version == 1
+        within_id = within.id
 
     with time_machine.travel(boundary):
         # The boundary is enforced by the evidence contract, not only by the
@@ -356,9 +362,9 @@ async def test_hidden_revisions_are_erased_but_snapshot_survives(
         assert report["failed"] == 0
         assert report["versions"] == 1
         assert (await evidence(alice, chat_id, message_id)).status_code == 404
-        assert await chat_auth.db.get(ChatMessageSnapshot, snapshot.id) is not None
-        assert await chat_auth.db.get(ChatMessageSnapshot, within.id) is not None
-        assert snapshot.text == "will disappear"
+        assert await chat_auth.db.get(ChatMessageSnapshot, snapshot_id) is not None
+        assert await chat_auth.db.get(ChatMessageSnapshot, within_id) is not None
+        assert snapshot_text == "will disappear"
 
     # Repeating the capture of the stored complaint returns the same row.
     repeated = await snapshot_message(
@@ -527,7 +533,8 @@ async def test_snapshot_photos_survive_message_and_chat_cleanup(  # noqa: PLR091
     bob_id = UUID(bob.tokens["user"]["id"])
 
     gone_file = await add_photo(chat_auth, UUID(chat_id), alice_id)
-    sent = await send(alice, chat_id, "photo will disappear", photo_ids=[gone_file.id])
+    gone_file_id, gone_file_key = gone_file.id, gone_file.key
+    sent = await send(alice, chat_id, "photo will disappear", photo_ids=[gone_file_id])
     gone_id = UUID(sent.json()["id"])
     assert (await remove(alice, chat_id, gone_id)).status_code == 204
     gone_snapshot = await snapshot_message(
@@ -536,9 +543,11 @@ async def test_snapshot_photos_survive_message_and_chat_cleanup(  # noqa: PLR091
         message_id=gone_id,
         settings=chat_auth.settings,
     )
+    gone_snapshot_id = gone_snapshot.id
 
     kept_file = await add_photo(chat_auth, UUID(chat_id), alice_id)
-    sent = await send(alice, chat_id, "visible with photo", photo_ids=[kept_file.id])
+    kept_file_id, kept_file_key = kept_file.id, kept_file.key
+    sent = await send(alice, chat_id, "visible with photo", photo_ids=[kept_file_id])
     kept_id = UUID(sent.json()["id"])
     kept_snapshot = await snapshot_message(
         chat_auth.db,
@@ -546,17 +555,18 @@ async def test_snapshot_photos_survive_message_and_chat_cleanup(  # noqa: PLR091
         message_id=kept_id,
         settings=chat_auth.settings,
     )
+    kept_snapshot_id = kept_snapshot.id
     await chat_auth.db.commit()
 
     assert gone_snapshot.text == "photo will disappear"
     assert gone_snapshot.version == 1
     assert kept_snapshot.text == "visible with photo"
     assert [
-        row.key for row in await snapshot_photos(chat_auth.db, gone_snapshot.id)
-    ] == [gone_file.key]
+        row.key for row in await snapshot_photos(chat_auth.db, gone_snapshot_id)
+    ] == [gone_file_key]
     assert [
-        row.key for row in await snapshot_photos(chat_auth.db, kept_snapshot.id)
-    ] == [kept_file.key]
+        row.key for row in await snapshot_photos(chat_auth.db, kept_snapshot_id)
+    ] == [kept_file_key]
 
     with time_machine.travel(clock.now() + timedelta(days=30, seconds=1)):
         report = await purge_message_versions(sessions, chat_auth.settings)
@@ -564,14 +574,14 @@ async def test_snapshot_photos_survive_message_and_chat_cleanup(  # noqa: PLR091
     assert report["files"] >= 1
     assert report["protected"] >= 1
     chat_auth.db.expire_all()
-    assert await chat_auth.db.get(File, gone_file.id) is None
+    assert await chat_auth.db.get(File, gone_file_id) is None
     assert [
-        row.key for row in await snapshot_photos(chat_auth.db, gone_snapshot.id)
-    ] == [gone_file.key]
+        row.key for row in await snapshot_photos(chat_auth.db, gone_snapshot_id)
+    ] == [gone_file_key]
     deleted = list(fake_storage.deleted)
-    assert f"{gone_file.key}/source" in deleted
-    assert f"{gone_file.key}/photo" not in deleted
-    assert f"{gone_file.key}/preview" not in deleted
+    assert f"{gone_file_key}/source" in deleted
+    assert f"{gone_file_key}/photo" not in deleted
+    assert f"{gone_file_key}/preview" not in deleted
 
     # Deleting the empty chat removes the visible message and its file row
     # too, while the complaint attachment keeps the processed objects.
@@ -593,24 +603,24 @@ async def test_snapshot_photos_survive_message_and_chat_cleanup(  # noqa: PLR091
     assert purge["chats"] == 1
     chat_auth.db.expire_all()
     assert await chat_auth.db.get(Chat, UUID(chat_id)) is None
-    assert await chat_auth.db.get(File, kept_file.id) is None
+    assert await chat_auth.db.get(File, kept_file_id) is None
     assert (
         await chat_auth.db.scalar(select(ChatMessage).where(ChatMessage.id == gone_id))
         is None
     )
-    assert await chat_auth.db.get(ChatMessageSnapshot, gone_snapshot.id) is not None
-    assert await chat_auth.db.get(ChatMessageSnapshot, kept_snapshot.id) is not None
+    assert await chat_auth.db.get(ChatMessageSnapshot, gone_snapshot_id) is not None
+    assert await chat_auth.db.get(ChatMessageSnapshot, kept_snapshot_id) is not None
     assert [
-        row.key for row in await snapshot_photos(chat_auth.db, gone_snapshot.id)
-    ] == [gone_file.key]
+        row.key for row in await snapshot_photos(chat_auth.db, gone_snapshot_id)
+    ] == [gone_file_key]
     assert [
-        row.key for row in await snapshot_photos(chat_auth.db, kept_snapshot.id)
-    ] == [kept_file.key]
+        row.key for row in await snapshot_photos(chat_auth.db, kept_snapshot_id)
+    ] == [kept_file_key]
     deleted = list(fake_storage.deleted)
-    for photo in (gone_file, kept_file):
-        assert f"{photo.key}/source" in deleted
-        assert f"{photo.key}/photo" not in deleted
-        assert f"{photo.key}/preview" not in deleted
+    for key in (gone_file_key, kept_file_key):
+        assert f"{key}/source" in deleted
+        assert f"{key}/photo" not in deleted
+        assert f"{key}/preview" not in deleted
 
 
 @pytest.mark.asyncio
@@ -621,7 +631,8 @@ async def test_photo_order_follows_the_client(
     owner = UUID(alice.tokens["user"]["id"])
     first = await add_photo(chat_auth, UUID(chat_id), owner)
     second = await add_photo(chat_auth, UUID(chat_id), owner)
-    sent = await send(alice, chat_id, "ordered photos", photo_ids=[second.id, first.id])
+    first_id, second_id = first.id, second.id
+    sent = await send(alice, chat_id, "ordered photos", photo_ids=[second_id, first_id])
     assert sent.status_code == 201, sent.text
     assert sent.json()["photo_ids"] == [str(second.id), str(first.id)]
 
@@ -629,11 +640,11 @@ async def test_photo_order_follows_the_client(
     rows = list(
         await chat_auth.db.scalars(
             select(File)
-            .where(File.id.in_([first.id, second.id]))
+            .where(File.id.in_([first_id, second_id]))
             .order_by(File.message_position)
         )
     )
-    assert [row.id for row in rows] == [second.id, first.id]
+    assert [row.id for row in rows] == [second_id, first_id]
 
 
 @pytest.mark.asyncio
@@ -821,6 +832,7 @@ async def test_legacy_outbox_text_is_removed_before_publication(
     )
     chat_auth.db.add(legacy)
     await chat_auth.db.commit()
+    legacy_id = legacy.id
 
     calls: list[tuple[str, dict[str, Any], UUID]] = []
 
@@ -836,6 +848,6 @@ async def test_legacy_outbox_text_is_removed_before_publication(
     assert "text" not in published[0][1]
 
     chat_auth.db.expire_all()
-    stored = await chat_auth.db.get(OutboxMessage, legacy.id)
+    stored = await chat_auth.db.get(OutboxMessage, legacy_id)
     assert stored is not None
     assert "text" not in stored.payload
