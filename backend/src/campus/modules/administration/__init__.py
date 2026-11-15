@@ -10,5 +10,17 @@ from campus.modules.administration.audit import (
     purge_audit_records,
 )
 from campus.modules.administration.audit import router as audit_router
+from campus.modules.administration.roles import (
+    RoleAssignmentOut,
+)
+from campus.modules.administration.roles import (
+    router as roles_router,
+)
 
-__all__ = ["AuditRecordOut", "audit_router", "purge_audit_records"]
+__all__ = [
+    "AuditRecordOut",
+    "RoleAssignmentOut",
+    "audit_router",
+    "purge_audit_records",
+    "roles_router",
+]

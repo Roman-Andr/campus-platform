@@ -131,7 +131,6 @@ PENDING = {
     "moderate": {"complaint": 91, "dispute": 94, "block": 93, "attached_chat": 92},
     "review_appeal": {"own_decision": 96, "other_decision": 96},
     "administrate": {
-        "assign_role": 210,
         "reference_data": 99,
         "domains": 99,
         "ai_settings": 117,
@@ -140,6 +139,7 @@ PENDING = {
     "audit_dashboard_export": {"dashboard": 139, "export": 140},
 }
 LIVE = {
+    "administrate": ("assign_role",),
     "publish_respond": (
         "publish_community",
         "publish_students",

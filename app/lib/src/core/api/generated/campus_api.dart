@@ -25,6 +25,7 @@ import 'exports.dart'
         ServerTimeClient,
         SessionsClient,
         SkillsClient,
+        AdministrationClient,
         AuditClient,
         ModerationClient,
         ModerationAdminClient,
@@ -76,6 +77,8 @@ final class CampusApi {
   );
   late final clients.SessionsClient sessions = clients.SessionsClient(_client);
   late final clients.SkillsClient skills = clients.SkillsClient(_client);
+  late final clients.AdministrationClient administration =
+      clients.AdministrationClient(_client);
   late final clients.AuditClient audit = clients.AuditClient(_client);
   late final clients.ModerationClient moderation = clients.ModerationClient(
     _client,

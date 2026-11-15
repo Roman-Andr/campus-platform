@@ -5,4 +5,5 @@ from campus.modules.identity import admin_router
 
 router = admin_router()
 router.include_router(administration.audit_router)
+router.include_router(administration.roles_router)
 router.include_router(moderation.admin_router)

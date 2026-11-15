@@ -36,10 +36,11 @@ public lookup GETs. An OpenAPI guard rejects these skips once a matching
 administrative read or write endpoint is registered.
 
 When implementing a linked feature, move its probe from `PENDING` to `LIVE`,
-add the API assertion and remove the skip. For role assignment this is #210;
-it was not implemented on the main branch used for this change. Preserve
-both sides of each restriction. Remove entries from `KNOWN_FAILURES` when
-fixing the corresponding regression.
+add the API assertion and remove the skip. Role assignment (#210) now has
+the live `administrate/assign_role` probe: the administrator assigns a
+moderator and gets 201, every other column gets 403. Preserve both sides of
+each restriction. Remove entries from `KNOWN_FAILURES` when fixing the
+corresponding regression.
 
 The pytest terminal summary counts distinct canonical cells separately from
 alias cells. It lists checked and marked columns per row and their issue

@@ -62,6 +62,7 @@ enum ProblemCodeValue {
   idempotencyKeyReused("idempotency_key_reused"),
   internalError("internal_error"),
   invalidCursor("invalid_cursor"),
+  lastAdministrator("last_administrator"),
   lastCorporateEmail("last_corporate_email"),
   lessonOptionsInvalid("lesson_options_invalid"),
   listingCancelReasonInvalid("listing_cancel_reason_invalid"),
@@ -158,6 +159,8 @@ enum ProblemCodeValue {
   reviewTextInvalid("review_text_invalid"),
   reviewUnavailable("review_unavailable"),
   reviewWindowClosed("review_window_closed"),
+  roleAlreadyAssigned("role_already_assigned"),
+  roleAssignmentNotFound("role_assignment_not_found"),
   sessionNotFound("session_not_found"),
   signInCodeAttemptsExceeded("sign_in_code_attempts_exceeded"),
   signInCodeExpired("sign_in_code_expired"),
@@ -332,6 +335,9 @@ sealed class ProblemCode {
   );
   static const internalError = ProblemCodeKnown(ProblemCodeValue.internalError);
   static const invalidCursor = ProblemCodeKnown(ProblemCodeValue.invalidCursor);
+  static const lastAdministrator = ProblemCodeKnown(
+    ProblemCodeValue.lastAdministrator,
+  );
   static const lastCorporateEmail = ProblemCodeKnown(
     ProblemCodeValue.lastCorporateEmail,
   );
@@ -585,6 +591,12 @@ sealed class ProblemCode {
   );
   static const reviewWindowClosed = ProblemCodeKnown(
     ProblemCodeValue.reviewWindowClosed,
+  );
+  static const roleAlreadyAssigned = ProblemCodeKnown(
+    ProblemCodeValue.roleAlreadyAssigned,
+  );
+  static const roleAssignmentNotFound = ProblemCodeKnown(
+    ProblemCodeValue.roleAssignmentNotFound,
   );
   static const sessionNotFound = ProblemCodeKnown(
     ProblemCodeValue.sessionNotFound,

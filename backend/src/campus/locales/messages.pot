@@ -7,6 +7,15 @@ msgstr ""
 msgid "A deleted message cannot be edited."
 msgstr ""
 
+msgid "A graduate or a former employee has no roles."
+msgstr ""
+
+msgid "A headman has a single scope; both cannot be given."
+msgstr ""
+
+msgid "A headman needs a dormitory or a faculty."
+msgstr ""
+
 #, python-brace-format
 msgid "A lesson has from {min} to {max} time options."
 msgstr ""
@@ -17,6 +26,9 @@ msgid ""
 msgstr ""
 
 msgid "A meeting time and place were proposed."
+msgstr ""
+
+msgid "A moderator or an administrator has no scope."
 msgstr ""
 
 msgid "A no-show can be marked only 24 hours after the agreed meeting time."
@@ -310,6 +322,9 @@ msgstr ""
 msgid "Invalid sign-in code"
 msgstr ""
 
+msgid "Last administrator"
+msgstr ""
+
 msgid "Leave the purchase directly while it is collecting."
 msgstr ""
 
@@ -395,6 +410,9 @@ msgstr ""
 msgid "No such campus city."
 msgstr ""
 
+msgid "No such dormitory or faculty."
+msgstr ""
+
 msgid "No such skill tag."
 msgstr ""
 
@@ -425,6 +443,9 @@ msgid "Only a participant registered for this event can be marked."
 msgstr ""
 
 msgid "Only a published event with an end time accepts votes."
+msgstr ""
+
+msgid "Only a student can be the headman."
 msgstr ""
 
 msgid ""
@@ -549,6 +570,12 @@ msgid "Request failed"
 msgstr ""
 
 msgid "Requests that change data need an Idempotency-Key header."
+msgstr ""
+
+msgid "Role already assigned"
+msgstr ""
+
+msgid "Role assignment not found"
 msgstr ""
 
 msgid "Send the current settings version to replace muted chats."
@@ -910,6 +937,9 @@ msgid ""
 " verify the offline QR code."
 msgstr ""
 
+msgid "The service must keep at least one administrator."
+msgstr ""
+
 msgid "The six-digit confirmation code has expired; request a new one."
 msgstr ""
 
@@ -920,6 +950,12 @@ msgstr ""
 msgid ""
 "The tags must belong to the scenario, be distinct and number at most "
 "{max}."
+msgstr ""
+
+msgid "The user already holds this role in this scope."
+msgstr ""
+
+msgid "The user has no such role assignment."
 msgstr ""
 
 msgid "There is an update to your listing."
