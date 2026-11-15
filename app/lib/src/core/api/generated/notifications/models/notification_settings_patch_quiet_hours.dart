@@ -33,8 +33,8 @@ class QuietHoursPatch implements NotificationSettingsPatchQuietHours {
 sealed class NotificationSettingsPatchQuietHours {
   factory NotificationSettingsPatchQuietHours.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches26(json)) "QuietHoursPatch",
-      if (_matches31(json)) "Null",
+      if (_matches36(json)) "QuietHoursPatch",
+      if (_matches41(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -60,21 +60,21 @@ class NotificationSettingsPatchQuietHoursNull
   Object? toJson() => value;
 }
 
-bool _matches26(Object? value) => (_matches27(value));
-bool _matches27(Object? value) =>
+bool _matches36(Object? value) => (_matches37(value));
+bool _matches37(Object? value) =>
     (value is! Map<String, Object?> ||
         !value.containsKey("enabled") ||
-        _matches28(value["enabled"])) &&
+        _matches38(value["enabled"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("start") ||
-        _matches29(value["start"])) &&
+        _matches39(value["start"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("end") ||
-        _matches30(value["end"])) &&
+        _matches40(value["end"])) &&
     (value is! Map<String, Object?> ||
         value.keys.every(const <String>{"enabled", "start", "end"}.contains)) &&
     ((value is Map<String, Object?>));
-bool _matches28(Object? value) => ((value is bool) || (value == null));
-bool _matches29(Object? value) => ((value is String) || (value == null));
-bool _matches30(Object? value) => ((value is String) || (value == null));
-bool _matches31(Object? value) => ((value == null));
+bool _matches38(Object? value) => ((value is bool) || (value == null));
+bool _matches39(Object? value) => ((value is String) || (value == null));
+bool _matches40(Object? value) => ((value is String) || (value == null));
+bool _matches41(Object? value) => ((value == null));

@@ -122,7 +122,9 @@ def test_purchase_columns_migrate(empty_database: str) -> None:
     } <= names
     assert len(asyncio.run(fetch(empty_database, constraints))) == 6
 
-    run_alembic(empty_database, "downgrade", "-1")
+    # Step back past the purchase migration explicitly: "-1" now removes
+    # whatever revision sits on top of it.
+    run_alembic(empty_database, "downgrade", "291a00000001")
     names = {
         (row["table_name"], row["column_name"])
         for row in asyncio.run(fetch(empty_database, columns))
