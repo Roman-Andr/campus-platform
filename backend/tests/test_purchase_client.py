@@ -1,30 +1,44 @@
 """Opt-in Android acceptance of group purchase shares over the real API.
 
 CAMPUS_RUN_PURCHASE_CLIENT=1 uv run pytest tests/test_purchase_client.py -s
-Requires a running Android emulator and Flutter/adb on PATH.
+Requires Docker, a running Android emulator and Flutter/adb on PATH.
 """
 
 import asyncio
 import json
 import os
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 import uvicorn
 
+from campus.core.storage import Storage
 from tests.test_identity import DEVICE, Auth
 from tests.test_listings import borrower, owner
+from tests.test_photos import rustfs, storage
 from tests.test_profile import Account, auth, places
 
-__all__ = ["auth", "borrower", "owner", "places"]
+__all__ = ["auth", "borrower", "owner", "places", "rustfs", "storage"]
 RUN_CLIENT = os.environ.get("CAMPUS_RUN_PURCHASE_CLIENT") == "1"
 APP = Path(__file__).resolve().parents[2] / "app"
 PORT = 18043
 
 
+async def adb_reverse(port: int) -> None:
+    process = await asyncio.create_subprocess_exec(
+        "adb", "reverse", f"tcp:{port}", f"tcp:{port}"
+    )
+    assert await process.wait() == 0
+
+
 @pytest.mark.skipif(not RUN_CLIENT, reason="opt-in Android acceptance")
 async def test_two_user_purchase_client(
-    auth: Auth, owner: Account, borrower: Account, tmp_path: Path
+    auth: Auth,
+    owner: Account,
+    borrower: Account,
+    storage: Storage,
+    tmp_path: Path,
 ) -> None:
     defines = tmp_path / "client.json"
     defines.write_text(
@@ -37,6 +51,10 @@ async def test_two_user_purchase_client(
             }
         )
     )
+    # Signed storage links keep the host and port, so Android reaches the
+    # same RustFS address through adb reverse.
+    storage_port = urlsplit(storage.settings.s3_endpoint_url or "").port
+    assert storage_port is not None
     # The fixture owns the lifespan; Uvicorn only exposes it to Android.
     server = uvicorn.Server(
         uvicorn.Config(
@@ -53,13 +71,8 @@ async def test_two_user_purchase_client(
             if serving.done():
                 await serving
             await asyncio.sleep(0.05)
-        reverse = await asyncio.create_subprocess_exec(
-            "adb",
-            "reverse",
-            f"tcp:{PORT}",
-            f"tcp:{PORT}",
-        )
-        assert await reverse.wait() == 0
+        await adb_reverse(PORT)
+        await adb_reverse(storage_port)
         process = await asyncio.create_subprocess_exec(
             "flutter",
             "test",
