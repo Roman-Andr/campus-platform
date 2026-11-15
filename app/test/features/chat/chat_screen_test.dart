@@ -6,6 +6,7 @@ import 'package:campus/src/features/chat/application/chat_config.dart';
 import 'package:campus/src/features/chat/application/chat_history.dart';
 import 'package:campus/src/features/chat/data/chat_api.dart';
 import 'package:campus/src/features/chat/data/chat_store.dart';
+import 'package:campus/src/features/privacy/data/privacy_api.dart';
 import 'package:campus/src/features/settings/domain/app_settings.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -13,6 +14,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../helpers/fake_api.dart';
 import '../../helpers/test_app.dart';
 import '../listings/fixtures.dart';
+import '../privacy/privacy_fixtures.dart';
 import 'chat_fixtures.dart';
 
 void main() {
@@ -26,6 +28,7 @@ void main() {
     FakeChatRealtime? realtime,
     FakeHttpAdapter? server,
     Stream<bool>? network,
+    FakePrivacyApi? privacyApi,
   }) async {
     final chatApi = api ?? FakeChatApi();
     final chatRealtime = realtime ?? FakeChatRealtime();
@@ -42,6 +45,8 @@ void main() {
         chatConfigProvider.overrideWithValue(
           const ChatConfig(maxMessageLength: 4000, retryDelays: []),
         ),
+        if (privacyApi != null)
+          privacyApiProvider.overrideWithValue(privacyApi),
       ],
     );
     return (api: chatApi, realtime: chatRealtime);
@@ -189,7 +194,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('Alumni can write only in existing chats.'),
+      find.text('Personal messaging with this user is unavailable.'),
       findsOneWidget,
     );
     expect(find.byKey(const Key('listing-chat-error')), findsOneWidget);
@@ -492,6 +497,140 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byKey(ValueKey('chat-tile-${ids.last}')), findsOneWidget);
+  });
+
+  testWidgets('blocking from a chat keeps history and hides the composer', (
+    tester,
+  ) async {
+    final privacy = FakePrivacyApi();
+    final api = FakeChatApi(
+      chats: [chatJson(id: testChatId)],
+      messages: {
+        testChatId: [
+          messageJson(chatId: testChatId, sequence: 1, text: 'Before block'),
+        ],
+      },
+    );
+    await pumpChats(tester, api: api, privacyApi: privacy);
+    await openChat(tester);
+    expect(find.text('Before block'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('chat-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('chat-block')));
+    await tester.pumpAndSettle();
+    expect(find.text('Block this user?'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('chat-block-confirm')));
+    await tester.pumpAndSettle();
+
+    expect(privacy.blockCalls.single.userId, otherId);
+    expect(privacy.blockCalls.single.key, isNotEmpty);
+    expect(find.byKey(const Key('chat-blocked-banner')), findsOneWidget);
+    expect(find.byKey(const Key('chat-input')), findsNothing);
+    expect(find.text('Before block'), findsOneWidget);
+    expect(find.text('The user is blocked.'), findsOneWidget);
+  });
+
+  testWidgets('a blocked chat can be unblocked from the dialog', (
+    tester,
+  ) async {
+    final privacy = FakePrivacyApi()..blocks.add(blockedUser());
+    final api = FakeChatApi(
+      chats: [chatJson(id: testChatId)],
+      messages: {testChatId: []},
+    );
+    await pumpChats(tester, api: api, privacyApi: privacy);
+    await openChat(tester);
+    expect(find.byKey(const Key('chat-blocked-banner')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('chat-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('chat-unblock')));
+    await tester.pumpAndSettle();
+
+    expect(privacy.unblockCalls.single.userId, otherId);
+    expect(find.byKey(const Key('chat-blocked-banner')), findsNothing);
+    expect(find.byKey(const Key('chat-input')), findsOneWidget);
+    expect(find.text('The user is unblocked.'), findsOneWidget);
+  });
+
+  testWidgets(
+    'a failed block keeps the dialog usable and retries with the same key',
+    (tester) async {
+      final privacy = FakePrivacyApi()..blockError = const NetworkFailure();
+      final api = FakeChatApi(
+        chats: [chatJson(id: testChatId)],
+        messages: {testChatId: []},
+      );
+      await pumpChats(tester, api: api, privacyApi: privacy);
+      await openChat(tester);
+
+      await tester.tap(find.byKey(const Key('chat-menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('chat-block')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('chat-block-confirm')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('chat-privacy-error')), findsOneWidget);
+      expect(
+        find.text(
+          "Can't reach the server. Check your internet connection and try again.",
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('chat-blocked-banner')), findsNothing);
+      expect(find.byKey(const Key('chat-input')), findsOneWidget);
+
+      privacy.blockError = null;
+      await tester.tap(find.byKey(const Key('chat-menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('chat-block')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('chat-block-confirm')));
+      await tester.pumpAndSettle();
+
+      expect(privacy.blockCalls.map((call) => call.key).toSet(), hasLength(1));
+      expect(find.byKey(const Key('chat-blocked-banner')), findsOneWidget);
+    },
+  );
+
+  testWidgets('a participant blocked on a later blacklist page is recognized', (
+    tester,
+  ) async {
+    final privacy = FakePrivacyApi()..pageSize = 1;
+    privacy.blocks.addAll([
+      blockedUser(id: secondBlockedUserId),
+      blockedUser(),
+    ]);
+    final api = FakeChatApi(
+      chats: [chatJson(id: testChatId)],
+      messages: {testChatId: []},
+    );
+    await pumpChats(tester, api: api, privacyApi: privacy);
+    await openChat(tester);
+
+    expect(find.byKey(const Key('chat-blocked-banner')), findsOneWidget);
+    expect(find.byKey(const Key('chat-input')), findsNothing);
+    await tester.tap(find.byKey(const Key('chat-menu')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('chat-unblock')), findsOneWidget);
+    expect(find.byKey(const ValueKey('chat-block')), findsNothing);
+  });
+
+  testWidgets('a general chat keeps the composer and has no block action', (
+    tester,
+  ) async {
+    final api = FakeChatApi(
+      chats: [chatJson(id: testChatId, kind: 'general')],
+      messages: {testChatId: []},
+    );
+    await pumpChats(tester, api: api, privacyApi: FakePrivacyApi());
+    await openChat(tester);
+
+    expect(find.byKey(const Key('chat-menu')), findsNothing);
+    expect(find.byKey(const Key('chat-blocked-banner')), findsNothing);
+    expect(find.byKey(const Key('chat-input')), findsOneWidget);
   });
 
   testWidgets('the profile leads to the chats list', (tester) async {

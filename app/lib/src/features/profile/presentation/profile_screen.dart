@@ -6,6 +6,8 @@ import '../../../core/api/api_client.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/widgets/api_error_view.dart';
+import '../../privacy/domain/privacy.dart';
+import '../../privacy/presentation/privacy_labels.dart';
 import '../application/my_profile.dart';
 import '../application/skills.dart';
 import 'name_change_dialog.dart';
@@ -157,6 +159,29 @@ class _ProfileDetails extends ConsumerWidget {
           ),
         const Divider(),
         const _Skills(),
+        const Divider(),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          child: Text(
+            l10n.profilePrivacy,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
+        ListTile(
+          key: const Key('profile-message-policy'),
+          leading: const Icon(Icons.forum_outlined),
+          title: Text(l10n.messagePolicyTitle),
+          subtitle: Text(
+            messagePolicyLabel(l10n, userMessagePolicyOf(user.messagePolicy)),
+          ),
+          onTap: () => context.push(AppRoutes.messagePolicy),
+        ),
+        ListTile(
+          key: const Key('profile-blocked-users'),
+          leading: const Icon(Icons.shield_outlined),
+          title: Text(l10n.blockedUsersTitle),
+          onTap: () => context.push(AppRoutes.blockedUsers),
+        ),
       ],
     );
   }

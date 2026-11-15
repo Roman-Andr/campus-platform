@@ -3715,6 +3715,132 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Доля меняется в карточке закупки.'**
   String get purchaseManageShare;
+
+  /// Section of the own profile with privacy links.
+  ///
+  /// In ru, this message translates to:
+  /// **'Приватность'**
+  String get profilePrivacy;
+
+  /// Title of the incoming message policy screen.
+  ///
+  /// In ru, this message translates to:
+  /// **'Кто может мне писать'**
+  String get messagePolicyTitle;
+
+  /// Explains that the policy is stored on the server.
+  ///
+  /// In ru, this message translates to:
+  /// **'Настройка действует на всех ваших устройствах.'**
+  String get messagePolicyIntro;
+
+  /// Policy: anybody may start a personal chat.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все пользователи'**
+  String get messagePolicyAll;
+
+  /// Explanation of the everyone policy.
+  ///
+  /// In ru, this message translates to:
+  /// **'Любой студент или сотрудник может начать с вами личный диалог.'**
+  String get messagePolicyAllHint;
+
+  /// Policy: only related users may start a personal chat.
+  ///
+  /// In ru, this message translates to:
+  /// **'Только по объявлениям и взаимодействиям'**
+  String get messagePolicyRelated;
+
+  /// Explanation of the related-only policy.
+  ///
+  /// In ru, this message translates to:
+  /// **'Писать могут только те, с кем у вас есть общее объявление или начатое взаимодействие.'**
+  String get messagePolicyRelatedHint;
+
+  /// Title of the blacklist screen.
+  ///
+  /// In ru, this message translates to:
+  /// **'Чёрный список'**
+  String get blockedUsersTitle;
+
+  /// Empty state of the blacklist.
+  ///
+  /// In ru, this message translates to:
+  /// **'В чёрном списке пока никого нет.'**
+  String get blockedUsersEmpty;
+
+  /// When a user was blocked.
+  ///
+  /// In ru, this message translates to:
+  /// **'В чёрном списке с {date}'**
+  String blockedUsersBlockedAt(String date);
+
+  /// Loads the next blacklist page.
+  ///
+  /// In ru, this message translates to:
+  /// **'Загрузить ещё'**
+  String get blockedUsersMore;
+
+  /// Action that removes a block.
+  ///
+  /// In ru, this message translates to:
+  /// **'Разблокировать'**
+  String get blockedUsersUnblock;
+
+  /// Action that blocks the other chat participant.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заблокировать'**
+  String get chatBlock;
+
+  /// Action that unblocks the other chat participant.
+  ///
+  /// In ru, this message translates to:
+  /// **'Разблокировать'**
+  String get chatUnblock;
+
+  /// Title of the block confirmation dialog.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заблокировать пользователя?'**
+  String get chatBlockTitle;
+
+  /// Explains what blocking does and does not do.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новые личные сообщения и отклики в обе стороны станут недоступны. Начатые взаимодействия и история диалога сохранятся.'**
+  String get chatBlockExplanation;
+
+  /// Cancels the block confirmation dialog.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отмена'**
+  String get chatBlockCancel;
+
+  /// Confirmation after a successful block.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пользователь заблокирован.'**
+  String get chatBlocked;
+
+  /// Confirmation after a successful unblock.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пользователь разблокирован.'**
+  String get chatUnblocked;
+
+  /// Shown instead of the composer after blocking the participant.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы заблокировали этого пользователя. Новые сообщения недоступны.'**
+  String get chatBlockedNotice;
+
+  /// Neutral refusal for an unavailable personal dialog; never names a block.
+  ///
+  /// In ru, this message translates to:
+  /// **'Личные сообщения с этим пользователем недоступны.'**
+  String get chatUnavailable;
 }
 
 class _AppLocalizationsDelegate

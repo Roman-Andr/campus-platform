@@ -9,14 +9,18 @@ import '../domain/chat.dart';
 /// Chat-specific Problem Details explain the rules of the module (a dialog
 /// that is not available, an alumni creating a new one, a conflicting client
 /// UUID); everything else falls back to the shared API messages.
-String chatFailureMessage(AppLocalizations l10n, Object error) {
+String chatFailureMessage(
+  AppLocalizations l10n,
+  Object error, {
+  bool alumni = false,
+}) {
   final failure = ApiFailure.from(error);
   if (failure is ProblemFailure) {
     return switch (failure.code) {
       ProblemCodeKnown(value: ProblemCodeValue.chatNotFound) =>
         l10n.chatNotFound,
       ProblemCodeKnown(value: ProblemCodeValue.chatForbidden) =>
-        l10n.chatForbiddenAlumni,
+        alumni ? l10n.chatForbiddenAlumni : l10n.chatUnavailable,
       ProblemCodeKnown(value: ProblemCodeValue.chatMessageConflict) =>
         l10n.chatFailureConflict,
       ProblemCodeKnown(value: ProblemCodeValue.chatMessageInvalid) =>
