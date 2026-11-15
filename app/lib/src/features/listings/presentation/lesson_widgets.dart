@@ -12,6 +12,7 @@ import '../application/lesson_config.dart';
 import '../application/listings.dart';
 import '../domain/skills.dart';
 import 'meeting_screen.dart';
+import 'no_meeting_screen.dart';
 import 'status_labels.dart';
 
 /// The city name for time annotations; the zone is the fallback.
@@ -837,6 +838,7 @@ class _LessonParticipationCard extends ConsumerWidget {
           LessonOptionsCard(item: item, listing: listing),
         MeetingSummary(item: item, timezone: listing.cityTimezone, city: city),
         LessonRepeatButton(item: item, listing: listing),
+        NoMeetingSummary(item: item, kind: listing.kind),
         if (active && item.participantId == me)
           LessonAction(
             label: l.reservationCancel,
