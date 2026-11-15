@@ -35,6 +35,16 @@ from campus.modules.identity.privacy import blocked_between, serialize_contact_p
 from campus.modules.identity.profile import ProfiledUser
 from campus.modules.identity.profile import router as profile_router
 from campus.modules.identity.retention import delete_expired_credentials
+from campus.modules.identity.role_management import (
+    LAST_ADMINISTRATOR,
+    ROLE_ALREADY_ASSIGNED,
+    ROLE_ASSIGNMENT_NOT_FOUND,
+    RemovedRole,
+    assign_role,
+    revoke_role,
+    revoke_user_roles,
+    user_role_assignments,
+)
 from campus.modules.identity.roles import (
     PermissionContext,
     Permissions,
@@ -53,6 +63,9 @@ from campus.modules.identity.skill_seed import seed_skill_tags
 from campus.modules.identity.skills import router as skills_router
 
 __all__ = [
+    "LAST_ADMINISTRATOR",
+    "ROLE_ALREADY_ASSIGNED",
+    "ROLE_ASSIGNMENT_NOT_FOUND",
     "Block",
     "ConsentChange",
     "ConsentDecision",
@@ -64,6 +77,7 @@ __all__ = [
     "Permissions",
     "ProfiledUser",
     "RefreshToken",
+    "RemovedRole",
     "Role",
     "RoleAssignment",
     "Session",
@@ -74,6 +88,7 @@ __all__ = [
     "UserEmail",
     "UserSkill",
     "admin_router",
+    "assign_role",
     "blocked_between",
     "check_consents",
     "consent_consumers",
@@ -89,6 +104,8 @@ __all__ = [
     "replay_consent_events",
     "replay_session_events",
     "require_roles",
+    "revoke_role",
+    "revoke_user_roles",
     "router",
     "seed_documents",
     "seed_skill_tags",
@@ -96,4 +113,5 @@ __all__ = [
     "session_consumers",
     "sessions_router",
     "skills_router",
+    "user_role_assignments",
 ]

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 00:56+0300\n"
+"POT-Creation-Date: 2026-11-16 01:32+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -26,6 +26,15 @@ msgstr "В чате должно быть два разных участника
 msgid "A deleted message cannot be edited."
 msgstr "Удалённое сообщение нельзя изменить."
 
+msgid "A graduate or a former employee has no roles."
+msgstr "У выпускника и бывшего сотрудника ролей нет."
+
+msgid "A headman has a single scope; both cannot be given."
+msgstr "У старосты одна область: общежитие или факультет, но не обе."
+
+msgid "A headman needs a dormitory or a faculty."
+msgstr "Старосте нужна область: общежитие или факультет."
+
 #, python-brace-format
 msgid "A lesson has from {min} to {max} time options."
 msgstr "В занятии должно быть от {min} до {max} вариантов времени."
@@ -39,6 +48,9 @@ msgstr ""
 
 msgid "A meeting time and place were proposed."
 msgstr "Второй участник предложил время и место встречи."
+
+msgid "A moderator or an administrator has no scope."
+msgstr "У модератора и администратора нет области."
 
 msgid "A no-show can be marked only 24 hours after the agreed meeting time."
 msgstr ""
@@ -351,6 +363,9 @@ msgstr "Неверный поисковый запрос."
 msgid "Invalid sign-in code"
 msgstr "Неверный код входа"
 
+msgid "Last administrator"
+msgstr "Последний администратор"
+
 msgid "Leave the purchase directly while it is collecting."
 msgstr "Выйти из закупки можно напрямую на этапе сбора."
 
@@ -436,6 +451,9 @@ msgstr "Имя недавно менялось"
 msgid "No such campus city."
 msgstr "Такого города-кампуса нет."
 
+msgid "No such dormitory or faculty."
+msgstr "Такого общежития или факультета нет."
+
 msgid "No such skill tag."
 msgstr "Такого навыка нет в справочнике."
 
@@ -471,6 +489,9 @@ msgid "Only a published event with an end time accepts votes."
 msgstr ""
 "Голосование доступно только для опубликованного мероприятия с указанным "
 "временем окончания."
+
+msgid "Only a student can be the headman."
+msgstr "Старостой может быть только студент."
 
 msgid ""
 "Only an accepted online lesson or a help interaction without an agreed "
@@ -599,6 +620,12 @@ msgstr "Запрос не выполнен"
 
 msgid "Requests that change data need an Idempotency-Key header."
 msgstr "Изменяющему запросу нужен заголовок Idempotency-Key."
+
+msgid "Role already assigned"
+msgstr "Роль уже назначена"
+
+msgid "Role assignment not found"
+msgstr "Назначение роли не найдено"
 
 msgid "Send the current settings version to replace muted chats."
 msgstr "Укажите текущую версию настроек, чтобы заменить список отключённых чатов."
@@ -979,6 +1006,9 @@ msgstr ""
 "У сервера нет достоверного времени принятия взаимодействия, поэтому "
 "офлайн-QR-код невозможно проверить."
 
+msgid "The service must keep at least one administrator."
+msgstr "В сервисе должен оставаться хотя бы один администратор."
+
 msgid "The six-digit confirmation code has expired; request a new one."
 msgstr "Срок шестизначного кода подтверждения истёк; запросите новый."
 
@@ -992,6 +1022,12 @@ msgid ""
 msgstr ""
 "Теги должны относиться к сценарию, не повторяться и их должно быть не "
 "больше {max}."
+
+msgid "The user already holds this role in this scope."
+msgstr "У пользователя уже есть эта роль с этой областью."
+
+msgid "The user has no such role assignment."
+msgstr "У пользователя нет такого назначения роли."
 
 msgid "There is an update to your listing."
 msgstr "Появилось обновление вашего объявления."

@@ -328,6 +328,15 @@ async def messaging(case: Case, actor: Account, owner: Account) -> None:
     assert_status(response, 201)
 
 
+async def administrate(case: Case, actor: Account, owner: Account) -> None:
+    response = await actor.auth.client.post(
+        f"/api/v1/admin/users/{owner.tokens['user']['id']}/roles",
+        json={"role": "moderator"},
+        headers={"Idempotency-Key": str(uuid4()), **actor.headers},
+    )
+    assert_status(response, 201 if case.grant == Grant.YES else 403)
+
+
 async def audit_journal(case: Case, actor: Account, owner: Account) -> None:
     del owner
     response = await actor.auth.client.get("/api/v1/admin/audit", headers=actor.headers)
@@ -363,6 +372,7 @@ async def test_role_action(case: Case, actor: Account, owner: Account) -> None:
         "student_feed": student_feed,
         "finish_review": finish_review,
         "message": messaging,
+        "administrate": administrate,
         "audit_dashboard_export": audit_journal,
     }
     await probes[case.action](case, actor, owner)
