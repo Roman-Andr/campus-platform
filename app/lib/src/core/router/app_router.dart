@@ -12,6 +12,7 @@ import '../../features/chat/presentation/chat_search_screen.dart';
 import '../../features/chat/presentation/chats_screen.dart';
 import '../../features/consents/presentation/consents_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/listings/presentation/attendance_screen.dart';
 import '../../features/listings/presentation/event_screen.dart';
 import '../../features/listings/presentation/help_screen.dart';
 import '../../features/listings/presentation/interaction_timeline_screen.dart';
@@ -107,6 +108,11 @@ GoRouter appRouter(Ref ref) {
         path: '/event/:id/edit',
         builder: (context, state) =>
             EventEditScreen(id: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/event/:id/attendance',
+        builder: (context, state) =>
+            EventAttendanceScreen(id: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/skills/new',

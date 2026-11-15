@@ -19,6 +19,7 @@ import '../domain/feed.dart';
 import '../domain/help.dart';
 import '../domain/purchase.dart';
 import '../domain/skills.dart';
+import 'attendance_screen.dart';
 import 'cancellation.dart';
 import 'event_screen.dart';
 import 'exchange_widgets.dart';
@@ -649,6 +650,10 @@ class ListingScreen extends ConsumerWidget {
                     ListingOwnerActions(item: item),
                   if (event && item.authorId == user?.id)
                     EventOwnerActions(item: item),
+                  if (event && item.authorId == user?.id)
+                    EventAttendanceOwnerAction(item: item),
+                  if (event && item.authorId != user?.id && user != null)
+                    EventAttendanceParticipantAction(item: item),
                   if (event && item.authorId == user?.id)
                     EventParticipantsList(listingId: id),
                   if (event && item.authorId != user?.id && user != null)

@@ -2221,4 +2221,169 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get chatYou => 'Вы';
+
+  @override
+  String get attendanceTitle => 'Отметка на мероприятии';
+
+  @override
+  String get attendanceManageAction => 'Отметка участников';
+
+  @override
+  String get attendanceOpenAction => 'Отметка на мероприятии';
+
+  @override
+  String get attendanceUnavailable => 'У этого мероприятия нет отметки.';
+
+  @override
+  String get attendanceModeTitle => 'Режим отметки';
+
+  @override
+  String get attendanceModeSelf => 'Участники отмечаются сами';
+
+  @override
+  String get attendanceModeScan => 'Организатор отмечает участников';
+
+  @override
+  String get attendanceModeSelfHint =>
+      'Покажите код участникам: они введут его в приложении.';
+
+  @override
+  String get attendanceModeScanHint =>
+      'Участник показывает личный код, вы отмечаете его.';
+
+  @override
+  String get attendanceModeMissing =>
+      'Организатор ещё не выбрал режим отметки.';
+
+  @override
+  String attendanceWindowBefore(String time) {
+    return 'Отметка откроется $time.';
+  }
+
+  @override
+  String attendanceWindowOpen(String time) {
+    return 'Отметка открыта до $time.';
+  }
+
+  @override
+  String get attendanceWindowAfter =>
+      'Отметка закрыта: мероприятие закончилось.';
+
+  @override
+  String get attendanceCodeTitle => 'Код организатора';
+
+  @override
+  String get attendanceCodeHint =>
+      'Покажите этот код участникам: он обновляется автоматически.';
+
+  @override
+  String get attendanceParticipantCodeTitle => 'Ваш код';
+
+  @override
+  String get attendanceParticipantCodeHint =>
+      'Покажите этот код организатору. Он обновляется автоматически.';
+
+  @override
+  String attendanceCodeExpires(int seconds) {
+    return 'Код обновится через $seconds с.';
+  }
+
+  @override
+  String get attendanceCodeCopy => 'Скопировать код';
+
+  @override
+  String get attendanceCodeRefresh => 'Показать новый код';
+
+  @override
+  String get attendanceCodeCopied => 'Код скопирован.';
+
+  @override
+  String get attendanceCodeRequired => 'Введите код.';
+
+  @override
+  String get attendanceOrganizerCodeLabel => 'Код организатора';
+
+  @override
+  String get attendanceParticipantCodeLabel => 'Личный код участника';
+
+  @override
+  String get attendanceSelfHint =>
+      'Введите код, который показывает организатор.';
+
+  @override
+  String get attendanceScanHint => 'Введите личный код участника.';
+
+  @override
+  String get attendanceSubmitSelf => 'Отметить меня';
+
+  @override
+  String get attendanceSubmitScan => 'Отметить участника';
+
+  @override
+  String get attendanceSelfMarked => 'Вы отмечены на мероприятии.';
+
+  @override
+  String get attendanceSelfAlreadyMarked => 'Вы уже отмечены на мероприятии.';
+
+  @override
+  String attendanceScanMarked(String name) {
+    return '$name: отметка поставлена.';
+  }
+
+  @override
+  String attendanceScanAlreadyMarked(String name) {
+    return '$name: уже отмечен.';
+  }
+
+  @override
+  String get attendanceListTitle => 'Отметившиеся';
+
+  @override
+  String attendanceListCount(int count) {
+    return 'Отмечено: $count';
+  }
+
+  @override
+  String get attendanceListEmpty => 'Пока никто не отмечен.';
+
+  @override
+  String get attendanceRefreshList => 'Обновить список';
+
+  @override
+  String get attendanceRemoved => 'отметка снята';
+
+  @override
+  String get attendanceRemovedDone => 'Отметка снята.';
+
+  @override
+  String get attendanceRemove => 'Снять отметку';
+
+  @override
+  String get attendanceNoLongerRegistered => 'запись отменена';
+
+  @override
+  String get attendanceMethodSelf => 'Самоотметка';
+
+  @override
+  String get attendanceMethodScan => 'Сканирование';
+
+  @override
+  String get attendanceForbidden => 'Это может только организатор мероприятия.';
+
+  @override
+  String get attendanceNotRegistered =>
+      'Отметиться может только записавшийся участник.';
+
+  @override
+  String get attendanceModeConflict =>
+      'Мероприятие переключилось на другой режим отметки.';
+
+  @override
+  String get attendanceCodeInvalid => 'Код не подходит для этого мероприятия.';
+
+  @override
+  String get attendanceCodeExpired => 'Код устарел. Попросите показать новый.';
+
+  @override
+  String get attendanceNotFound => 'У этого участника нет отметки.';
 }
