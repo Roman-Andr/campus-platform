@@ -649,6 +649,11 @@ msgid ""
 " mark."
 msgstr ""
 
+msgid ""
+"The item was handed over; the loan ends with its return or the owner's "
+"'not returned' mark."
+msgstr ""
+
 msgid "The item was not handed over yet"
 msgstr ""
 

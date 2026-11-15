@@ -2481,7 +2481,8 @@ export interface paths {
      *     agreed meeting and no later than 7 days, always with a reason. If both
      *     participants mark each other, one dispute is opened and neither no-show
      *     counts until the moderator decides. A repeat by the same participant is a
-     *     no-op.
+     *     no-op. A handed-over loan is refused: its item is an obligation, and the
+     *     loan ends with the return or with the owner's "not returned" mark.
      */
     post: operations['mark_interaction_no_show'];
     delete?: never;
@@ -5169,6 +5170,7 @@ export interface components {
         | 'listing_waitlist_free'
         | 'listing_waitlist_participating'
         | 'listing_waitlist_unavailable'
+        | 'loan_no_show_unavailable'
         | 'loan_not_returned_forbidden'
         | 'loan_not_returned_too_early'
         | 'loan_not_returned_unavailable'

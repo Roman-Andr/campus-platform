@@ -22077,7 +22077,7 @@
           "No-shows"
         ],
         "summary": "Mark Interaction No Show",
-        "description": "Mark that the meeting did not take place, or answer a mutual allegation.\n\nA participant may mark the other one no earlier than 24 hours after the\nagreed meeting and no later than 7 days, always with a reason. If both\nparticipants mark each other, one dispute is opened and neither no-show\ncounts until the moderator decides. A repeat by the same participant is a\nno-op.",
+        "description": "Mark that the meeting did not take place, or answer a mutual allegation.\n\nA participant may mark the other one no earlier than 24 hours after the\nagreed meeting and no later than 7 days, always with a reason. If both\nparticipants mark each other, one dispute is opened and neither no-show\ncounts until the moderator decides. A repeat by the same participant is a\nno-op. A handed-over loan is refused: its item is an obligation, and the\nloan ends with the return or with the owner's \"not returned\" mark.",
         "operationId": "mark_interaction_no_show",
         "security": [
           {
@@ -28048,6 +28048,7 @@
               "listing_waitlist_free",
               "listing_waitlist_participating",
               "listing_waitlist_unavailable",
+              "loan_no_show_unavailable",
               "loan_not_returned_forbidden",
               "loan_not_returned_too_early",
               "loan_not_returned_unavailable",

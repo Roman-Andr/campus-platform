@@ -94,6 +94,7 @@ enum ProblemCodeValue {
   listingWaitlistFree("listing_waitlist_free"),
   listingWaitlistParticipating("listing_waitlist_participating"),
   listingWaitlistUnavailable("listing_waitlist_unavailable"),
+  loanNoShowUnavailable("loan_no_show_unavailable"),
   loanNotReturnedForbidden("loan_not_returned_forbidden"),
   loanNotReturnedTooEarly("loan_not_returned_too_early"),
   loanNotReturnedUnavailable("loan_not_returned_unavailable"),
@@ -408,6 +409,9 @@ sealed class ProblemCode {
   );
   static const listingWaitlistUnavailable = ProblemCodeKnown(
     ProblemCodeValue.listingWaitlistUnavailable,
+  );
+  static const loanNoShowUnavailable = ProblemCodeKnown(
+    ProblemCodeValue.loanNoShowUnavailable,
   );
   static const loanNotReturnedForbidden = ProblemCodeKnown(
     ProblemCodeValue.loanNotReturnedForbidden,

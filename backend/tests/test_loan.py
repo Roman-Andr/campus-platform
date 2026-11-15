@@ -26,6 +26,7 @@ from tests.test_listings import (
     places,
     request,
     reserve,
+    schedule_meeting,
 )
 from tests.test_profile import Account, Places, moscow_profile
 from tests.test_qr import Signer, register_key, user_id
@@ -316,6 +317,48 @@ async def test_a_loan_queue_and_reservation_work_like_a_giveaway(
         assert row.stage is None
         assert row.cancelled_by == "system"
         assert (await listing_row(owner, listing)).status == "active"
+
+
+async def test_a_handed_over_loan_refuses_a_mutual_no_show(
+    owner: Account, borrower: Account
+) -> None:
+    """#214: the meeting already served its purpose; the loan is an obligation.
+
+    A scheduled meeting keeps the #66 no-show window open for a giveaway, but
+    once the item is handed over a mutual allegation must not close the loan:
+    only the return or the owner's "not returned" mark may.
+    """
+    now = clock.now()
+    meeting_at = now + timedelta(hours=2)
+    with time_machine.travel(now, tick=False):
+        listing, interaction = await loan(owner, borrower, loan_days=1)
+        await schedule_meeting(owner, borrower, listing, interaction, meeting_at)
+        assert (
+            await hand_over(owner, borrower, listing, interaction)
+        ).status_code == 200
+
+    with time_machine.travel(meeting_at + timedelta(hours=25), tick=False):
+        for account in (owner, borrower):
+            refused = await account.auth.client.post(
+                f"{ROOT}/{listing['id']}/interactions/{interaction['id']}/no-show",
+                json={"reason": "Did not come"},
+                headers={"Idempotency-Key": str(uuid4()), **account.headers},
+            )
+            assert refused.status_code == 409, refused.text
+            assert refused.json()["code"] == "loan_no_show_unavailable"
+        assert await marks(owner, interaction) == []
+        row = await row_of(owner, interaction)
+        assert row.status == "accepted"
+        assert row.stage == "issued"
+
+    # The owner's own route still works after its threshold.
+    with time_machine.travel(now + timedelta(days=4), tick=False):
+        marked = await not_returned(owner, listing, interaction)
+        assert marked.status_code == 200, marked.text
+        assert marked.json()["basis"] == "marked"
+        found = await marks(owner, interaction)
+        assert len(found) == 1
+        assert found[0].reason == "loan_not_returned"
 
 
 async def test_the_handover_starts_the_loan_without_completing_it(

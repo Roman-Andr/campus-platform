@@ -62,7 +62,8 @@ class NoShowsClient {
   /// agreed meeting and no later than 7 days, always with a reason. If both
   /// participants mark each other, one dispute is opened and neither no-show
   /// counts until the moderator decides. A repeat by the same participant is a
-  /// no-op.
+  /// no-op. A handed-over loan is refused: its item is an obligation, and the
+  /// loan ends with the return or with the owner's "not returned" mark.
   Future<models.NoShowOutput> markInteractionNoShow({
     Map<String, Object?> extra = const {
       "openapi.security": [

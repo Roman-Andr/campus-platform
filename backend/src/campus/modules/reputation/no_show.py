@@ -147,6 +147,15 @@ NOT_RETURNED_TOO_EARLY = ProblemType(
         " wait after the return deadline."
     ),
 )
+LOAN_NO_SHOW_UNAVAILABLE = ProblemType(
+    "loan_no_show_unavailable",
+    409,
+    N_("The loan is in progress"),
+    N_(
+        "The item was handed over; the loan ends with its return or the"
+        " owner's 'not returned' mark."
+    ),
+)
 EVENT_NO_SHOW_UNAVAILABLE = ProblemType(
     "event_no_show_unavailable",
     409,
@@ -603,7 +612,9 @@ async def mark_no_show(  # noqa: PLR0913, PLR0917 - request context
 
     The listing lock serializes this call with the attendance, the timers and
     each other, so a pair of parallel mutual allegations leaves one
-    interaction, one dispute and suspended marks.
+    interaction, one dispute and suspended marks. A handed-over loan is
+    refused: the item is an obligation, and its end is the return or the
+    owner's "not returned" mark, not a mutual no-show.
     """
     listing = await locked(session, listing_id)
     check_no_show_kind(listing)
@@ -611,6 +622,11 @@ async def mark_no_show(  # noqa: PLR0913, PLR0917 - request context
     participant_ids(listing, interaction)
     if actor_id not in (listing.author_id, interaction.participant_id):
         raise ProblemError(NO_SHOW_FORBIDDEN)
+    if listing.kind == "loan" and interaction.stage is not None:
+        # The item was handed over, so the loan is an obligation: it ends by
+        # its return or by the owner's "not returned" mark, never by a mutual
+        # no-show of a meeting that already served its purpose.
+        raise ProblemError(LOAN_NO_SHOW_UNAVAILABLE)
     now = clock.now()
     status = InteractionStatus(interaction.status)
     if status == InteractionStatus.ACCEPTED:
