@@ -4,7 +4,6 @@ import 'package:clock/clock.dart';
 import 'package:dio/dio.dart' show Options;
 import 'package:flutter/foundation.dart' show immutable;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/api/interceptors.dart' show idempotencyKeyHeader;
@@ -20,37 +19,6 @@ part 'attendance.g.dart';
 // The HTTP transport already retries transient failures; an expected refusal
 // must reach the screen at once with an explicit retry action.
 Duration? attendanceRetry(int retryCount, Object error) => null;
-
-/// Keys of mutating attendance requests that the user may repeat.
-///
-/// A repeat after a dropped connection must send the key of the same intent
-/// (`Idempotency-Key`), so the server applies the mark once. A different
-/// intent (another code, mode or participant) starts a new key, and a
-/// successful operation drops it.
-class AttendanceKeys {
-  AttendanceKeys({String Function()? generate})
-    : _generate = generate ?? const Uuid().v7;
-
-  final String Function() _generate;
-  String? _intent;
-  String? _key;
-
-  /// The key of [intent], created on first use and kept while it repeats.
-  String of(String intent) {
-    if (_intent != intent || _key == null) {
-      _intent = intent;
-      _key = _generate();
-    }
-    return _key!;
-  }
-
-  /// Forgets the key of [intent] once it succeeded.
-  void done(String intent) {
-    if (_intent != intent) return;
-    _intent = null;
-    _key = null;
-  }
-}
 
 /// A rotating attendance code and the moment the client received it.
 ///

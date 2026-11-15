@@ -22,6 +22,7 @@ import '../domain/purchase.dart';
 import '../domain/skills.dart';
 import 'attendance_screen.dart';
 import 'cancellation.dart';
+import 'event_no_show_screen.dart';
 import 'event_screen.dart';
 import 'exchange_widgets.dart';
 import 'interaction_widgets.dart';
@@ -30,6 +31,7 @@ import 'listing_photos.dart';
 import 'meeting_screen.dart';
 import 'my_screens.dart';
 import 'no_meeting_screen.dart';
+import 'no_show_screen.dart';
 import 'publication_screen.dart';
 import 'purchase_screen.dart';
 import 'status_labels.dart';
@@ -655,6 +657,7 @@ class ListingScreen extends ConsumerWidget {
                     EventAttendanceOwnerAction(item: item),
                   if (event && item.authorId != user?.id && user != null)
                     EventAttendanceParticipantAction(item: item),
+                  if (event && user != null) EventNoShowAction(item: item),
                   if (event && item.authorId == user?.id)
                     EventParticipantsList(listingId: id),
                   if (event && item.authorId != user?.id && user != null)
@@ -985,6 +988,14 @@ class ReservationTile extends ConsumerWidget {
           NoMeetingSummary(item: item, kind: value.kind),
         if (listing.value case final value?)
           QrConfirmationSummary(item: item, kind: value.kind),
+        if (listing.value case final value?)
+          NoShowSummary(
+            item: item,
+            kind: value.kind,
+            timezone: value.cityTimezone,
+            city: value.cityTimezone,
+            otherName: value.authorName,
+          ),
         ParticipantCancel(item: item),
       ],
     );
@@ -1085,6 +1096,14 @@ class _IncomingListState extends ConsumerState<IncomingList> {
                       NoMeetingSummary(item: item, kind: listing.kind),
                     if (listing != null)
                       QrConfirmationSummary(item: item, kind: listing.kind),
+                    if (listing != null)
+                      NoShowSummary(
+                        item: item,
+                        kind: listing.kind,
+                        timezone: listing.cityTimezone,
+                        city: listing.cityTimezone,
+                        otherName: item.participantName,
+                      ),
                     if (listing != null && skill)
                       LessonOptionsCard(item: item, listing: listing),
                     if (listing != null && skill)

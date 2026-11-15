@@ -18,6 +18,7 @@ import 'lesson_widgets.dart';
 import 'listings_screens.dart';
 import 'meeting_screen.dart';
 import 'no_meeting_screen.dart';
+import 'no_show_screen.dart';
 import 'waitlist_widgets.dart';
 
 String mySectionName(AppLocalizations l, MySection section) =>
@@ -228,6 +229,12 @@ class ParticipationTile extends StatelessWidget {
         ),
         NoMeetingSummary(item: interaction, kind: item.listing.kind),
         QrConfirmationSummary(item: interaction, kind: item.listing.kind),
+        NoShowSummary(
+          item: interaction,
+          kind: item.listing.kind,
+          timezone: item.listing.cityTimezone,
+          city: item.listing.cityTimezone,
+        ),
         if (item.listing.kind == helpKind) ...[
           if (interaction.executor)
             Text(

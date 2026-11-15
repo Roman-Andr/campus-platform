@@ -13,6 +13,7 @@ import '../../features/chat/presentation/chats_screen.dart';
 import '../../features/consents/presentation/consents_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/listings/presentation/attendance_screen.dart';
+import '../../features/listings/presentation/event_no_show_screen.dart';
 import '../../features/listings/presentation/event_screen.dart';
 import '../../features/listings/presentation/help_screen.dart';
 import '../../features/listings/presentation/interaction_timeline_screen.dart';
@@ -20,6 +21,7 @@ import '../../features/listings/presentation/listings_screens.dart';
 import '../../features/listings/presentation/meeting_screen.dart';
 import '../../features/listings/presentation/my_screens.dart';
 import '../../features/listings/presentation/no_meeting_screen.dart';
+import '../../features/listings/presentation/no_show_screen.dart';
 import '../../features/listings/presentation/place_offer_screen.dart';
 import '../../features/listings/presentation/publication_screen.dart';
 import '../../features/listings/presentation/purchase_screen.dart';
@@ -117,6 +119,11 @@ GoRouter appRouter(Ref ref) {
             EventAttendanceScreen(id: state.pathParameters['id']!),
       ),
       GoRoute(
+        path: '/event/:id/no-show',
+        builder: (context, state) =>
+            EventNoShowScreen(id: state.pathParameters['id']!),
+      ),
+      GoRoute(
         path: '/skills/new',
         builder: (context, state) => const CreateSkillScreen(),
       ),
@@ -185,6 +192,16 @@ GoRouter appRouter(Ref ref) {
                     ),
                   ),
                 ],
+              ),
+              GoRoute(
+                path: 'no-show',
+                builder: (context, state) => NoShowScreen(
+                  listingId: state.pathParameters['id']!,
+                  interactionId: state.pathParameters['interactionId']!,
+                  otherName: state.extra is String
+                      ? state.extra! as String
+                      : null,
+                ),
               ),
             ],
           ),

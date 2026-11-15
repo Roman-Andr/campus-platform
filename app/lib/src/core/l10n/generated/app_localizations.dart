@@ -4507,6 +4507,480 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Завершено {time}'**
   String qrCompletedAt(String time);
+
+  /// Заголовок карточки «не состоялось» у взаимодействия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Встреча не состоялась'**
+  String get noShowSummaryTitle;
+
+  /// Подсказка карточки «не состоялось».
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметьте, что встреча не состоялась: причина обязательна.'**
+  String get noShowSummaryHint;
+
+  /// Подсказка карточки до открытия окна отметки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметка станет доступна позже.'**
+  String get noShowSummaryWaiting;
+
+  /// Момент открытия окна отметки (по времени города).
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметить неявку можно с {time}.'**
+  String noShowOpensAt(String time);
+
+  /// Кнопка отметки несостоявшейся встречи.
+  ///
+  /// In ru, this message translates to:
+  /// **'Встреча не состоялась'**
+  String get noShowAction;
+
+  /// Кнопка открытия уже поставленной отметки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Посмотреть отметку'**
+  String get noShowOpenResult;
+
+  /// Заголовок экрана неявки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Встреча не состоялась'**
+  String get noShowScreenTitle;
+
+  /// Пояснение на экране неявки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметьте, что встреча не состоялась, если другой участник не пришёл. Причина обязательна и будет видна ему.'**
+  String get noShowIntro;
+
+  /// Основание состояния: отметок нет.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметок нет'**
+  String get noShowBasisUnmarked;
+
+  /// Основание состояния: отметка участника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметка участника'**
+  String get noShowBasisMarked;
+
+  /// Основание состояния: автоматическое правило.
+  ///
+  /// In ru, this message translates to:
+  /// **'«Не состоялось» по сроку'**
+  String get noShowBasisAutomatic;
+
+  /// Основание состояния: взаимный спор.
+  ///
+  /// In ru, this message translates to:
+  /// **'Взаимные отметки: идёт спор'**
+  String get noShowBasisMutualDispute;
+
+  /// Основание состояния: взаимодействие завершено.
+  ///
+  /// In ru, this message translates to:
+  /// **'Встреча состоялась'**
+  String get noShowBasisCompleted;
+
+  /// Момент перехода в «не состоялось».
+  ///
+  /// In ru, this message translates to:
+  /// **'Отмечено: {time}'**
+  String noShowAt(String time);
+
+  /// Окно отметки открыто.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметить неявку можно до {time}.'**
+  String noShowWindowOpen(String time);
+
+  /// Окно отметки закрыто.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметка неявки закрыта: взаимодействие уже перешло в «не состоялось».'**
+  String get noShowClosedMessage;
+
+  /// Неявка недоступна для этого взаимодействия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Для этого взаимодействия неявку отметить нельзя.'**
+  String get noShowUnavailable;
+
+  /// Подсказка к полю причины.
+  ///
+  /// In ru, this message translates to:
+  /// **'Почему встреча не состоялась?'**
+  String get noShowReasonHint;
+
+  /// Подпись поля причины неявки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Причина'**
+  String get noShowReasonLabel;
+
+  /// Подпись поля причины при возражении.
+  ///
+  /// In ru, this message translates to:
+  /// **'Почему встреча всё-таки состоялась'**
+  String get noShowAnswerLabel;
+
+  /// Причина не заполнена.
+  ///
+  /// In ru, this message translates to:
+  /// **'Опишите причину неявки.'**
+  String get noShowReasonRequired;
+
+  /// Кнопка отправки неявки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметить неявку'**
+  String get noShowMarkAction;
+
+  /// Кнопка взаимного возражения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оспорить: встреча состоялась'**
+  String get noShowAnswerAction;
+
+  /// Неявка успешно отмечена.
+  ///
+  /// In ru, this message translates to:
+  /// **'Неявка отмечена.'**
+  String get noShowMarkedDone;
+
+  /// Взаимное возражение записано.
+  ///
+  /// In ru, this message translates to:
+  /// **'Возражение записано: спор рассмотрит модератор.'**
+  String get noShowAnswerDone;
+
+  /// Повторная отметка тем же участником.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы уже отметили эту встречу.'**
+  String get noShowAlreadyMarked;
+
+  /// Действий для пользователя нет.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сейчас вам нечего здесь сделать.'**
+  String get noShowNoAction;
+
+  /// Открытый взаимный спор.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оба участника отметили, что встреча не состоялась. Пока модератор не решит спор, неявки не учитываются.'**
+  String get noShowDisputeOpenNotice;
+
+  /// Спор по взаимодействию закрыт.
+  ///
+  /// In ru, this message translates to:
+  /// **'Спор закрыт.'**
+  String get noShowDisputeClosedNotice;
+
+  /// Неявка снята поздним подтверждением QR.
+  ///
+  /// In ru, this message translates to:
+  /// **'Неявка снята: встреча подтверждена поздним QR-кодом.'**
+  String get noShowLiftedAfterQr;
+
+  /// Заголовок списка отметок.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметки'**
+  String get noShowMarksTitle;
+
+  /// Список отметок пуст.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметок пока нет.'**
+  String get noShowMarksEmpty;
+
+  /// Кому записана отметка.
+  ///
+  /// In ru, this message translates to:
+  /// **'Записано на: {name}'**
+  String noShowMarkChargedTo(String name);
+
+  /// Кто поставил отметку.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметил: {name}'**
+  String noShowMarkBy(String name);
+
+  /// Автор отметки — правило сервера.
+  ///
+  /// In ru, this message translates to:
+  /// **'автоматическое правило'**
+  String get noShowMarkAutomatic;
+
+  /// Отметка учитывается.
+  ///
+  /// In ru, this message translates to:
+  /// **'учитывается'**
+  String get noShowMarkCounted;
+
+  /// Отметка приостановлена спором.
+  ///
+  /// In ru, this message translates to:
+  /// **'приостановлена спором'**
+  String get noShowMarkDisputed;
+
+  /// Отметка снята.
+  ///
+  /// In ru, this message translates to:
+  /// **'снята'**
+  String get noShowMarkRemoved;
+
+  /// Причина отметки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Причина: {reason}'**
+  String noShowMarkReason(String reason);
+
+  /// Время снятия отметки.
+  ///
+  /// In ru, this message translates to:
+  /// **'снята {time}'**
+  String noShowRemovedAt(String time);
+
+  /// Кнопка обновления состояния.
+  ///
+  /// In ru, this message translates to:
+  /// **'Обновить'**
+  String get noShowRefresh;
+
+  /// Отметка записана на текущего пользователя.
+  ///
+  /// In ru, this message translates to:
+  /// **'вы'**
+  String get noShowChargedYou;
+
+  /// Сервер отказал: не участник.
+  ///
+  /// In ru, this message translates to:
+  /// **'Неявку могут отметить только двое участников взаимодействия.'**
+  String get noShowForbidden;
+
+  /// Сервер отказал: окно ещё не открылось.
+  ///
+  /// In ru, this message translates to:
+  /// **'Время встречи ещё слишком свежее: отметить неявку пока нельзя.'**
+  String get noShowTooEarly;
+
+  /// Сервер отказал: недопустимый статус.
+  ///
+  /// In ru, this message translates to:
+  /// **'Взаимодействие уже нельзя отметить.'**
+  String get noShowStateConflict;
+
+  /// Сервер отказал: причина не подходит.
+  ///
+  /// In ru, this message translates to:
+  /// **'Причина пустая или слишком длинная.'**
+  String get noShowReasonInvalid;
+
+  /// Заголовок экрана мероприятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Мероприятие не состоялось'**
+  String get eventNoShowTitle;
+
+  /// Кнопка голосования участника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Мероприятие не состоялось'**
+  String get eventNoShowAction;
+
+  /// Кнопка итога для организатора.
+  ///
+  /// In ru, this message translates to:
+  /// **'Итог мероприятия'**
+  String get eventNoShowResultAction;
+
+  /// Пояснение к голосованию по мероприятию.
+  ///
+  /// In ru, this message translates to:
+  /// **'Записавшиеся участники решают, состоялось ли мероприятие. Если за несостоявшееся выскажется треть записей (с округлением вверх), неявку получает организатор.'**
+  String get eventNoShowIntro;
+
+  /// Счётчик голосов и порог.
+  ///
+  /// In ru, this message translates to:
+  /// **'Голоса: {votes} из {threshold} нужных · записей: {registered}'**
+  String eventNoShowVotes(int votes, int threshold, int registered);
+
+  /// Окно голосования ещё не открылось.
+  ///
+  /// In ru, this message translates to:
+  /// **'Голосование откроется в {time}.'**
+  String eventNoShowVoteOpensAt(String time);
+
+  /// Окно голосования открыто.
+  ///
+  /// In ru, this message translates to:
+  /// **'Голосование идёт до {time}.'**
+  String eventNoShowVoteClosesAt(String time);
+
+  /// Окно голосования закрыто.
+  ///
+  /// In ru, this message translates to:
+  /// **'Голосование закрыто: прошло больше недели после мероприятия.'**
+  String get eventNoShowVoteWindowClosed;
+
+  /// Кнопка голоса участника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Голосовать: не состоялось'**
+  String get eventNoShowVoteAction;
+
+  /// Голос уже отдан.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы проголосовали, что мероприятие не состоялось.'**
+  String get eventNoShowVoted;
+
+  /// Голос успешно записан.
+  ///
+  /// In ru, this message translates to:
+  /// **'Голос учтён.'**
+  String get eventNoShowVotedDone;
+
+  /// Голосование недоступно участнику.
+  ///
+  /// In ru, this message translates to:
+  /// **'Голосовать сейчас нельзя.'**
+  String get eventNoShowNoVote;
+
+  /// Организатору начислена неявка.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вам начислена неявка: {time}'**
+  String eventNoShowOrganizerCharged(String time);
+
+  /// Организатору неявка не начислена.
+  ///
+  /// In ru, this message translates to:
+  /// **'Неявка вам не начислена.'**
+  String get eventNoShowOrganizerClear;
+
+  /// Кнопка оспаривания неявки организатором.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оспорить неявку'**
+  String get eventNoShowDisputeAction;
+
+  /// Срок оспаривания неявки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оспорить можно до {time}.'**
+  String eventNoShowDisputeUntil(String time);
+
+  /// Открытый спор организатора.
+  ///
+  /// In ru, this message translates to:
+  /// **'Спор у модератора: пока решение не принято, неявка не учитывается.'**
+  String get eventNoShowDisputeOpen;
+
+  /// Спор организатора закрыт.
+  ///
+  /// In ru, this message translates to:
+  /// **'Спор закрыт.'**
+  String get eventNoShowDisputeResolved;
+
+  /// Спор успешно открыт.
+  ///
+  /// In ru, this message translates to:
+  /// **'Спор открыт.'**
+  String get eventNoShowDisputeDone;
+
+  /// Заголовок списка неявок участников.
+  ///
+  /// In ru, this message translates to:
+  /// **'Неявки участников'**
+  String get eventNoShowParticipantMarksTitle;
+
+  /// Список неявок участников пуст.
+  ///
+  /// In ru, this message translates to:
+  /// **'Никому из участников неявка не начислена.'**
+  String get eventNoShowParticipantMarksEmpty;
+
+  /// Неявка записана на другого участника.
+  ///
+  /// In ru, this message translates to:
+  /// **'участник'**
+  String get eventNoShowParticipant;
+
+  /// Решение по спору относится к модерации (#94).
+  ///
+  /// In ru, this message translates to:
+  /// **'Спор решает модератор в панели модерации; решение в приложении пока не показывается.'**
+  String get eventNoShowModerationNote;
+
+  /// Сервер отказал: нет записи.
+  ///
+  /// In ru, this message translates to:
+  /// **'Голосовать может только записавшийся участник.'**
+  String get eventNoShowNotRegistered;
+
+  /// Сервер отказал: нет доступа.
+  ///
+  /// In ru, this message translates to:
+  /// **'Итог мероприятия видят организатор и записавшиеся участники.'**
+  String get eventNoShowForbidden;
+
+  /// Сервер отказал: мероприятие не подходит.
+  ///
+  /// In ru, this message translates to:
+  /// **'Для этого мероприятия итог недоступен.'**
+  String get eventNoShowUnavailable;
+
+  /// Сервер отказал: окно закрыто.
+  ///
+  /// In ru, this message translates to:
+  /// **'Голосование закрыто.'**
+  String get eventNoShowVoteClosed;
+
+  /// Сервер отказал: спор закрыт.
+  ///
+  /// In ru, this message translates to:
+  /// **'Спор уже закрыт.'**
+  String get eventNoShowDisputeClosed;
+
+  /// Сервер отказал: не организатор.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оспорить неявку может только организатор мероприятия.'**
+  String get eventNoShowDisputeForbidden;
+
+  /// Сервер отказал: нечего оспаривать.
+  ///
+  /// In ru, this message translates to:
+  /// **'Начисленной неявки, которую можно оспорить, нет.'**
+  String get eventNoShowDisputeUnavailable;
+
+  /// Другой участник взаимодействия.
+  ///
+  /// In ru, this message translates to:
+  /// **'другой участник'**
+  String get noShowOtherParticipant;
+
+  /// Пояснение к ответу на чужую отметку.
+  ///
+  /// In ru, this message translates to:
+  /// **'Если встреча всё-таки состоялась, ответьте: это взаимное возражение, спор рассмотрит модератор.'**
+  String get noShowAnswerHint;
+
+  /// Сервер отказал: вещь займа передана, неявка недоступна.
+  ///
+  /// In ru, this message translates to:
+  /// **'Неявку в займе нельзя отметить: вещь уже передана. После срока возврата владелец отмечает «не вернули».'**
+  String get noShowLoanUnavailable;
 }
 
 class _AppLocalizationsDelegate

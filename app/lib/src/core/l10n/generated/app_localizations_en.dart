@@ -2537,4 +2537,286 @@ class AppLocalizationsEn extends AppLocalizations {
   String qrCompletedAt(String time) {
     return 'Completed $time';
   }
+
+  @override
+  String get noShowSummaryTitle => 'The meeting did not take place';
+
+  @override
+  String get noShowSummaryHint =>
+      'Say the meeting did not take place; a reason is required.';
+
+  @override
+  String get noShowSummaryWaiting => 'The mark will become available later.';
+
+  @override
+  String noShowOpensAt(String time) {
+    return 'A no-show can be marked from $time.';
+  }
+
+  @override
+  String get noShowAction => 'The meeting did not take place';
+
+  @override
+  String get noShowOpenResult => 'View the mark';
+
+  @override
+  String get noShowScreenTitle => 'The meeting did not take place';
+
+  @override
+  String get noShowIntro =>
+      'Say the meeting did not take place if the other participant did not come. The reason is required and shown to them.';
+
+  @override
+  String get noShowBasisUnmarked => 'No marks yet';
+
+  @override
+  String get noShowBasisMarked => 'Marked by a participant';
+
+  @override
+  String get noShowBasisAutomatic => '“Did not take place” by the deadline';
+
+  @override
+  String get noShowBasisMutualDispute => 'Mutual marks: under dispute';
+
+  @override
+  String get noShowBasisCompleted => 'The meeting took place';
+
+  @override
+  String noShowAt(String time) {
+    return 'Marked: $time';
+  }
+
+  @override
+  String noShowWindowOpen(String time) {
+    return 'A no-show can be marked until $time.';
+  }
+
+  @override
+  String get noShowClosedMessage =>
+      'No-show marking is closed: the interaction has already become “did not take place”.';
+
+  @override
+  String get noShowUnavailable =>
+      'A no-show cannot be marked for this interaction.';
+
+  @override
+  String get noShowReasonHint => 'Why did the meeting not take place?';
+
+  @override
+  String get noShowReasonLabel => 'Reason';
+
+  @override
+  String get noShowAnswerLabel => 'Why the meeting did take place';
+
+  @override
+  String get noShowReasonRequired => 'Describe the reason for the no-show.';
+
+  @override
+  String get noShowMarkAction => 'Mark the no-show';
+
+  @override
+  String get noShowAnswerAction => 'Disagree: the meeting took place';
+
+  @override
+  String get noShowMarkedDone => 'The no-show was recorded.';
+
+  @override
+  String get noShowAnswerDone =>
+      'Your answer was recorded; a moderator will decide the case.';
+
+  @override
+  String get noShowAlreadyMarked => 'You have already marked this meeting.';
+
+  @override
+  String get noShowNoAction => 'There is nothing for you to do here right now.';
+
+  @override
+  String get noShowDisputeOpenNotice =>
+      'Both participants said the meeting did not take place. Neither no-show counts until a moderator decides.';
+
+  @override
+  String get noShowDisputeClosedNotice => 'The dispute is closed.';
+
+  @override
+  String get noShowLiftedAfterQr =>
+      'The no-show was lifted: the meeting was confirmed later with a QR code.';
+
+  @override
+  String get noShowMarksTitle => 'Marks';
+
+  @override
+  String get noShowMarksEmpty => 'No marks yet.';
+
+  @override
+  String noShowMarkChargedTo(String name) {
+    return 'Charged to: $name';
+  }
+
+  @override
+  String noShowMarkBy(String name) {
+    return 'Marked by: $name';
+  }
+
+  @override
+  String get noShowMarkAutomatic => 'an automatic rule';
+
+  @override
+  String get noShowMarkCounted => 'counts';
+
+  @override
+  String get noShowMarkDisputed => 'suspended by a dispute';
+
+  @override
+  String get noShowMarkRemoved => 'removed';
+
+  @override
+  String noShowMarkReason(String reason) {
+    return 'Reason: $reason';
+  }
+
+  @override
+  String noShowRemovedAt(String time) {
+    return 'removed $time';
+  }
+
+  @override
+  String get noShowRefresh => 'Refresh';
+
+  @override
+  String get noShowChargedYou => 'you';
+
+  @override
+  String get noShowForbidden =>
+      'Only the two participants of the interaction can mark a no-show.';
+
+  @override
+  String get noShowTooEarly =>
+      'The meeting time is still recent: a no-show cannot be marked yet.';
+
+  @override
+  String get noShowStateConflict => 'The interaction can no longer be marked.';
+
+  @override
+  String get noShowReasonInvalid => 'The reason is empty or too long.';
+
+  @override
+  String get eventNoShowTitle => 'The event did not take place';
+
+  @override
+  String get eventNoShowAction => 'The event did not take place';
+
+  @override
+  String get eventNoShowResultAction => 'Event result';
+
+  @override
+  String get eventNoShowIntro =>
+      'Registered participants decide whether the event took place. At a third of the registrations, rounded up, the organiser is charged a no-show instead.';
+
+  @override
+  String eventNoShowVotes(int votes, int threshold, int registered) {
+    return 'Votes: $votes of $threshold needed · $registered registered';
+  }
+
+  @override
+  String eventNoShowVoteOpensAt(String time) {
+    return 'Voting opens at $time.';
+  }
+
+  @override
+  String eventNoShowVoteClosesAt(String time) {
+    return 'Voting is open until $time.';
+  }
+
+  @override
+  String get eventNoShowVoteWindowClosed =>
+      'Voting is closed: more than a week has passed since the event.';
+
+  @override
+  String get eventNoShowVoteAction => 'Vote: it did not take place';
+
+  @override
+  String get eventNoShowVoted => 'You voted that the event did not take place.';
+
+  @override
+  String get eventNoShowVotedDone => 'Your vote was recorded.';
+
+  @override
+  String get eventNoShowNoVote => 'Voting is not available now.';
+
+  @override
+  String eventNoShowOrganizerCharged(String time) {
+    return 'A no-show was charged to you: $time';
+  }
+
+  @override
+  String get eventNoShowOrganizerClear => 'No no-show was charged to you.';
+
+  @override
+  String get eventNoShowDisputeAction => 'Dispute the no-show';
+
+  @override
+  String eventNoShowDisputeUntil(String time) {
+    return 'You can dispute it until $time.';
+  }
+
+  @override
+  String get eventNoShowDisputeOpen =>
+      'The dispute is with a moderator: the no-show does not count until the decision.';
+
+  @override
+  String get eventNoShowDisputeResolved => 'The dispute is closed.';
+
+  @override
+  String get eventNoShowDisputeDone => 'The dispute was opened.';
+
+  @override
+  String get eventNoShowParticipantMarksTitle => 'No-shows of participants';
+
+  @override
+  String get eventNoShowParticipantMarksEmpty =>
+      'No participant was charged a no-show.';
+
+  @override
+  String get eventNoShowParticipant => 'a participant';
+
+  @override
+  String get eventNoShowModerationNote =>
+      'A moderator decides the dispute in the moderation panel; the decision is not shown in the app yet.';
+
+  @override
+  String get eventNoShowNotRegistered =>
+      'Only a registered participant can vote.';
+
+  @override
+  String get eventNoShowForbidden =>
+      'Only the organiser and the registered participants see the result.';
+
+  @override
+  String get eventNoShowUnavailable =>
+      'The result is not available for this event.';
+
+  @override
+  String get eventNoShowVoteClosed => 'Voting is closed.';
+
+  @override
+  String get eventNoShowDisputeClosed => 'The dispute is already closed.';
+
+  @override
+  String get eventNoShowDisputeForbidden =>
+      'Only the organiser can dispute the no-show of their event.';
+
+  @override
+  String get eventNoShowDisputeUnavailable =>
+      'There is no charged no-show to dispute.';
+
+  @override
+  String get noShowOtherParticipant => 'the other participant';
+
+  @override
+  String get noShowAnswerHint =>
+      'If the meeting did take place, answer: a mutual allegation opens a dispute for a moderator.';
+
+  @override
+  String get noShowLoanUnavailable =>
+      'A loan cannot be marked as a no-show: the item was handed over. After the return deadline its owner marks it not returned.';
 }

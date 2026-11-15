@@ -2555,5 +2555,387 @@
   "qrDone": "Готово",
   "@qrDone": {"description": "Кнопка закрытия экрана результата."},
   "qrCompletedAt": "Завершено {time}",
-  "@qrCompletedAt": {"description": "Время завершения взаимодействия; время в поясе города.", "placeholders": {"time": {"type": "String"}}}
+  "@qrCompletedAt": {"description": "Время завершения взаимодействия; время в поясе города.", "placeholders": {"time": {"type": "String"}}},
+  "noShowSummaryTitle": "Встреча не состоялась",
+  "@noShowSummaryTitle": {
+    "description": "Заголовок карточки «не состоялось» у взаимодействия."
+  },
+  "noShowSummaryHint": "Отметьте, что встреча не состоялась: причина обязательна.",
+  "@noShowSummaryHint": {
+    "description": "Подсказка карточки «не состоялось»."
+  },
+  "noShowSummaryWaiting": "Отметка станет доступна позже.",
+  "@noShowSummaryWaiting": {
+    "description": "Подсказка карточки до открытия окна отметки."
+  },
+  "noShowOpensAt": "Отметить неявку можно с {time}.",
+  "@noShowOpensAt": {
+    "description": "Момент открытия окна отметки (по времени города).",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "noShowAction": "Встреча не состоялась",
+  "@noShowAction": {
+    "description": "Кнопка отметки несостоявшейся встречи."
+  },
+  "noShowOpenResult": "Посмотреть отметку",
+  "@noShowOpenResult": {
+    "description": "Кнопка открытия уже поставленной отметки."
+  },
+  "noShowScreenTitle": "Встреча не состоялась",
+  "@noShowScreenTitle": {
+    "description": "Заголовок экрана неявки."
+  },
+  "noShowIntro": "Отметьте, что встреча не состоялась, если другой участник не пришёл. Причина обязательна и будет видна ему.",
+  "@noShowIntro": {
+    "description": "Пояснение на экране неявки."
+  },
+  "noShowBasisUnmarked": "Отметок нет",
+  "@noShowBasisUnmarked": {
+    "description": "Основание состояния: отметок нет."
+  },
+  "noShowBasisMarked": "Отметка участника",
+  "@noShowBasisMarked": {
+    "description": "Основание состояния: отметка участника."
+  },
+  "noShowBasisAutomatic": "«Не состоялось» по сроку",
+  "@noShowBasisAutomatic": {
+    "description": "Основание состояния: автоматическое правило."
+  },
+  "noShowBasisMutualDispute": "Взаимные отметки: идёт спор",
+  "@noShowBasisMutualDispute": {
+    "description": "Основание состояния: взаимный спор."
+  },
+  "noShowBasisCompleted": "Встреча состоялась",
+  "@noShowBasisCompleted": {
+    "description": "Основание состояния: взаимодействие завершено."
+  },
+  "noShowAt": "Отмечено: {time}",
+  "@noShowAt": {
+    "description": "Момент перехода в «не состоялось».",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "noShowWindowOpen": "Отметить неявку можно до {time}.",
+  "@noShowWindowOpen": {
+    "description": "Окно отметки открыто.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "noShowClosedMessage": "Отметка неявки закрыта: взаимодействие уже перешло в «не состоялось».",
+  "@noShowClosedMessage": {
+    "description": "Окно отметки закрыто."
+  },
+  "noShowUnavailable": "Для этого взаимодействия неявку отметить нельзя.",
+  "@noShowUnavailable": {
+    "description": "Неявка недоступна для этого взаимодействия."
+  },
+  "noShowReasonHint": "Почему встреча не состоялась?",
+  "@noShowReasonHint": {
+    "description": "Подсказка к полю причины."
+  },
+  "noShowReasonLabel": "Причина",
+  "@noShowReasonLabel": {
+    "description": "Подпись поля причины неявки."
+  },
+  "noShowAnswerLabel": "Почему встреча всё-таки состоялась",
+  "@noShowAnswerLabel": {
+    "description": "Подпись поля причины при возражении."
+  },
+  "noShowReasonRequired": "Опишите причину неявки.",
+  "@noShowReasonRequired": {
+    "description": "Причина не заполнена."
+  },
+  "noShowMarkAction": "Отметить неявку",
+  "@noShowMarkAction": {
+    "description": "Кнопка отправки неявки."
+  },
+  "noShowAnswerAction": "Оспорить: встреча состоялась",
+  "@noShowAnswerAction": {
+    "description": "Кнопка взаимного возражения."
+  },
+  "noShowMarkedDone": "Неявка отмечена.",
+  "@noShowMarkedDone": {
+    "description": "Неявка успешно отмечена."
+  },
+  "noShowAnswerDone": "Возражение записано: спор рассмотрит модератор.",
+  "@noShowAnswerDone": {
+    "description": "Взаимное возражение записано."
+  },
+  "noShowAlreadyMarked": "Вы уже отметили эту встречу.",
+  "@noShowAlreadyMarked": {
+    "description": "Повторная отметка тем же участником."
+  },
+  "noShowNoAction": "Сейчас вам нечего здесь сделать.",
+  "@noShowNoAction": {
+    "description": "Действий для пользователя нет."
+  },
+  "noShowDisputeOpenNotice": "Оба участника отметили, что встреча не состоялась. Пока модератор не решит спор, неявки не учитываются.",
+  "@noShowDisputeOpenNotice": {
+    "description": "Открытый взаимный спор."
+  },
+  "noShowDisputeClosedNotice": "Спор закрыт.",
+  "@noShowDisputeClosedNotice": {
+    "description": "Спор по взаимодействию закрыт."
+  },
+  "noShowLiftedAfterQr": "Неявка снята: встреча подтверждена поздним QR-кодом.",
+  "@noShowLiftedAfterQr": {
+    "description": "Неявка снята поздним подтверждением QR."
+  },
+  "noShowMarksTitle": "Отметки",
+  "@noShowMarksTitle": {
+    "description": "Заголовок списка отметок."
+  },
+  "noShowMarksEmpty": "Отметок пока нет.",
+  "@noShowMarksEmpty": {
+    "description": "Список отметок пуст."
+  },
+  "noShowMarkChargedTo": "Записано на: {name}",
+  "@noShowMarkChargedTo": {
+    "description": "Кому записана отметка.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noShowMarkBy": "Отметил: {name}",
+  "@noShowMarkBy": {
+    "description": "Кто поставил отметку.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noShowMarkAutomatic": "автоматическое правило",
+  "@noShowMarkAutomatic": {
+    "description": "Автор отметки — правило сервера."
+  },
+  "noShowMarkCounted": "учитывается",
+  "@noShowMarkCounted": {
+    "description": "Отметка учитывается."
+  },
+  "noShowMarkDisputed": "приостановлена спором",
+  "@noShowMarkDisputed": {
+    "description": "Отметка приостановлена спором."
+  },
+  "noShowMarkRemoved": "снята",
+  "@noShowMarkRemoved": {
+    "description": "Отметка снята."
+  },
+  "noShowMarkReason": "Причина: {reason}",
+  "@noShowMarkReason": {
+    "description": "Причина отметки.",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "noShowRemovedAt": "снята {time}",
+  "@noShowRemovedAt": {
+    "description": "Время снятия отметки.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "noShowRefresh": "Обновить",
+  "@noShowRefresh": {
+    "description": "Кнопка обновления состояния."
+  },
+  "noShowChargedYou": "вы",
+  "@noShowChargedYou": {
+    "description": "Отметка записана на текущего пользователя."
+  },
+  "noShowForbidden": "Неявку могут отметить только двое участников взаимодействия.",
+  "@noShowForbidden": {
+    "description": "Сервер отказал: не участник."
+  },
+  "noShowTooEarly": "Время встречи ещё слишком свежее: отметить неявку пока нельзя.",
+  "@noShowTooEarly": {
+    "description": "Сервер отказал: окно ещё не открылось."
+  },
+  "noShowStateConflict": "Взаимодействие уже нельзя отметить.",
+  "@noShowStateConflict": {
+    "description": "Сервер отказал: недопустимый статус."
+  },
+  "noShowReasonInvalid": "Причина пустая или слишком длинная.",
+  "@noShowReasonInvalid": {
+    "description": "Сервер отказал: причина не подходит."
+  },
+  "eventNoShowTitle": "Мероприятие не состоялось",
+  "@eventNoShowTitle": {
+    "description": "Заголовок экрана мероприятия."
+  },
+  "eventNoShowAction": "Мероприятие не состоялось",
+  "@eventNoShowAction": {
+    "description": "Кнопка голосования участника."
+  },
+  "eventNoShowResultAction": "Итог мероприятия",
+  "@eventNoShowResultAction": {
+    "description": "Кнопка итога для организатора."
+  },
+  "eventNoShowIntro": "Записавшиеся участники решают, состоялось ли мероприятие. Если за несостоявшееся выскажется треть записей (с округлением вверх), неявку получает организатор.",
+  "@eventNoShowIntro": {
+    "description": "Пояснение к голосованию по мероприятию."
+  },
+  "eventNoShowVotes": "Голоса: {votes} из {threshold} нужных · записей: {registered}",
+  "@eventNoShowVotes": {
+    "description": "Счётчик голосов и порог.",
+    "placeholders": {
+      "votes": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "int"
+      },
+      "registered": {
+        "type": "int"
+      }
+    }
+  },
+  "eventNoShowVoteOpensAt": "Голосование откроется в {time}.",
+  "@eventNoShowVoteOpensAt": {
+    "description": "Окно голосования ещё не открылось.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "eventNoShowVoteClosesAt": "Голосование идёт до {time}.",
+  "@eventNoShowVoteClosesAt": {
+    "description": "Окно голосования открыто.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "eventNoShowVoteWindowClosed": "Голосование закрыто: прошло больше недели после мероприятия.",
+  "@eventNoShowVoteWindowClosed": {
+    "description": "Окно голосования закрыто."
+  },
+  "eventNoShowVoteAction": "Голосовать: не состоялось",
+  "@eventNoShowVoteAction": {
+    "description": "Кнопка голоса участника."
+  },
+  "eventNoShowVoted": "Вы проголосовали, что мероприятие не состоялось.",
+  "@eventNoShowVoted": {
+    "description": "Голос уже отдан."
+  },
+  "eventNoShowVotedDone": "Голос учтён.",
+  "@eventNoShowVotedDone": {
+    "description": "Голос успешно записан."
+  },
+  "eventNoShowNoVote": "Голосовать сейчас нельзя.",
+  "@eventNoShowNoVote": {
+    "description": "Голосование недоступно участнику."
+  },
+  "eventNoShowOrganizerCharged": "Вам начислена неявка: {time}",
+  "@eventNoShowOrganizerCharged": {
+    "description": "Организатору начислена неявка.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "eventNoShowOrganizerClear": "Неявка вам не начислена.",
+  "@eventNoShowOrganizerClear": {
+    "description": "Организатору неявка не начислена."
+  },
+  "eventNoShowDisputeAction": "Оспорить неявку",
+  "@eventNoShowDisputeAction": {
+    "description": "Кнопка оспаривания неявки организатором."
+  },
+  "eventNoShowDisputeUntil": "Оспорить можно до {time}.",
+  "@eventNoShowDisputeUntil": {
+    "description": "Срок оспаривания неявки.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "eventNoShowDisputeOpen": "Спор у модератора: пока решение не принято, неявка не учитывается.",
+  "@eventNoShowDisputeOpen": {
+    "description": "Открытый спор организатора."
+  },
+  "eventNoShowDisputeResolved": "Спор закрыт.",
+  "@eventNoShowDisputeResolved": {
+    "description": "Спор организатора закрыт."
+  },
+  "eventNoShowDisputeDone": "Спор открыт.",
+  "@eventNoShowDisputeDone": {
+    "description": "Спор успешно открыт."
+  },
+  "eventNoShowParticipantMarksTitle": "Неявки участников",
+  "@eventNoShowParticipantMarksTitle": {
+    "description": "Заголовок списка неявок участников."
+  },
+  "eventNoShowParticipantMarksEmpty": "Никому из участников неявка не начислена.",
+  "@eventNoShowParticipantMarksEmpty": {
+    "description": "Список неявок участников пуст."
+  },
+  "eventNoShowParticipant": "участник",
+  "@eventNoShowParticipant": {
+    "description": "Неявка записана на другого участника."
+  },
+  "eventNoShowModerationNote": "Спор решает модератор в панели модерации; решение в приложении пока не показывается.",
+  "@eventNoShowModerationNote": {
+    "description": "Решение по спору относится к модерации (#94)."
+  },
+  "eventNoShowNotRegistered": "Голосовать может только записавшийся участник.",
+  "@eventNoShowNotRegistered": {
+    "description": "Сервер отказал: нет записи."
+  },
+  "eventNoShowForbidden": "Итог мероприятия видят организатор и записавшиеся участники.",
+  "@eventNoShowForbidden": {
+    "description": "Сервер отказал: нет доступа."
+  },
+  "eventNoShowUnavailable": "Для этого мероприятия итог недоступен.",
+  "@eventNoShowUnavailable": {
+    "description": "Сервер отказал: мероприятие не подходит."
+  },
+  "eventNoShowVoteClosed": "Голосование закрыто.",
+  "@eventNoShowVoteClosed": {
+    "description": "Сервер отказал: окно закрыто."
+  },
+  "eventNoShowDisputeClosed": "Спор уже закрыт.",
+  "@eventNoShowDisputeClosed": {
+    "description": "Сервер отказал: спор закрыт."
+  },
+  "eventNoShowDisputeForbidden": "Оспорить неявку может только организатор мероприятия.",
+  "@eventNoShowDisputeForbidden": {
+    "description": "Сервер отказал: не организатор."
+  },
+  "eventNoShowDisputeUnavailable": "Начисленной неявки, которую можно оспорить, нет.",
+  "@eventNoShowDisputeUnavailable": {
+    "description": "Сервер отказал: нечего оспаривать."
+  },
+  "noShowOtherParticipant": "другой участник",
+  "@noShowOtherParticipant": {
+    "description": "Другой участник взаимодействия."
+  },
+  "noShowAnswerHint": "Если встреча всё-таки состоялась, ответьте: это взаимное возражение, спор рассмотрит модератор.",
+  "@noShowAnswerHint": {
+    "description": "Пояснение к ответу на чужую отметку."
+  },
+  "noShowLoanUnavailable": "Неявку в займе нельзя отметить: вещь уже передана. После срока возврата владелец отмечает «не вернули».",
+  "@noShowLoanUnavailable": {
+    "description": "Сервер отказал: вещь займа передана, неявка недоступна."
+  }
 }
