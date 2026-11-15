@@ -2,6 +2,8 @@
 
 import asyncio
 from collections.abc import Iterator
+from datetime import UTC, datetime
+from uuid import UUID, uuid4
 
 import asyncpg
 import pytest
@@ -11,6 +13,7 @@ from sqlalchemy import Column, Integer, Table
 from sqlalchemy.engine import URL
 
 from campus.core.db import Base, DatabaseNotConfiguredError
+from campus.modules.chat.service import body_fingerprint, content_hash
 from tests.database import (
     PYPROJECT,
     asyncpg_url,
@@ -40,10 +43,10 @@ def empty_database(postgres_server: URL) -> Iterator[str]:
     asyncio.run(drop_database(postgres_server, name))
 
 
-async def fetch(url: str, query: str) -> list[asyncpg.Record]:
+async def fetch(url: str, query: str, *arguments: object) -> list[asyncpg.Record]:
     connection = await asyncpg.connect(url.replace("+asyncpg", ""))
     try:
-        return await connection.fetch(query)
+        return await connection.fetch(query, *arguments)
     finally:
         await connection.close()
 
@@ -295,6 +298,199 @@ def test_existing_email_is_migrated(empty_database: str) -> None:
     assert rows[0]["email"] == "existing@university.example"
     assert rows[0]["kind"] == "corporate"
     assert rows[0]["verified"]
+
+
+def test_chat_dedup_fingerprint_is_backfilled(empty_database: str) -> None:
+    run_alembic(empty_database, "upgrade", "81a000000001")
+    alice, bob = uuid4(), uuid4()
+    for user_id, email in (
+        (alice, "dedup-alice@university.example"),
+        (bob, "dedup-bob@university.example"),
+    ):
+        asyncio.run(
+            fetch(
+                empty_database,
+                """
+            INSERT INTO identity_user (id, email, first_name, last_name,
+                                       account_type, created_at, updated_at)
+            VALUES ($1, $2, 'Dedup', 'User', 'student', now(), now())
+        """,
+                user_id,
+                email,
+            )
+        )
+    low, high = sorted((alice, bob))
+    chat_id = uuid4()
+    asyncio.run(
+        fetch(
+            empty_database,
+            """
+        INSERT INTO chat (id, kind, user_low_id, user_high_id, last_sequence,
+                          created_at, updated_at)
+        VALUES ($1, 'personal', $2, $3, 5, now(), now())
+    """,
+            chat_id,
+            low,
+            high,
+        )
+    )
+
+    quote_id, plain_id, rich_id, deleted_id, archived_id = (uuid4() for _ in range(5))
+    plain_client, rich_client, deleted_client, archived_client = (
+        uuid4() for _ in range(4)
+    )
+    rich_photo_a, rich_photo_b = uuid4(), uuid4()
+    created, deleted_at = (
+        datetime(2026, 11, 15, 12, tzinfo=UTC),
+        datetime(2026, 11, 15, 13, tzinfo=UTC),
+    )
+    archived_created = datetime(2025, 6, 1, 12, tzinfo=UTC)
+
+    def insert_message(  # noqa: PLR0913, PLR0917 - row fields
+        message_id: UUID,
+        client_id: UUID,
+        sequence: int,
+        text: str,
+        reply_to_id: UUID | None,
+        version: int,
+        deleted: datetime | None,
+        message_created_at: datetime,
+    ) -> None:
+        asyncio.run(
+            fetch(
+                empty_database,
+                """
+            INSERT INTO chat_message (id, chat_id, sender_id, client_id,
+                                      sequence, text, reply_to_id, version,
+                                      deleted_at, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        """,
+                message_id,
+                chat_id,
+                alice,
+                client_id,
+                sequence,
+                text,
+                reply_to_id,
+                version,
+                deleted,
+                message_created_at,
+            )
+        )
+
+    insert_message(quote_id, uuid4(), 1, "quoted", None, 1, None, created)
+    insert_message(plain_id, plain_client, 2, "plain legacy", None, 1, None, created)
+    insert_message(rich_id, rich_client, 3, "rich legacy", quote_id, 1, None, created)
+    insert_message(deleted_id, deleted_client, 4, " ", None, 2, deleted_at, created)
+    asyncio.run(
+        fetch(
+            empty_database,
+            """
+        INSERT INTO chat_message_archive (id, chat_id, sender_id, client_id,
+                                          sequence, text, reply_to_id, version,
+                                          deleted_at, created_at)
+        VALUES ($1, $2, $3, $4, 5, 'archived legacy', NULL, 1, NULL, $5)
+    """,
+            archived_id,
+            chat_id,
+            alice,
+            archived_client,
+            archived_created,
+        )
+    )
+    for message_id, client_id, sequence, text, message_created_at in (
+        (plain_id, plain_client, 2, "plain legacy", created),
+        (rich_id, rich_client, 3, "rich legacy", created),
+        (deleted_id, deleted_client, 4, " ", created),
+        (archived_id, archived_client, 5, "archived legacy", archived_created),
+    ):
+        asyncio.run(
+            fetch(
+                empty_database,
+                """
+            INSERT INTO chat_message_dedup (chat_id, client_id, sender_id,
+                                            sequence, message_id,
+                                            message_created_at, content_hash,
+                                            created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        """,
+                chat_id,
+                client_id,
+                alice,
+                sequence,
+                message_id,
+                message_created_at,
+                content_hash(text),
+                created,
+            )
+        )
+    for message_id, position, photo_id in (
+        (rich_id, 0, rich_photo_a),
+        (rich_id, 1, rich_photo_b),
+        (deleted_id, 0, uuid4()),
+    ):
+        asyncio.run(
+            fetch(
+                empty_database,
+                """
+            INSERT INTO file (id, created_at, updated_at, owner_id, purpose,
+                              key, status, size, upload_expires_at, expires_at,
+                              chat_id, message_id, message_position)
+            VALUES ($1, now(), now(), $2, 'chat_photo', $3, 'ready', 10,
+                    now() + interval '1 hour', now() + interval '1 day',
+                    $4, $5, $6)
+        """,
+                photo_id,
+                alice,
+                f"photos/{photo_id}",
+                chat_id,
+                message_id,
+                position,
+            )
+        )
+
+    run_alembic(empty_database, "upgrade", "head")
+    rows = asyncio.run(
+        fetch(
+            empty_database,
+            """
+        SELECT client_id, content_hash, content_fingerprint
+        FROM chat_message_dedup
+    """,
+        )
+    )
+    by_client = {row["client_id"]: row for row in rows}
+    assert by_client[plain_client]["content_fingerprint"] == body_fingerprint(
+        content_hash("plain legacy"), None, []
+    )
+    assert by_client[rich_client]["content_fingerprint"] == body_fingerprint(
+        content_hash("rich legacy"), quote_id, [rich_photo_a, rich_photo_b]
+    )
+    assert by_client[archived_client]["content_fingerprint"] == body_fingerprint(
+        content_hash("archived legacy"), None, []
+    )
+    assert by_client[deleted_client]["content_fingerprint"] is None
+    assert by_client[deleted_client]["content_hash"] == content_hash(" ")
+
+    run_alembic(empty_database, "downgrade", "81a000000001")
+    columns = asyncio.run(
+        fetch(
+            empty_database,
+            """
+        SELECT column_name FROM information_schema.columns
+        WHERE table_name = 'chat_message_dedup'
+    """,
+        )
+    )
+    assert "content_fingerprint" not in {row["column_name"] for row in columns}
+    preserved = asyncio.run(
+        fetch(
+            empty_database,
+            "SELECT content_hash FROM chat_message_dedup WHERE client_id = $1",
+            rich_client,
+        )
+    )
+    assert preserved[0]["content_hash"] == content_hash("rich legacy")
 
 
 def test_deadline_due_time_is_backfilled(empty_database: str) -> None:
