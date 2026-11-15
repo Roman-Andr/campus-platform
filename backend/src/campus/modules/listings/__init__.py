@@ -11,6 +11,7 @@ from campus.modules.listings.api import (
 from campus.modules.listings.event_api import router
 from campus.modules.listings.models import (
     PERMANENT_KINDS,
+    AttendanceMode,
     Audience,
     CancellationActor,
     Category,
@@ -54,6 +55,7 @@ from campus.modules.listings.service import (
     accepted_at,
     active_offer,
     active_waitlist,
+    append_event,
     can_contact,
     cancel_purchase,
     change_listing,
@@ -98,6 +100,7 @@ __all__ = [
     "TRANSITIONS",
     "TYPE_POLICIES",
     "ArchivePurger",
+    "AttendanceMode",
     "Audience",
     "CancellationActor",
     "Category",
@@ -126,6 +129,7 @@ __all__ = [
     "accepted_at",
     "active_offer",
     "active_waitlist",
+    "append_event",
     "attach_previews",
     "can_contact",
     "cancel_purchase",

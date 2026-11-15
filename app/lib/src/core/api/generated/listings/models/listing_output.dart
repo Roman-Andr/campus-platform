@@ -2,6 +2,7 @@
 
 import 'audience.dart';
 import 'listing_output_direction.dart';
+import 'listing_output_event_attendance_mode.dart';
 import 'listing_output_purchase_stage.dart';
 import 'listing_status.dart';
 import 'visibility.dart';
@@ -44,6 +45,9 @@ class ListingOutput {
     this.eventEndsAt,
     this.eventLocation,
     this.eventCapacity,
+
+    /// How the organiser marks attendance; null for non-events.
+    this.eventAttendanceMode,
     this.remainingPlaces,
 
     /// Price of one unit of a group purchase.
@@ -147,6 +151,13 @@ class ListingOutput {
           ? json["event_capacity"] == null
                 ? null
                 : _readJsonInteger(json["event_capacity"])
+          : null,
+      eventAttendanceMode: json.containsKey("event_attendance_mode")
+          ? json["event_attendance_mode"] == null
+                ? null
+                : ListingOutputEventAttendanceMode.fromJson(
+                    json["event_attendance_mode"],
+                  )
           : null,
       remainingPlaces: json.containsKey("remaining_places")
           ? json["remaining_places"] == null
@@ -265,6 +276,9 @@ class ListingOutput {
 
   final int? eventCapacity;
 
+  /// How the organiser marks attendance; null for non-events.
+  final ListingOutputEventAttendanceMode? eventAttendanceMode;
+
   final int? remainingPlaces;
 
   /// Price of one unit of a group purchase.
@@ -326,6 +340,7 @@ class ListingOutput {
     "event_ends_at",
     "event_location",
     "event_capacity",
+    "event_attendance_mode",
     "remaining_places",
     "purchase_unit_price",
     "purchase_min_units",
@@ -374,6 +389,8 @@ class ListingOutput {
       "event_ends_at": this.eventEndsAt?.toUtc().toIso8601String(),
     if (this.eventLocation != null) "event_location": this.eventLocation,
     if (this.eventCapacity != null) "event_capacity": this.eventCapacity,
+    if (this.eventAttendanceMode != null)
+      "event_attendance_mode": this.eventAttendanceMode?.toJson(),
     if (this.remainingPlaces != null) "remaining_places": this.remainingPlaces,
     if (this.purchaseUnitPrice != null)
       "purchase_unit_price": this.purchaseUnitPrice,

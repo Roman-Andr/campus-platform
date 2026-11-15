@@ -11,6 +11,7 @@ import 'exports.dart'
         ConfirmationCodeClient,
         ConsentsClient,
         DeviceKeysClient,
+        EventAttendanceClient,
         ListingsClient,
         NotificationsClient,
         PhotosClient,
@@ -52,6 +53,8 @@ final class CampusApi {
   late final clients.DeviceKeysClient deviceKeys = clients.DeviceKeysClient(
     _client,
   );
+  late final clients.EventAttendanceClient eventAttendance =
+      clients.EventAttendanceClient(_client);
   late final clients.ListingsClient listings = clients.ListingsClient(_client);
   late final clients.NotificationsClient notifications =
       clients.NotificationsClient(_client);

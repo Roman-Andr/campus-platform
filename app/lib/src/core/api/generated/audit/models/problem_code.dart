@@ -35,6 +35,14 @@ enum ProblemCodeValue {
   emailConflict("email_conflict"),
   emailKindInvalid("email_kind_invalid"),
   emailNotFound("email_not_found"),
+  eventAttendanceClosed("event_attendance_closed"),
+  eventAttendanceCodeExpired("event_attendance_code_expired"),
+  eventAttendanceCodeInvalid("event_attendance_code_invalid"),
+  eventAttendanceForbidden("event_attendance_forbidden"),
+  eventAttendanceModeConflict("event_attendance_mode_conflict"),
+  eventAttendanceNotFound("event_attendance_not_found"),
+  eventAttendanceNotRegistered("event_attendance_not_registered"),
+  eventAttendanceUnavailable("event_attendance_unavailable"),
   eventCapacityConflict("event_capacity_conflict"),
   eventTimeInvalid("event_time_invalid"),
   exchangeOfferDuplicate("exchange_offer_duplicate"),
@@ -215,6 +223,30 @@ sealed class ProblemCode {
     ProblemCodeValue.emailKindInvalid,
   );
   static const emailNotFound = ProblemCodeKnown(ProblemCodeValue.emailNotFound);
+  static const eventAttendanceClosed = ProblemCodeKnown(
+    ProblemCodeValue.eventAttendanceClosed,
+  );
+  static const eventAttendanceCodeExpired = ProblemCodeKnown(
+    ProblemCodeValue.eventAttendanceCodeExpired,
+  );
+  static const eventAttendanceCodeInvalid = ProblemCodeKnown(
+    ProblemCodeValue.eventAttendanceCodeInvalid,
+  );
+  static const eventAttendanceForbidden = ProblemCodeKnown(
+    ProblemCodeValue.eventAttendanceForbidden,
+  );
+  static const eventAttendanceModeConflict = ProblemCodeKnown(
+    ProblemCodeValue.eventAttendanceModeConflict,
+  );
+  static const eventAttendanceNotFound = ProblemCodeKnown(
+    ProblemCodeValue.eventAttendanceNotFound,
+  );
+  static const eventAttendanceNotRegistered = ProblemCodeKnown(
+    ProblemCodeValue.eventAttendanceNotRegistered,
+  );
+  static const eventAttendanceUnavailable = ProblemCodeKnown(
+    ProblemCodeValue.eventAttendanceUnavailable,
+  );
   static const eventCapacityConflict = ProblemCodeKnown(
     ProblemCodeValue.eventCapacityConflict,
   );

@@ -112,6 +112,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(reputation.qr_router, prefix=API_PREFIX)
     app.include_router(reputation.code_router, prefix=API_PREFIX)
     app.include_router(reputation.time_router, prefix=API_PREFIX)
+    app.include_router(reputation.attendance_router, prefix=API_PREFIX)
 
     # The last added middleware is the outermost: the request ID is set
     # before the access log record is written.
