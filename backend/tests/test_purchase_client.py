@@ -14,9 +14,9 @@ import uvicorn
 
 from tests.test_identity import DEVICE, Auth
 from tests.test_listings import borrower, owner
-from tests.test_profile import Account, auth
+from tests.test_profile import Account, auth, places
 
-__all__ = ["auth", "borrower", "owner"]
+__all__ = ["auth", "borrower", "owner", "places"]
 RUN_CLIENT = os.environ.get("CAMPUS_RUN_PURCHASE_CLIENT") == "1"
 APP = Path(__file__).resolve().parents[2] / "app"
 PORT = 18043
