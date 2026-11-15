@@ -167,6 +167,10 @@ void main() {
         expect(second.payload, isNot(first.payload));
         expect(second.decodedPayload!.issuedAt, serverNow);
         expect(
+          second.decodedPayload!.nonce,
+          isNot(first.decodedPayload!.nonce),
+        );
+        expect(
           server.sent.where((request) => request.path == '/api/v1/time'),
           hasLength(2),
         );
