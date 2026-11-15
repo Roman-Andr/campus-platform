@@ -1752,6 +1752,33 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/chats/search': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Search Chats
+     * @description Search messages only in dialogs of the current user.
+     *
+     *     The GIN index on the partitioned message table supplies the hits from
+     *     active and archived partitions; membership is checked in SQL before a
+     *     row can leave the database. Relevance is ordered by the combined
+     *     Russian and English vector, then by creation time and id, so equal
+     *     relevance still has a total, repeatable order. A cursor is bound to the
+     *     user and the normalized query and cannot be reused for another search.
+     */
+    get: operations['search_chats'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/chats/{chat_id}': {
     parameters: {
       query?: never;
@@ -1962,6 +1989,19 @@ export interface components {
       /** Participants */
       participants: components['schemas']['ParticipantOutput'][];
       last_message?: components['schemas']['MessageOutput'] | null;
+    };
+    /**
+     * ChatSearchResult
+     * @description One matching message and enough context to open its dialog.
+     */
+    ChatSearchResult: {
+      chat: components['schemas']['ChatOutput'];
+      message: components['schemas']['MessageOutput'];
+      /**
+       * Snippet
+       * @description Bounded plain-text excerpt around the matched message text.
+       */
+      snippet: string;
     };
     /** CityList */
     CityList: {
@@ -3056,6 +3096,16 @@ export interface components {
        */
       next_page: string | null;
     };
+    /** Page[ChatSearchResult] */
+    Page_ChatSearchResult_: {
+      /** Items */
+      items: components['schemas']['ChatSearchResult'][];
+      /**
+       * Next Page
+       * @description Cursor of the next page; null on the last page.
+       */
+      next_page: string | null;
+    };
     /** Page[ComplaintReasonOut] */
     Page_ComplaintReasonOut_: {
       /** Items */
@@ -3328,6 +3378,7 @@ export interface components {
         | 'chat_message_invalid'
         | 'chat_not_found'
         | 'chat_rate_limited'
+        | 'chat_search_invalid'
         | 'chat_self'
         | 'client_update_required'
         | 'client_version_invalid'
@@ -14962,6 +15013,119 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ChatOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  search_chats: {
+    parameters: {
+      query?: {
+        /** @description Russian or English full-text query; blank returns no matches. */
+        q?: string;
+        /** @description Number of items; the default (20) and the maximum (100) are set in the server configuration. */
+        size?: number | null;
+        /** @description `next_page` of the previous page. */
+        cursor?: string | null;
+      };
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Page_ChatSearchResult_'];
         };
       };
       /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
