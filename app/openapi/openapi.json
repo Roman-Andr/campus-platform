@@ -19799,6 +19799,181 @@
         }
       }
     },
+    "/api/v1/listings/{listing_id}/interactions/{interaction_id}/qr/offline": {
+      "post": {
+        "tags": [
+          "QR"
+        ],
+        "summary": "Scan Offline Qr",
+        "description": "Confirm an accepted interaction with a code stored while offline.\n\nThe showing device signs the version 2 payload once and keeps it; the\nscanning device may deliver it later. The server accepts it when the\nEd25519 signature is valid for the key that existed at ``issued_at``,\nthe interaction was already accepted, ``issued_at`` is not later than\nthe receipt and the code is at most 24 hours old. The device-generated\n``confirmation_id`` makes a retry after the Idempotency-Key expiry\nreturn the stored result; an altered payload with the same id conflicts.",
+        "operationId": "scan_offline_qr",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "interaction_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Interaction Id"
+            }
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OfflineQrScanInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfflineQrScanOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        }
+      }
+    },
     "/api/v1/listings/{listing_id}/interactions/{interaction_id}/code": {
       "post": {
         "tags": [
@@ -23534,6 +23709,146 @@
         "title": "NotificationSettingsPatch",
         "description": "Partial settings update; omitted fields keep their values."
       },
+      "OfflineQrScanInput": {
+        "properties": {
+          "payload": {
+            "type": "string",
+            "maxLength": 4096,
+            "title": "Payload",
+            "description": "Base64url-encoded UTF-8 JSON with v=2, confirmation_id, listing_id, interaction_id, presenter_id, key_id, issued_at and nonce. The private key never leaves the showing device."
+          },
+          "signature": {
+            "type": "string",
+            "maxLength": 256,
+            "title": "Signature",
+            "description": "Base64url-encoded 64-byte Ed25519 signature of the decoded payload bytes, made by the showing device."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "payload",
+          "signature"
+        ],
+        "title": "OfflineQrScanInput",
+        "description": "A stored offline QR code and its detached signature."
+      },
+      "OfflineQrScanOutput": {
+        "properties": {
+          "listing_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Listing Id"
+          },
+          "interaction_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Interaction Id"
+          },
+          "confirmation_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Confirmation Id"
+          },
+          "presenter_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Presenter Id"
+          },
+          "scanner_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Scanner Id"
+          },
+          "mode": {
+            "type": "string",
+            "title": "Mode",
+            "description": "Always 'offline'.",
+            "default": "offline"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InteractionStatus"
+          },
+          "completed": {
+            "type": "boolean",
+            "title": "Completed"
+          },
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC.",
+            "title": "Completed At"
+          },
+          "completion_method": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CompletionMethod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rating_weight": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "title": "Rating Weight"
+          },
+          "nonce": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Nonce"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Issued At",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC."
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Received At",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC."
+          },
+          "replayed": {
+            "type": "boolean",
+            "title": "Replayed",
+            "description": "True when the same confirmation_id was already stored and the original result is returned without a second effect."
+          },
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time",
+            "description": "Current server time, so the client can correct its clock."
+          }
+        },
+        "type": "object",
+        "required": [
+          "listing_id",
+          "interaction_id",
+          "confirmation_id",
+          "presenter_id",
+          "scanner_id",
+          "status",
+          "completed",
+          "completed_at",
+          "completion_method",
+          "rating_weight",
+          "nonce",
+          "issued_at",
+          "received_at",
+          "replayed",
+          "server_time"
+        ],
+        "title": "OfflineQrScanOutput",
+        "description": "The interaction after a delayed offline QR confirmation."
+      },
       "Page_AuditRecordOut_": {
         "properties": {
           "items": {
@@ -24314,8 +24629,13 @@
               "notification_type_unknown",
               "photo_unavailable",
               "profile_incomplete",
+              "qr_acceptance_unknown",
               "qr_already_completed",
+              "qr_already_confirmed",
+              "qr_before_acceptance",
+              "qr_confirmation_conflict",
               "qr_expired",
+              "qr_issued_in_future",
               "qr_key_invalid",
               "qr_nonce_reused",
               "qr_not_accepted",
@@ -25393,6 +25713,12 @@
             "title": "Qr Online Ttl",
             "description": "Maximum age of an online QR code, in seconds."
           },
+          "qr_offline_ttl": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Qr Offline Ttl",
+            "description": "Maximum accepted age of an offline QR code, in seconds."
+          },
           "qr_clock_skew": {
             "type": "integer",
             "minimum": 0.0,
@@ -25404,10 +25730,11 @@
         "required": [
           "now",
           "qr_online_ttl",
+          "qr_offline_ttl",
           "qr_clock_skew"
         ],
         "title": "ServerTimeOutput",
-        "description": "Server time and the online QR timing parameters."
+        "description": "Server time and the QR timing parameters."
       },
       "SessionOutput": {
         "properties": {

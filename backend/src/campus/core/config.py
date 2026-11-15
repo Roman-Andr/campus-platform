@@ -512,6 +512,15 @@ class Settings(BaseSettings):
         ge=timedelta(0),
         description="Maximum accepted clock skew into the future.",
     )
+    # Offline QR confirmation (specification, 5.1.1, module 5; Appendix 4):
+    # the scanner may deliver a signed code up to 24 hours after it was
+    # formed. The lower bound is the interaction's acceptance time and the
+    # upper bound is the server receipt time; both bounds are inclusive.
+    qr_offline_ttl: timedelta = Field(
+        default=timedelta(hours=24),
+        gt=timedelta(0),
+        description="Maximum accepted age of an offline QR code.",
+    )
     confirmation_code_ttl: timedelta = Field(
         default=timedelta(seconds=30),
         gt=timedelta(0),

@@ -606,6 +606,14 @@ class ListingEvent(Entity):
     __table_args__ = (
         Index("ix_listing_event_history", "listing_id", "created_at", "id"),
         Index("ix_listing_event_quota", "actor_id", "action", "created_at"),
+        # The first accepted event is the interaction's acceptance time; the
+        # offline QR lower bound reads it without a duplicate column.
+        Index(
+            "ix_listing_event_interaction_accepted",
+            "interaction_id",
+            "created_at",
+            postgresql_where=text("status = 'accepted'"),
+        ),
     )
     listing_id: Mapped[UUID] = mapped_column(ForeignKey("listing.id"))
     interaction_id: Mapped[UUID | None] = mapped_column(
