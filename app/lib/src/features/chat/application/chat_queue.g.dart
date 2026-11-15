@@ -57,7 +57,7 @@ final class ChatQueueProvider
   ChatQueue create() => ChatQueue();
 }
 
-String _$chatQueueHash() => r'b83fcebf345bb80b6513a6d82b950299a84d8afe';
+String _$chatQueueHash() => r'0897aaca03f7c57b39935658942ba5d60910e5f4';
 
 /// Sends queued messages one at a time, in local send order per chat.
 ///

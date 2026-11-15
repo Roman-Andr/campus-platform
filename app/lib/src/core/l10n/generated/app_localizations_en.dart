@@ -1355,6 +1355,90 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moreActions => 'More';
 
   @override
+  String get listingKindExchange => 'Exchange';
+
+  @override
+  String get feedCreateExchange => 'Create an exchange listing';
+
+  @override
+  String get exchangeCreateTitle => 'New exchange listing';
+
+  @override
+  String get exchangeOfferTitle => 'Offers';
+
+  @override
+  String get exchangeOfferFormTitle => 'Offer your item';
+
+  @override
+  String get exchangeOfferDescriptionLabel => 'What you offer';
+
+  @override
+  String get exchangeOfferRequired => 'Describe what you offer.';
+
+  @override
+  String get exchangeOfferSend => 'Send offer';
+
+  @override
+  String get exchangeOfferSent => 'Offer sent.';
+
+  @override
+  String exchangeOfferMine(String description) {
+    return 'Your offer: $description';
+  }
+
+  @override
+  String get exchangeOfferListEmpty => 'No offers yet.';
+
+  @override
+  String get exchangeOfferAccept => 'Choose';
+
+  @override
+  String get exchangeOfferAccepted => 'Offer chosen.';
+
+  @override
+  String get exchangeOfferRejectedAnother => 'The author chose another offer.';
+
+  @override
+  String get exchangeOfferDuplicate =>
+      'You already offered an item; wait for the author\'s answer.';
+
+  @override
+  String get exchangeOfferInvalid => 'Check the offer description.';
+
+  @override
+  String reservationTimeLeft(int hours, int minutes) {
+    return 'Hold ends in $hours h $minutes min';
+  }
+
+  @override
+  String reservationTimeLeftMinutes(int minutes) {
+    return 'Hold ends in $minutes min';
+  }
+
+  @override
+  String get reservationTimeLeftSoon => 'The hold ends in less than a minute.';
+
+  @override
+  String get reservationTimeLeftEnded => 'The hold has ended.';
+
+  @override
+  String get reservationMeetingHint => 'Schedule a meeting to keep the hold.';
+
+  @override
+  String reservationUntilMeeting(String time) {
+    return 'The hold is extended until the meeting: $time';
+  }
+
+  @override
+  String get reservationExpiredByDeadline =>
+      'The hold expired: no meeting was scheduled in time.';
+
+  @override
+  String exchangeOfferItem(String description) {
+    return 'Offers: $description';
+  }
+
+  @override
   String get listingKindSkill => 'Skill';
 
   @override

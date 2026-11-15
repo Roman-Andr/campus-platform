@@ -14,13 +14,13 @@ import '../../profile/application/my_profile.dart';
 import '../application/feed_filters.dart';
 import '../application/listing_photo_draft.dart';
 import '../application/listings.dart';
-import '../application/no_meeting.dart';
 import '../domain/event.dart';
 import '../domain/feed.dart';
 import '../domain/help.dart';
 import '../domain/skills.dart';
 import 'event_screen.dart';
-import 'interaction_timeline_screen.dart';
+import 'exchange_widgets.dart';
+import 'interaction_widgets.dart';
 import 'lesson_widgets.dart';
 import 'listing_photos.dart';
 import 'meeting_screen.dart';
@@ -378,6 +378,10 @@ class FeedFiltersBar extends ConsumerWidget {
                 child: Text(l.listingKindGiveaway),
               ),
               DropdownMenuItem(
+                value: FeedKind.exchange.apiValue,
+                child: Text(l.listingKindExchange),
+              ),
+              DropdownMenuItem(
                 value: FeedKind.skill.apiValue,
                 child: Text(l.listingKindSkill),
               ),
@@ -531,6 +535,7 @@ class ListingScreen extends ConsumerWidget {
             data: (item) {
               final publication = item.kind == 'publication';
               final event = item.kind == 'event';
+              final exchange = item.kind == 'exchange';
               final skill = isSkillListing(item);
               final direction = skillDirectionOf(item);
               final help = isHelpRequest(item);
@@ -566,7 +571,7 @@ class ListingScreen extends ConsumerWidget {
                       listing: item,
                       showEmptySeats: item.authorId == user?.id,
                     ),
-                  ] else if (publication || skill)
+                  ] else if (publication || exchange || skill)
                     Text(listingKindName(l, item.kind))
                   else if (help)
                     Text(
@@ -623,12 +628,20 @@ class ListingScreen extends ConsumerWidget {
                     EventSeatSection(listing: item),
                   if (!publication &&
                       !event &&
+                      !exchange &&
                       !skill &&
                       !help &&
                       item.authorId != user?.id &&
                       user != null)
                     ListingWaitlistSection(listing: item),
-                  if (!publication && !event && item.authorId == user?.id)
+                  if (exchange && item.authorId == user?.id)
+                    ExchangeOffersList(listing: item),
+                  if (exchange && user != null && item.authorId != user.id)
+                    ExchangeParticipation(listing: item),
+                  if (!publication &&
+                      !event &&
+                      !exchange &&
+                      item.authorId == user?.id)
                     IncomingList(id: id),
                   if (skill && user != null && item.authorId != user.id)
                     LessonParticipationSection(listing: item),
@@ -636,6 +649,7 @@ class ListingScreen extends ConsumerWidget {
                     HelpRequestSection(listing: item),
                   if (!publication &&
                       !event &&
+                      !exchange &&
                       !skill &&
                       !help &&
                       user != null &&
@@ -650,8 +664,11 @@ class ListingScreen extends ConsumerWidget {
 }
 
 class CreateListingScreen extends ConsumerStatefulWidget {
-  const CreateListingScreen({this.initial, super.key});
+  const CreateListingScreen({this.initial, this.kind = 'giveaway', super.key});
   final ListingOutput? initial;
+
+  /// The kind published by a new listing; an edited draft keeps its own.
+  final String kind;
   @override
   ConsumerState<CreateListingScreen> createState() =>
       _CreateListingScreenState();
@@ -718,16 +735,17 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
         final employee =
             ref.read(myProfileProvider).value?.accountType ==
             UserOutputAccountType.employee;
-        listing = saved ??= await api.listings.publishGiveaway(
-          body: GiveawayInput(
-            title: title.text.trim(),
-            description: description.text.trim(),
-            visibility: scope,
-            audience: employee ? Audience.community : audience,
-            categoryId: categoryId,
-            draft: draft,
-          ),
+        final body = GiveawayInput(
+          title: title.text.trim(),
+          description: description.text.trim(),
+          visibility: scope,
+          audience: employee ? Audience.community : audience,
+          categoryId: categoryId,
+          draft: draft,
         );
+        listing = saved ??= await (widget.kind == 'exchange'
+            ? api.listings.publishExchange(body: body)
+            : api.listings.publishGiveaway(body: body));
       }
       // Rejected and failed photos are left out; the rest attach in order.
       final photos = ref.read(listingPhotoDraftProvider.notifier).readyIds;
@@ -764,7 +782,11 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.initial == null ? l.listingCreate : l.listingEditDraft,
+          widget.initial == null
+              ? (widget.kind == 'exchange'
+                    ? l.exchangeCreateTitle
+                    : l.listingCreate)
+              : l.listingEditDraft,
         ),
       ),
       body: Form(
@@ -1130,49 +1152,6 @@ class ListingOwnerActions extends ConsumerWidget {
                   .extendListing(listingId: item.id);
             },
           ),
-      ],
-    );
-  }
-}
-
-/// Only the rejection reason is shown; the timeline belongs to #67.
-class InteractionStatusText extends ConsumerWidget {
-  const InteractionStatusText({required this.item, super.key});
-  final InteractionOutput item;
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l = context.l10n;
-    if (item.status == InteractionStatus.completed &&
-        interactionWithoutMeeting(item)) {
-      return Text(
-        l.noMeetingCompletedStatus,
-        key: Key('interaction-without-meeting-${item.id}'),
-      );
-    }
-    if (item.status != InteractionStatus.rejected) {
-      return Text(interactionStatusLabel(l, item.status));
-    }
-    final provider = interactionRejectionProvider((item.listingId, item.id));
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(interactionStatusLabel(l, item.status)),
-        ref
-            .watch(provider)
-            .when(
-              loading: () => const LinearProgressIndicator(),
-              error: (e, _) => TextButton(
-                onPressed: () => ref.invalidate(provider),
-                child: Text(l.errorRetry),
-              ),
-              data: (reason) => Text(switch (reason) {
-                'listing_expired' => l.reservationRejectedExpired,
-                'listing_cancelled' => l.reservationRejectedClosed,
-                'author_timeout' => l.reservationRejectedTimeout,
-                null => l.reservationRejectedAuthor,
-                _ => l.reservationRejectedOther,
-              }),
-            ),
       ],
     );
   }
