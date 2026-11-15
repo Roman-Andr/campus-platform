@@ -25,7 +25,7 @@ void main() {
   });
 
   test(
-    'sends the persisted Idempotency-Key and accepts a 200 replay',
+    'sends the persisted Idempotency-Key and accepts a 200 success',
     () async {
       final message = messageJson(
         chatId: testChatId,
@@ -55,7 +55,7 @@ void main() {
     },
   );
 
-  test('accepts the 200 stored dialog of a repeated creation', () async {
+  test('accepts a 200 stored dialog from the generated client', () async {
     final chat = chatJson(id: testChatId);
     server.route(
       (options) => options.path == '/api/v1/auth/token/refresh'

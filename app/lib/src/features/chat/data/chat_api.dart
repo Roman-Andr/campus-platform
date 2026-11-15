@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -10,8 +8,8 @@ part 'chat_api.g.dart';
 /// The chat operations used by the application layer.
 ///
 /// The generated client is the transport; this interface keeps the queue
-/// testable without a network and isolates the two `200` replays of the
-/// server (an existing dialog or an already stored message).
+/// testable without a network and carries the explicit message idempotency
+/// key, which the queue persists with the row.
 abstract interface class ChatApi {
   Future<PageChatOutput> listChats({String? cursor});
 
@@ -54,17 +52,9 @@ class GeneratedChatApi implements ChatApi {
   Future<ChatOutput> createChat({
     required String recipientId,
     String? listingId,
-  }) async {
-    try {
-      return await _chats.createChat(
-        body: ChatInput(recipientId: recipientId, listingId: listingId),
-      );
-    } on DioException catch (error) {
-      // The server answers 200 with the stored dialog when the pair and
-      // link already exist; the generated contract describes only 201.
-      return _replayed(error, ChatOutput.fromJson);
-    }
-  }
+  }) => _chats.createChat(
+    body: ChatInput(recipientId: recipientId, listingId: listingId),
+  );
 
   @override
   Future<ChatOutput> readChat(String chatId) => _chats.readChat(chatId: chatId);
@@ -90,30 +80,11 @@ class GeneratedChatApi implements ChatApi {
     required String clientId,
     required String text,
     required String idempotencyKey,
-  }) async {
-    try {
-      return await _chats.sendMessage(
-        chatId: chatId,
-        body: MessageInput(clientId: clientId, text: text),
-        options: Options(headers: {'Idempotency-Key': idempotencyKey}),
-      );
-    } on DioException catch (error) {
-      // A repeat of the client UUID answers 200 with the stored message
-      // after a response was lost; a different text is 409.
-      return _replayed(error, MessageOutput.fromJson);
-    }
-  }
-
-  T _replayed<T>(DioException error, T Function(Map<String, Object?>) parse) {
-    final response = error.response;
-    if (response?.statusCode != 200) throw error;
-    final data = response!.data;
-    if (data is Map) return parse(Map<String, Object?>.from(data));
-    if (data is String) {
-      return parse(jsonDecode(data) as Map<String, Object?>);
-    }
-    throw error;
-  }
+  }) => _chats.sendMessage(
+    chatId: chatId,
+    body: MessageInput(clientId: clientId, text: text),
+    options: Options(headers: {'Idempotency-Key': idempotencyKey}),
+  );
 }
 
 @Riverpod(keepAlive: true)
