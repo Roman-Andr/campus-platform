@@ -2393,4 +2393,148 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attendanceNotFound => 'This participant has no mark.';
+
+  @override
+  String get qrConfirmationTitle => 'Meeting QR confirmation';
+
+  @override
+  String get qrConfirmationHint =>
+      'One participant shows the code, the other scans it.';
+
+  @override
+  String get qrShowOpen => 'Show QR code';
+
+  @override
+  String get qrScanOpen => 'Scan QR code';
+
+  @override
+  String get qrPresenterTitle => 'Meeting QR code';
+
+  @override
+  String get qrPresenterIntro =>
+      'Show this code to the other participant: they confirm the meeting by scanning it. The code refreshes automatically.';
+
+  @override
+  String qrPresenterValidUntil(String time) {
+    return 'The code is valid until $time';
+  }
+
+  @override
+  String get qrPresenterRefresh => 'Refresh the code';
+
+  @override
+  String get qrPresenterCompleted => 'The meeting is confirmed with a QR code.';
+
+  @override
+  String get qrPresenterAlreadyCompleted =>
+      'The interaction is already completed in another way.';
+
+  @override
+  String get qrPresenterNotAccepted =>
+      'Only an accepted interaction can be confirmed.';
+
+  @override
+  String get qrPresenterUnavailable =>
+      'This interaction cannot be completed with a QR code.';
+
+  @override
+  String get qrScannerTitle => 'Scan a QR code';
+
+  @override
+  String get qrScannerIntro =>
+      'Point the camera at the QR code shown by the other participant.';
+
+  @override
+  String get qrScannerSending => 'Confirming the meeting…';
+
+  @override
+  String get qrScannerSuccess => 'Meeting confirmed';
+
+  @override
+  String get qrScannerAlreadyConfirmed =>
+      'The meeting is already confirmed with a QR code.';
+
+  @override
+  String get qrScannerAlreadyCompleted =>
+      'The interaction is already completed in another way.';
+
+  @override
+  String get qrScannerNotAccepted =>
+      'The interaction is not accepted and cannot be confirmed.';
+
+  @override
+  String get qrScannerUnavailable =>
+      'This interaction cannot be confirmed with a QR code.';
+
+  @override
+  String get qrScannerScanAgain => 'Scan another code';
+
+  @override
+  String get qrScannerCameraDenied =>
+      'No camera access. Allow the camera in the app settings.';
+
+  @override
+  String get qrScannerCameraError => 'The camera could not be started.';
+
+  @override
+  String get qrScannerCameraUnsupported =>
+      'Camera scanning is not available on this device.';
+
+  @override
+  String get qrScannerMalformed => 'This is not a meeting confirmation code.';
+
+  @override
+  String get qrScannerWrongInteraction =>
+      'The code belongs to another interaction.';
+
+  @override
+  String get qrScannerOwnCode =>
+      'This is your code: show it to the other participant and let them scan it.';
+
+  @override
+  String get qrScannerExpired => 'The code has expired. Ask for a new one.';
+
+  @override
+  String get qrScannerNotYetValid =>
+      'The code time is ahead of the server. Ask to refresh the code.';
+
+  @override
+  String get qrScannerBeforeAcceptance =>
+      'The code was formed before the interaction was accepted. Ask for a new one.';
+
+  @override
+  String get qrScannerUnknownKey =>
+      'The device key is not valid. Ask to refresh the code on the showing device.';
+
+  @override
+  String get qrScannerUsed =>
+      'This code has already been used. Ask for a new one.';
+
+  @override
+  String get qrScannerNotParticipant =>
+      'You are not a participant of this interaction and cannot confirm it.';
+
+  @override
+  String get qrScannerSameParticipant =>
+      'The showing participant cannot confirm their own code.';
+
+  @override
+  String get qrScannerStageUnavailable =>
+      'Another stage of the interaction is being confirmed now.';
+
+  @override
+  String get qrScannerAfterNoShow =>
+      'The interaction was marked as not held; this code cannot be used.';
+
+  @override
+  String get qrKeyConflict =>
+      'The device key is already used by another session. Try again.';
+
+  @override
+  String get qrDone => 'Done';
+
+  @override
+  String qrCompletedAt(String time) {
+    return 'Completed $time';
+  }
 }

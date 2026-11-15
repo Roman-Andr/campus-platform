@@ -6,6 +6,7 @@ import '../../../core/api/api_client.dart';
 import '../../../core/api/api_failure_message.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../profile/application/my_profile.dart';
+import '../../qr/presentation/qr_summary.dart';
 import '../application/listings.dart';
 import '../application/my_listings.dart';
 import '../application/waitlist.dart';
@@ -226,6 +227,7 @@ class ParticipationTile extends StatelessWidget {
           city: item.listing.cityTimezone,
         ),
         NoMeetingSummary(item: interaction, kind: item.listing.kind),
+        QrConfirmationSummary(item: interaction, kind: item.listing.kind),
         if (item.listing.kind == helpKind) ...[
           if (interaction.executor)
             Text(

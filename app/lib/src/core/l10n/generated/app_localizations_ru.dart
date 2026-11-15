@@ -2386,4 +2386,149 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get attendanceNotFound => 'У этого участника нет отметки.';
+
+  @override
+  String get qrConfirmationTitle => 'Подтверждение встречи по QR';
+
+  @override
+  String get qrConfirmationHint =>
+      'Один участник показывает код, второй сканирует его.';
+
+  @override
+  String get qrShowOpen => 'Показать QR-код';
+
+  @override
+  String get qrScanOpen => 'Сканировать QR-код';
+
+  @override
+  String get qrPresenterTitle => 'QR-код встречи';
+
+  @override
+  String get qrPresenterIntro =>
+      'Покажите этот код второму участнику: он подтвердит встречу сканированием. Код обновляется автоматически.';
+
+  @override
+  String qrPresenterValidUntil(String time) {
+    return 'Код действует до $time';
+  }
+
+  @override
+  String get qrPresenterRefresh => 'Обновить код';
+
+  @override
+  String get qrPresenterCompleted => 'Встреча подтверждена по QR-коду.';
+
+  @override
+  String get qrPresenterAlreadyCompleted =>
+      'Взаимодействие уже завершено другим способом.';
+
+  @override
+  String get qrPresenterNotAccepted =>
+      'Подтвердить можно только принятое взаимодействие.';
+
+  @override
+  String get qrPresenterUnavailable =>
+      'Это взаимодействие нельзя завершить по QR-коду.';
+
+  @override
+  String get qrScannerTitle => 'Сканирование QR-кода';
+
+  @override
+  String get qrScannerIntro =>
+      'Наведите камеру на QR-код, который показывает второй участник.';
+
+  @override
+  String get qrScannerSending => 'Подтверждаем встречу…';
+
+  @override
+  String get qrScannerSuccess => 'Встреча подтверждена';
+
+  @override
+  String get qrScannerAlreadyConfirmed =>
+      'Встреча уже подтверждена по QR-коду.';
+
+  @override
+  String get qrScannerAlreadyCompleted =>
+      'Взаимодействие уже завершено другим способом.';
+
+  @override
+  String get qrScannerNotAccepted =>
+      'Взаимодействие не принято и не может быть подтверждено.';
+
+  @override
+  String get qrScannerUnavailable =>
+      'Это взаимодействие нельзя подтвердить по QR-коду.';
+
+  @override
+  String get qrScannerScanAgain => 'Сканировать другой код';
+
+  @override
+  String get qrScannerCameraDenied =>
+      'Нет доступа к камере. Разрешите камеру в настройках приложения.';
+
+  @override
+  String get qrScannerCameraError => 'Не удалось включить камеру.';
+
+  @override
+  String get qrScannerCameraUnsupported =>
+      'Сканирование камерой недоступно на этом устройстве.';
+
+  @override
+  String get qrScannerMalformed => 'Это не код подтверждения встречи.';
+
+  @override
+  String get qrScannerWrongInteraction =>
+      'Код относится к другому взаимодействию.';
+
+  @override
+  String get qrScannerOwnCode =>
+      'Это ваш код: покажите его второму участнику, а сканировать должен он.';
+
+  @override
+  String get qrScannerExpired =>
+      'Срок действия кода истёк. Попросите показать новый.';
+
+  @override
+  String get qrScannerNotYetValid =>
+      'Время кода опережает сервер. Попросите обновить код.';
+
+  @override
+  String get qrScannerBeforeAcceptance =>
+      'Код сформирован до принятия взаимодействия. Попросите показать новый.';
+
+  @override
+  String get qrScannerUnknownKey =>
+      'Ключ устройства не подходит. Попросите обновить код на устройстве показывающего.';
+
+  @override
+  String get qrScannerUsed =>
+      'Этот код уже использован. Попросите показать новый.';
+
+  @override
+  String get qrScannerNotParticipant =>
+      'Вы не участник этого взаимодействия и не можете его подтвердить.';
+
+  @override
+  String get qrScannerSameParticipant =>
+      'Показывающий не может подтвердить собственный код.';
+
+  @override
+  String get qrScannerStageUnavailable =>
+      'Сейчас подтверждается другой этап взаимодействия.';
+
+  @override
+  String get qrScannerAfterNoShow =>
+      'Взаимодействие отмечено как несостоявшееся, этот код не подходит.';
+
+  @override
+  String get qrKeyConflict =>
+      'Ключ устройства уже занят другой сессией. Попробуйте ещё раз.';
+
+  @override
+  String get qrDone => 'Готово';
+
+  @override
+  String qrCompletedAt(String time) {
+    return 'Завершено $time';
+  }
 }

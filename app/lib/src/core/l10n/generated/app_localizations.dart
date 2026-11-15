@@ -4273,6 +4273,240 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'У этого участника нет отметки.'**
   String get attendanceNotFound;
+
+  /// Заголовок карточки запуска подтверждения встречи по QR-коду.
+  ///
+  /// In ru, this message translates to:
+  /// **'Подтверждение встречи по QR'**
+  String get qrConfirmationTitle;
+
+  /// Поясняет, как завершить встречу показом и сканированием кода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Один участник показывает код, второй сканирует его.'**
+  String get qrConfirmationHint;
+
+  /// Кнопка открытия экрана с QR-кодом.
+  ///
+  /// In ru, this message translates to:
+  /// **'Показать QR-код'**
+  String get qrShowOpen;
+
+  /// Кнопка открытия сканера QR-кода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сканировать QR-код'**
+  String get qrScanOpen;
+
+  /// Заголовок экрана показа QR-кода.
+  ///
+  /// In ru, this message translates to:
+  /// **'QR-код встречи'**
+  String get qrPresenterTitle;
+
+  /// Пояснение на экране показа QR-кода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Покажите этот код второму участнику: он подтвердит встречу сканированием. Код обновляется автоматически.'**
+  String get qrPresenterIntro;
+
+  /// До какого времени сервер принимает показанный код; время в поясе города.
+  ///
+  /// In ru, this message translates to:
+  /// **'Код действует до {time}'**
+  String qrPresenterValidUntil(String time);
+
+  /// Кнопка обновления QR-кода.
+  ///
+  /// In ru, this message translates to:
+  /// **'Обновить код'**
+  String get qrPresenterRefresh;
+
+  /// Взаимодействие уже завершено по QR-коду.
+  ///
+  /// In ru, this message translates to:
+  /// **'Встреча подтверждена по QR-коду.'**
+  String get qrPresenterCompleted;
+
+  /// Завершать по QR-коду нечего.
+  ///
+  /// In ru, this message translates to:
+  /// **'Взаимодействие уже завершено другим способом.'**
+  String get qrPresenterAlreadyCompleted;
+
+  /// Взаимодействие не в состоянии «принято».
+  ///
+  /// In ru, this message translates to:
+  /// **'Подтвердить можно только принятое взаимодействие.'**
+  String get qrPresenterNotAccepted;
+
+  /// Тип или этап взаимодействия не поддерживает подтверждение встречи по QR-коду.
+  ///
+  /// In ru, this message translates to:
+  /// **'Это взаимодействие нельзя завершить по QR-коду.'**
+  String get qrPresenterUnavailable;
+
+  /// Заголовок экрана сканирования.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сканирование QR-кода'**
+  String get qrScannerTitle;
+
+  /// Подсказка над камерой.
+  ///
+  /// In ru, this message translates to:
+  /// **'Наведите камеру на QR-код, который показывает второй участник.'**
+  String get qrScannerIntro;
+
+  /// Запрос подтверждения отправлен на сервер.
+  ///
+  /// In ru, this message translates to:
+  /// **'Подтверждаем встречу…'**
+  String get qrScannerSending;
+
+  /// Сервер завершил взаимодействие по отсканированному коду.
+  ///
+  /// In ru, this message translates to:
+  /// **'Встреча подтверждена'**
+  String get qrScannerSuccess;
+
+  /// Взаимодействие уже завершено по QR-коду до открытия сканера.
+  ///
+  /// In ru, this message translates to:
+  /// **'Встреча уже подтверждена по QR-коду.'**
+  String get qrScannerAlreadyConfirmed;
+
+  /// Сканирование не требуется.
+  ///
+  /// In ru, this message translates to:
+  /// **'Взаимодействие уже завершено другим способом.'**
+  String get qrScannerAlreadyCompleted;
+
+  /// Сканирование невозможно из-за статуса взаимодействия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Взаимодействие не принято и не может быть подтверждено.'**
+  String get qrScannerNotAccepted;
+
+  /// Тип или этап взаимодействия не поддерживает подтверждение по QR-коду.
+  ///
+  /// In ru, this message translates to:
+  /// **'Это взаимодействие нельзя подтвердить по QR-коду.'**
+  String get qrScannerUnavailable;
+
+  /// Кнопка возврата к камере после ошибки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сканировать другой код'**
+  String get qrScannerScanAgain;
+
+  /// Пользователь запретил доступ к камере.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет доступа к камере. Разрешите камеру в настройках приложения.'**
+  String get qrScannerCameraDenied;
+
+  /// Камера недоступна или занята другим приложением.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось включить камеру.'**
+  String get qrScannerCameraError;
+
+  /// Платформа не поддерживает сканирование камерой.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сканирование камерой недоступно на этом устройстве.'**
+  String get qrScannerCameraUnsupported;
+
+  /// Отсканированный QR-код не является кодом Кампуса.
+  ///
+  /// In ru, this message translates to:
+  /// **'Это не код подтверждения встречи.'**
+  String get qrScannerMalformed;
+
+  /// QR-код другого объявления или взаимодействия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Код относится к другому взаимодействию.'**
+  String get qrScannerWrongInteraction;
+
+  /// Показывающий участник пытается отсканировать свой код.
+  ///
+  /// In ru, this message translates to:
+  /// **'Это ваш код: покажите его второму участнику, а сканировать должен он.'**
+  String get qrScannerOwnCode;
+
+  /// Сервер отклонил код по времени.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок действия кода истёк. Попросите показать новый.'**
+  String get qrScannerExpired;
+
+  /// Код сформирован с часами, ушедшими вперёд.
+  ///
+  /// In ru, this message translates to:
+  /// **'Время кода опережает сервер. Попросите обновить код.'**
+  String get qrScannerNotYetValid;
+
+  /// Код старше принятия взаимодействия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Код сформирован до принятия взаимодействия. Попросите показать новый.'**
+  String get qrScannerBeforeAcceptance;
+
+  /// Ключ, которым подписан код, отозван или неизвестен серверу.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ключ устройства не подходит. Попросите обновить код на устройстве показывающего.'**
+  String get qrScannerUnknownKey;
+
+  /// Одноразовый код уже применён или взаимодействие завершено.
+  ///
+  /// In ru, this message translates to:
+  /// **'Этот код уже использован. Попросите показать новый.'**
+  String get qrScannerUsed;
+
+  /// Отказ сервера постороннему.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы не участник этого взаимодействия и не можете его подтвердить.'**
+  String get qrScannerNotParticipant;
+
+  /// Отказ сервера показывающему.
+  ///
+  /// In ru, this message translates to:
+  /// **'Показывающий не может подтвердить собственный код.'**
+  String get qrScannerSameParticipant;
+
+  /// Этапное взаимодействие завершается своим действием.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сейчас подтверждается другой этап взаимодействия.'**
+  String get qrScannerStageUnavailable;
+
+  /// Код сформирован после отметки о неявке.
+  ///
+  /// In ru, this message translates to:
+  /// **'Взаимодействие отмечено как несостоявшееся, этот код не подходит.'**
+  String get qrScannerAfterNoShow;
+
+  /// Сервер нашёл этот публичный ключ у другой сессии устройства.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ключ устройства уже занят другой сессией. Попробуйте ещё раз.'**
+  String get qrKeyConflict;
+
+  /// Кнопка закрытия экрана результата.
+  ///
+  /// In ru, this message translates to:
+  /// **'Готово'**
+  String get qrDone;
+
+  /// Время завершения взаимодействия; время в поясе города.
+  ///
+  /// In ru, this message translates to:
+  /// **'Завершено {time}'**
+  String qrCompletedAt(String time);
 }
 
 class _AppLocalizationsDelegate

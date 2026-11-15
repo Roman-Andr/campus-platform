@@ -11,6 +11,7 @@ import '../../../core/l10n/l10n.dart';
 import '../../../core/time/city_time.dart';
 import '../../../core/widgets/city_date_time_picker.dart';
 import '../../profile/application/my_profile.dart';
+import '../../qr/presentation/qr_summary.dart';
 import '../application/listings.dart';
 import '../application/meeting.dart';
 import '../domain/reservation.dart';
@@ -500,6 +501,7 @@ class _MeetingScreenState extends ConsumerState<MeetingScreen> {
           showOpen: false,
         ),
         NoMeetingSummary(item: item, kind: listing.kind),
+        QrConfirmationSummary(item: item, kind: listing.kind),
         if (_editing)
           MeetingProposalForm(
             initialTime: meetingInitialTime(meeting),

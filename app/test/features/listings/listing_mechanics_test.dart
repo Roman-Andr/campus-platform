@@ -314,6 +314,10 @@ void main() {
       );
       unawaited(container.read(appRouterProvider).push('/listings/listing-1'));
       await tester.pumpAndSettle();
+      // The QR confirmation card is offered above the scheduling actions,
+      // so the cancel button may start below the fold.
+      await tester.ensureVisible(find.text('Cancel request or reservation'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Cancel request or reservation'));
       await tester.pumpAndSettle();
       expect(find.text('Cancelled'), findsOneWidget);

@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart' hide Visibility;
 
 import '../../../core/api/api_client.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../qr/presentation/qr_summary.dart';
 import '../application/exchange.dart';
 import '../application/listings.dart';
 import 'cancellation.dart';
@@ -201,6 +202,7 @@ class _ExchangeOfferCard extends StatelessWidget {
             ),
             InteractionStatusText(item: offer),
             MeetingSummary(item: offer, timezone: timezone, city: city),
+            QrConfirmationSummary(item: offer, kind: 'exchange'),
             TimelineButton(item: offer),
             ?action,
           ],
