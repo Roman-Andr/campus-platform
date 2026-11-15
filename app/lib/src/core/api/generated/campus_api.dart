@@ -21,6 +21,7 @@ import 'exports.dart'
         ProfileClient,
         QrClient,
         RealtimeClient,
+        ReviewsClient,
         ServerTimeClient,
         SessionsClient,
         SkillsClient,
@@ -69,6 +70,7 @@ final class CampusApi {
   late final clients.ProfileClient profile = clients.ProfileClient(_client);
   late final clients.QrClient qr = clients.QrClient(_client);
   late final clients.RealtimeClient realtime = clients.RealtimeClient(_client);
+  late final clients.ReviewsClient reviews = clients.ReviewsClient(_client);
   late final clients.ServerTimeClient serverTime = clients.ServerTimeClient(
     _client,
   );

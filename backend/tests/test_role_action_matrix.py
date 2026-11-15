@@ -20,6 +20,7 @@ from tests.role_action_matrix import (
     Grant,
     cases,
 )
+from tests.test_confirmation_code import confirm, issue
 from tests.test_identity import Auth
 from tests.test_listings import move, owner, publish, request, reserve
 from tests.test_profile import Account, Places, auth, moscow_profile, places
@@ -249,6 +250,53 @@ async def continue_interaction(case: Case, actor: Account, owner: Account) -> No
     assert response.json()["status"] == "cancelled"
 
 
+async def review_interaction(case: Case, actor: Account, owner: Account) -> None:
+    """Complete a started interaction and review the other side (#63).
+
+    The account type is restored before the review: an alumnus finishes a
+    started interaction and reviews it, while publishing and responding are
+    already closed for them.
+    """
+    db = actor.auth.db
+    user_id = UUID(actor.tokens["user"]["id"])
+    account_type = await db.scalar(select(User.account_type).where(User.id == user_id))
+    course = await db.scalar(select(User.course).where(User.id == user_id))
+    await db.execute(
+        update(User).where(User.id == user_id).values(account_type="student", course=2)
+    )
+    await db.commit()
+    listing = await publish(owner, audience="community")
+    response = await reserve(actor, listing)
+    assert_status(response, 201)
+    interaction = response.json()
+    assert_status(await move(owner, listing, interaction, "accepted"), 200)
+    code = (await issue(owner, listing, interaction)).json()["code"]
+    assert_status(await confirm(actor, listing, interaction, code), 200)
+    await db.execute(
+        update(User)
+        .where(User.id == user_id)
+        .values(account_type=account_type, course=course)
+    )
+    await db.commit()
+    assert case.grant == Grant.YES
+    response = await request(
+        actor,
+        "POST",
+        f"/{listing['id']}/interactions/{interaction['id']}/review",
+        {"rating": 5},
+    )
+    assert_status(response, 201)
+    assert response.json()["mine"]["rating"] == 5
+
+
+async def finish_review(case: Case, actor: Account, owner: Account) -> None:
+    """The continue and review probes of the finished interaction row."""
+    if case.probe == "continue":
+        await continue_interaction(case, actor, owner)
+    else:
+        await review_interaction(case, actor, owner)
+
+
 async def messaging(case: Case, actor: Account, owner: Account) -> None:
     """Chat permissions: everybody writes in an existing dialog; alumni only."""
     chats = "/api/v1/chats"
@@ -313,7 +361,7 @@ async def test_role_action(case: Case, actor: Account, owner: Account) -> None:
     probes = {
         "publish_respond": publish_respond,
         "student_feed": student_feed,
-        "finish_review": continue_interaction,
+        "finish_review": finish_review,
         "message": messaging,
         "audit_dashboard_export": audit_journal,
     }

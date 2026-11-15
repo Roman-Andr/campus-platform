@@ -146,6 +146,18 @@ enum ProblemCodeValue {
   realtimeUnavailable("realtime_unavailable"),
   refreshTokenInvalid("refresh_token_invalid"),
   registrationRequired("registration_required"),
+  reviewExists("review_exists"),
+  reviewForbidden("review_forbidden"),
+  reviewHidden("review_hidden"),
+  reviewOneWay("review_one_way"),
+  reviewPublished("review_published"),
+  reviewRatingInvalid("review_rating_invalid"),
+  reviewReplyExists("review_reply_exists"),
+  reviewReplyInvalid("review_reply_invalid"),
+  reviewTagsInvalid("review_tags_invalid"),
+  reviewTextInvalid("review_text_invalid"),
+  reviewUnavailable("review_unavailable"),
+  reviewWindowClosed("review_window_closed"),
   sessionNotFound("session_not_found"),
   signInCodeAttemptsExceeded("sign_in_code_attempts_exceeded"),
   signInCodeExpired("sign_in_code_expired"),
@@ -543,6 +555,36 @@ sealed class ProblemCode {
   );
   static const registrationRequired = ProblemCodeKnown(
     ProblemCodeValue.registrationRequired,
+  );
+  static const reviewExists = ProblemCodeKnown(ProblemCodeValue.reviewExists);
+  static const reviewForbidden = ProblemCodeKnown(
+    ProblemCodeValue.reviewForbidden,
+  );
+  static const reviewHidden = ProblemCodeKnown(ProblemCodeValue.reviewHidden);
+  static const reviewOneWay = ProblemCodeKnown(ProblemCodeValue.reviewOneWay);
+  static const reviewPublished = ProblemCodeKnown(
+    ProblemCodeValue.reviewPublished,
+  );
+  static const reviewRatingInvalid = ProblemCodeKnown(
+    ProblemCodeValue.reviewRatingInvalid,
+  );
+  static const reviewReplyExists = ProblemCodeKnown(
+    ProblemCodeValue.reviewReplyExists,
+  );
+  static const reviewReplyInvalid = ProblemCodeKnown(
+    ProblemCodeValue.reviewReplyInvalid,
+  );
+  static const reviewTagsInvalid = ProblemCodeKnown(
+    ProblemCodeValue.reviewTagsInvalid,
+  );
+  static const reviewTextInvalid = ProblemCodeKnown(
+    ProblemCodeValue.reviewTextInvalid,
+  );
+  static const reviewUnavailable = ProblemCodeKnown(
+    ProblemCodeValue.reviewUnavailable,
+  );
+  static const reviewWindowClosed = ProblemCodeKnown(
+    ProblemCodeValue.reviewWindowClosed,
   );
   static const sessionNotFound = ProblemCodeKnown(
     ProblemCodeValue.sessionNotFound,
