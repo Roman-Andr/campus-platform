@@ -161,7 +161,16 @@ async def hydrate(session: AsyncSession, chats: list[Chat]) -> list[ChatOutput]:
     ]
 
 
-@router.post("", status_code=201)
+@router.post(
+    "",
+    status_code=201,
+    responses={
+        200: {
+            "model": ChatOutput,
+            "description": "The chat already exists for this pair and link.",
+        }
+    },
+)
 async def create_chat(
     data: ChatInput,
     session: DbSession,
@@ -265,7 +274,16 @@ async def list_messages(  # noqa: PLR0913, PLR0917
     )
 
 
-@router.post("/{chat_id}/messages", status_code=201)
+@router.post(
+    "/{chat_id}/messages",
+    status_code=201,
+    responses={
+        200: {
+            "model": MessageOutput,
+            "description": "The message was already stored for this client UUID.",
+        }
+    },
+)
 async def send_message(  # noqa: PLR0913, PLR0917
     chat_id: UUID,
     data: MessageInput,

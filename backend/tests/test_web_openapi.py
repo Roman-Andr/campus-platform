@@ -79,6 +79,25 @@ def test_error_responses_are_problems(app: FastAPI) -> None:
                 assert schema == {"$ref": "#/components/schemas/Problem"}
 
 
+@pytest.mark.parametrize(
+    ("path", "model"),
+    [
+        ("/api/v1/chats", "ChatOutput"),
+        ("/api/v1/chats/{chat_id}/messages", "MessageOutput"),
+    ],
+)
+def test_chat_success_responses_document_models(
+    app: FastAPI, path: str, model: str
+) -> None:
+    responses = app.openapi()["paths"][path]["post"]["responses"]
+
+    assert {"200", "201"} <= set(responses)
+    for status in ("200", "201"):
+        assert responses[status]["content"]["application/json"]["schema"] == {
+            "$ref": f"#/components/schemas/{model}"
+        }
+
+
 def test_problem_codes_are_listed(settings: Settings) -> None:
     schema = create_test_app(settings).openapi()
 
