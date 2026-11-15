@@ -24298,6 +24298,139 @@
           }
         }
       }
+    },
+    "/api/v1/users/{user_id}/reputation": {
+      "get": {
+        "tags": [
+          "Reputation"
+        ],
+        "summary": "Read Profile Reputation",
+        "description": "The public aggregates of a profile: any signed-in user sees the same.\n\nThe response carries no contact data, and the counters never include a\nreview that is not published or is hidden by moderation, so the rating\nand the tags cannot reveal such a review. A profile without enough\neligible ratings reports ``few_reviews`` and no number.",
+        "operationId": "read_profile_reputation",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileReputationOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -29575,6 +29708,84 @@
         ],
         "title": "ProfilePhotoInput"
       },
+      "ProfileReputationOutput": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "rating": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "title": "Rating",
+            "description": "Smoothed rating R = (C*m + sum(w*r)) / (C + sum(w)); null when fewer than 4 eligible ratings exist or no average can be formed."
+          },
+          "rating_state": {
+            "type": "string",
+            "enum": [
+              "rated",
+              "few_reviews"
+            ],
+            "title": "Rating State",
+            "description": "``few_reviews`` while the profile has up to 3 eligible ratings: the client shows the label instead of a number."
+          },
+          "rating_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Rating Count",
+            "description": "Eligible ratings: published, not hidden by moderation and within the pair limit of the UTC calendar month."
+          },
+          "completed_interactions": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Completed Interactions",
+            "description": "Completed interactions of either side of the profile."
+          },
+          "no_shows": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "No Shows",
+            "description": "Counted no-shows only: a disputed or removed mark is not final and is not included."
+          },
+          "cancelled_after_acceptance": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Cancelled After Acceptance",
+            "description": "Cancellations the user made after the acceptance."
+          },
+          "late_cancellations": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Late Cancellations",
+            "description": "Late cancellations charged to the user."
+          },
+          "tags": {
+            "items": {
+              "$ref": "#/components/schemas/TagCountOutput"
+            },
+            "type": "array",
+            "title": "Tags",
+            "description": "Tag counters of the public reviews about the user, most used first."
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "rating",
+          "rating_state",
+          "rating_count",
+          "completed_interactions",
+          "no_shows",
+          "cancelled_after_acceptance",
+          "late_cancellations",
+          "tags"
+        ],
+        "title": "ProfileReputationOutput",
+        "description": "The aggregates a profile page may show; never a contact address."
+      },
       "PublicComplaintReasonList": {
         "properties": {
           "items": {
@@ -31354,6 +31565,27 @@
           "channel"
         ],
         "title": "SubscriptionTokenOutput"
+      },
+      "TagCountOutput": {
+        "properties": {
+          "tag": {
+            "type": "string",
+            "title": "Tag",
+            "description": "Stable tag code of the review scenario."
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tag",
+          "count"
+        ],
+        "title": "TagCountOutput",
+        "description": "How many public reviews about the profile carry one ready-made tag."
       },
       "TokenOutput": {
         "properties": {

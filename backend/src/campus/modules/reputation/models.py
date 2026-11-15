@@ -6,6 +6,7 @@ from uuid import UUID
 
 from sqlalchemy import (
     CheckConstraint,
+    Float,
     ForeignKey,
     Index,
     LargeBinary,
@@ -14,6 +15,7 @@ from sqlalchemy import (
     UniqueConstraint,
     text,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from campus.core import clock
@@ -438,3 +440,60 @@ class ReviewTag(Base):
         ForeignKey("reputation_review.id", ondelete="CASCADE"), primary_key=True
     )
     tag: Mapped[str] = mapped_column(String(32), primary_key=True)
+
+
+class ProfileAggregate(Entity):
+    """Derived reputation and counters of one user (modules 2 and 5).
+
+    One row per user, rebuilt from the primary data by the background job of
+    :mod:`campus.modules.reputation.aggregates` or by the
+    ``recompute-reputation`` command. The public rating is a projection of
+    the stored sums instead of a column of its own: the service-wide mean
+    ``m`` in the smoothed formula is the average over every stored eligible
+    rating, so a review of one user changes only that user's row and the
+    smoothing constant ``C`` stays a configuration value read at request
+    time. Storing ``R`` itself would make every review of the service
+    invalidate the ratings of every other profile.
+
+    ``rating_sum`` also feeds ``m``: the sum over all rows is the sum of the
+    ratings the service counts, and their number is ``rating_count``. A row
+    is a cache of a deterministic projection, never a counter that grows: a
+    repeated or parallel rebuild writes the same values.
+    """
+
+    __tablename__ = "reputation_profile_aggregate"
+    __table_args__ = (
+        CheckConstraint("rating_count >= 0", name="rating_count"),
+        CheckConstraint("rating_sum >= 0", name="rating_sum"),
+        CheckConstraint("rating_weight_sum >= 0", name="rating_weight_sum"),
+        CheckConstraint("rating_weighted_sum >= 0", name="rating_weighted_sum"),
+        CheckConstraint("completed_interactions >= 0", name="completed_interactions"),
+        CheckConstraint("no_shows >= 0", name="no_shows"),
+        CheckConstraint(
+            "cancelled_after_acceptance >= 0", name="cancelled_after_acceptance"
+        ),
+        CheckConstraint("late_cancellations >= 0", name="late_cancellations"),
+        CheckConstraint("jsonb_typeof(tag_counts) = 'object'", name="tag_counts"),
+        UniqueConstraint("user_id"),
+    )
+
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("identity_user.id", ondelete="CASCADE")
+    )
+    # The eligible ratings: published, not hidden and within the pair limit.
+    rating_count: Mapped[int] = mapped_column(default=0)
+    # Their plain sum, the numerator of the service-wide mean ``m``.
+    rating_sum: Mapped[int] = mapped_column(default=0)
+    # The weighted sum of the formula and the sum of its weights.
+    rating_weight_sum: Mapped[float] = mapped_column(Float, default=0.0)
+    rating_weighted_sum: Mapped[float] = mapped_column(Float, default=0.0)
+    completed_interactions: Mapped[int] = mapped_column(default=0)
+    # Only counted no-shows: a disputed or removed mark is not final.
+    no_shows: Mapped[int] = mapped_column(default=0)
+    cancelled_after_acceptance: Mapped[int] = mapped_column(default=0)
+    late_cancellations: Mapped[int] = mapped_column(default=0)
+    # Tag code of a public review about the user to the number of its uses.
+    tag_counts: Mapped[dict[str, int]] = mapped_column(
+        JSONB, default=dict, server_default=text("'{}'::jsonb")
+    )
+    computed_at: Mapped[datetime]

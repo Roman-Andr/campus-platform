@@ -59,6 +59,7 @@ from campus.modules.moderation import (
     DisputeKind,
     DisputeStatus,
 )
+from campus.modules.reputation.aggregates import queue_profile_refresh
 from campus.modules.reputation.attendance import current_attendance_participant_ids
 from campus.modules.reputation.models import (
     EventNoShowVote,
@@ -570,6 +571,8 @@ async def _answer_marks(  # noqa: PLR0913, PLR0917 - the parts of a mark
     await session.flush()
     await _suspend_marks(session, interaction.id, now)
     dispute = await _open_dispute(session, listing, interaction, now)
+    # Both allegations stop counting while the dispute is open.
+    queue_profile_refresh(session, {listing.author_id, interaction.participant_id})
     listing.version += 1
     details: dict[str, Any] = {
         "rule": "mutual",
@@ -967,6 +970,8 @@ async def _charge_organizer(
         },
         {listing.author_id},
     )
+    # The organiser got a mark and the participants lost theirs in one change.
+    queue_profile_refresh(session, {listing.author_id} | set(state.registered_ids))
     return mark
 
 
@@ -1136,6 +1141,8 @@ async def dispute_event_no_show(
         },
         {listing.author_id} | state.registered_ids,
     )
+    # The mark of the organiser became non-final.
+    queue_profile_refresh(session, {listing.author_id})
     await session.flush()
     return await event_no_show_state(session, listing, settings)
 
@@ -1288,6 +1295,10 @@ async def auto_event_no_show(session: AsyncSession, job: JobInfo) -> None:
             {"kind": "automatic", "status": "not_held", "rule": "event_not_held"},
             {listing.author_id} | {item.participant_id for item in interactions},
         )
+        queue_profile_refresh(
+            session,
+            {listing.author_id} | {item.participant_id for item in interactions},
+        )
         return
     marked = await current_attendance_participant_ids(session, listing.id)
     now = clock.now()
@@ -1329,6 +1340,12 @@ async def auto_event_no_show(session: AsyncSession, job: JobInfo) -> None:
             "status": "marked" if marked else "not_held",
             "rule": "event_end",
         },
+        {listing.author_id} | {item.participant_id for item in interactions},
+    )
+    # The marked attendees completed their signup at the event end; the
+    # others just changed status. Both sides of every pair are refreshed.
+    queue_profile_refresh(
+        session,
         {listing.author_id} | {item.participant_id for item in interactions},
     )
 

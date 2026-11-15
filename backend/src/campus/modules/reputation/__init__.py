@@ -1,5 +1,17 @@
 """Public interface of the QR and reputation module."""
 
+from campus.modules.reputation.aggregates import (
+    FEW_REVIEWS_LIMIT,
+    PROFILE_AGGREGATE_TOPIC,
+    ProfileAggregates,
+    ProfileReputation,
+    compute_aggregates,
+    profile_reputation,
+    queue_profile_refresh,
+    rebuild_aggregates,
+    refresh_aggregates,
+)
+from campus.modules.reputation.aggregates_api import reputation_router
 from campus.modules.reputation.api import (
     code_router,
     device_router,
@@ -29,6 +41,7 @@ from campus.modules.reputation.models import (
     NoShowKind,
     NoShowMark,
     NoShowStatus,
+    ProfileAggregate,
     QrMode,
     QrScan,
     Review,
@@ -106,8 +119,10 @@ from campus.modules.reputation.service import (
 
 __all__ = [
     "EVENT_NO_SHOW_TOPIC",
+    "FEW_REVIEWS_LIMIT",
     "NO_SHOW_TOPIC",
     "PERSONAL_NO_SHOW_TOPIC",
+    "PROFILE_AGGREGATE_TOPIC",
     "QR_ALGORITHM",
     "QR_COMPLETION_KINDS",
     "REVIEW_KINDS",
@@ -129,6 +144,9 @@ __all__ = [
     "NoShowState",
     "NoShowStatus",
     "OfflineQrPayload",
+    "ProfileAggregate",
+    "ProfileAggregates",
+    "ProfileReputation",
     "QrMode",
     "QrPayload",
     "QrResult",
@@ -148,6 +166,7 @@ __all__ = [
     "code_router",
     "complete_offline_qr",
     "completion_moment",
+    "compute_aggregates",
     "confirm_with_code",
     "confirm_with_offline_qr",
     "confirm_with_qr",
@@ -176,12 +195,17 @@ __all__ = [
     "own_review",
     "pair_reviews",
     "payload_digest",
+    "profile_reputation",
     "public",
     "public_key_bytes",
     "qr_router",
+    "queue_profile_refresh",
+    "rebuild_aggregates",
+    "refresh_aggregates",
     "register_device_key",
     "remove_attendance",
     "reply_to_review",
+    "reputation_router",
     "return_loan_with_qr",
     "reveal_due_reviews",
     "reveal_key",

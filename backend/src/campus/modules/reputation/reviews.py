@@ -40,6 +40,7 @@ from campus.modules.listings import (
     append_event,
     locked,
 )
+from campus.modules.reputation.aggregates import queue_profile_refresh
 from campus.modules.reputation.models import (
     REVIEW_KINDS,
     Review,
@@ -501,6 +502,10 @@ async def edit_review(  # noqa: PLR0913, PLR0917 - request context
     review.tags = [
         ReviewTag(tag=tag) for tag in validate_tags(listing.kind, data.tags, settings)
     ]
+    # A review that is already published cannot be edited, so the refresh is
+    # a no-op today; it keeps the projection in step if moderation ever edits
+    # a hidden review before revealing it again.
+    queue_profile_refresh(session, {listing.author_id, interaction.participant_id})
     await session.flush()
     return await review_state(session, listing, interaction, actor_id, settings)
 
@@ -581,6 +586,9 @@ async def _record_reveal(
         {listing.author_id, interaction.participant_id},
         occurred_at=now,
     )
+    # Either side may have just gained an eligible rating and tags: rebuild
+    # both profiles from the primary data instead of adding to a counter.
+    queue_profile_refresh(session, {listing.author_id, interaction.participant_id})
 
 
 def queue_review(
