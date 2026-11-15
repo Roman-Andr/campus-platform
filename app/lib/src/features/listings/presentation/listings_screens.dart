@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:clock/clock.dart';
+import 'package:flutter/services.dart' show FilteringTextInputFormatter;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart' hide Visibility;
@@ -15,9 +16,12 @@ import '../../qr/presentation/qr_summary.dart';
 import '../application/feed_filters.dart';
 import '../application/listing_photo_draft.dart';
 import '../application/listings.dart';
+import '../application/loan.dart';
+import '../application/loan_config.dart';
 import '../domain/event.dart';
 import '../domain/feed.dart';
 import '../domain/help.dart';
+import '../domain/loan.dart';
 import '../domain/purchase.dart';
 import '../domain/skills.dart';
 import 'attendance_screen.dart';
@@ -28,6 +32,7 @@ import 'exchange_widgets.dart';
 import 'interaction_widgets.dart';
 import 'lesson_widgets.dart';
 import 'listing_photos.dart';
+import 'loan_widgets.dart';
 import 'meeting_screen.dart';
 import 'my_screens.dart';
 import 'no_meeting_screen.dart';
@@ -391,6 +396,10 @@ class FeedFiltersBar extends ConsumerWidget {
                 child: Text(l.listingKindExchange),
               ),
               DropdownMenuItem(
+                value: FeedKind.loan.apiValue,
+                child: Text(l.listingKindLoan),
+              ),
+              DropdownMenuItem(
                 value: FeedKind.skill.apiValue,
                 child: Text(l.listingKindSkill),
               ),
@@ -477,6 +486,7 @@ class ListingTile extends ConsumerWidget {
     final event = item.kind == 'event';
     final help = isHelpRequest(item);
     final purchase = isPurchase(item);
+    final loan = item.kind == loanKind;
     final seats = eventSeatsText(l, item.remainingPlaces);
     final skill = isSkillListing(item);
     final direction = skillDirectionOf(item);
@@ -490,6 +500,8 @@ class ListingTile extends ConsumerWidget {
         ? l.listingKindHelp
         : purchase
         ? l.listingKindPurchase
+        : loan
+        ? l.listingKindLoan
         : listingName(l, item.status);
     return Column(
       children: [
@@ -501,6 +513,8 @@ class ListingTile extends ConsumerWidget {
               item.authorName,
               kind,
               if (purchase) purchaseCollectedLabel(l, item),
+              if (loan && item.loanDays != null)
+                l.loanPeriodShort(item.loanDays!),
               if (event && seats.isNotEmpty) seats,
               if (direction != null) skillDirectionLabel(l, direction),
             ].join(' · '),
@@ -557,6 +571,7 @@ class ListingScreen extends ConsumerWidget {
               final direction = skillDirectionOf(item);
               final help = isHelpRequest(item);
               final purchase = isPurchase(item);
+              final loan = item.kind == loanKind;
               final pinned = isPinnedAt(item, clock.now());
               return ListView(
                 padding: const EdgeInsets.all(16),
@@ -589,6 +604,13 @@ class ListingScreen extends ConsumerWidget {
                       listing: item,
                       showEmptySeats: item.authorId == user?.id,
                     ),
+                  ] else if (loan) ...[
+                    Text(listingKindName(l, item.kind)),
+                    if (item.loanDays case final days?)
+                      Text(
+                        l.loanPeriodValue(days),
+                        key: const Key('loan-period'),
+                      ),
                   ] else if (publication || exchange || skill || purchase)
                     Text(listingKindName(l, item.kind))
                   else if (help)
@@ -706,6 +728,9 @@ class ListingScreen extends ConsumerWidget {
   }
 }
 
+/// The return period a new loan form starts with, in days.
+const defaultLoanPeriodDays = 7;
+
 class CreateListingScreen extends ConsumerStatefulWidget {
   const CreateListingScreen({this.initial, this.kind = 'giveaway', super.key});
   final ListingOutput? initial;
@@ -721,6 +746,12 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   final form = GlobalKey<FormState>();
   final title = TextEditingController();
   final description = TextEditingController();
+
+  /// The author's return period of a new loan, in days.
+  final loanDays = TextEditingController(text: '$defaultLoanPeriodDays');
+
+  /// Keys of repeated publications: a retry of the same form reuses its key.
+  final _keys = LoanKeys();
   Visibility scope = Visibility.city;
   Audience audience = Audience.students;
   String? categoryId;
@@ -740,6 +771,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
       scope = item.visibility;
       audience = item.audience;
       categoryId = item.categoryId;
+      if (item.loanDays case final days?) loanDays.text = '$days';
       unawaited(_showAttachedPhotos(item.id));
     }
   }
@@ -778,7 +810,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
         final employee =
             ref.read(myProfileProvider).value?.accountType ==
             UserOutputAccountType.employee;
-        final body = GiveawayInput(
+        final shared = GiveawayInput(
           title: title.text.trim(),
           description: description.text.trim(),
           visibility: scope,
@@ -786,9 +818,31 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
           categoryId: categoryId,
           draft: draft,
         );
-        listing = saved ??= await (widget.kind == 'exchange'
-            ? api.listings.publishExchange(body: body)
-            : api.listings.publishGiveaway(body: body));
+        if (saved case final existing?) {
+          listing = existing;
+        } else if (widget.kind == loanKind) {
+          final period = _parsedLoanDays(ref.read(loanConfigProvider));
+          if (period == null) throw const InvalidListingForm();
+          final intent = _createIntent(draft: draft);
+          final key = _keys.of(intent);
+          listing = saved = await api.listings.publishLoan(
+            body: LoanInput(
+              title: shared.title,
+              description: shared.description,
+              visibility: shared.visibility,
+              audience: shared.audience,
+              categoryId: shared.categoryId,
+              draft: shared.draft,
+              loanDays: period,
+            ),
+            options: loanMutationOptions(key),
+          );
+          _keys.done(intent);
+        } else {
+          listing = saved = await (widget.kind == 'exchange'
+              ? api.listings.publishExchange(body: shared)
+              : api.listings.publishGiveaway(body: shared));
+        }
       }
       // Rejected and failed photos are left out; the rest attach in order.
       final photos = ref.read(listingPhotoDraftProvider.notifier).readyIds;
@@ -807,12 +861,36 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   void dispose() {
     title.dispose();
     description.dispose();
+    loanDays.dispose();
     super.dispose();
+  }
+
+  /// The same form content repeats under one `Idempotency-Key`, so a retry
+  /// after a lost response never publishes the loan twice; changed content is
+  /// a new intent with its own key.
+  String _createIntent({required bool draft}) => [
+    'create',
+    widget.kind,
+    draft ? 'draft' : 'publish',
+    title.text.trim(),
+    description.text.trim(),
+    if (widget.kind == loanKind) loanDays.text.trim(),
+    categoryId ?? '',
+    scope.toJson(),
+    audience.toJson(),
+  ].join('\u0000');
+
+  /// The loan period of the form; the validator already reported a bad one.
+  int? _parsedLoanDays(LoanConfig config) {
+    final value = int.tryParse(loanDays.text.trim());
+    if (value == null || value < 1 || value > config.maxPeriodDays) return null;
+    return value;
   }
 
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final loanConfig = ref.watch(loanConfigProvider);
     final initial = widget.initial;
     // Keeps the signed photo list alive while the form loads the attached
     // photos: nothing else watches it on this screen any more.
@@ -826,9 +904,11 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
       appBar: AppBar(
         title: Text(
           widget.initial == null
-              ? (widget.kind == 'exchange'
-                    ? l.exchangeCreateTitle
-                    : l.listingCreate)
+              ? switch (widget.kind) {
+                  'exchange' => l.exchangeCreateTitle,
+                  loanKind => l.loanCreateTitle,
+                  _ => l.listingCreate,
+                }
               : l.listingEditDraft,
         ),
       ),
@@ -887,6 +967,32 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
               validator: (v) =>
                   v == null || v.trim().isEmpty ? l.signInNameRequired : null,
             ),
+            if (widget.kind == loanKind)
+              if (initial == null)
+                TextFormField(
+                  key: const Key('loan-days'),
+                  controller: loanDays,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: InputDecoration(
+                    labelText: l.loanPeriodLabel,
+                    helperText: l.loanPeriodHint(loanConfig.maxPeriodDays),
+                  ),
+                  validator: (value) {
+                    final days = int.tryParse(value?.trim() ?? '');
+                    if (days == null ||
+                        days < 1 ||
+                        days > loanConfig.maxPeriodDays) {
+                      return l.loanPeriodInvalid(loanConfig.maxPeriodDays);
+                    }
+                    return null;
+                  },
+                )
+              else
+                Text(
+                  l.loanPeriodFixed(initial.loanDays ?? 0),
+                  key: const Key('loan-days-fixed'),
+                ),
             DropdownButtonFormField<Visibility>(
               initialValue: scope,
               decoration: InputDecoration(labelText: l.listingScope),
@@ -996,6 +1102,13 @@ class ReservationTile extends ConsumerWidget {
             city: value.cityTimezone,
             otherName: value.authorName,
           ),
+        if (listing.value case final value?)
+          LoanSummary(
+            item: item,
+            kind: value.kind,
+            timezone: value.cityTimezone,
+            city: value.cityTimezone,
+          ),
         ParticipantCancel(item: item),
       ],
     );
@@ -1103,6 +1216,13 @@ class _IncomingListState extends ConsumerState<IncomingList> {
                         timezone: listing.cityTimezone,
                         city: listing.cityTimezone,
                         otherName: item.participantName,
+                      ),
+                    if (listing != null)
+                      LoanSummary(
+                        item: item,
+                        kind: listing.kind,
+                        timezone: listing.cityTimezone,
+                        city: listing.cityTimezone,
                       ),
                     if (listing != null && skill)
                       LessonOptionsCard(item: item, listing: listing),
@@ -1259,7 +1379,8 @@ class ListingOwnerActions extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.of(context).push<void>(
               MaterialPageRoute(
-                builder: (_) => CreateListingScreen(initial: item),
+                builder: (_) =>
+                    CreateListingScreen(initial: item, kind: item.kind),
               ),
             ),
             child: Text(l.listingEditDraft),

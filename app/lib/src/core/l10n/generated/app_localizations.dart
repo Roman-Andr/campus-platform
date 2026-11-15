@@ -4981,6 +4981,396 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Неявку в займе нельзя отметить: вещь уже передана. После срока возврата владелец отмечает «не вернули».'**
   String get noShowLoanUnavailable;
+
+  /// Listing kind name: loan.
+  ///
+  /// In ru, this message translates to:
+  /// **'Одолжу'**
+  String get listingKindLoan;
+
+  /// Entry point and title of a new loan listing.
+  ///
+  /// In ru, this message translates to:
+  /// **'Создать «Одолжу»'**
+  String get loanCreateTitle;
+
+  /// Label of the loan period field, in days.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок возврата, дней'**
+  String get loanPeriodLabel;
+
+  /// Allowed loan period range.
+  ///
+  /// In ru, this message translates to:
+  /// **'От 1 до {max} дней'**
+  String loanPeriodHint(int max);
+
+  /// A loan period outside the configured range was entered.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок возврата — от 1 до {max} дней'**
+  String loanPeriodInvalid(int max);
+
+  /// Loan period on a compact card.
+  ///
+  /// In ru, this message translates to:
+  /// **'{days} дн.'**
+  String loanPeriodShort(int days);
+
+  /// Loan period on the listing card.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок возврата: {days} дн. после выдачи'**
+  String loanPeriodValue(int days);
+
+  /// Read-only loan period of a draft being edited.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок возврата задан при публикации: {days} дн.'**
+  String loanPeriodFixed(int days);
+
+  /// Title of the loan card of an interaction.
+  ///
+  /// In ru, this message translates to:
+  /// **'«Одолжу»'**
+  String get loanCardTitle;
+
+  /// First step of a loan.
+  ///
+  /// In ru, this message translates to:
+  /// **'Принято'**
+  String get loanStepAccepted;
+
+  /// Second step of a loan.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выдано'**
+  String get loanStepIssued;
+
+  /// Third step of a loan.
+  ///
+  /// In ru, this message translates to:
+  /// **'Возвращено'**
+  String get loanStepReturned;
+
+  /// Return deadline of a loan in the city zone.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вернуть до {time}'**
+  String loanReturnDue(String time);
+
+  /// The loan is past its return deadline.
+  ///
+  /// In ru, this message translates to:
+  /// **'Просрочено'**
+  String get loanOverdueChip;
+
+  /// The owner shows the handover code.
+  ///
+  /// In ru, this message translates to:
+  /// **'Показать QR выдачи'**
+  String get loanShowHandover;
+
+  /// The borrower scans the handover code.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сканировать QR выдачи'**
+  String get loanScanHandover;
+
+  /// The borrower shows the return code.
+  ///
+  /// In ru, this message translates to:
+  /// **'Показать QR возврата'**
+  String get loanShowReturn;
+
+  /// The owner scans the return code.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сканировать QR возврата'**
+  String get loanScanReturn;
+
+  /// Who does what at the handover.
+  ///
+  /// In ru, this message translates to:
+  /// **'Владелец показывает код выдачи, заёмщик сканирует.'**
+  String get loanHandoverHint;
+
+  /// Who does what at the return.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заёмщик показывает код возврата, владелец сканирует.'**
+  String get loanReturnHint;
+
+  /// The owner marks the item as not returned.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вещь не возвращена'**
+  String get loanNotReturned;
+
+  /// When the owner may mark the item not returned.
+  ///
+  /// In ru, this message translates to:
+  /// **'Доступно с {time}'**
+  String loanNotReturnedUntil(String time);
+
+  /// Confirmation of the not-returned mark.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметить «не возвращено»?'**
+  String get loanNotReturnedConfirmTitle;
+
+  /// Consequences of the not-returned mark.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заёмщику будет засчитана неявка, и он сможет её оспорить. Вещь остаётся занятой, пока спор не решится.'**
+  String get loanNotReturnedConfirmBody;
+
+  /// Confirm the not-returned mark.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметить'**
+  String get loanNotReturnedConfirm;
+
+  /// Dismiss the not-returned confirmation.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отмена'**
+  String get loanNotReturnedKeep;
+
+  /// The borrower sees the owner's mark.
+  ///
+  /// In ru, this message translates to:
+  /// **'Владелец отметил, что вещь не возвращена.'**
+  String get loanNotReturnedMarked;
+
+  /// The owner sees the recorded no-show.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заёмщик не вернул вещь в срок: засчитана неявка.'**
+  String get loanBorrowerNoShow;
+
+  /// A dispute is open.
+  ///
+  /// In ru, this message translates to:
+  /// **'Неявка оспорена: решение примет модератор.'**
+  String get loanDisputeOpen;
+
+  /// The borrower has not answered the mark yet.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заёмщик может оспорить неявку в течение окна спора.'**
+  String get loanDisputeWaiting;
+
+  /// The borrower answers the mark.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оспорить неявку'**
+  String get loanDispute;
+
+  /// Title of the dispute dialog.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оспаривание неявки'**
+  String get loanDisputeTitle;
+
+  /// Reason field of the dispute dialog.
+  ///
+  /// In ru, this message translates to:
+  /// **'Причина'**
+  String get loanDisputeReason;
+
+  /// The dispute reason is empty.
+  ///
+  /// In ru, this message translates to:
+  /// **'Опишите причину'**
+  String get loanDisputeReasonRequired;
+
+  /// The dispute reason is too long.
+  ///
+  /// In ru, this message translates to:
+  /// **'Причина — не длиннее {max} символов'**
+  String loanDisputeReasonInvalid(int max);
+
+  /// Send the dispute.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отправить'**
+  String get loanDisputeSend;
+
+  /// Dismiss the dispute dialog.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отмена'**
+  String get loanDisputeKeep;
+
+  /// The server refused a late dispute.
+  ///
+  /// In ru, this message translates to:
+  /// **'Окно оспаривания уже закрыто.'**
+  String get loanDisputeClosed;
+
+  /// The server refused a stranger.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оспорить неявку может только её участник.'**
+  String get loanDisputeForbidden;
+
+  /// The server refused the answer.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оспорить эту неявку нельзя.'**
+  String get loanNoShowUnavailable;
+
+  /// The loan is completed at the return QR screen.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вещь уже возвращена.'**
+  String get loanQrAlreadyReturned;
+
+  /// The handover step cannot run now.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выдача уже подтверждена или заём закрыт.'**
+  String get loanQrHandoverUnavailable;
+
+  /// The return step cannot run before the handover.
+  ///
+  /// In ru, this message translates to:
+  /// **'Возврат возможен только после выдачи.'**
+  String get loanQrReturnUnavailable;
+
+  /// The server named the first allowed moment.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметить «не возвращено» можно с {time}.'**
+  String loanNotReturnedTooEarly(String time);
+
+  /// The not-returned wait has not passed.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметить «не возвращено» пока нельзя.'**
+  String get loanNotReturnedLater;
+
+  /// The server refused a non-owner.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметить «не возвращено» может только владелец.'**
+  String get loanNotReturnedForbidden;
+
+  /// The loan is not in the issued stage.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметить «не возвращено» можно только для выданной вещи.'**
+  String get loanNotReturnedUnavailable;
+
+  /// When the item was returned; the time is in the city zone.
+  ///
+  /// In ru, this message translates to:
+  /// **'Возвращено {time}'**
+  String loanReturnedAt(String time);
+
+  /// Title of the handover presenter screen.
+  ///
+  /// In ru, this message translates to:
+  /// **'QR-код выдачи'**
+  String get loanQrHandoverPresenterTitle;
+
+  /// Explanation on the handover presenter screen.
+  ///
+  /// In ru, this message translates to:
+  /// **'Покажите этот код заёмщику: он подтвердит получение вещи.'**
+  String get loanQrHandoverPresenterIntro;
+
+  /// Title of the return presenter screen.
+  ///
+  /// In ru, this message translates to:
+  /// **'QR-код возврата'**
+  String get loanQrReturnPresenterTitle;
+
+  /// Explanation on the return presenter screen.
+  ///
+  /// In ru, this message translates to:
+  /// **'Покажите этот код владельцу: он подтвердит возврат вещи.'**
+  String get loanQrReturnPresenterIntro;
+
+  /// Title of the handover scanner screen.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сканирование выдачи'**
+  String get loanQrHandoverScanTitle;
+
+  /// Hint above the handover camera.
+  ///
+  /// In ru, this message translates to:
+  /// **'Наведите камеру на QR-код, который показывает владелец.'**
+  String get loanQrHandoverScanIntro;
+
+  /// Title of the return scanner screen.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сканирование возврата'**
+  String get loanQrReturnScanTitle;
+
+  /// Hint above the return camera.
+  ///
+  /// In ru, this message translates to:
+  /// **'Наведите камеру на QR-код, который показывает заёмщик.'**
+  String get loanQrReturnScanIntro;
+
+  /// The scanned handover is applied.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выдача подтверждена.'**
+  String get loanQrHandoverDone;
+
+  /// The scanned return completes the loan.
+  ///
+  /// In ru, this message translates to:
+  /// **'Возврат подтверждён, заём завершён.'**
+  String get loanQrReturnDone;
+
+  /// The server refused a return before the handover.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сначала подтвердите выдачу вещи.'**
+  String get qrScannerLoanNotHandedOver;
+
+  /// The server refused a repeated handover.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выдача уже подтверждена. Для возврата покажите или отсканируйте код возврата.'**
+  String get qrScannerLoanAlreadyIssued;
+
+  /// The server refused a return after the not-returned mark.
+  ///
+  /// In ru, this message translates to:
+  /// **'Владелец отметил вещь не возвращённой; исход решит спор.'**
+  String get qrScannerLoanReturnMarked;
+
+  /// The plain QR endpoint refused a loan.
+  ///
+  /// In ru, this message translates to:
+  /// **'Займ подтверждается отдельно выдачей и возвратом.'**
+  String get qrScannerLoanActionRequired;
+
+  /// Journal event of a confirmed handover.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выдача вещи подтверждена'**
+  String get timelineLoanHandedOver;
+
+  /// Journal event of a confirmed return.
+  ///
+  /// In ru, this message translates to:
+  /// **'Возврат вещи подтверждён'**
+  String get timelineLoanReturned;
+
+  /// Journal event of the owner's not-returned mark.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вещь отмечена не возвращённой'**
+  String get timelineLoanNotReturned;
 }
 
 class _AppLocalizationsDelegate

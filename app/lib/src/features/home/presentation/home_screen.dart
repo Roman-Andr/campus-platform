@@ -58,6 +58,15 @@ class HomeScreen extends ConsumerWidget {
               tooltip: l10n.feedCreateExchange,
               onPressed: () => context.push('/exchange/new'),
             ),
+          if (!compact)
+            IconButton(
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+              key: const Key('feed-create-loan'),
+              icon: const Icon(Icons.handshake_outlined),
+              tooltip: l10n.loanCreateTitle,
+              onPressed: () => context.push('/loan/new'),
+            ),
           IconButton(
             padding: EdgeInsets.zero,
             visualDensity: VisualDensity.compact,
@@ -102,6 +111,12 @@ class HomeScreen extends ConsumerWidget {
                   key: const Key('home-create-exchange'),
                   value: '/exchange/new',
                   child: Text(l10n.feedCreateExchange),
+                ),
+              if (compact)
+                PopupMenuItem(
+                  key: const Key('home-create-loan'),
+                  value: '/loan/new',
+                  child: Text(l10n.loanCreateTitle),
                 ),
               if (narrow)
                 PopupMenuItem(

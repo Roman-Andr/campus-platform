@@ -33,6 +33,7 @@ import '../../features/profile/application/my_profile.dart';
 import '../../features/profile/presentation/profile_form_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/profile/presentation/profile_steps.dart';
+import '../../features/qr/domain/qr_availability.dart';
 import '../../features/qr/presentation/qr_presenter_screen.dart';
 import '../../features/qr/presentation/qr_scanner_screen.dart';
 import '../../features/sessions/presentation/devices_screen.dart';
@@ -99,6 +100,10 @@ GoRouter appRouter(Ref ref) {
         path: '/exchange/new',
         builder: (context, state) =>
             const CreateListingScreen(kind: 'exchange'),
+      ),
+      GoRoute(
+        path: '/loan/new',
+        builder: (context, state) => const CreateListingScreen(kind: 'loan'),
       ),
       GoRoute(
         path: '/publication/new',
@@ -190,6 +195,42 @@ GoRouter appRouter(Ref ref) {
                       listingId: state.pathParameters['id']!,
                       interactionId: state.pathParameters['interactionId']!,
                     ),
+                  ),
+                  GoRoute(
+                    path: 'handover',
+                    builder: (context, state) => QrPresenterScreen(
+                      listingId: state.pathParameters['id']!,
+                      interactionId: state.pathParameters['interactionId']!,
+                      action: QrAction.loanHandover,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'scan',
+                        builder: (context, state) => QrScannerScreen(
+                          listingId: state.pathParameters['id']!,
+                          interactionId: state.pathParameters['interactionId']!,
+                          action: QrAction.loanHandover,
+                        ),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'return',
+                    builder: (context, state) => QrPresenterScreen(
+                      listingId: state.pathParameters['id']!,
+                      interactionId: state.pathParameters['interactionId']!,
+                      action: QrAction.loanReturn,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'scan',
+                        builder: (context, state) => QrScannerScreen(
+                          listingId: state.pathParameters['id']!,
+                          interactionId: state.pathParameters['interactionId']!,
+                          action: QrAction.loanReturn,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

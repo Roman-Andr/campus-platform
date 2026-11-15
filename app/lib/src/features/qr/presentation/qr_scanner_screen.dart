@@ -17,11 +17,15 @@ import '../application/qr_messages.dart';
 import '../domain/qr_availability.dart';
 import '../domain/qr_document.dart';
 import 'qr_camera.dart';
+import 'qr_presenter_screen.dart' show qrShowPath;
 
-/// Route of the scanning side of the online QR confirmation of
+/// Route of the scanning side of the online QR confirmation of [action] for
 /// [interactionId] of [listingId].
-String qrScanPath(String listingId, String interactionId) =>
-    '/listings/$listingId/interactions/$interactionId/qr/scan';
+String qrScanPath(
+  String listingId,
+  String interactionId, {
+  QrAction action = QrAction.completion,
+}) => '${qrShowPath(listingId, interactionId, action: action)}/scan';
 
 /// The steps of one scan.
 enum _ScanPhase { loading, scanning, sending, success, failure }
@@ -37,11 +41,15 @@ class QrScannerScreen extends ConsumerStatefulWidget {
   const QrScannerScreen({
     required this.listingId,
     required this.interactionId,
+    this.action = QrAction.completion,
     super.key,
   });
 
   final String listingId;
   final String interactionId;
+
+  /// The step the scanned code confirms; a loan has two of them.
+  final QrAction action;
 
   @override
   ConsumerState<QrScannerScreen> createState() => _QrScannerScreenState();
@@ -133,18 +141,32 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     final idempotencyKey = _idempotencyKey;
     if (document == null || idempotencyKey == null) return;
     try {
-      final result = await ref
-          .read(campusApiProvider)
-          .qr
-          .scanQr(
-            listingId: widget.listingId,
-            interactionId: widget.interactionId,
-            body: QrScanInput(
-              payload: document.payload,
-              signature: document.signature,
-            ),
-            options: Options(headers: {idempotencyKeyHeader: idempotencyKey}),
-          );
+      final api = ref.read(campusApiProvider).qr;
+      final body = QrScanInput(
+        payload: document.payload,
+        signature: document.signature,
+      );
+      final options = Options(headers: {idempotencyKeyHeader: idempotencyKey});
+      final result = switch (widget.action) {
+        QrAction.completion => await api.scanQr(
+          listingId: widget.listingId,
+          interactionId: widget.interactionId,
+          body: body,
+          options: options,
+        ),
+        QrAction.loanHandover => await api.handOverLoan(
+          listingId: widget.listingId,
+          interactionId: widget.interactionId,
+          body: body,
+          options: options,
+        ),
+        QrAction.loanReturn => await api.returnLoan(
+          listingId: widget.listingId,
+          interactionId: widget.interactionId,
+          body: body,
+          options: options,
+        ),
+      };
       if (!mounted) return;
       setState(() {
         _phase = _ScanPhase.success;
@@ -205,7 +227,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
       };
     }
     return Scaffold(
-      appBar: AppBar(title: Text(l.qrScannerTitle)),
+      appBar: AppBar(title: Text(_title(l))),
       body: body,
     );
   }
@@ -216,7 +238,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     ListingOutput listing,
     List<CityOut>? cities,
   ) {
-    switch (qrInteractionState(listing.kind, item)) {
+    switch (qrInteractionState(listing.kind, item, action: widget.action)) {
       case QrInteractionState.available:
         return _available(l);
       case QrInteractionState.completedWithQr:
@@ -226,7 +248,11 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
       case QrInteractionState.notAccepted:
         return _message(l.qrScannerNotAccepted);
       case QrInteractionState.unavailable:
-        return _message(l.qrScannerUnavailable);
+        return _message(switch (widget.action) {
+          QrAction.loanHandover => l.loanQrHandoverUnavailable,
+          QrAction.loanReturn => l.loanQrReturnUnavailable,
+          QrAction.completion => l.qrScannerUnavailable,
+        });
     }
   }
 
@@ -260,7 +286,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
       children: [
         Padding(
           padding: const EdgeInsets.all(16),
-          child: Text(l.qrScannerIntro, textAlign: TextAlign.center),
+          child: Text(_intro(l), textAlign: TextAlign.center),
         ),
         Expanded(
           child: KeyedSubtree(
@@ -292,7 +318,9 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
             ),
             const SizedBox(height: 12),
             Text(
-              l.qrScannerAlreadyConfirmed,
+              qrActionIsLoan(widget.action)
+                  ? l.loanQrAlreadyReturned
+                  : l.qrScannerAlreadyConfirmed,
               key: const Key('qr-scanner-completed'),
               textAlign: TextAlign.center,
             ),
@@ -316,6 +344,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     List<CityOut>? cities,
   ) {
     final completedAt = result.completedAt;
+    final returnDueAt = result.returnDueAt;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -329,10 +358,22 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
             ),
             const SizedBox(height: 12),
             Text(
-              l.qrScannerSuccess,
+              switch (widget.action) {
+                QrAction.completion => l.qrScannerSuccess,
+                QrAction.loanHandover => l.loanQrHandoverDone,
+                QrAction.loanReturn => l.loanQrReturnDone,
+              },
               key: const Key('qr-scanner-success'),
               textAlign: TextAlign.center,
             ),
+            if (returnDueAt != null && listing != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                l.loanReturnDue(_cityTime(l, returnDueAt, listing, cities)),
+                key: const Key('qr-scanner-return-due'),
+                textAlign: TextAlign.center,
+              ),
+            ],
             if (completedAt != null && listing != null) ...[
               const SizedBox(height: 8),
               Text(
@@ -351,6 +392,18 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
       ),
     );
   }
+
+  String _title(AppLocalizations l) => switch (widget.action) {
+    QrAction.completion => l.qrScannerTitle,
+    QrAction.loanHandover => l.loanQrHandoverScanTitle,
+    QrAction.loanReturn => l.loanQrReturnScanTitle,
+  };
+
+  String _intro(AppLocalizations l) => switch (widget.action) {
+    QrAction.completion => l.qrScannerIntro,
+    QrAction.loanHandover => l.loanQrHandoverScanIntro,
+    QrAction.loanReturn => l.loanQrReturnScanIntro,
+  };
 
   Widget _failure(AppLocalizations l) => Center(
     child: Padding(

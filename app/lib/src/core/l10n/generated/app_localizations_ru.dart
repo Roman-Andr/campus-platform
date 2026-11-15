@@ -2813,4 +2813,236 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get noShowLoanUnavailable =>
       'Неявку в займе нельзя отметить: вещь уже передана. После срока возврата владелец отмечает «не вернули».';
+
+  @override
+  String get listingKindLoan => 'Одолжу';
+
+  @override
+  String get loanCreateTitle => 'Создать «Одолжу»';
+
+  @override
+  String get loanPeriodLabel => 'Срок возврата, дней';
+
+  @override
+  String loanPeriodHint(int max) {
+    return 'От 1 до $max дней';
+  }
+
+  @override
+  String loanPeriodInvalid(int max) {
+    return 'Срок возврата — от 1 до $max дней';
+  }
+
+  @override
+  String loanPeriodShort(int days) {
+    return '$days дн.';
+  }
+
+  @override
+  String loanPeriodValue(int days) {
+    return 'Срок возврата: $days дн. после выдачи';
+  }
+
+  @override
+  String loanPeriodFixed(int days) {
+    return 'Срок возврата задан при публикации: $days дн.';
+  }
+
+  @override
+  String get loanCardTitle => '«Одолжу»';
+
+  @override
+  String get loanStepAccepted => 'Принято';
+
+  @override
+  String get loanStepIssued => 'Выдано';
+
+  @override
+  String get loanStepReturned => 'Возвращено';
+
+  @override
+  String loanReturnDue(String time) {
+    return 'Вернуть до $time';
+  }
+
+  @override
+  String get loanOverdueChip => 'Просрочено';
+
+  @override
+  String get loanShowHandover => 'Показать QR выдачи';
+
+  @override
+  String get loanScanHandover => 'Сканировать QR выдачи';
+
+  @override
+  String get loanShowReturn => 'Показать QR возврата';
+
+  @override
+  String get loanScanReturn => 'Сканировать QR возврата';
+
+  @override
+  String get loanHandoverHint =>
+      'Владелец показывает код выдачи, заёмщик сканирует.';
+
+  @override
+  String get loanReturnHint =>
+      'Заёмщик показывает код возврата, владелец сканирует.';
+
+  @override
+  String get loanNotReturned => 'Вещь не возвращена';
+
+  @override
+  String loanNotReturnedUntil(String time) {
+    return 'Доступно с $time';
+  }
+
+  @override
+  String get loanNotReturnedConfirmTitle => 'Отметить «не возвращено»?';
+
+  @override
+  String get loanNotReturnedConfirmBody =>
+      'Заёмщику будет засчитана неявка, и он сможет её оспорить. Вещь остаётся занятой, пока спор не решится.';
+
+  @override
+  String get loanNotReturnedConfirm => 'Отметить';
+
+  @override
+  String get loanNotReturnedKeep => 'Отмена';
+
+  @override
+  String get loanNotReturnedMarked =>
+      'Владелец отметил, что вещь не возвращена.';
+
+  @override
+  String get loanBorrowerNoShow =>
+      'Заёмщик не вернул вещь в срок: засчитана неявка.';
+
+  @override
+  String get loanDisputeOpen => 'Неявка оспорена: решение примет модератор.';
+
+  @override
+  String get loanDisputeWaiting =>
+      'Заёмщик может оспорить неявку в течение окна спора.';
+
+  @override
+  String get loanDispute => 'Оспорить неявку';
+
+  @override
+  String get loanDisputeTitle => 'Оспаривание неявки';
+
+  @override
+  String get loanDisputeReason => 'Причина';
+
+  @override
+  String get loanDisputeReasonRequired => 'Опишите причину';
+
+  @override
+  String loanDisputeReasonInvalid(int max) {
+    return 'Причина — не длиннее $max символов';
+  }
+
+  @override
+  String get loanDisputeSend => 'Отправить';
+
+  @override
+  String get loanDisputeKeep => 'Отмена';
+
+  @override
+  String get loanDisputeClosed => 'Окно оспаривания уже закрыто.';
+
+  @override
+  String get loanDisputeForbidden =>
+      'Оспорить неявку может только её участник.';
+
+  @override
+  String get loanNoShowUnavailable => 'Оспорить эту неявку нельзя.';
+
+  @override
+  String get loanQrAlreadyReturned => 'Вещь уже возвращена.';
+
+  @override
+  String get loanQrHandoverUnavailable =>
+      'Выдача уже подтверждена или заём закрыт.';
+
+  @override
+  String get loanQrReturnUnavailable => 'Возврат возможен только после выдачи.';
+
+  @override
+  String loanNotReturnedTooEarly(String time) {
+    return 'Отметить «не возвращено» можно с $time.';
+  }
+
+  @override
+  String get loanNotReturnedLater => 'Отметить «не возвращено» пока нельзя.';
+
+  @override
+  String get loanNotReturnedForbidden =>
+      'Отметить «не возвращено» может только владелец.';
+
+  @override
+  String get loanNotReturnedUnavailable =>
+      'Отметить «не возвращено» можно только для выданной вещи.';
+
+  @override
+  String loanReturnedAt(String time) {
+    return 'Возвращено $time';
+  }
+
+  @override
+  String get loanQrHandoverPresenterTitle => 'QR-код выдачи';
+
+  @override
+  String get loanQrHandoverPresenterIntro =>
+      'Покажите этот код заёмщику: он подтвердит получение вещи.';
+
+  @override
+  String get loanQrReturnPresenterTitle => 'QR-код возврата';
+
+  @override
+  String get loanQrReturnPresenterIntro =>
+      'Покажите этот код владельцу: он подтвердит возврат вещи.';
+
+  @override
+  String get loanQrHandoverScanTitle => 'Сканирование выдачи';
+
+  @override
+  String get loanQrHandoverScanIntro =>
+      'Наведите камеру на QR-код, который показывает владелец.';
+
+  @override
+  String get loanQrReturnScanTitle => 'Сканирование возврата';
+
+  @override
+  String get loanQrReturnScanIntro =>
+      'Наведите камеру на QR-код, который показывает заёмщик.';
+
+  @override
+  String get loanQrHandoverDone => 'Выдача подтверждена.';
+
+  @override
+  String get loanQrReturnDone => 'Возврат подтверждён, заём завершён.';
+
+  @override
+  String get qrScannerLoanNotHandedOver => 'Сначала подтвердите выдачу вещи.';
+
+  @override
+  String get qrScannerLoanAlreadyIssued =>
+      'Выдача уже подтверждена. Для возврата покажите или отсканируйте код возврата.';
+
+  @override
+  String get qrScannerLoanReturnMarked =>
+      'Владелец отметил вещь не возвращённой; исход решит спор.';
+
+  @override
+  String get qrScannerLoanActionRequired =>
+      'Займ подтверждается отдельно выдачей и возвратом.';
+
+  @override
+  String get timelineLoanHandedOver => 'Выдача вещи подтверждена';
+
+  @override
+  String get timelineLoanReturned => 'Возврат вещи подтверждён';
+
+  @override
+  String get timelineLoanNotReturned => 'Вещь отмечена не возвращённой';
 }

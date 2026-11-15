@@ -19,10 +19,20 @@ import '../domain/qr_document.dart';
 import '../domain/qr_signing.dart';
 import 'meeting_qr_code.dart';
 
-/// Route of the showing side of the online QR confirmation of
+/// Route of the showing side of the online QR confirmation of [action] for
 /// [interactionId] of [listingId].
-String qrShowPath(String listingId, String interactionId) =>
-    '/listings/$listingId/interactions/$interactionId/qr';
+String qrShowPath(
+  String listingId,
+  String interactionId, {
+  QrAction action = QrAction.completion,
+}) {
+  final base = '/listings/$listingId/interactions/$interactionId/qr';
+  return switch (action) {
+    QrAction.completion => base,
+    QrAction.loanHandover => '$base/handover',
+    QrAction.loanReturn => '$base/return',
+  };
+}
 
 /// The showing side of the online QR confirmation.
 ///
@@ -35,11 +45,15 @@ class QrPresenterScreen extends ConsumerStatefulWidget {
   const QrPresenterScreen({
     required this.listingId,
     required this.interactionId,
+    this.action = QrAction.completion,
     super.key,
   });
 
   final String listingId;
   final String interactionId;
+
+  /// The step the shown code confirms; a loan has two of them.
+  final QrAction action;
 
   @override
   ConsumerState<QrPresenterScreen> createState() => _QrPresenterScreenState();
@@ -110,7 +124,11 @@ class _QrPresenterScreenState extends ConsumerState<QrPresenterScreen>
       final currentItem = item ?? await _fetchInteraction();
       final currentListing = listing ?? await _fetchListing();
       if (!mounted) return;
-      final state = qrInteractionState(currentListing.kind, currentItem);
+      final state = qrInteractionState(
+        currentListing.kind,
+        currentItem,
+        action: widget.action,
+      );
       if (state != QrInteractionState.available) {
         _stopTimers();
         if (mounted) {
@@ -251,7 +269,7 @@ class _QrPresenterScreenState extends ConsumerState<QrPresenterScreen>
     final listing = ref.watch(listingProvider(widget.listingId));
     final cities = ref.watch(citiesProvider).value;
     return Scaffold(
-      appBar: AppBar(title: Text(l.qrPresenterTitle)),
+      appBar: AppBar(title: Text(_title(l))),
       body: switch ((interaction, listing)) {
         (AsyncData(value: final item), AsyncData(value: final listing)) =>
           _content(l, item, listing, cities),
@@ -268,7 +286,7 @@ class _QrPresenterScreenState extends ConsumerState<QrPresenterScreen>
     ListingOutput listing,
     List<CityOut>? cities,
   ) {
-    final state = qrInteractionState(listing.kind, item);
+    final state = qrInteractionState(listing.kind, item, action: widget.action);
     if (state != QrInteractionState.available) {
       return _terminal(l, state, item, listing, cities);
     }
@@ -282,7 +300,7 @@ class _QrPresenterScreenState extends ConsumerState<QrPresenterScreen>
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text(l.qrPresenterIntro, textAlign: TextAlign.center),
+        Text(_intro(l), textAlign: TextAlign.center),
         const SizedBox(height: 8),
         if (_error case final error?)
           Text(
@@ -341,9 +359,10 @@ class _QrPresenterScreenState extends ConsumerState<QrPresenterScreen>
     List<CityOut>? cities,
   ) {
     final completedAt = item.completedAt;
+    final loanAction = qrActionIsLoan(widget.action);
     final (title, detail) = switch (state) {
       QrInteractionState.completedWithQr => (
-        l.qrPresenterCompleted,
+        loanAction ? l.loanQrAlreadyReturned : l.qrPresenterCompleted,
         completedAt == null
             ? null
             : l.qrCompletedAt(_cityTime(l, completedAt, listing, cities)),
@@ -353,8 +372,14 @@ class _QrPresenterScreenState extends ConsumerState<QrPresenterScreen>
         null,
       ),
       QrInteractionState.notAccepted => (l.qrPresenterNotAccepted, null),
-      QrInteractionState.unavailable ||
-      QrInteractionState.available => (l.qrPresenterUnavailable, null),
+      QrInteractionState.unavailable || QrInteractionState.available => (
+        switch (widget.action) {
+          QrAction.loanHandover => l.loanQrHandoverUnavailable,
+          QrAction.loanReturn => l.loanQrReturnUnavailable,
+          QrAction.completion => l.qrPresenterUnavailable,
+        },
+        null,
+      ),
     };
     return Center(
       child: Padding(
@@ -409,6 +434,18 @@ class _QrPresenterScreenState extends ConsumerState<QrPresenterScreen>
       ),
     );
   }
+
+  String _title(AppLocalizations l) => switch (widget.action) {
+    QrAction.completion => l.qrPresenterTitle,
+    QrAction.loanHandover => l.loanQrHandoverPresenterTitle,
+    QrAction.loanReturn => l.loanQrReturnPresenterTitle,
+  };
+
+  String _intro(AppLocalizations l) => switch (widget.action) {
+    QrAction.completion => l.qrPresenterIntro,
+    QrAction.loanHandover => l.loanQrHandoverPresenterIntro,
+    QrAction.loanReturn => l.loanQrReturnPresenterIntro,
+  };
 
   String _cityTime(
     AppLocalizations l,

@@ -90,5 +90,21 @@ String qrScanFailureMessage(AppLocalizations l, Object error) =>
         code: ProblemCodeKnown(value: ProblemCodeValue.qrAfterNoShow),
       ) =>
         l.qrScannerAfterNoShow,
+      ProblemFailure(
+        code: ProblemCodeKnown(value: ProblemCodeValue.qrLoanNotHandedOver),
+      ) =>
+        l.qrScannerLoanNotHandedOver,
+      ProblemFailure(
+        code: ProblemCodeKnown(value: ProblemCodeValue.qrLoanAlreadyIssued),
+      ) =>
+        l.qrScannerLoanAlreadyIssued,
+      ProblemFailure(
+        code: ProblemCodeKnown(value: ProblemCodeValue.qrLoanReturnMarked),
+      ) =>
+        l.qrScannerLoanReturnMarked,
+      ProblemFailure(
+        code: ProblemCodeKnown(value: ProblemCodeValue.qrLoanActionRequired),
+      ) =>
+        l.qrScannerLoanActionRequired,
       _ => apiFailureMessage(l, error),
     };
