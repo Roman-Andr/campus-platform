@@ -20,8 +20,11 @@ class HomeScreen extends ConsumerWidget {
     final user = ref.watch(myProfileProvider).value;
     final headman = isHeadman(user);
     // The narrowest phones cannot fit every create action in the bar; the
-    // exchange form stays available from the overflow menu there.
+    // exchange form stays available from the overflow menu below 400.
     final compact = MediaQuery.sizeOf(context).width < 400;
+    // Purchase stays in the bar a little longer than exchange and moves into
+    // the menu only on the narrowest phones, below 360.
+    final narrow = MediaQuery.sizeOf(context).width < 360;
 
     return Scaffold(
       appBar: AppBar(
@@ -71,6 +74,15 @@ class HomeScreen extends ConsumerWidget {
             tooltip: l10n.feedCreateHelp,
             onPressed: () => context.push('/help/new'),
           ),
+          if (!narrow)
+            IconButton(
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+              key: const Key('feed-create-purchase'),
+              icon: const Icon(Icons.shopping_basket_outlined),
+              tooltip: l10n.purchaseCreateTitle,
+              onPressed: () => context.push('/purchase/new'),
+            ),
           IconButton(
             padding: EdgeInsets.zero,
             visualDensity: VisualDensity.compact,
@@ -90,6 +102,12 @@ class HomeScreen extends ConsumerWidget {
                   key: const Key('home-create-exchange'),
                   value: '/exchange/new',
                   child: Text(l10n.feedCreateExchange),
+                ),
+              if (narrow)
+                PopupMenuItem(
+                  key: const Key('home-create-purchase'),
+                  value: '/purchase/new',
+                  child: Text(l10n.purchaseCreateTitle),
                 ),
               PopupMenuItem(
                 key: const Key('home-my-listings'),

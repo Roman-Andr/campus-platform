@@ -220,6 +220,7 @@ ResponseBody problemBody(
   String? minVersion,
   List<Map<String, Object?>>? errors,
   int? retryAfter,
+  Map<String, Object?> extra = const {},
 }) => jsonBody(
   status,
   {
@@ -231,6 +232,7 @@ ResponseBody problemBody(
     'request_id': 'req-123',
     'min_version': ?minVersion,
     'errors': ?errors,
+    ...extra,
   },
   {
     if (retryAfter != null) 'retry-after': ['$retryAfter'],

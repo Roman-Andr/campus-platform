@@ -12,6 +12,7 @@ import '../domain/feed.dart';
 import 'feed_filters.dart';
 import 'interaction_timeline.dart';
 import 'my_listings.dart';
+import 'purchase.dart';
 import 'waitlist.dart';
 
 part 'listings.g.dart';
@@ -161,6 +162,8 @@ void refreshListings(WidgetRef ref) {
   ref.invalidate(interactionTimelineProvider);
   ref.invalidate(myWaitlistProvider);
   ref.invalidate(myWaitlistEntryProvider);
+  ref.invalidate(myPurchaseShareProvider);
+  ref.invalidate(purchaseCompositionProvider);
   ref.invalidate(exchangeOffersProvider);
 }
 
