@@ -228,10 +228,10 @@ async def test_qr_completes_accepted_interaction(
     assert events[-1].details["presenter_id"] == str(user_id(showing))
     assert events[-1].offline_qr is False
     after = await counts(owner, UUID(interaction["id"]))
-    # Completion closes the busy listing too, so the journal gains the
-    # listing event and the qr_completed event, and each writes its outbox row.
+    # Completion closes the listing, records the event and queues the profile
+    # aggregate refresh: one journal event and three outbox rows.
     assert after[0] == before[0] + 1
-    assert after[1] == before[1] + 2
+    assert after[1] == before[1] + 3
     assert after[2:] == (1, 1)
     listing_row = await db.get(Listing, UUID(listing["id"]))
     assert listing_row is not None
@@ -753,10 +753,10 @@ async def test_parallel_scans_complete_exactly_once(
 
     assert [response.status_code for response in responses] == [200, 200]
     after = await counts(owner, UUID(interaction["id"]))
-    # Completion closes the busy listing too, so the journal gains the
-    # listing event and the qr_completed event, and each writes its outbox row.
+    # Completion closes the listing, records the event and queues the profile
+    # aggregate refresh: one journal event and three outbox rows.
     assert after[0] == before[0] + 1
-    assert after[1] == before[1] + 2
+    assert after[1] == before[1] + 3
     assert after[2:] == (1, 1)
 
 
@@ -778,10 +778,10 @@ async def test_parallel_replay_of_one_nonce_completes_once(
     refused = next(response for response in responses if response.status_code == 409)
     assert refused.json()["code"] == "qr_nonce_reused"
     after = await counts(owner, UUID(interaction["id"]))
-    # Completion closes the busy listing too, so the journal gains the
-    # listing event and the qr_completed event, and each writes its outbox row.
+    # Completion closes the listing, records the event and queues the profile
+    # aggregate refresh: one journal event and three outbox rows.
     assert after[0] == before[0] + 1
-    assert after[1] == before[1] + 2
+    assert after[1] == before[1] + 3
     assert after[2:] == (1, 1)
 
 

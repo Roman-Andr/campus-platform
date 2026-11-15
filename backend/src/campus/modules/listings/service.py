@@ -406,6 +406,19 @@ async def locked(session: AsyncSession, listing_id: UUID) -> Listing:
     return listing
 
 
+def refresh_profile_aggregates(session: AsyncSession, users: set[UUID]) -> None:
+    """Queue the derived profile rebuild of the people an interaction changed.
+
+    Imported lazily: the reputation module builds on this one, so a module
+    import would circle. Absolute values make a duplicate call harmless.
+    """
+    from campus.modules.reputation import (  # noqa: PLC0415
+        queue_profile_refresh,
+    )
+
+    queue_profile_refresh(session, users)
+
+
 async def accepted_at(session: AsyncSession, interaction_id: UUID) -> datetime | None:
     """The first journal event that put the interaction into ``accepted``.
 
@@ -1338,6 +1351,7 @@ async def leave_purchase(
         interaction,
         details={"units": units, "late": False},
     )
+    refresh_profile_aggregates(session, {listing.author_id, interaction.participant_id})
     await offer_next(
         session,
         listing,
@@ -1457,6 +1471,9 @@ async def decide_purchase_withdrawal(  # noqa: PLR0913 - decision fields
                 "approved": True,
             },
             message=PURCHASE_WITHDRAWAL_DECIDED,
+        )
+        refresh_profile_aggregates(
+            session, {listing.author_id, interaction.participant_id}
         )
         await offer_next(
             session,
@@ -1728,6 +1745,7 @@ async def cancel_purchase(
         ),
         message_params={"reason": reason or ""} if actor_id is not None else None,
     )
+    refresh_profile_aggregates(session, recipients | {listing.author_id})
     await cancel_purchase_deadlines(session, listing.id)
 
 
@@ -1799,6 +1817,10 @@ async def cancel_listing_by_author(
             message=LISTING_CANCELLED,
             message_params={"reason": reason or ""},
         )
+    refresh_profile_aggregates(
+        session,
+        {listing.author_id} | {item.participant_id for item in accepted},
+    )
     await reject_pending(session, listing, "listing_cancelled")
     await clear_waitlist(session, listing, "listing_cancelled")
     await session.flush()
@@ -2666,6 +2688,16 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
             listing,
             offer_timeout=offer_timeout,
             open_all_before=open_all_before,
+        )
+    if target in (
+        InteractionStatus.COMPLETED,
+        InteractionStatus.CANCELLED,
+        InteractionStatus.NO_SHOW,
+    ):
+        # Completion and both kinds of failed interaction change counters and
+        # may move a review in or out of the monthly pair limit.
+        refresh_profile_aggregates(
+            session, {listing.author_id, interaction.participant_id}
         )
     await session.flush()
 

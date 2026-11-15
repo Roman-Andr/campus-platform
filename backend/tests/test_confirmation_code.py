@@ -204,7 +204,8 @@ async def test_code_completes_accepted_interaction(  # noqa: PLR0915 - full resp
     assert code not in json.dumps(events[-1].details)
     after = await counts(owner, interaction_id)
     assert after[0] == before[0] + 1
-    assert after[1] == before[1] + 2
+    # Listing closed, completion recorded, profile aggregates refreshed.
+    assert after[1] == before[1] + 3
     assert after[2] == 1
 
 
@@ -390,7 +391,8 @@ async def test_parallel_correct_entries_complete_once(
     assert all(response.status_code == 200 for response in responses)
     after = await counts(owner, interaction_id)
     assert after[0] == before[0] + 1
-    assert after[1] == before[1] + 2
+    # Listing closed, completion recorded, profile aggregates refreshed.
+    assert after[1] == before[1] + 3
     assert after[2] == 1
     row = await code_row(owner, interaction_id)
     assert row is not None

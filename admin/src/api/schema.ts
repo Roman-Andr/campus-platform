@@ -2667,6 +2667,31 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/users/{user_id}/reputation': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Read Profile Reputation
+     * @description The public aggregates of a profile: any signed-in user sees the same.
+     *
+     *     The response carries no contact data, and the counters never include a
+     *     review that is not published or is hidden by moderation, so the rating
+     *     and the tags cannot reveal such a review. A profile without enough
+     *     eligible ratings reports ``few_reviews`` and no number.
+     */
+    get: operations['read_profile_reputation'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -5411,6 +5436,58 @@ export interface components {
        */
       file_id: string;
     };
+    /**
+     * ProfileReputationOutput
+     * @description The aggregates a profile page may show; never a contact address.
+     */
+    ProfileReputationOutput: {
+      /**
+       * User Id
+       * Format: uuid
+       */
+      user_id: string;
+      /**
+       * Rating
+       * @description Smoothed rating R = (C*m + sum(w*r)) / (C + sum(w)); null when fewer than 4 eligible ratings exist or no average can be formed.
+       */
+      rating: number | null;
+      /**
+       * Rating State
+       * @description ``few_reviews`` while the profile has up to 3 eligible ratings: the client shows the label instead of a number.
+       * @enum {string}
+       */
+      rating_state: 'rated' | 'few_reviews';
+      /**
+       * Rating Count
+       * @description Eligible ratings: published, not hidden by moderation and within the pair limit of the UTC calendar month.
+       */
+      rating_count: number;
+      /**
+       * Completed Interactions
+       * @description Completed interactions of either side of the profile.
+       */
+      completed_interactions: number;
+      /**
+       * No Shows
+       * @description Counted no-shows only: a disputed or removed mark is not final and is not included.
+       */
+      no_shows: number;
+      /**
+       * Cancelled After Acceptance
+       * @description Cancellations the user made after the acceptance.
+       */
+      cancelled_after_acceptance: number;
+      /**
+       * Late Cancellations
+       * @description Late cancellations charged to the user.
+       */
+      late_cancellations: number;
+      /**
+       * Tags
+       * @description Tag counters of the public reviews about the user, most used first.
+       */
+      tags: components['schemas']['TagCountOutput'][];
+    };
     /** PublicComplaintReasonList */
     PublicComplaintReasonList: {
       /** Items */
@@ -6251,6 +6328,19 @@ export interface components {
       expires_at: string;
       /** Channel */
       channel: string;
+    };
+    /**
+     * TagCountOutput
+     * @description How many public reviews about the profile carry one ready-made tag.
+     */
+    TagCountOutput: {
+      /**
+       * Tag
+       * @description Stable tag code of the review scenario.
+       */
+      tag: string;
+      /** Count */
+      count: number;
     };
     /** TokenOutput */
     TokenOutput: {
@@ -21998,6 +22088,96 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['Page_ReviewOutput_'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  read_profile_reputation: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path: {
+        user_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ProfileReputationOutput'];
         };
       };
       /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */

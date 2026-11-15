@@ -118,6 +118,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:  # noqa: PLR0915
     app.include_router(reputation.loan_router, prefix=API_PREFIX)
     app.include_router(reputation.review_router, prefix=API_PREFIX)
     app.include_router(reputation.reviews_router, prefix=API_PREFIX)
+    app.include_router(reputation.reputation_router, prefix=API_PREFIX)
 
     # The last added middleware is the outermost: the request ID is set
     # before the access log record is written.

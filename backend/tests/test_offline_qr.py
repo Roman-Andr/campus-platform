@@ -214,7 +214,8 @@ async def test_offline_qr_completes_and_records_offline_chronology(
     assert events[0].details["method"] == "qr"
     after = await counts(owner, UUID(interaction["id"]))
     assert after[0] == before[0] + 1
-    assert after[1] == before[1] + 2
+    # Listing closed, completion recorded, profile aggregates refreshed.
+    assert after[1] == before[1] + 3
     assert after[2:] == (1, 1)
 
 
@@ -328,7 +329,8 @@ async def test_parallel_same_submission_completes_once(
     ]
     after = await counts(owner, UUID(interaction["id"]))
     assert after[0] == before[0] + 1
-    assert after[1] == before[1] + 2
+    # Listing closed, completion recorded, profile aggregates refreshed.
+    assert after[1] == before[1] + 3
     assert after[2:] == (1, 1)
 
 

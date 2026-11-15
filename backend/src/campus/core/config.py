@@ -623,6 +623,22 @@ class Settings(BaseSettings):
         le=1,
         description="Weight of a review of an interaction confirmed without a meeting.",
     )
+    rating_prior_c: float = Field(
+        default=5.0,
+        ge=0,
+        description=(
+            "Smoothing constant C of the profile rating; it pulls a profile"
+            " towards the service-wide mean m."
+        ),
+    )
+    rating_pair_monthly_limit: int = Field(
+        default=3,
+        ge=1,
+        description=(
+            "Most completed interactions of one pair in a UTC calendar month"
+            " whose reviews enter the rating."
+        ),
+    )
     # Reviews (specification, 5.1.1, module 5, item 6; appendix 4): one
     # review per participant within the window after the completion; mutual
     # reviews are revealed when both exist or when the window closes.
