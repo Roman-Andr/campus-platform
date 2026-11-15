@@ -10,6 +10,7 @@ from sqlalchemy import (
     Index,
     LargeBinary,
     String,
+    Text,
     UniqueConstraint,
     text,
 )
@@ -137,6 +138,124 @@ class ConfirmationCode(Entity):
     expires_at: Mapped[datetime]
     attempts: Mapped[int] = mapped_column(default=0)
     consumed_at: Mapped[datetime | None]
+
+
+class NoShowKind(StrEnum):
+    """Where a no-show of one participant comes from.
+
+    ``PERSONAL`` is an allegation of one participant against the other about
+    an agreed meeting; ``EVENT_AUTO`` is the automatic penalty of a
+    registered participant the organiser did not mark; ``EVENT_VOTE`` is the
+    penalty of an event organiser after at least a third of the registered
+    participants said the event did not take place.
+    """
+
+    PERSONAL = "personal"
+    EVENT_AUTO = "event_auto"
+    EVENT_VOTE = "event_vote"
+
+
+class NoShowStatus(StrEnum):
+    """Whether a no-show counts, is suspended by a dispute or was removed."""
+
+    COUNTED = "counted"
+    DISPUTED = "disputed"
+    REMOVED = "removed"
+
+
+class NoShowMark(Entity):
+    """One no-show charged to one participant.
+
+    A personal mark names the reporting participant and its reason; an
+    automatic or vote-based mark has no reporter and no free text. Mutual
+    personal marks are suspended together (``disputed``) and are counted
+    again only by the moderator decision in #94. A valid late QR or a later
+    "the event did not take place" vote removes a mark instead of deleting
+    it, so the chronology and the audit trail stay complete.
+    """
+
+    __tablename__ = "reputation_no_show"
+    __table_args__ = (
+        CheckConstraint("kind IN ('personal','event_auto','event_vote')", name="kind"),
+        CheckConstraint("status IN ('counted','disputed','removed')", name="status"),
+        CheckConstraint(
+            "(kind = 'personal') = (reason IS NOT NULL)", name="reason_presence"
+        ),
+        CheckConstraint(
+            "reason IS NULL OR char_length(reason) > 0", name="reason_not_empty"
+        ),
+        CheckConstraint(
+            "reporter_id IS NULL OR reporter_id <> subject_id", name="distinct_people"
+        ),
+        CheckConstraint(
+            "(interaction_id IS NULL) = (kind = 'event_vote')", name="mark_scope"
+        ),
+        CheckConstraint(
+            "(status = 'disputed') = (disputed_at IS NOT NULL)",
+            name="dispute_time",
+        ),
+        CheckConstraint(
+            "(status = 'removed') = (removed_at IS NOT NULL)", name="removal_time"
+        ),
+        Index(
+            "uq_reputation_no_show_interaction_subject",
+            "interaction_id",
+            "subject_id",
+            unique=True,
+            postgresql_where=text("interaction_id IS NOT NULL"),
+        ),
+        Index(
+            "uq_reputation_no_show_event_subject",
+            "listing_id",
+            "subject_id",
+            unique=True,
+            postgresql_where=text("interaction_id IS NULL"),
+        ),
+        Index("ix_reputation_no_show_subject", "subject_id", "status", "created_at"),
+        Index("ix_reputation_no_show_listing", "listing_id", "created_at"),
+    )
+
+    listing_id: Mapped[UUID] = mapped_column(
+        ForeignKey("listing.id", ondelete="CASCADE")
+    )
+    # The signup of the charged participant; NULL for a vote against the
+    # organiser of an event, who has no signup.
+    interaction_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("listing_interaction.id", ondelete="CASCADE")
+    )
+    # The participant who marked the other one; NULL for automatic rules.
+    reporter_id: Mapped[UUID | None] = mapped_column(ForeignKey("identity_user.id"))
+    # The participant the no-show is charged to.
+    subject_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
+    kind: Mapped[str] = mapped_column(String(16), default=NoShowKind.PERSONAL)
+    status: Mapped[str] = mapped_column(String(16), default=NoShowStatus.COUNTED)
+    reason: Mapped[str | None] = mapped_column(Text)
+    disputed_at: Mapped[datetime | None]
+    removed_at: Mapped[datetime | None]
+    removed_by_id: Mapped[UUID | None] = mapped_column(ForeignKey("identity_user.id"))
+
+
+class EventNoShowVote(Entity):
+    """One registered participant's vote that an event did not take place.
+
+    The unique (listing, voter) key makes a repeated vote a no-op: only the
+    number of distinct voters matters for the third-of-registrations
+    threshold.
+    """
+
+    __tablename__ = "reputation_event_no_show_vote"
+    __table_args__ = (
+        UniqueConstraint("listing_id", "voter_id"),
+        Index("ix_reputation_event_no_show_vote_listing", "listing_id", "created_at"),
+    )
+
+    listing_id: Mapped[UUID] = mapped_column(
+        ForeignKey("listing.id", ondelete="CASCADE")
+    )
+    interaction_id: Mapped[UUID] = mapped_column(
+        ForeignKey("listing_interaction.id", ondelete="CASCADE")
+    )
+    voter_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
 
 
 class AttendanceRecord(Entity):

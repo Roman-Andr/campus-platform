@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:08+0300\n"
+"POT-Creation-Date: 2026-11-15 22:07+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -32,6 +32,21 @@ msgstr "В занятии должно быть от {min} до {max} вариа
 
 msgid "A meeting time and place were proposed."
 msgstr "Второй участник предложил время и место встречи."
+
+msgid "A no-show can be marked only 24 hours after the agreed meeting time."
+msgstr ""
+"Неявку можно отметить только через 24 часа после согласованного времени "
+"встречи."
+
+msgid "A no-show cannot be marked here"
+msgstr "Здесь нельзя отметить неявку."
+
+msgid ""
+"A no-show is marked for a personal meeting of a giveaway, exchange, skill"
+" or help interaction, or for an event."
+msgstr ""
+"Неявка отмечается для личной встречи по объявлению об отдаче, обмене, "
+"навыке или помощи, а также для мероприятия."
 
 msgid "A participant asks to leave the purchase."
 msgstr "Участник просит выйти из закупки."
@@ -170,6 +185,10 @@ msgstr "Необходимо принять актуальные докумен�
 msgid "Describe the item you offer."
 msgstr "Опишите вещь, которую предлагаете."
 
+#, python-brace-format
+msgid "Describe the reason for the no-show in 1 to {max} characters."
+msgstr "Опишите причину неявки: от 1 до {max} символов."
+
 msgid "Device key conflict"
 msgstr "Конфликт ключа устройства"
 
@@ -241,6 +260,9 @@ msgstr "Неверное место встречи"
 
 msgid "Invalid meeting time"
 msgstr "Неверное время встречи"
+
+msgid "Invalid no-show reason"
+msgstr "Некорректная причина неявки."
 
 msgid "Invalid offer"
 msgstr "Неверное предложение"
@@ -360,6 +382,9 @@ msgstr "Такого города-кампуса нет."
 msgid "No such skill tag."
 msgstr "Такого навыка нет в справочнике."
 
+msgid "No-show marking is closed"
+msgstr "Отметка неявки закрыта."
+
 msgid "Not enough units left."
 msgstr "Не хватает свободных единиц."
 
@@ -369,8 +394,16 @@ msgstr "Не найдено"
 msgid "Not registered"
 msgstr "Вы не записаны"
 
+msgid "Only a participant registered for the event can vote."
+msgstr "Голосовать может только записавшийся на мероприятие участник."
+
 msgid "Only a participant registered for this event can be marked."
 msgstr "Отметить можно только записавшегося участника мероприятия."
+
+msgid "Only a published event with an end time accepts votes."
+msgstr ""
+"Голосование доступно только для опубликованного мероприятия с указанным "
+"временем окончания."
 
 msgid ""
 "Only an accepted online lesson or a help interaction without an agreed "
@@ -379,17 +412,28 @@ msgstr ""
 "Так можно завершить только принятое онлайн-занятие или помощь без "
 "назначенной встречи."
 
+msgid "Only an accepted or a marked 'did not take place' interaction replies."
+msgstr ""
+"Ответить можно только на принятое взаимодействие или на взаимодействие, "
+"отмеченное как «не состоялось»."
+
 msgid "Only an event has attendance."
 msgstr "Отметка есть только у мероприятия."
 
 msgid "Only the composition exchange is available at this stage."
 msgstr "На этом этапе доступны только действия с составом закупки."
 
+msgid "Only the organiser and the registered participants see the event result."
+msgstr "Результат мероприятия видят только организатор и записавшиеся участники."
+
 msgid "Only the organiser of this event can do this."
 msgstr "Это может сделать только организатор мероприятия."
 
 msgid "Only the two participants of the interaction can confirm it."
 msgstr "Подтвердить взаимодействие могут только два его участника."
+
+msgid "Only the two participants of the interaction can mark a no-show."
+msgstr "Отметить неявку могут только два участника взаимодействия."
 
 msgid "Only the two participants of the interaction can use its code."
 msgstr "Использовать код взаимодействия могут только два его участника."
@@ -424,6 +468,9 @@ msgstr "QR-код не может завершить этот этап"
 
 msgid "QR code expired"
 msgstr "Срок QR-кода истёк"
+
+msgid "QR code formed after the no-show"
+msgstr "QR-код, сформированный после отметки неявки."
 
 msgid "QR code is from the future"
 msgstr "Время QR-кода в будущем"
@@ -565,6 +612,9 @@ msgstr "Текущий объём — {taken} ед."
 msgid "The device key is unknown, revoked or belongs to another user."
 msgstr "Ключ устройства неизвестен, отозван или принадлежит другому пользователю."
 
+msgid "The event cannot be judged"
+msgstr "Нельзя оценить мероприятие."
+
 msgid "The event must start in the future and end after its start."
 msgstr "Мероприятие должно начинаться в будущем и заканчиваться после начала."
 
@@ -577,6 +627,9 @@ msgid ""
 msgstr ""
 "Запрос о помощи должен завершаться в будущем и не позже срока жизни "
 "объявления."
+
+msgid "The interaction cannot be marked"
+msgstr "Нельзя отметить неявку по этому взаимодействию."
 
 msgid ""
 "The interaction is already completed by a stored QR confirmation; this "
@@ -593,6 +646,13 @@ msgstr "Взаимодействие должно быть принято и и�
 
 msgid "The interaction was completed by another method."
 msgstr "Взаимодействие завершено другим способом."
+
+msgid ""
+"The interaction was marked 'did not take place' before this QR code was "
+"formed; only a code formed earlier lifts the mark."
+msgstr ""
+"Взаимодействие было отмечено как «не состоялось» до формирования этого "
+"QR-кода; снять отметку может только код, сформированный раньше."
 
 msgid "The listing and the interaction do not belong together."
 msgstr "Объявление и взаимодействие не относятся друг к другу."
@@ -635,6 +695,9 @@ msgstr "Место встречи не должно быть пустым или
 msgid "The meeting proposal has changed."
 msgstr "Предложение встречи изменилось."
 
+msgid "The meeting time is still recent"
+msgstr "Время встречи ещё не прошло."
+
 msgid "The meeting time must be in the future."
 msgstr "Время встречи должно быть в будущем."
 
@@ -655,6 +718,13 @@ msgstr ""
 #, python-brace-format
 msgid "The name can be changed once in {days} days; see available_at."
 msgstr "Имя можно менять раз в {days} дней; ближайшая дата — в available_at."
+
+msgid ""
+"The no-show window has passed: after 7 days the interaction becomes 'did "
+"not take place' without a no-show."
+msgstr ""
+"Срок отметки неявки прошёл: через 7 дней взаимодействие становится «не "
+"состоялось» без неявки."
 
 msgid "The notification settings were changed."
 msgstr "Настройки уведомлений были изменены."
@@ -827,6 +897,14 @@ msgstr "Используйте RFC 3339 с явно указанным смещ�
 
 msgid "Use a wall time without a UTC offset."
 msgstr "Укажите время без смещения часового пояса."
+
+msgid "Vote that the event did not take place within 7 days after it ended."
+msgstr ""
+"Голосование о том, что мероприятие не состоялось, доступно в течение 7 "
+"дней после его окончания."
+
+msgid "Voting is closed"
+msgstr "Голосование закрыто."
 
 msgid "Wait for the author's decision."
 msgstr "Дождитесь решения автора."

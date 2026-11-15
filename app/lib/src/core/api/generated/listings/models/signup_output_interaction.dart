@@ -264,8 +264,8 @@ class InteractionOutput implements SignupOutputInteraction {
 sealed class SignupOutputInteraction {
   factory SignupOutputInteraction.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches88(json)) "InteractionOutput",
-      if (_matches122(json)) "Null",
+      if (_matches111(json)) "InteractionOutput",
+      if (_matches145(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -290,8 +290,8 @@ class SignupOutputInteractionNull implements SignupOutputInteraction {
   Object? toJson() => value;
 }
 
-bool _matches88(Object? value) => (_matches89(value));
-bool _matches89(Object? value) =>
+bool _matches111(Object? value) => (_matches112(value));
+bool _matches112(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("id")) &&
     (value is! Map<String, Object?> || value.containsKey("listing_id")) &&
     (value is! Map<String, Object?> || value.containsKey("participant_name")) &&
@@ -303,74 +303,74 @@ bool _matches89(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("meeting")) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("id") ||
-        _matches90(value["id"])) &&
+        _matches113(value["id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("listing_id") ||
-        _matches91(value["listing_id"])) &&
+        _matches114(value["listing_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("participant_name") ||
-        _matches92(value["participant_name"])) &&
+        _matches115(value["participant_name"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("participant_id") ||
-        _matches93(value["participant_id"])) &&
+        _matches116(value["participant_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("status") ||
-        _matches94(value["status"])) &&
+        _matches117(value["status"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("stage") ||
-        _matches95(value["stage"])) &&
+        _matches118(value["stage"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("response_due_at") ||
-        _matches96(value["response_due_at"])) &&
+        _matches119(value["response_due_at"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("executor") ||
-        _matches97(value["executor"])) &&
+        _matches120(value["executor"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("reservation_due_at") ||
-        _matches98(value["reservation_due_at"])) &&
+        _matches121(value["reservation_due_at"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("offer_description") ||
-        _matches99(value["offer_description"])) &&
+        _matches122(value["offer_description"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("units") ||
-        _matches100(value["units"])) &&
+        _matches123(value["units"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("leave_requested_at") ||
-        _matches101(value["leave_requested_at"])) &&
+        _matches124(value["leave_requested_at"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("cancelled_by") ||
-        _matches102(value["cancelled_by"])) &&
+        _matches125(value["cancelled_by"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("cancellation_reason") ||
-        _matches103(value["cancellation_reason"])) &&
+        _matches126(value["cancellation_reason"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("late_cancelled") ||
-        _matches104(value["late_cancelled"])) &&
+        _matches127(value["late_cancelled"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("meeting") ||
-        _matches105(value["meeting"])) &&
+        _matches128(value["meeting"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("options") ||
-        _matches106(value["options"])) &&
+        _matches129(value["options"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("completion_method") ||
-        _matches107(value["completion_method"])) &&
+        _matches130(value["completion_method"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("completed_at") ||
-        _matches108(value["completed_at"])) &&
+        _matches131(value["completed_at"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("completion_weight") ||
-        _matches109(value["completion_weight"])) &&
+        _matches132(value["completion_weight"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("without_meeting") ||
-        _matches110(value["without_meeting"])) &&
+        _matches133(value["without_meeting"])) &&
     ((value is Map<String, Object?>));
-bool _matches90(Object? value) => ((value is String));
-bool _matches91(Object? value) => ((value is String));
-bool _matches92(Object? value) => ((value is String));
-bool _matches93(Object? value) => ((value is String));
-bool _matches94(Object? value) => (_matches111(value));
-bool _matches111(Object? value) =>
+bool _matches113(Object? value) => ((value is String));
+bool _matches114(Object? value) => ((value is String));
+bool _matches115(Object? value) => ((value is String));
+bool _matches116(Object? value) => ((value is String));
+bool _matches117(Object? value) => (_matches134(value));
+bool _matches134(Object? value) =>
     (const <Object?>[
       "completed",
       "no_show",
@@ -380,30 +380,30 @@ bool _matches111(Object? value) =>
       "cancelled",
     ].contains(value)) &&
     ((value is String));
-bool _matches95(Object? value) => ((value is String) || (value == null));
-bool _matches96(Object? value) => ((value is String) || (value == null));
-bool _matches97(Object? value) => ((value is bool));
-bool _matches98(Object? value) => ((value is String) || (value == null));
-bool _matches99(Object? value) => ((value is String) || (value == null));
-bool _matches100(Object? value) =>
+bool _matches118(Object? value) => ((value is String) || (value == null));
+bool _matches119(Object? value) => ((value is String) || (value == null));
+bool _matches120(Object? value) => ((value is bool));
+bool _matches121(Object? value) => ((value is String) || (value == null));
+bool _matches122(Object? value) => ((value is String) || (value == null));
+bool _matches123(Object? value) =>
     ((value is num &&
         (value is int ||
             (value.isFinite && value == value.truncateToDouble()))) ||
     (value == null));
-bool _matches101(Object? value) => ((value is String) || (value == null));
-bool _matches102(Object? value) =>
-    ([if (_matches26(value)) 1, if (_matches28(value)) 1].length == 1);
-bool _matches26(Object? value) => (_matches27(value));
-bool _matches27(Object? value) =>
+bool _matches124(Object? value) => ((value is String) || (value == null));
+bool _matches125(Object? value) =>
+    ([if (_matches40(value)) 1, if (_matches42(value)) 1].length == 1);
+bool _matches40(Object? value) => (_matches41(value));
+bool _matches41(Object? value) =>
     (const <Object?>["author", "participant", "system"].contains(value)) &&
     ((value is String));
-bool _matches28(Object? value) => ((value == null));
-bool _matches103(Object? value) => ((value is String) || (value == null));
-bool _matches104(Object? value) => ((value is bool));
-bool _matches105(Object? value) =>
-    ([if (_matches29(value)) 1, if (_matches42(value)) 1].length == 1);
-bool _matches29(Object? value) => (_matches30(value));
-bool _matches30(Object? value) =>
+bool _matches42(Object? value) => ((value == null));
+bool _matches126(Object? value) => ((value is String) || (value == null));
+bool _matches127(Object? value) => ((value is bool));
+bool _matches128(Object? value) =>
+    ([if (_matches43(value)) 1, if (_matches56(value)) 1].length == 1);
+bool _matches43(Object? value) => (_matches44(value));
+bool _matches44(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("id")) &&
     (value is! Map<String, Object?> || value.containsKey("version")) &&
     (value is! Map<String, Object?> || value.containsKey("status")) &&
@@ -417,56 +417,56 @@ bool _matches30(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("proposed_by_id")) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("id") ||
-        _matches31(value["id"])) &&
+        _matches45(value["id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("version") ||
-        _matches32(value["version"])) &&
+        _matches46(value["version"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("status") ||
-        _matches33(value["status"])) &&
+        _matches47(value["status"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("scheduled_at") ||
-        _matches34(value["scheduled_at"])) &&
+        _matches48(value["scheduled_at"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("location") ||
-        _matches35(value["location"])) &&
+        _matches49(value["location"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("online") ||
-        _matches36(value["online"])) &&
+        _matches50(value["online"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("scheduled_by_id") ||
-        _matches37(value["scheduled_by_id"])) &&
+        _matches51(value["scheduled_by_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("proposed_at") ||
-        _matches38(value["proposed_at"])) &&
+        _matches52(value["proposed_at"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("proposed_location") ||
-        _matches39(value["proposed_location"])) &&
+        _matches53(value["proposed_location"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("proposed_by_id") ||
-        _matches40(value["proposed_by_id"])) &&
+        _matches54(value["proposed_by_id"])) &&
     ((value is Map<String, Object?>));
-bool _matches31(Object? value) => ((value is String));
-bool _matches32(Object? value) =>
+bool _matches45(Object? value) => ((value is String));
+bool _matches46(Object? value) =>
     ((value is num &&
     (value is int || (value.isFinite && value == value.truncateToDouble()))));
-bool _matches33(Object? value) => (_matches41(value));
-bool _matches41(Object? value) =>
+bool _matches47(Object? value) => (_matches55(value));
+bool _matches55(Object? value) =>
     (const <Object?>["proposed", "scheduled"].contains(value)) &&
     ((value is String));
-bool _matches34(Object? value) => ((value is String) || (value == null));
-bool _matches35(Object? value) => ((value is String) || (value == null));
-bool _matches36(Object? value) => ((value is bool));
-bool _matches37(Object? value) => ((value is String) || (value == null));
-bool _matches38(Object? value) => ((value is String) || (value == null));
-bool _matches39(Object? value) => ((value is String) || (value == null));
-bool _matches40(Object? value) => ((value is String) || (value == null));
-bool _matches42(Object? value) => ((value == null));
-bool _matches106(Object? value) =>
-    (value is! List<Object?> || value.skip(0).every(_matches112)) &&
+bool _matches48(Object? value) => ((value is String) || (value == null));
+bool _matches49(Object? value) => ((value is String) || (value == null));
+bool _matches50(Object? value) => ((value is bool));
+bool _matches51(Object? value) => ((value is String) || (value == null));
+bool _matches52(Object? value) => ((value is String) || (value == null));
+bool _matches53(Object? value) => ((value is String) || (value == null));
+bool _matches54(Object? value) => ((value is String) || (value == null));
+bool _matches56(Object? value) => ((value == null));
+bool _matches129(Object? value) =>
+    (value is! List<Object?> || value.skip(0).every(_matches135)) &&
     ((value is List<Object?>));
-bool _matches112(Object? value) => (_matches113(value));
-bool _matches113(Object? value) =>
+bool _matches135(Object? value) => (_matches136(value));
+bool _matches136(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("id")) &&
     (value is! Map<String, Object?> || value.containsKey("position")) &&
     (value is! Map<String, Object?> || value.containsKey("time")) &&
@@ -476,50 +476,50 @@ bool _matches113(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("status")) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("id") ||
-        _matches114(value["id"])) &&
+        _matches137(value["id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("position") ||
-        _matches115(value["position"])) &&
+        _matches138(value["position"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("time") ||
-        _matches116(value["time"])) &&
+        _matches139(value["time"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("location") ||
-        _matches117(value["location"])) &&
+        _matches140(value["location"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("online") ||
-        _matches118(value["online"])) &&
+        _matches141(value["online"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("proposed_by_id") ||
-        _matches119(value["proposed_by_id"])) &&
+        _matches142(value["proposed_by_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("status") ||
-        _matches120(value["status"])) &&
+        _matches143(value["status"])) &&
     ((value is Map<String, Object?>));
-bool _matches114(Object? value) => ((value is String));
-bool _matches115(Object? value) =>
+bool _matches137(Object? value) => ((value is String));
+bool _matches138(Object? value) =>
     ((value is num &&
     (value is int || (value.isFinite && value == value.truncateToDouble()))));
-bool _matches116(Object? value) => ((value is String));
-bool _matches117(Object? value) => ((value is String) || (value == null));
-bool _matches118(Object? value) => ((value is bool));
-bool _matches119(Object? value) => ((value is String));
-bool _matches120(Object? value) => (_matches121(value));
-bool _matches121(Object? value) =>
+bool _matches139(Object? value) => ((value is String));
+bool _matches140(Object? value) => ((value is String) || (value == null));
+bool _matches141(Object? value) => ((value is bool));
+bool _matches142(Object? value) => ((value is String));
+bool _matches143(Object? value) => (_matches144(value));
+bool _matches144(Object? value) =>
     (const <Object?>["proposed", "selected", "declined"].contains(value)) &&
     ((value is String));
-bool _matches107(Object? value) =>
-    ([if (_matches43(value)) 1, if (_matches44(value)) 1].length == 1);
-bool _matches43(Object? value) => (_matches24(value));
+bool _matches130(Object? value) =>
+    ([if (_matches57(value)) 1, if (_matches58(value)) 1].length == 1);
+bool _matches57(Object? value) => (_matches24(value));
 bool _matches24(Object? value) =>
     (const <Object?>["qr", "no_meeting"].contains(value)) &&
     ((value is String));
-bool _matches44(Object? value) => ((value == null));
-bool _matches108(Object? value) => ((value is String) || (value == null));
-bool _matches109(Object? value) =>
+bool _matches58(Object? value) => ((value == null));
+bool _matches131(Object? value) => ((value is String) || (value == null));
+bool _matches132(Object? value) =>
     (((value is num && value.isFinite)) || (value == null));
-bool _matches110(Object? value) => ((value is bool));
-bool _matches122(Object? value) => ((value == null));
+bool _matches133(Object? value) => ((value is bool));
+bool _matches145(Object? value) => ((value == null));
 int _readJsonInteger(Object? value) {
   if (value is int) {
     return value;

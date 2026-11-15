@@ -2381,6 +2381,81 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/listings/{listing_id}/interactions/{interaction_id}/no-show': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Interaction No Show
+     * @description The current result of the interaction and the basis of every mark.
+     */
+    get: operations['interaction_no_show'];
+    put?: never;
+    /**
+     * Mark Interaction No Show
+     * @description Mark that the meeting did not take place, or answer a mutual allegation.
+     *
+     *     A participant may mark the other one no earlier than 24 hours after the
+     *     agreed meeting and no later than 7 days, always with a reason. If both
+     *     participants mark each other, one dispute is opened and neither no-show
+     *     counts until the moderator decides. A repeat by the same participant is a
+     *     no-op.
+     */
+    post: operations['mark_interaction_no_show'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{listing_id}/event/no-show/votes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Vote Event
+     * @description Vote that an event did not take place.
+     *
+     *     A registered participant may vote during the 7 days after the event.
+     *     Repeating the vote changes nothing. At a third of the registrations,
+     *     rounded up, the organiser receives a no-show and the automatic
+     *     participant no-shows are lifted; the organiser can dispute it (#94).
+     */
+    post: operations['vote_event'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{listing_id}/event/no-show': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Event No Show
+     * @description Votes, the threshold and the marks of an event.
+     */
+    get: operations['event_no_show'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3184,6 +3259,12 @@ export interface components {
       revoked_at: string | null;
     };
     /**
+     * DisputeStatus
+     * @description Open cases wait for a moderator decision (#94).
+     * @enum {string}
+     */
+    DisputeStatus: 'open' | 'resolved';
+    /**
      * DocumentKind
      * @enum {string}
      */
@@ -3347,6 +3428,48 @@ export interface components {
       location: string;
       /** Capacity */
       capacity: number;
+    };
+    /** EventNoShowOutput */
+    EventNoShowOutput: {
+      /**
+       * Listing Id
+       * Format: uuid
+       */
+      listing_id: string;
+      /** Registered */
+      registered: number;
+      /** Votes */
+      votes: number;
+      /**
+       * Threshold
+       * @description ceil(registered / 3).
+       */
+      threshold: number;
+      /**
+       * Not Held
+       * @description Whether the organiser is already charged.
+       */
+      not_held: boolean;
+      organizer_mark: components['schemas']['NoShowMarkOutput'] | null;
+      /** Participant Marks */
+      participant_marks: components['schemas']['NoShowMarkOutput'][];
+      /** Vote Opens At */
+      vote_opens_at: string | null;
+      /** Vote Closes At */
+      vote_closes_at: string | null;
+      /** Can Vote */
+      can_vote: boolean;
+      /**
+       * Voted
+       * @description Whether the requester has already voted.
+       */
+      voted: boolean;
+      /**
+       * Server Time
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      server_time: string;
     };
     /** EventOutput */
     EventOutput: {
@@ -4111,6 +4234,133 @@ export interface components {
       /** Rating Weight */
       rating_weight: number | null;
     };
+    /** NoShowDisputeOutput */
+    NoShowDisputeOutput: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      status: components['schemas']['DisputeStatus'];
+      /**
+       * Opened At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      opened_at: string;
+      /** Resolved At */
+      resolved_at: string | null;
+      /** Resolution */
+      resolution: string | null;
+    };
+    /**
+     * NoShowKind
+     * @description Where a no-show of one participant comes from.
+     *
+     *     ``PERSONAL`` is an allegation of one participant against the other about
+     *     an agreed meeting; ``EVENT_AUTO`` is the automatic penalty of a
+     *     registered participant the organiser did not mark; ``EVENT_VOTE`` is the
+     *     penalty of an event organiser after at least a third of the registered
+     *     participants said the event did not take place.
+     * @enum {string}
+     */
+    NoShowKind: 'personal' | 'event_auto' | 'event_vote';
+    /** NoShowMarkOutput */
+    NoShowMarkOutput: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      kind: components['schemas']['NoShowKind'];
+      status: components['schemas']['NoShowStatus'];
+      /**
+       * Reporter Id
+       * @description Who marked the no-show; null for an automatic rule.
+       */
+      reporter_id: string | null;
+      /**
+       * Subject Id
+       * Format: uuid
+       * @description The participant the no-show is charged to.
+       */
+      subject_id: string;
+      /** Reason */
+      reason: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      created_at: string;
+      /** Disputed At */
+      disputed_at: string | null;
+      /** Removed At */
+      removed_at: string | null;
+    };
+    /** NoShowOutput */
+    NoShowOutput: {
+      /**
+       * Listing Id
+       * Format: uuid
+       */
+      listing_id: string;
+      /**
+       * Interaction Id
+       * Format: uuid
+       */
+      interaction_id: string;
+      status: components['schemas']['InteractionStatus'];
+      /**
+       * Basis
+       * @description How the current state was reached: no mark yet, a participant's allegation, the automatic 7-day rule, mutual allegations under dispute, or a confirmed completion.
+       * @enum {string}
+       */
+      basis: 'unmarked' | 'marked' | 'automatic' | 'mutual_dispute' | 'completed';
+      /** Marks */
+      marks: components['schemas']['NoShowMarkOutput'][];
+      dispute: components['schemas']['NoShowDisputeOutput'] | null;
+      /**
+       * No Show At
+       * @description When the interaction became 'did not take place'.
+       */
+      no_show_at: string | null;
+      /**
+       * Mark From
+       * @description The first moment a no-show may be marked.
+       */
+      mark_from: string | null;
+      /**
+       * Auto After
+       * @description When an unmarked interaction becomes 'did not take place' without a no-show.
+       */
+      auto_after: string | null;
+      /**
+       * Can Mark
+       * @description Whether the requesting participant may mark a no-show now.
+       */
+      can_mark: boolean;
+      /**
+       * Server Time
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      server_time: string;
+    };
+    /** NoShowReasonInput */
+    NoShowReasonInput: {
+      /**
+       * Reason
+       * @description Why the meeting did not take place. The configured limit is applied by the domain and reported as a problem.
+       */
+      reason: string;
+    };
+    /**
+     * NoShowStatus
+     * @description Whether a no-show counts, is suspended by a dispute or was removed.
+     * @enum {string}
+     */
+    NoShowStatus: 'counted' | 'disputed' | 'removed';
     /** NotificationOutput */
     NotificationOutput: {
       /**
@@ -4674,6 +4924,10 @@ export interface components {
         | 'event_attendance_not_registered'
         | 'event_attendance_unavailable'
         | 'event_capacity_conflict'
+        | 'event_no_show_forbidden'
+        | 'event_no_show_not_registered'
+        | 'event_no_show_unavailable'
+        | 'event_no_show_vote_closed'
         | 'event_time_invalid'
         | 'exchange_offer_duplicate'
         | 'exchange_offer_invalid'
@@ -4719,6 +4973,12 @@ export interface components {
         | 'meeting_time_invalid'
         | 'method_not_allowed'
         | 'name_change_too_soon'
+        | 'no_show_closed'
+        | 'no_show_forbidden'
+        | 'no_show_reason_invalid'
+        | 'no_show_state_conflict'
+        | 'no_show_too_early'
+        | 'no_show_unavailable'
         | 'not_found'
         | 'notification_chat_forbidden'
         | 'notification_quiet_hours_invalid'
@@ -4727,6 +4987,7 @@ export interface components {
         | 'photo_unavailable'
         | 'profile_incomplete'
         | 'qr_acceptance_unknown'
+        | 'qr_after_no_show'
         | 'qr_already_completed'
         | 'qr_already_confirmed'
         | 'qr_before_acceptance'
@@ -19760,6 +20021,412 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['AttendanceOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  interaction_no_show: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path: {
+        listing_id: string;
+        interaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['NoShowOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  mark_interaction_no_show: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+        interaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['NoShowReasonInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['NoShowOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  vote_event: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EventNoShowOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  event_no_show: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path: {
+        listing_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EventNoShowOutput'];
         };
       };
       /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */

@@ -53,7 +53,7 @@ def _install_openapi(app: FastAPI) -> None:
     app.openapi = openapi  # type: ignore[method-assign]
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(settings: Settings | None = None) -> FastAPI:  # noqa: PLR0915
     """Build the API application; used by uvicorn as a factory."""
     settings = settings or get_settings()
     configure_observability(settings, process="api")
@@ -113,6 +113,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(reputation.code_router, prefix=API_PREFIX)
     app.include_router(reputation.time_router, prefix=API_PREFIX)
     app.include_router(reputation.attendance_router, prefix=API_PREFIX)
+    app.include_router(reputation.no_show_router, prefix=API_PREFIX)
+    app.include_router(reputation.event_no_show_router, prefix=API_PREFIX)
 
     # The last added middleware is the outermost: the request ID is set
     # before the access log record is written.

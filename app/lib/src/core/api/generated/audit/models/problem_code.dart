@@ -44,6 +44,10 @@ enum ProblemCodeValue {
   eventAttendanceNotRegistered("event_attendance_not_registered"),
   eventAttendanceUnavailable("event_attendance_unavailable"),
   eventCapacityConflict("event_capacity_conflict"),
+  eventNoShowForbidden("event_no_show_forbidden"),
+  eventNoShowNotRegistered("event_no_show_not_registered"),
+  eventNoShowUnavailable("event_no_show_unavailable"),
+  eventNoShowVoteClosed("event_no_show_vote_closed"),
   eventTimeInvalid("event_time_invalid"),
   exchangeOfferDuplicate("exchange_offer_duplicate"),
   exchangeOfferInvalid("exchange_offer_invalid"),
@@ -91,6 +95,12 @@ enum ProblemCodeValue {
   meetingTimeInvalid("meeting_time_invalid"),
   methodNotAllowed("method_not_allowed"),
   nameChangeTooSoon("name_change_too_soon"),
+  noShowClosed("no_show_closed"),
+  noShowForbidden("no_show_forbidden"),
+  noShowReasonInvalid("no_show_reason_invalid"),
+  noShowStateConflict("no_show_state_conflict"),
+  noShowTooEarly("no_show_too_early"),
+  noShowUnavailable("no_show_unavailable"),
   notFound("not_found"),
   notificationChatForbidden("notification_chat_forbidden"),
   notificationQuietHoursInvalid("notification_quiet_hours_invalid"),
@@ -99,6 +109,7 @@ enum ProblemCodeValue {
   photoUnavailable("photo_unavailable"),
   profileIncomplete("profile_incomplete"),
   qrAcceptanceUnknown("qr_acceptance_unknown"),
+  qrAfterNoShow("qr_after_no_show"),
   qrAlreadyCompleted("qr_already_completed"),
   qrAlreadyConfirmed("qr_already_confirmed"),
   qrBeforeAcceptance("qr_before_acceptance"),
@@ -250,6 +261,18 @@ sealed class ProblemCode {
   static const eventCapacityConflict = ProblemCodeKnown(
     ProblemCodeValue.eventCapacityConflict,
   );
+  static const eventNoShowForbidden = ProblemCodeKnown(
+    ProblemCodeValue.eventNoShowForbidden,
+  );
+  static const eventNoShowNotRegistered = ProblemCodeKnown(
+    ProblemCodeValue.eventNoShowNotRegistered,
+  );
+  static const eventNoShowUnavailable = ProblemCodeKnown(
+    ProblemCodeValue.eventNoShowUnavailable,
+  );
+  static const eventNoShowVoteClosed = ProblemCodeKnown(
+    ProblemCodeValue.eventNoShowVoteClosed,
+  );
   static const eventTimeInvalid = ProblemCodeKnown(
     ProblemCodeValue.eventTimeInvalid,
   );
@@ -375,6 +398,22 @@ sealed class ProblemCode {
   static const nameChangeTooSoon = ProblemCodeKnown(
     ProblemCodeValue.nameChangeTooSoon,
   );
+  static const noShowClosed = ProblemCodeKnown(ProblemCodeValue.noShowClosed);
+  static const noShowForbidden = ProblemCodeKnown(
+    ProblemCodeValue.noShowForbidden,
+  );
+  static const noShowReasonInvalid = ProblemCodeKnown(
+    ProblemCodeValue.noShowReasonInvalid,
+  );
+  static const noShowStateConflict = ProblemCodeKnown(
+    ProblemCodeValue.noShowStateConflict,
+  );
+  static const noShowTooEarly = ProblemCodeKnown(
+    ProblemCodeValue.noShowTooEarly,
+  );
+  static const noShowUnavailable = ProblemCodeKnown(
+    ProblemCodeValue.noShowUnavailable,
+  );
   static const notFound = ProblemCodeKnown(ProblemCodeValue.notFound);
   static const notificationChatForbidden = ProblemCodeKnown(
     ProblemCodeValue.notificationChatForbidden,
@@ -397,6 +436,7 @@ sealed class ProblemCode {
   static const qrAcceptanceUnknown = ProblemCodeKnown(
     ProblemCodeValue.qrAcceptanceUnknown,
   );
+  static const qrAfterNoShow = ProblemCodeKnown(ProblemCodeValue.qrAfterNoShow);
   static const qrAlreadyCompleted = ProblemCodeKnown(
     ProblemCodeValue.qrAlreadyCompleted,
   );

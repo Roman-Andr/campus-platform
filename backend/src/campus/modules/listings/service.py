@@ -264,6 +264,9 @@ TRANSITIONS = {
     (InteractionStatus.ACCEPTED, InteractionStatus.CANCELLED): "participant",
     (InteractionStatus.ACCEPTED, InteractionStatus.COMPLETED): "system",
     (InteractionStatus.ACCEPTED, InteractionStatus.NO_SHOW): "system",
+    # A valid QR code formed before the mark completes the interaction and
+    # lifts the no-show (#66); the mark is never a terminal state.
+    (InteractionStatus.NO_SHOW, InteractionStatus.COMPLETED): "system",
 }
 LISTING_TRANSITIONS = {
     ListingStatus.DRAFT: {ListingStatus.ACTIVE, ListingStatus.CANCELLED},
@@ -385,6 +388,22 @@ async def accepted_at(session: AsyncSession, interaction_id: UUID) -> datetime |
         select(func.min(ListingEvent.created_at)).where(
             ListingEvent.interaction_id == interaction_id,
             ListingEvent.status == InteractionStatus.ACCEPTED.value,
+        )
+    )
+
+
+async def no_showed_at(session: AsyncSession, interaction_id: UUID) -> datetime | None:
+    """The journal moment the interaction became "did not take place".
+
+    The late QR flow compares its signed issue time with this moment: a code
+    formed before the mark may complete the interaction and lift the no-show,
+    a code formed after it has no effect. ``None`` means the event is missing
+    and callers fail closed.
+    """
+    return await session.scalar(
+        select(func.min(ListingEvent.created_at)).where(
+            ListingEvent.interaction_id == interaction_id,
+            ListingEvent.status == InteractionStatus.NO_SHOW.value,
         )
     )
 
@@ -2330,6 +2349,7 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
     details: dict[str, Any] | None = None,
     reason: str | None = None,
     offline_qr: bool = False,
+    allow_no_show_by_participant: bool = False,
 ) -> None:
     expected = TRANSITIONS.get((InteractionStatus(interaction.status), target))
     if expected is None:
@@ -2356,6 +2376,15 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
         # without a completion method uses the role table below instead.
         if actor_id not in (listing.author_id, interaction.participant_id):
             raise ProblemError(FORBIDDEN)
+    elif (
+        target == InteractionStatus.NO_SHOW
+        and allow_no_show_by_participant
+        and actor_id in (listing.author_id, interaction.participant_id)
+    ):
+        # One participant charges the other one with a no-show (#66); only the
+        # no-show domain (which checks the window and the reason) may ask for
+        # it, so the generic transition endpoint stays service-only.
+        pass
     else:
         allowed_id = {
             "author": listing.author_id,
@@ -2398,8 +2427,13 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
         )
     if previous == InteractionStatus.ACCEPTED:
         # Reminders and the reservation belong to an accepted interaction only.
+        from campus.modules.reputation import (  # noqa: PLC0415
+            disarm_no_show_timer,
+        )
+
         await cancel_meeting_reminders(session, interaction.id)
         await cancel_deadline(session, reservation_key(interaction.id))
+        await disarm_no_show_timer(session, listing, interaction)
         interaction.reservation_due_at = None
     claimed = await claim_listing(
         session, listing, interaction, target, actor_id, previous
@@ -2449,6 +2483,9 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
         action,
         previous,
         interaction,
+        # A no-show journal keeps the participant's reason; the other
+        # transitions store their explanations in the details.
+        reason=reason if target == InteractionStatus.NO_SHOW else None,
         details=event_details or None,
         offline_qr=offline_qr,
     )
@@ -2861,6 +2898,11 @@ async def schedule_meeting_reminders(
             },
             key=meeting_reminder_key(interaction.id, kind),
         )
+    # The no-show rules start from the same agreed time (#66); the call
+    # replaces the pending timer, so a reschedule moves its own deadline.
+    from campus.modules.reputation import arm_no_show_timer  # noqa: PLC0415
+
+    await arm_no_show_timer(session, settings, listing, interaction, meeting)
 
 
 @deadline_handlers.register(MEETING_REMINDER_TOPIC)

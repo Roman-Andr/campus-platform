@@ -632,6 +632,12 @@ class ListingEvent(Entity):
             "created_at",
             postgresql_where=text("status = 'accepted'"),
         ),
+        Index(
+            "ix_listing_event_interaction_no_show",
+            "interaction_id",
+            "created_at",
+            postgresql_where=text("status = 'no_show'"),
+        ),
     )
     listing_id: Mapped[UUID] = mapped_column(ForeignKey("listing.id"))
     interaction_id: Mapped[UUID | None] = mapped_column(

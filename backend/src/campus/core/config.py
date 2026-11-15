@@ -544,6 +544,54 @@ class Settings(BaseSettings):
         ge=1,
         description="Incorrect entries allowed for one interaction's codes.",
     )
+    # No-shows (specification, 5.1.1, module 5, items 9-10; Appendix 4).
+    # A personal no-show is marked no earlier than 24 hours after the agreed
+    # meeting time; an interaction without any mark or confirmation becomes
+    # "did not take place" without a no-show after 7 days. An event is judged
+    # 24 hours after its end, and its participants may vote that it did not
+    # take place during the following 7 days; a third of the registrations,
+    # rounded up, is enough to charge the organiser.
+    no_show_mark_after: timedelta = Field(
+        default=timedelta(hours=24),
+        ge=timedelta(0),
+        description="How long after the agreed meeting a no-show can be marked.",
+    )
+    no_show_auto_after: timedelta = Field(
+        default=timedelta(days=7),
+        gt=timedelta(0),
+        description=(
+            "How long after the agreed meeting an unmarked interaction becomes"
+            " 'did not take place' without a no-show."
+        ),
+    )
+    no_show_reason_max_length: int = Field(
+        default=500,
+        ge=1,
+        description="Longest no-show reason, in characters.",
+    )
+    no_show_dispute_window: timedelta = Field(
+        default=timedelta(days=7),
+        gt=timedelta(0),
+        description=(
+            "How long after a no-show mark the other participant may answer it"
+            " with a mutual allegation."
+        ),
+    )
+    event_no_show_after: timedelta = Field(
+        default=timedelta(hours=24),
+        ge=timedelta(0),
+        description="How long after an event ends its attendance is judged.",
+    )
+    event_no_show_votes_window: timedelta = Field(
+        default=timedelta(days=7),
+        gt=timedelta(0),
+        description="How long after an event ends participants may vote on it.",
+    )
+    event_no_show_votes_divisor: int = Field(
+        default=3,
+        ge=2,
+        description=("Registrations per no-show vote of the organiser, rounded up."),
+    )
     # Review weights of completed interactions (Appendix 4): a review after
     # an online lesson or help confirmed without a meeting weighs less.
     rating_weight_qr: float = Field(
@@ -698,6 +746,16 @@ class Settings(BaseSettings):
     def _check_meeting_reminders(self) -> Self:
         if self.meeting_reminder_long <= self.meeting_reminder_short:
             msg = "meeting_reminder_long must be longer than meeting_reminder_short"
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def _check_no_show_windows(self) -> Self:
+        if self.no_show_auto_after <= self.no_show_mark_after:
+            msg = "no_show_auto_after must exceed no_show_mark_after"
+            raise ValueError(msg)
+        if self.event_no_show_votes_window <= self.event_no_show_after:
+            msg = "event_no_show_votes_window must exceed event_no_show_after"
             raise ValueError(msg)
         return self
 

@@ -465,7 +465,9 @@ async def test_exchange_transition_edges(
     }
     actor = borrower if target == "cancelled" else owner
     response = await move(actor, listing, interaction, target)
-    service_only = source == "accepted" and target in ("completed", "no_show")
+    service_only = (source == "accepted" and target in ("completed", "no_show")) or (
+        source == "no_show" and target == "completed"
+    )
     assert response.status_code == (
         200 if (source, target) in allowed else 403 if service_only else 409
     )

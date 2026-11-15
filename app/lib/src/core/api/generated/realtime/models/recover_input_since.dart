@@ -36,8 +36,8 @@ class Position implements RecoverInputSince {
 sealed class RecoverInputSince {
   factory RecoverInputSince.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches83(json)) "Position",
-      if (_matches87(json)) "Null",
+      if (_matches106(json)) "Position",
+      if (_matches110(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -62,25 +62,25 @@ class RecoverInputSinceNull implements RecoverInputSince {
   Object? toJson() => value;
 }
 
-bool _matches83(Object? value) => (_matches84(value));
-bool _matches84(Object? value) =>
+bool _matches106(Object? value) => (_matches107(value));
+bool _matches107(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("epoch")) &&
     (value is! Map<String, Object?> || value.containsKey("offset")) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("epoch") ||
-        _matches85(value["epoch"])) &&
+        _matches108(value["epoch"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("offset") ||
-        _matches86(value["offset"])) &&
+        _matches109(value["offset"])) &&
     ((value is Map<String, Object?>));
-bool _matches85(Object? value) =>
+bool _matches108(Object? value) =>
     (value is! String || (value.runes.length >= 1)) && ((value is String));
-bool _matches86(Object? value) =>
+bool _matches109(Object? value) =>
     (value is! num || (value >= 0.0)) &&
     ((value is num &&
         (value is int ||
             (value.isFinite && value == value.truncateToDouble()))));
-bool _matches87(Object? value) => ((value == null));
+bool _matches110(Object? value) => ((value == null));
 int _readJsonInteger(Object? value) {
   if (value is int) {
     return value;
