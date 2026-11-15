@@ -1,7 +1,7 @@
-"""Opt-in Android acceptance of an exchange over real API and PostgreSQL.
+"""Opt-in Android acceptance of an exchange over real API, PostgreSQL and RustFS.
 
 CAMPUS_RUN_EXCHANGE_CLIENT=1 uv run pytest tests/test_exchange_client.py -s
-Requires a running Android emulator and Flutter/adb on PATH.
+Requires Docker, a running Android emulator and Flutter/adb on PATH.
 """
 
 import asyncio
@@ -12,11 +12,13 @@ from pathlib import Path
 import pytest
 import uvicorn
 
+from campus.core.storage import Storage
 from tests.test_identity import DEVICE, Auth
 from tests.test_listings import owner, places
+from tests.test_photos import rustfs, storage
 from tests.test_profile import Account, Places, auth, moscow_profile
 
-__all__ = ["auth", "owner", "places"]
+__all__ = ["auth", "owner", "places", "rustfs", "storage"]
 RUN_CLIENT = os.environ.get("CAMPUS_RUN_EXCHANGE_CLIENT") == "1"
 APP = Path(__file__).resolve().parents[2] / "app"
 PORT = 18043
@@ -39,8 +41,14 @@ async def exchanger(
 
 @pytest.mark.skipif(not RUN_CLIENT, reason="opt-in Android acceptance")
 async def test_three_user_exchange_client(
-    auth: Auth, owner: Account, places: Places, tmp_path: Path
+    auth: Auth,
+    owner: Account,
+    places: Places,
+    storage: Storage,
+    tmp_path: Path,
 ) -> None:
+    # A configured empty photo storage keeps the listing gallery at 200.
+    assert storage.settings.s3_bucket
     first = await exchanger(auth, places, "dana@university.example", "Dana", "Doe")
     second = await exchanger(auth, places, "egor@university.example", "Egor", "Petrov")
     defines = tmp_path / "client.json"

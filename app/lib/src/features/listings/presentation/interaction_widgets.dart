@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/l10n/l10n.dart';
 import '../application/listings.dart';
+import '../application/no_meeting.dart';
 import 'interaction_timeline_screen.dart';
 import 'status_labels.dart';
 
@@ -18,6 +19,13 @@ class InteractionStatusText extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
+    if (item.status == InteractionStatus.completed &&
+        interactionWithoutMeeting(item)) {
+      return Text(
+        l.noMeetingCompletedStatus,
+        key: Key('interaction-without-meeting-${item.id}'),
+      );
+    }
     final status = interactionStatusLabel(l, item.status);
     if (item.status != InteractionStatus.rejected &&
         item.status != InteractionStatus.cancelled) {

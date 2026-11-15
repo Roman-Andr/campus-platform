@@ -24,6 +24,7 @@ import 'lesson_widgets.dart';
 import 'listing_photos.dart';
 import 'meeting_screen.dart';
 import 'my_screens.dart';
+import 'no_meeting_screen.dart';
 import 'publication_screen.dart';
 import 'status_labels.dart';
 import 'waitlist_widgets.dart';
@@ -930,6 +931,8 @@ class ReservationTile extends ConsumerWidget {
             timezone: value.cityTimezone,
             city: value.cityTimezone,
           ),
+        if (listing.value case final value?)
+          NoMeetingSummary(item: item, kind: value.kind),
         ParticipantCancel(item: item),
       ],
     );
@@ -1020,6 +1023,8 @@ class _IncomingListState extends ConsumerState<IncomingList> {
                         timezone: listing.cityTimezone,
                         city: listing.cityTimezone,
                       ),
+                    if (listing != null)
+                      NoMeetingSummary(item: item, kind: listing.kind),
                     if (listing != null && skill)
                       LessonOptionsCard(item: item, listing: listing),
                     if (listing != null && skill)

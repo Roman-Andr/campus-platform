@@ -15,6 +15,7 @@ import '../../features/listings/presentation/interaction_timeline_screen.dart';
 import '../../features/listings/presentation/listings_screens.dart';
 import '../../features/listings/presentation/meeting_screen.dart';
 import '../../features/listings/presentation/my_screens.dart';
+import '../../features/listings/presentation/no_meeting_screen.dart';
 import '../../features/listings/presentation/place_offer_screen.dart';
 import '../../features/listings/presentation/publication_screen.dart';
 import '../../features/listings/presentation/skill_screen.dart';
@@ -129,6 +130,13 @@ GoRouter appRouter(Ref ref) {
               GoRoute(
                 path: 'meeting',
                 builder: (context, state) => MeetingScreen(
+                  listingId: state.pathParameters['id']!,
+                  interactionId: state.pathParameters['interactionId']!,
+                ),
+              ),
+              GoRoute(
+                path: 'no-meeting',
+                builder: (context, state) => NoMeetingScreen(
                   listingId: state.pathParameters['id']!,
                   interactionId: state.pathParameters['interactionId']!,
                 ),

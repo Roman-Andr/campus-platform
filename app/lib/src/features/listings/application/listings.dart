@@ -175,6 +175,18 @@ final exchangeOffersProvider = FutureProvider.autoDispose
       return page.items;
     }, retry: listingRetry);
 
+/// Refresh interaction rows after a completion without refetching the listing
+/// itself: a screen that still shows the agreed time keeps its time zone even
+/// when the network drops right after the mutation.
+void refreshInteractionLists(WidgetRef ref) {
+  ref.invalidate(myListingsProvider);
+  ref.invalidate(myParticipationProvider);
+  ref.invalidate(incomingProvider);
+  ref.invalidate(interactionReasonProvider);
+  ref.invalidate(listingParticipationProvider);
+  ref.invalidate(interactionTimelineProvider);
+}
+
 /// The latest reason why an interaction was rejected, cancelled or closed;
 /// the reason itself is written on the closing event.
 final interactionReasonProvider = FutureProvider.autoDispose
