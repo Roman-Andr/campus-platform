@@ -14,7 +14,9 @@ a route, before FastAPI validates parameters:
 
 The endpoint runs in that session's transaction and does not commit: a 2xx
 response is committed together with the stored idempotent response; an
-exception or any other status rolls everything back, including the key.
+exception or any other status rolls everything back, including the key. An
+endpoint may return an :class:`IdempotentProblemResponse` to commit a
+deliberate 4xx with its side effect and store it for a retry.
 The headers and error responses are added to the OpenAPI schema.
 """
 
@@ -50,7 +52,12 @@ from campus.core.web.clients import (
     VERSION_HEADER,
     check_client_version,
 )
-from campus.core.web.problems import Problem, ProblemError, ProblemType
+from campus.core.web.problems import (
+    IdempotentProblemResponse,
+    Problem,
+    ProblemError,
+    ProblemType,
+)
 
 MUTATING_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 IDEMPOTENCY_KEY_HEADER = "Idempotency-Key"
@@ -303,7 +310,18 @@ class ApiRoute(APIRoute):
 
                 response = await handler(request)
                 if not 200 <= response.status_code < 300:  # noqa: PLR2004
-                    await session.rollback()
+                    if isinstance(response, IdempotentProblemResponse):
+                        if key is not None:
+                            await store_response(
+                                session,
+                                keyring=keyring,
+                                scope=scope,
+                                key=key,
+                                response=_stored(response),
+                            )
+                        await session.commit()
+                    else:
+                        await session.rollback()
                     return response
                 if key is not None:
                     await store_response(

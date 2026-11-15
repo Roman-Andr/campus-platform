@@ -159,6 +159,15 @@ class ProblemResponse(JSONResponse):
     media_type = PROBLEM_MEDIA_TYPE
 
 
+class IdempotentProblemResponse(ProblemResponse):
+    """A problem whose side effect is committed with the idempotency key.
+
+    A mutating endpoint normally rolls back on a non-2xx response. This
+    marker opts a deliberate 4xx response into storing the response and
+    committing the request transaction, so a retry returns it unchanged.
+    """
+
+
 def request_locale(request: Request) -> Locale:
     """Language of messages for ``request``, from ``Accept-Language``."""
     settings: Settings = request.app.state.settings
@@ -176,6 +185,7 @@ def problem_response(  # noqa: PLR0913 - the members of a problem
     params: Mapping[str, object] | None = None,
     current_version: int | None = None,
     available_at: datetime | None = None,
+    response_class: type[ProblemResponse] = ProblemResponse,
 ) -> ProblemResponse:
     """Render ``problem_type`` in the language of ``request``."""
     locale = request_locale(request)
@@ -196,10 +206,29 @@ def problem_response(  # noqa: PLR0913 - the members of a problem
         current_version=current_version,
         available_at=available_at,
     )
-    return ProblemResponse(
+    return response_class(
         problem.model_dump(mode="json", exclude_none=True),
         status_code=status,
         headers=dict(headers or {}),
+    )
+
+
+def problem_from_error(
+    request: Request,
+    exc: ProblemError,
+    *,
+    response_class: type[ProblemResponse] = ProblemResponse,
+) -> ProblemResponse:
+    """Render a raised problem with all of its optional members."""
+    return problem_response(
+        request,
+        exc.problem_type,
+        errors=exc.errors,
+        min_version=exc.min_version,
+        available_at=exc.available_at,
+        headers=exc.headers,
+        params=exc.params,
+        response_class=response_class,
     )
 
 
@@ -272,15 +301,7 @@ def field_error(error: Mapping[str, Any], locale: Locale) -> FieldError:
 
 async def _handle_problem(request: Request, exc: Exception) -> ProblemResponse:
     assert isinstance(exc, ProblemError)  # noqa: S101 - registered for it
-    return problem_response(
-        request,
-        exc.problem_type,
-        errors=exc.errors,
-        min_version=exc.min_version,
-        available_at=exc.available_at,
-        headers=exc.headers,
-        params=exc.params,
-    )
+    return problem_from_error(request, exc)
 
 
 async def _handle_http_exception(request: Request, exc: Exception) -> ProblemResponse:

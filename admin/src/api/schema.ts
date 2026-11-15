@@ -2058,10 +2058,12 @@ export interface paths {
      * Confirm Code
      * @description Complete an accepted interaction with the other participant's code.
      *
-     *     The server checks the code against a keyed hash and counts an incorrect
-     *     entry in a separate committed transaction. The interaction, its journal
-     *     event and its outbox message are updated atomically; the code response
-     *     never contains the plaintext.
+     *     The server checks the code against a keyed hash and increments the
+     *     counter in the request transaction. A wrong entry is returned as an
+     *     idempotent 4xx response, so a retry with the same key neither changes
+     *     the counter nor opens a second database transaction. A successful
+     *     completion updates the interaction, its journal event and its outbox
+     *     message atomically; the code response never contains the plaintext.
      */
     post: operations['confirm_code'];
     delete?: never;

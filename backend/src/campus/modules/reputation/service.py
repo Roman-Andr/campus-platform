@@ -16,7 +16,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from campus.core import clock
 from campus.core.config import Settings
@@ -181,6 +181,23 @@ CODE_STAGE_UNAVAILABLE = ProblemType(
         "Confirm the current scenario stage by its own action; a confirmation"
         " code completes only the final meeting."
     ),
+)
+
+# These problems are part of the code-confirmation attempt and are safe to
+# commit together with the idempotency key: none of them is raised after the
+# interaction or the journal has been modified.
+CODE_CONFIRM_PROBLEMS = frozenset(
+    {
+        CODE_INVALID,
+        CODE_EXPIRED,
+        CODE_ATTEMPTS_EXCEEDED,
+        CODE_NOT_PARTICIPANT,
+        CODE_SAME_PARTICIPANT,
+        CODE_NOT_ACCEPTED,
+        CODE_ALREADY_COMPLETED,
+        CODE_UNAVAILABLE,
+        CODE_STAGE_UNAVAILABLE,
+    }
 )
 
 _BASE64URL = re.compile(r"[A-Za-z0-9_-]+={0,2}")
@@ -545,7 +562,7 @@ async def issue_confirmation_code(
 
 
 async def _check_code_attempt(  # noqa: PLR0913, PLR0917 - request parts
-    session_factory: async_sessionmaker[AsyncSession],
+    session: AsyncSession,
     settings: Settings,
     interaction_id: UUID,
     code: str,
@@ -553,51 +570,49 @@ async def _check_code_attempt(  # noqa: PLR0913, PLR0917 - request parts
     author_id: UUID,
     participant_id: UUID,
 ) -> CodeCheck:
-    """Check and, on mismatch, count an attempt in its own transaction.
+    """Check the code and count a mismatch in the request transaction.
 
-    A failed request rolls the outer transaction back, so the counter would
-    disappear with it. This short transaction commits the increment even
-    when the endpoint then returns an error. The listing row is already
-    locked, so attempts and redemption for one interaction are serialized.
+    The caller commits the 4xx response together with the incremented
+    counter, so a retried request with the same idempotency key neither
+    changes the counter nor opens a second database transaction. The listing
+    row is already locked, so attempts and redemption are serialized.
     """
     now = clock.now()
     expected = _code_digest(settings, interaction_id, code)
-    async with session_factory() as check_session, check_session.begin():
-        row = await check_session.scalar(
-            select(ConfirmationCode)
-            .where(ConfirmationCode.interaction_id == interaction_id)
-            .with_for_update()
-        )
-        if row is None or row.consumed_at is not None:
-            raise ProblemError(CODE_INVALID)
-        if row.presenter_id not in (author_id, participant_id):
-            raise ProblemError(CODE_INVALID)
-        if row.presenter_id == scanner_id:
-            raise ProblemError(CODE_SAME_PARTICIPANT)
-        if row.expires_at <= now:
-            raise ProblemError(CODE_EXPIRED)
-        if row.attempts >= settings.confirmation_code_max_attempts:
-            raise ProblemError(CODE_ATTEMPTS_EXCEEDED)
-        if hmac.compare_digest(row.code_hash, expected):
-            return CodeCheck(
-                id=row.id,
-                presenter_id=row.presenter_id,
-                matched=True,
-                attempts_left=settings.confirmation_code_max_attempts - row.attempts,
-            )
-        row.attempts += 1
-        row.updated_at = now
+    row = await session.scalar(
+        select(ConfirmationCode)
+        .where(ConfirmationCode.interaction_id == interaction_id)
+        .with_for_update()
+    )
+    if row is None or row.consumed_at is not None:
+        raise ProblemError(CODE_INVALID)
+    if row.presenter_id not in (author_id, participant_id):
+        raise ProblemError(CODE_INVALID)
+    if row.presenter_id == scanner_id:
+        raise ProblemError(CODE_SAME_PARTICIPANT)
+    if row.expires_at <= now:
+        raise ProblemError(CODE_EXPIRED)
+    if row.attempts >= settings.confirmation_code_max_attempts:
+        raise ProblemError(CODE_ATTEMPTS_EXCEEDED)
+    if hmac.compare_digest(row.code_hash, expected):
         return CodeCheck(
             id=row.id,
             presenter_id=row.presenter_id,
-            matched=False,
+            matched=True,
             attempts_left=settings.confirmation_code_max_attempts - row.attempts,
         )
+    row.attempts += 1
+    row.updated_at = now
+    return CodeCheck(
+        id=row.id,
+        presenter_id=row.presenter_id,
+        matched=False,
+        attempts_left=settings.confirmation_code_max_attempts - row.attempts,
+    )
 
 
 async def confirm_with_code(  # noqa: PLR0913, PLR0917 - request parts
     session: AsyncSession,
-    session_factory: async_sessionmaker[AsyncSession],
     listing_id: UUID,
     interaction_id: UUID,
     scanner_id: UUID,
@@ -607,9 +622,10 @@ async def confirm_with_code(  # noqa: PLR0913, PLR0917 - request parts
     """Check and atomically apply a six-digit confirmation code.
 
     The listing lock serializes this request with QR scans, cancellation
-    and reissue. A wrong code is counted in a separate committed
-    transaction; the successful interaction update, its journal event and
-    its outbox message commit together, and the code is consumed only then.
+    and reissue. A wrong code increments the counter in the same transaction
+    as the committed 4xx response; the successful interaction update, its
+    journal event and its outbox message commit together, and the code is
+    consumed only then.
     """
     if (
         len(code) != CONFIRMATION_CODE_LENGTH
@@ -640,7 +656,7 @@ async def confirm_with_code(  # noqa: PLR0913, PLR0917 - request parts
         raise ProblemError(CODE_NOT_ACCEPTED)
 
     checked = await _check_code_attempt(
-        session_factory,
+        session,
         settings,
         interaction.id,
         code,
