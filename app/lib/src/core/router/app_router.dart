@@ -17,6 +17,7 @@ import '../../features/listings/presentation/meeting_screen.dart';
 import '../../features/listings/presentation/my_screens.dart';
 import '../../features/listings/presentation/place_offer_screen.dart';
 import '../../features/listings/presentation/publication_screen.dart';
+import '../../features/listings/presentation/purchase_screen.dart';
 import '../../features/listings/presentation/skill_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/profile/application/my_profile.dart';
@@ -92,6 +93,10 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: '/help/new',
         builder: (context, state) => const CreateHelpScreen(),
+      ),
+      GoRoute(
+        path: '/purchase/new',
+        builder: (context, state) => const CreatePurchaseScreen(),
       ),
       GoRoute(
         path: '/my-listings',

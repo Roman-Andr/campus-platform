@@ -1522,4 +1522,210 @@ class AppLocalizationsEn extends AppLocalizations {
   String helpRelevantUntil(String date) {
     return 'Relevant until $date';
   }
+
+  @override
+  String get listingKindPurchase => 'Group purchase';
+
+  @override
+  String get purchaseCreateTitle => 'New group purchase';
+
+  @override
+  String get purchasePublished => 'The group purchase has been published.';
+
+  @override
+  String get purchasePrice => 'Price per unit';
+
+  @override
+  String get purchasePriceInvalid =>
+      'Enter a positive price with at most two decimal places.';
+
+  @override
+  String get purchaseMinUnits => 'Minimum volume';
+
+  @override
+  String get purchaseMaxUnits => 'Maximum volume';
+
+  @override
+  String get purchaseMinInvalid => 'The volume must be at least 1.';
+
+  @override
+  String purchaseMaxBelowMin(int min) {
+    return 'The maximum cannot be below the minimum ($min).';
+  }
+
+  @override
+  String get purchaseCollectionDeadline => 'Collect until';
+
+  @override
+  String get purchaseDeadlinePast => 'Choose a future collection deadline.';
+
+  @override
+  String purchaseDeadlineTooLate(int days) {
+    return 'The collection deadline cannot be later than $days days.';
+  }
+
+  @override
+  String get purchaseStageCollecting => 'Collecting shares';
+
+  @override
+  String get purchaseStageFixed => 'Composition fixed';
+
+  @override
+  String get purchaseStageCancelled => 'Purchase cancelled';
+
+  @override
+  String purchaseUnitPriceValue(String price) {
+    return 'Price per unit: $price';
+  }
+
+  @override
+  String purchaseCollected(int taken, int limit) {
+    return 'Collected $taken of $limit units';
+  }
+
+  @override
+  String purchaseMinimumValue(int min) {
+    return 'Minimum volume: $min units';
+  }
+
+  @override
+  String purchaseFixedUnitsValue(int units) {
+    return 'Fixed: $units units';
+  }
+
+  @override
+  String purchaseCollectionDeadlineValue(String date) {
+    return 'Collect until $date';
+  }
+
+  @override
+  String get purchaseShareTitle => 'Your share';
+
+  @override
+  String purchaseShareAvailable(int available) {
+    return 'Available: $available units';
+  }
+
+  @override
+  String get purchaseShareInput => 'Units';
+
+  @override
+  String purchaseShareAmount(String amount) {
+    return 'Amount: $amount';
+  }
+
+  @override
+  String purchaseNewAmount(String amount) {
+    return 'New amount: $amount';
+  }
+
+  @override
+  String get purchaseShareJoin => 'Take a share';
+
+  @override
+  String get purchaseShareJoined => 'You took a share of the purchase.';
+
+  @override
+  String get purchaseShareChange => 'Change share';
+
+  @override
+  String get purchaseShareChanged => 'The share has been changed.';
+
+  @override
+  String get purchaseShareLeave => 'Leave purchase';
+
+  @override
+  String get purchaseShareLeft => 'You left the purchase.';
+
+  @override
+  String purchaseShareUnits(int units) {
+    return 'Share: $units units';
+  }
+
+  @override
+  String get purchaseShareNoUnits => 'No units are left.';
+
+  @override
+  String get purchaseUnitsPositive => 'Enter at least one unit.';
+
+  @override
+  String purchaseUnitsUnavailable(int available) {
+    return 'Only $available units are available.';
+  }
+
+  @override
+  String get purchaseLeaveApprovalRequired =>
+      'After the composition is fixed, leaving needs the organiser\'s approval.';
+
+  @override
+  String get purchaseLeaveRequest => 'Request to leave';
+
+  @override
+  String get purchaseLeaveRequestSent =>
+      'The leave request has been sent to the organiser.';
+
+  @override
+  String get purchaseLeaveRequestPending =>
+      'The leave request is waiting for the organiser.';
+
+  @override
+  String get purchaseLeaveCancel => 'Cancel request';
+
+  @override
+  String get purchaseLeaveRequestCancelled =>
+      'The leave request has been cancelled.';
+
+  @override
+  String get purchaseCompositionTitle => 'Purchase composition';
+
+  @override
+  String get purchaseCompositionEmpty => 'Nobody has taken a share yet.';
+
+  @override
+  String purchaseCompositionTotal(int units, String amount) {
+    return 'Total: $units units, $amount';
+  }
+
+  @override
+  String get purchaseLeaveRequestedBy => 'Asked to leave';
+
+  @override
+  String get purchaseLeaveApprove => 'Approve leave';
+
+  @override
+  String get purchaseLeaveReject => 'Reject';
+
+  @override
+  String get purchaseLeaveApproved => 'The leave has been approved.';
+
+  @override
+  String get purchaseLeaveRejected => 'The leave request has been rejected.';
+
+  @override
+  String get purchaseShareExists =>
+      'You already have a share of this purchase.';
+
+  @override
+  String get purchaseVolumeInvalid =>
+      'Check the price and volume bounds of the purchase.';
+
+  @override
+  String get purchaseDeadlineInvalid =>
+      'The collection deadline must be in the future and no later than the listing lifetime.';
+
+  @override
+  String get purchaseLeaveRequestMissing => 'There is no leave request.';
+
+  @override
+  String get purchaseNotFixed => 'The purchase composition is not fixed yet.';
+
+  @override
+  String get purchaseCapacityConflict =>
+      'The purchase volume has already changed. Refresh the card.';
+
+  @override
+  String get purchaseCollectionClosed => 'The collection is closed.';
+
+  @override
+  String get purchaseManageShare => 'Change your share on the purchase card.';
 }

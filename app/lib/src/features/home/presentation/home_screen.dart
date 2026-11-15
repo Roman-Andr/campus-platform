@@ -19,6 +19,9 @@ class HomeScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final user = ref.watch(myProfileProvider).value;
     final headman = isHeadman(user);
+    // The action row must fit a narrow phone; the purchase entry moves into
+    // the menu there instead of overflowing the bar.
+    final narrow = MediaQuery.sizeOf(context).width < 360;
 
     return Scaffold(
       appBar: AppBar(
@@ -59,6 +62,15 @@ class HomeScreen extends ConsumerWidget {
             tooltip: l10n.feedCreateHelp,
             onPressed: () => context.push('/help/new'),
           ),
+          if (!narrow)
+            IconButton(
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+              key: const Key('feed-create-purchase'),
+              icon: const Icon(Icons.shopping_basket_outlined),
+              tooltip: l10n.purchaseCreateTitle,
+              onPressed: () => context.push('/purchase/new'),
+            ),
           IconButton(
             padding: EdgeInsets.zero,
             visualDensity: VisualDensity.compact,
@@ -73,6 +85,12 @@ class HomeScreen extends ConsumerWidget {
             icon: const Icon(Icons.more_vert),
             onSelected: (route) => context.push(route),
             itemBuilder: (context) => [
+              if (narrow)
+                PopupMenuItem(
+                  key: const Key('feed-create-purchase'),
+                  value: '/purchase/new',
+                  child: Text(l10n.purchaseCreateTitle),
+                ),
               PopupMenuItem(
                 key: const Key('home-my-listings'),
                 value: '/my-listings',

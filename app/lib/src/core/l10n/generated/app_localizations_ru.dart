@@ -1513,4 +1513,207 @@ class AppLocalizationsRu extends AppLocalizations {
   String helpRelevantUntil(String date) {
     return 'Актуален до $date';
   }
+
+  @override
+  String get listingKindPurchase => 'Совместная закупка';
+
+  @override
+  String get purchaseCreateTitle => 'Новая закупка';
+
+  @override
+  String get purchasePublished => 'Закупка опубликована.';
+
+  @override
+  String get purchasePrice => 'Цена за единицу';
+
+  @override
+  String get purchasePriceInvalid =>
+      'Укажите положительную цену не более чем с двумя знаками после запятой.';
+
+  @override
+  String get purchaseMinUnits => 'Минимальный объём';
+
+  @override
+  String get purchaseMaxUnits => 'Максимальный объём';
+
+  @override
+  String get purchaseMinInvalid => 'Объём должен быть не меньше 1.';
+
+  @override
+  String purchaseMaxBelowMin(int min) {
+    return 'Максимум не может быть меньше минимума ($min).';
+  }
+
+  @override
+  String get purchaseCollectionDeadline => 'Сбор до';
+
+  @override
+  String get purchaseDeadlinePast => 'Выберите срок сбора в будущем.';
+
+  @override
+  String purchaseDeadlineTooLate(int days) {
+    return 'Срок сбора не может быть позже $days дн.';
+  }
+
+  @override
+  String get purchaseStageCollecting => 'Идёт сбор';
+
+  @override
+  String get purchaseStageFixed => 'Состав зафиксирован';
+
+  @override
+  String get purchaseStageCancelled => 'Закупка отменена';
+
+  @override
+  String purchaseUnitPriceValue(String price) {
+    return 'Цена за единицу: $price';
+  }
+
+  @override
+  String purchaseCollected(int taken, int limit) {
+    return 'Набрано $taken из $limit ед.';
+  }
+
+  @override
+  String purchaseMinimumValue(int min) {
+    return 'Минимум для закупки: $min ед.';
+  }
+
+  @override
+  String purchaseFixedUnitsValue(int units) {
+    return 'Зафиксировано: $units ед.';
+  }
+
+  @override
+  String purchaseCollectionDeadlineValue(String date) {
+    return 'Сбор до $date';
+  }
+
+  @override
+  String get purchaseShareTitle => 'Ваша доля';
+
+  @override
+  String purchaseShareAvailable(int available) {
+    return 'Свободно: $available ед.';
+  }
+
+  @override
+  String get purchaseShareInput => 'Сколько единиц';
+
+  @override
+  String purchaseShareAmount(String amount) {
+    return 'Сумма: $amount';
+  }
+
+  @override
+  String purchaseNewAmount(String amount) {
+    return 'Новая сумма: $amount';
+  }
+
+  @override
+  String get purchaseShareJoin => 'Записаться';
+
+  @override
+  String get purchaseShareJoined => 'Вы записались в закупку.';
+
+  @override
+  String get purchaseShareChange => 'Изменить долю';
+
+  @override
+  String get purchaseShareChanged => 'Доля изменена.';
+
+  @override
+  String get purchaseShareLeave => 'Выйти из закупки';
+
+  @override
+  String get purchaseShareLeft => 'Вы вышли из закупки.';
+
+  @override
+  String purchaseShareUnits(int units) {
+    return 'Доля: $units ед.';
+  }
+
+  @override
+  String get purchaseShareNoUnits => 'Свободных единиц не осталось.';
+
+  @override
+  String get purchaseUnitsPositive => 'Укажите хотя бы одну единицу.';
+
+  @override
+  String purchaseUnitsUnavailable(int available) {
+    return 'Доступно только $available ед.';
+  }
+
+  @override
+  String get purchaseLeaveApprovalRequired =>
+      'После фиксации состава выход только с согласия организатора.';
+
+  @override
+  String get purchaseLeaveRequest => 'Запросить выход';
+
+  @override
+  String get purchaseLeaveRequestSent =>
+      'Запрос на выход отправлен организатору.';
+
+  @override
+  String get purchaseLeaveRequestPending =>
+      'Запрос на выход ждёт решения организатора.';
+
+  @override
+  String get purchaseLeaveCancel => 'Отменить запрос';
+
+  @override
+  String get purchaseLeaveRequestCancelled => 'Запрос на выход отменён.';
+
+  @override
+  String get purchaseCompositionTitle => 'Состав закупки';
+
+  @override
+  String get purchaseCompositionEmpty => 'Пока никто не записался.';
+
+  @override
+  String purchaseCompositionTotal(int units, String amount) {
+    return 'Итого: $units ед. на $amount';
+  }
+
+  @override
+  String get purchaseLeaveRequestedBy => 'Просит выйти';
+
+  @override
+  String get purchaseLeaveApprove => 'Разрешить выход';
+
+  @override
+  String get purchaseLeaveReject => 'Отклонить';
+
+  @override
+  String get purchaseLeaveApproved => 'Выход разрешён.';
+
+  @override
+  String get purchaseLeaveRejected => 'Запрос на выход отклонён.';
+
+  @override
+  String get purchaseShareExists => 'Вы уже участвуете в этой закупке.';
+
+  @override
+  String get purchaseVolumeInvalid => 'Проверьте цену и объёмы закупки.';
+
+  @override
+  String get purchaseDeadlineInvalid =>
+      'Срок сбора должен быть в будущем и не позже срока жизни объявления.';
+
+  @override
+  String get purchaseLeaveRequestMissing => 'Запроса на выход нет.';
+
+  @override
+  String get purchaseNotFixed => 'Состав закупки ещё не зафиксирован.';
+
+  @override
+  String get purchaseCapacityConflict =>
+      'Объём закупки уже изменился. Обновите карточку.';
+
+  @override
+  String get purchaseCollectionClosed => 'Сбор завершён.';
+
+  @override
+  String get purchaseManageShare => 'Доля меняется в карточке закупки.';
 }
