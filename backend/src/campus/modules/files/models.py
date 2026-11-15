@@ -19,9 +19,11 @@ class File(Entity):
         CheckConstraint("position IS NULL OR position >= 0", name="position"),
         CheckConstraint("(listing_id IS NULL) = (position IS NULL)", name="attachment"),
         CheckConstraint(
-            "listing_id IS NULL OR profile_user_id IS NULL", name="single_owner"
+            "num_nonnulls(listing_id, profile_user_id, chat_id) <= 1",
+            name="single_owner",
         ),
         Index("ix_file_listing_id", "listing_id"),
+        Index("ix_file_chat_id", "chat_id"),
     )
     owner_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
     purpose: Mapped[str] = mapped_column(String(32), default="listing_photo")
@@ -36,4 +38,9 @@ class File(Entity):
     # The user whose profile photo this is; one photo per profile.
     profile_user_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("identity_user.id"), unique=True
+    )
+    # A photo attached to a chat. Cleanup deletes these objects explicitly;
+    # RESTRICT makes a chat deletion impossible while objects still exist.
+    chat_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("chat.id", ondelete="RESTRICT")
     )

@@ -102,7 +102,17 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
     final user = ref.watch(myProfileProvider).value;
     final dialogs = ref.watch(chatDialogsProvider);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.chatsTitle)),
+      appBar: AppBar(
+        title: Text(l10n.chatsTitle),
+        actions: [
+          IconButton(
+            key: const Key('chats-search'),
+            tooltip: l10n.chatSearchTitle,
+            onPressed: () => context.push(AppRoutes.chatSearch),
+            icon: const Icon(Icons.search),
+          ),
+        ],
+      ),
       body: switch (dialogs) {
         AsyncValue(value: final value?) => _Body(
           state: value,

@@ -8,6 +8,7 @@ import '../../features/auth/presentation/sign_in_code_screen.dart';
 import '../../features/auth/presentation/sign_in_email_screen.dart';
 import '../../features/auth/presentation/sign_in_name_screen.dart';
 import '../../features/chat/presentation/chat_screen.dart';
+import '../../features/chat/presentation/chat_search_screen.dart';
 import '../../features/chat/presentation/chats_screen.dart';
 import '../../features/consents/presentation/consents_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
@@ -51,11 +52,14 @@ abstract final class AppRoutes {
   static const profileSkills = '/profile/skills';
   static const notifications = '/notifications';
   static const chats = '/chats';
+  static const chatSearch = '/chats/search';
   static const chatPath = '/chats/:chatId';
 
-  /// The dialog with [chatId].
-  static String chatOf(String chatId) =>
-      '/chats/${Uri.encodeComponent(chatId)}';
+  /// The dialog with [chatId], optionally opened at a message sequence.
+  static String chatOf(String chatId, {int? messageSequence}) {
+    final path = '/chats/${Uri.encodeComponent(chatId)}';
+    return messageSequence == null ? path : '$path?message=$messageSequence';
+  }
 
   /// The place offer opened by a notification; the path keeps the listing id.
   static const placeOfferPath = '/offers/:listingId';
@@ -218,9 +222,17 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) => const ChatsScreen(),
         routes: [
           GoRoute(
+            path: 'search',
+            builder: (context, state) => const ChatSearchScreen(),
+          ),
+          GoRoute(
             path: ':chatId',
-            builder: (context, state) =>
-                ChatScreen(id: state.pathParameters['chatId']!),
+            builder: (context, state) => ChatScreen(
+              id: state.pathParameters['chatId']!,
+              initialSequence: int.tryParse(
+                state.uri.queryParameters['message'] ?? '',
+              ),
+            ),
           ),
         ],
       ),

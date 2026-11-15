@@ -9,11 +9,14 @@ import 'exports.dart'
         AuthenticationClient,
         ChatsClient,
         ConsentsClient,
+        DeviceKeysClient,
         ListingsClient,
         NotificationsClient,
         PhotosClient,
         ProfileClient,
+        QrClient,
         RealtimeClient,
+        ServerTimeClient,
         SessionsClient,
         SkillsClient,
         AuditClient,
@@ -43,12 +46,19 @@ final class CampusApi {
       clients.AuthenticationClient(_client);
   late final clients.ChatsClient chats = clients.ChatsClient(_client);
   late final clients.ConsentsClient consents = clients.ConsentsClient(_client);
+  late final clients.DeviceKeysClient deviceKeys = clients.DeviceKeysClient(
+    _client,
+  );
   late final clients.ListingsClient listings = clients.ListingsClient(_client);
   late final clients.NotificationsClient notifications =
       clients.NotificationsClient(_client);
   late final clients.PhotosClient photos = clients.PhotosClient(_client);
   late final clients.ProfileClient profile = clients.ProfileClient(_client);
+  late final clients.QrClient qr = clients.QrClient(_client);
   late final clients.RealtimeClient realtime = clients.RealtimeClient(_client);
+  late final clients.ServerTimeClient serverTime = clients.ServerTimeClient(
+    _client,
+  );
   late final clients.SessionsClient sessions = clients.SessionsClient(_client);
   late final clients.SkillsClient skills = clients.SkillsClient(_client);
   late final clients.AuditClient audit = clients.AuditClient(_client);

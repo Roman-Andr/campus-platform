@@ -75,6 +75,11 @@ msgstr ""
 msgid "Client version missing"
 msgstr ""
 
+msgid ""
+"Confirm the current scenario stage by its own action; an online QR code "
+"completes only the final meeting."
+msgstr ""
+
 #, python-brace-format
 msgid ""
 "Confirm your e-mail address with code: {code}. It expires in {minutes} "
@@ -85,6 +90,9 @@ msgid "Current documents must be accepted"
 msgstr ""
 
 msgid "Describe the item you offer."
+msgstr ""
+
+msgid "Device key conflict"
 msgstr ""
 
 msgid "E-mail address already in use"
@@ -115,6 +123,9 @@ msgid "Idempotency key missing"
 msgstr ""
 
 msgid "Idempotency key reused"
+msgstr ""
+
+msgid "Interaction already completed"
 msgstr ""
 
 msgid "Internal error"
@@ -279,6 +290,9 @@ msgstr ""
 msgid "Only the composition exchange is available at this stage."
 msgstr ""
 
+msgid "Only the two participants of the interaction can confirm it."
+msgstr ""
+
 #, python-brace-format
 msgid "Only {available} units are available."
 msgstr ""
@@ -290,6 +304,27 @@ msgid "Places are open to everyone; book now."
 msgstr ""
 
 msgid "Profile incomplete"
+msgstr ""
+
+msgid "QR code already used"
+msgstr ""
+
+msgid "QR code cannot be used"
+msgstr ""
+
+msgid "QR code cannot complete this stage"
+msgstr ""
+
+msgid "QR code expired"
+msgstr ""
+
+msgid "QR code is from the future"
+msgstr ""
+
+msgid "QR code rejected"
+msgstr ""
+
+msgid "QR confirmation is unavailable"
 msgstr ""
 
 msgid "Quiet hours must start and end at different times."
@@ -350,6 +385,15 @@ msgstr ""
 msgid "The Idempotency-Key header must be a UUID."
 msgstr ""
 
+msgid "The QR code payload is malformed or does not match the request."
+msgstr ""
+
+msgid "The QR code signature is invalid."
+msgstr ""
+
+msgid "The QR code time is ahead of the server clock by too much."
+msgstr ""
+
 msgid "The X-Client-Platform and X-Client-Version headers are required."
 msgstr ""
 
@@ -396,6 +440,9 @@ msgstr ""
 msgid "The current volume is {taken} units."
 msgstr ""
 
+msgid "The device key is unknown, revoked or belongs to another user."
+msgstr ""
+
 msgid "The event must start in the future and end after its start."
 msgstr ""
 
@@ -407,7 +454,13 @@ msgid ""
 "lifetime."
 msgstr ""
 
+msgid "The interaction is not accepted and cannot be completed."
+msgstr ""
+
 msgid "The interaction must be accepted and have a current meeting proposal."
+msgstr ""
+
+msgid "The interaction was completed by another method."
 msgstr ""
 
 msgid "The listing and the interaction do not belong together."
@@ -475,6 +528,9 @@ msgstr ""
 msgid "The offer of a place has expired."
 msgstr ""
 
+msgid "The online QR code is older than the allowed lifetime."
+msgstr ""
+
 #, python-brace-format
 msgid "The organiser cancelled the purchase: {reason}"
 msgstr ""
@@ -524,6 +580,9 @@ msgstr ""
 msgid "The same client message identifier carries different content."
 msgstr ""
 
+msgid "The same participant cannot show and scan the same QR code."
+msgstr ""
+
 #, python-brace-format
 msgid "The search query must be at most {max_length} characters."
 msgstr ""
@@ -547,6 +606,15 @@ msgid "This interaction cannot be completed without a meeting."
 msgstr ""
 
 msgid "This listing has no queue."
+msgstr ""
+
+msgid "This one-time QR code has already been used."
+msgstr ""
+
+msgid "This public key is already registered to another device session."
+msgstr ""
+
+msgid "This type of interaction is not completed with an online QR code."
 msgstr ""
 
 #, python-brace-format

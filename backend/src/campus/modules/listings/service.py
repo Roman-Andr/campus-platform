@@ -2261,8 +2261,8 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
     settings = settings or get_settings()
     completion = target == InteractionStatus.COMPLETED and completion_method is not None
     if completion:
-        # A participant confirms the completion; the service-only transition
-        # stays available for the QR module, which passes no actor.
+        # A participant confirms the completion. A service-only transition
+        # without a completion method uses the role table below instead.
         if actor_id not in (listing.author_id, interaction.participant_id):
             raise ProblemError(FORBIDDEN)
     else:

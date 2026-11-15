@@ -33,6 +33,17 @@ String chatFailureMessage(AppLocalizations l10n, Object error) {
   return apiFailureMessage(l10n, error);
 }
 
+/// A message for a failed chat search.
+String chatSearchFailureMessage(AppLocalizations l10n, Object error) {
+  final failure = ApiFailure.from(error);
+  if (failure is NetworkFailure) return l10n.chatSearchNetwork;
+  if (failure is ProblemFailure &&
+      failure.code == ProblemCode.chatSearchInvalid) {
+    return l10n.chatSearchTooLong;
+  }
+  return l10n.chatSearchFailed;
+}
+
 /// A message for an outbox row that has not been delivered.
 String outgoingFailureMessage(
   AppLocalizations l10n,

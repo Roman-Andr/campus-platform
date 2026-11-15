@@ -1836,6 +1836,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatFailureUnexpected => 'The message was not sent. Try again.';
 
   @override
+  String get chatSearchTitle => 'Search chats';
+
+  @override
+  String get chatSearchHint => 'Word or phrase';
+
+  @override
+  String get chatSearchClear => 'Clear search';
+
+  @override
+  String get chatSearchPrompt =>
+      'Type a word or phrase to find messages in your chats.';
+
+  @override
+  String chatSearchEmpty(String query) {
+    return 'Nothing found for “$query”.';
+  }
+
+  @override
+  String get chatSearchFailed => 'Could not search chats. Try again.';
+
+  @override
+  String get chatSearchNetwork =>
+      'No network. Check the connection and search again.';
+
+  @override
+  String get chatSearchTooLong => 'The search query is too long. Shorten it.';
+
+  @override
+  String get chatSearchLoadMore => 'Load more';
+
+  @override
+  String get chatSearchLoadMoreFailed => 'Could not load more results.';
+
+  @override
+  String get chatSearchMessageUnavailable =>
+      'The found message is no longer available.';
+
+  @override
   String get profileChats => 'My chats';
 
   @override

@@ -1830,6 +1830,45 @@ class AppLocalizationsRu extends AppLocalizations {
       'Сообщение не отправлено. Попробуйте ещё раз.';
 
   @override
+  String get chatSearchTitle => 'Поиск по диалогам';
+
+  @override
+  String get chatSearchHint => 'Слово или фраза';
+
+  @override
+  String get chatSearchClear => 'Очистить поиск';
+
+  @override
+  String get chatSearchPrompt =>
+      'Введите слово или фразу, чтобы найти сообщения в своих диалогах.';
+
+  @override
+  String chatSearchEmpty(String query) {
+    return 'По запросу «$query» ничего не найдено.';
+  }
+
+  @override
+  String get chatSearchFailed =>
+      'Не удалось выполнить поиск. Попробуйте ещё раз.';
+
+  @override
+  String get chatSearchNetwork =>
+      'Нет сети. Проверьте подключение и повторите поиск.';
+
+  @override
+  String get chatSearchTooLong => 'Запрос слишком длинный. Сократите его.';
+
+  @override
+  String get chatSearchLoadMore => 'Загрузить ещё';
+
+  @override
+  String get chatSearchLoadMoreFailed => 'Не удалось загрузить ещё результаты.';
+
+  @override
+  String get chatSearchMessageUnavailable =>
+      'Найденное сообщение больше недоступно.';
+
+  @override
   String get profileChats => 'Мои диалоги';
 
   @override

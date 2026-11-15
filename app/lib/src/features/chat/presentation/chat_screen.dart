@@ -19,9 +19,12 @@ import 'chats_screen.dart' show chatTime;
 /// One personal dialog: history ordered by the server, a durable composer
 /// and live wakeups that reconcile the history through the API.
 class ChatScreen extends ConsumerStatefulWidget {
-  const ChatScreen({required this.id, super.key});
+  const ChatScreen({required this.id, this.initialSequence, super.key});
 
   final String id;
+
+  /// Message sequence of a search hit to reveal when the screen opens.
+  final int? initialSequence;
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -38,7 +41,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   String? _olderError;
   bool _prependInProgress = false;
   bool _initialScrollDone = false;
+  bool _jumpLoading = false;
+  bool _targetRevealed = false;
   int _shownMessages = 0;
+  int? _targetSequence;
+  String? _jumpError;
+  final _targetKey = GlobalKey();
 
   @override
   void initState() {
@@ -49,6 +57,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
     _history = ref.read(chatHistoryProvider(widget.id).notifier);
     _queue = ref.read(chatQueueProvider.notifier);
+    _targetSequence = widget.initialSequence;
+    if (_targetSequence != null) unawaited(_openSearchHit());
     _delivered = _queue.delivered.listen((message) {
       if (message.chatId == widget.id) {
         unawaited(_history.mergeDelivered(message));
@@ -65,6 +75,41 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     _input.dispose();
     _scroll.dispose();
     super.dispose();
+  }
+
+  Future<void> _openSearchHit() async {
+    if (_jumpLoading || !mounted) return;
+    _jumpLoading = true;
+    try {
+      await ref.read(chatHistoryProvider(widget.id).future);
+      if (!mounted) return;
+      await _history.openAt(_targetSequence!);
+      if (mounted) setState(() => _jumpError = null);
+    } on ChatMessageContextUnavailable {
+      if (mounted) {
+        setState(() => _jumpError = context.l10n.chatSearchMessageUnavailable);
+      }
+    } on Object catch (error) {
+      if (mounted) {
+        setState(() => _jumpError = chatFailureMessage(context.l10n, error));
+      }
+    } finally {
+      _jumpLoading = false;
+    }
+  }
+
+  void _retrySearchHit() {
+    _targetRevealed = false;
+    setState(() => _jumpError = null);
+    unawaited(_openSearchHit());
+  }
+
+  void _retryHistory() {
+    ref.invalidate(chatHistoryProvider(widget.id));
+    if (_targetSequence != null) {
+      _targetRevealed = false;
+      unawaited(_openSearchHit());
+    }
   }
 
   Future<void> _send() async {
@@ -155,7 +200,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         AsyncValue(:final error?) => ApiErrorView(
           error: error,
           message: chatFailureMessage,
-          onRetry: () => ref.invalidate(chatHistoryProvider(widget.id)),
+          onRetry: _retryHistory,
         ),
         _ => const Center(
           key: Key('chat-loading'),
@@ -177,14 +222,31 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       outgoing: queue.forChat(widget.id),
       myId: user?.id ?? '',
     );
+    if (_targetSequence case final sequence?
+        when !_targetRevealed &&
+            items.any((item) => item.sequence == sequence)) {
+      _targetRevealed = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final target = _targetKey.currentContext;
+        if (!mounted || target == null) return;
+        Scrollable.ensureVisible(
+          target,
+          alignment: 0.45,
+          duration: const Duration(milliseconds: 250),
+        );
+      });
+    }
     if (items.length != _shownMessages) {
       final grew = items.length > _shownMessages;
       final nearBottom = _isNearBottom;
       _shownMessages = items.length;
       if (!_initialScrollDone && items.isNotEmpty) {
         _initialScrollDone = true;
-        _scrollToEnd();
-      } else if (grew && nearBottom && !_prependInProgress) {
+        if (_targetSequence == null) _scrollToEnd();
+      } else if (grew &&
+          nearBottom &&
+          !_prependInProgress &&
+          _targetSequence == null) {
         // Do not pull the reader away from older messages; only follow new
         // messages when the viewport was already at the bottom.
         _scrollToEnd();
@@ -192,6 +254,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
     return Column(
       children: [
+        if (_jumpError case final error?)
+          Container(
+            key: const Key('chat-jump-error'),
+            width: double.infinity,
+            color: Theme.of(context).colorScheme.errorContainer,
+            padding: const EdgeInsets.fromLTRB(16, 6, 8, 6),
+            child: Row(
+              children: [
+                Expanded(child: Text(error)),
+                TextButton(
+                  key: const Key('chat-jump-retry'),
+                  onPressed: _retrySearchHit,
+                  child: Text(l10n.chatMessageRetry),
+                ),
+              ],
+            ),
+          ),
         Expanded(
           child: items.isEmpty
               ? Center(
@@ -204,6 +283,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               : ListView.builder(
                   key: const Key('chat-messages'),
                   controller: _scroll,
+                  // A search jump must build the target before
+                  // Scrollable.ensureVisible can receive its key.
+                  scrollCacheExtent: _targetSequence == null
+                      ? null
+                      : const ScrollCacheExtent.pixels(5000),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 8,
@@ -211,7 +295,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   itemCount: items.length + 1,
                   itemBuilder: (context, index) {
                     if (index == 0) {
-                      if (history.nextPage == null) {
+                      if (history.nextPage == null &&
+                          history.olderBefore == null) {
                         return const SizedBox.shrink();
                       }
                       return Column(
@@ -241,13 +326,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       );
                     }
                     final item = items[index - 1];
-                    return _MessageBubble(
+                    final target = item.sequence == _targetSequence;
+                    final bubble = _MessageBubble(
                       item: item,
                       mine: item.senderId == user?.id,
                       sending: queue.sending.contains(
                         item.outgoing?.localId ?? '',
                       ),
                       user: user,
+                      highlighted: target,
                       onRetry: item.outgoing == null
                           ? null
                           : () => unawaited(
@@ -265,6 +352,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               ),
                             ),
                     );
+                    return target
+                        ? KeyedSubtree(
+                            key: _targetKey,
+                            child: KeyedSubtree(
+                              key: ValueKey('chat-target-${item.sequence}'),
+                              child: bubble,
+                            ),
+                          )
+                        : bubble;
                   },
                 ),
         ),
@@ -347,6 +443,7 @@ class _MessageBubble extends StatelessWidget {
     required this.mine,
     required this.sending,
     required this.user,
+    this.highlighted = false,
     this.onRetry,
     this.onDiscard,
   });
@@ -355,6 +452,7 @@ class _MessageBubble extends StatelessWidget {
   final bool mine;
   final bool sending;
   final UserOutput? user;
+  final bool highlighted;
   final VoidCallback? onRetry;
   final VoidCallback? onDiscard;
 
@@ -385,7 +483,11 @@ class _MessageBubble extends StatelessWidget {
               ? colors.primaryContainer
               : colors.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(16),
-          border: failed ? Border.all(color: colors.error) : null,
+          border: highlighted
+              ? Border.all(color: colors.tertiary, width: 2)
+              : failed
+              ? Border.all(color: colors.error)
+              : null,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

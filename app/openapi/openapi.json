@@ -16820,7 +16820,7 @@
           "Chats"
         ],
         "summary": "Search Chats",
-        "description": "Search messages only in dialogs of the current user.\n\nThe GIN index on the partitioned message table supplies the hits from\nactive and archived partitions; membership is checked in SQL before a\nrow can leave the database. Relevance is ordered by the combined\nRussian and English vector, then by creation time and id, so equal\nrelevance still has a total, repeatable order. A cursor is bound to the\nuser and the normalized query and cannot be reused for another search.",
+        "description": "Search messages only in dialogs of the current user.\n\nThe GIN indexes on both partitioned parents supply the hits from active\nand archived partitions; membership is checked in SQL before a row can\nleave the database. Relevance is ordered by the combined\nRussian and English vector, then by creation time and id, so equal\nrelevance still has a total, repeatable order. A cursor is bound to the\nuser and the normalized query and cannot be reused for another search.",
         "operationId": "search_chats",
         "security": [
           {
@@ -17518,6 +17518,718 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MessageOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/chats/{chat_id}/membership": {
+      "delete": {
+        "tags": [
+          "Chats"
+        ],
+        "summary": "Leave",
+        "description": "Leave a dialog; the last member starts the one-year retention clock.\n\nThe membership row and the history stay, so creating the same dialog\nagain restores them and cancels a pending cleanup. Repeating the request\nis a no-op and also returns ``204``.",
+        "operationId": "leave",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "chat_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Chat Id"
+            }
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid, expired or revoked authentication (unauthorized).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/me/device-key": {
+      "put": {
+        "tags": [
+          "Device keys"
+        ],
+        "summary": "Register Key",
+        "description": "Register or replace this device session's Ed25519 public key.\n\nA different key for the same device revokes the previous key, including\nkeys of older sessions of that device. The private key never reaches the\nAPI.",
+        "operationId": "register_key",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceKeyInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceKeyOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Device keys"
+        ],
+        "summary": "Revoke Key",
+        "description": "Revoke this device session's active key; repeating it is harmless.",
+        "operationId": "revoke_key",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/listings/{listing_id}/interactions/{interaction_id}/qr": {
+      "post": {
+        "tags": [
+          "QR"
+        ],
+        "summary": "Scan Qr",
+        "description": "Confirm an accepted interaction with a scanned online QR code.\n\nThe signed payload names the interaction, the showing participant, the\ndevice key, the issue time and a one-time nonce. The authenticated\nscanner must be the other participant. The server accepts a code whose\nreceipt time differs from its issue time by -10 to +30 seconds inclusive.",
+        "operationId": "scan_qr",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "interaction_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Interaction Id"
+            }
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QrScanInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QrScanOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/time": {
+      "get": {
+        "tags": [
+          "Server time"
+        ],
+        "summary": "Server Time",
+        "description": "Current server time and the online QR timing parameters.\n\nClients use this to correct their local clock before signing a QR code.",
+        "operationId": "server_time",
+        "parameters": [
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerTimeOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid, expired or revoked authentication (unauthorized).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
                 }
               }
             }
@@ -18274,6 +18986,68 @@
           "accepted"
         ],
         "title": "CrossBorderInput"
+      },
+      "DeviceKeyInput": {
+        "properties": {
+          "public_key": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 40,
+            "title": "Public Key",
+            "description": "Base64url-encoded 32-byte Ed25519 public key. The private key is generated and kept on the device and is never sent to the server."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "public_key"
+        ],
+        "title": "DeviceKeyInput",
+        "description": "The public half of a device-generated Ed25519 key pair."
+      },
+      "DeviceKeyOutput": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "algorithm": {
+            "type": "string",
+            "title": "Algorithm",
+            "description": "Always 'ed25519'.",
+            "default": "ed25519"
+          },
+          "public_key": {
+            "type": "string",
+            "title": "Public Key",
+            "description": "Base64url-encoded Ed25519 public key."
+          },
+          "registered_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Registered At",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC."
+          },
+          "revoked_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC.",
+            "title": "Revoked At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "public_key",
+          "registered_at",
+          "revoked_at"
+        ],
+        "title": "DeviceKeyOutput",
+        "description": "A registered key; it never contains private material."
       },
       "DocumentKind": {
         "type": "string",
@@ -20869,6 +21643,7 @@
               "complaint_reason_version_conflict",
               "consent_invalid",
               "consent_required",
+              "device_key_conflict",
               "email_conflict",
               "email_kind_invalid",
               "email_not_found",
@@ -20925,6 +21700,18 @@
               "notification_type_unknown",
               "photo_unavailable",
               "profile_incomplete",
+              "qr_already_completed",
+              "qr_expired",
+              "qr_key_invalid",
+              "qr_nonce_reused",
+              "qr_not_accepted",
+              "qr_not_participant",
+              "qr_not_yet_valid",
+              "qr_payload_invalid",
+              "qr_same_participant",
+              "qr_signature_invalid",
+              "qr_stage_unavailable",
+              "qr_unavailable",
               "rate_limited",
               "realtime_channel_forbidden",
               "realtime_channel_invalid",
@@ -21609,6 +22396,128 @@
         "title": "PushTokenInput",
         "description": "A device registration token issued by FCM."
       },
+      "QrScanInput": {
+        "properties": {
+          "payload": {
+            "type": "string",
+            "maxLength": 4096,
+            "title": "Payload",
+            "description": "Base64url-encoded UTF-8 JSON with v=1, listing_id, interaction_id, presenter_id, key_id, issued_at and nonce."
+          },
+          "signature": {
+            "type": "string",
+            "maxLength": 256,
+            "title": "Signature",
+            "description": "Base64url-encoded 64-byte Ed25519 signature of the decoded payload bytes, made by the showing device."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "payload",
+          "signature"
+        ],
+        "title": "QrScanInput",
+        "description": "A scanned online QR code and its detached signature."
+      },
+      "QrScanOutput": {
+        "properties": {
+          "listing_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Listing Id"
+          },
+          "interaction_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Interaction Id"
+          },
+          "presenter_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Presenter Id"
+          },
+          "scanner_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Scanner Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InteractionStatus"
+          },
+          "completed": {
+            "type": "boolean",
+            "title": "Completed"
+          },
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC.",
+            "title": "Completed At"
+          },
+          "completion_method": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CompletionMethod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rating_weight": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "title": "Rating Weight"
+          },
+          "nonce": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Nonce"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Issued At",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC."
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Received At",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC."
+          },
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time",
+            "description": "Current server time, so the client can correct its clock."
+          }
+        },
+        "type": "object",
+        "required": [
+          "listing_id",
+          "interaction_id",
+          "presenter_id",
+          "scanner_id",
+          "status",
+          "completed",
+          "completed_at",
+          "completion_method",
+          "rating_weight",
+          "nonce",
+          "issued_at",
+          "received_at",
+          "server_time"
+        ],
+        "title": "QrScanOutput",
+        "description": "The interaction after a successful or replayed QR scan."
+      },
       "QuietHours": {
         "properties": {
           "enabled": {
@@ -21822,6 +22731,36 @@
           "faculty_id"
         ],
         "title": "RoleOutput"
+      },
+      "ServerTimeOutput": {
+        "properties": {
+          "now": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Now",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC."
+          },
+          "qr_online_ttl": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Qr Online Ttl",
+            "description": "Maximum age of an online QR code, in seconds."
+          },
+          "qr_clock_skew": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Qr Clock Skew",
+            "description": "Accepted clock skew into the future, in seconds."
+          }
+        },
+        "type": "object",
+        "required": [
+          "now",
+          "qr_online_ttl",
+          "qr_clock_skew"
+        ],
+        "title": "ServerTimeOutput",
+        "description": "Server time and the online QR timing parameters."
       },
       "SessionOutput": {
         "properties": {
