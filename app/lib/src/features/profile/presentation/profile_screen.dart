@@ -160,6 +160,13 @@ class _ProfileDetails extends ConsumerWidget {
         const Divider(),
         const _Skills(),
         const Divider(),
+        ListTile(
+          key: const Key('profile-reviews'),
+          leading: const Icon(Icons.rate_review_outlined),
+          title: Text(l10n.profileReviews),
+          onTap: () => context.push(AppRoutes.userReviewsOf(user.id)),
+        ),
+        const Divider(),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
           child: Text(

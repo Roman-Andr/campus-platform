@@ -13,6 +13,7 @@ import '../../../core/time/city_time.dart';
 import '../../chat/presentation/chat_actions.dart';
 import '../../profile/application/my_profile.dart';
 import '../../qr/presentation/qr_summary.dart';
+import '../../reviews/presentation/review_screen.dart';
 import '../application/feed_filters.dart';
 import '../application/listing_photo_draft.dart';
 import '../application/listings.dart';
@@ -1109,6 +1110,8 @@ class ReservationTile extends ConsumerWidget {
             timezone: value.cityTimezone,
             city: value.cityTimezone,
           ),
+        if (listing.value case final value?)
+          ReviewSummary(item: item, kind: value.kind, authorId: value.authorId),
         ParticipantCancel(item: item),
       ],
     );
@@ -1223,6 +1226,12 @@ class _IncomingListState extends ConsumerState<IncomingList> {
                         kind: listing.kind,
                         timezone: listing.cityTimezone,
                         city: listing.cityTimezone,
+                      ),
+                    if (listing != null)
+                      ReviewSummary(
+                        item: item,
+                        kind: listing.kind,
+                        authorId: listing.authorId,
                       ),
                     if (listing != null && skill)
                       LessonOptionsCard(item: item, listing: listing),

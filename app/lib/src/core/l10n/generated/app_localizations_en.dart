@@ -3056,4 +3056,248 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timelineLoanNotReturned => 'Item marked as not returned';
+
+  @override
+  String get reviewSummaryTitle => 'A review of the interaction';
+
+  @override
+  String get reviewSummaryHint =>
+      'Rate with stars and the ready-made tags; the reviews are revealed mutually.';
+
+  @override
+  String get reviewSummaryOrganizerHint =>
+      'Participants review the organiser; you answer their reviews.';
+
+  @override
+  String get reviewSummaryAction => 'Open the review';
+
+  @override
+  String get reviewTitle => 'Review';
+
+  @override
+  String get reviewIntro =>
+      'A rating, ready-made tags and optional text. The review of the other side stays hidden until the mutual reveal.';
+
+  @override
+  String get reviewIntroOneWay =>
+      'Participants of the event review the organiser; the organiser answers the reviews and writes none.';
+
+  @override
+  String get reviewOwnTitle => 'Your review';
+
+  @override
+  String get reviewTheirsTitle => 'The review about you';
+
+  @override
+  String get reviewTagsNone => 'No tags';
+
+  @override
+  String reviewRatingOf(int rating) {
+    return '$rating of 5';
+  }
+
+  @override
+  String get reviewTextLabel => 'Review text';
+
+  @override
+  String get reviewTextHint => 'Optional';
+
+  @override
+  String get reviewTagsLabel => 'What stood out';
+
+  @override
+  String get reviewRatingLabel => 'Rating';
+
+  @override
+  String get reviewRatingRequired => 'Choose a rating from 1 to 5.';
+
+  @override
+  String get reviewSubmit => 'Send the review';
+
+  @override
+  String get reviewSave => 'Save the changes';
+
+  @override
+  String get reviewEdit => 'Edit the review';
+
+  @override
+  String get reviewSaved => 'The review is saved.';
+
+  @override
+  String get reviewWaiting =>
+      'Your review is hidden: waiting for the other side.';
+
+  @override
+  String reviewWaitingUntil(String time) {
+    return 'The review becomes visible after the other side writes theirs or at $time.';
+  }
+
+  @override
+  String get reviewRevealed =>
+      'The reviews are revealed; yours can no longer be changed.';
+
+  @override
+  String get reviewPublishedOwn => 'Your review is published.';
+
+  @override
+  String reviewWindowMissed(String time) {
+    return 'The review window closed at $time without reviews.';
+  }
+
+  @override
+  String get reviewUnavailableNotCompleted =>
+      'A review can be written after the interaction is completed.';
+
+  @override
+  String get reviewUnavailableOrganizer =>
+      'You are the organiser: participants review you and you answer their reviews.';
+
+  @override
+  String get reviewUnavailable =>
+      'A review is unavailable for this interaction.';
+
+  @override
+  String get reviewHiddenByModerator =>
+      'The review is hidden by a moderator and cannot be changed.';
+
+  @override
+  String get reviewRefresh => 'Refresh';
+
+  @override
+  String get reviewReplyTitle => 'Answer to the review';
+
+  @override
+  String get reviewReplyLabel => 'Answer';
+
+  @override
+  String get reviewReplyHint => 'The answer is public and can be sent once.';
+
+  @override
+  String get reviewReplyAction => 'Answer';
+
+  @override
+  String get reviewReplyRequired => 'Write the answer.';
+
+  @override
+  String get reviewReplied => 'The answer is saved.';
+
+  @override
+  String reviewReplyBy(String name) {
+    return 'Answer: $name';
+  }
+
+  @override
+  String get reviewTagOther => 'Another tag';
+
+  @override
+  String get reviewTagPunctual => 'Punctual';
+
+  @override
+  String get reviewTagItemAsDescribed => 'Item as described';
+
+  @override
+  String get reviewTagFriendly => 'Friendly';
+
+  @override
+  String get reviewTagClearCommunication => 'Clear communication';
+
+  @override
+  String get reviewTagFairOffer => 'Fair offer';
+
+  @override
+  String get reviewTagItemInOrder => 'Item in order';
+
+  @override
+  String get reviewTagReturnedOnTime => 'Returned on time';
+
+  @override
+  String get reviewTagClearExplanation => 'Clear explanation';
+
+  @override
+  String get reviewTagPatient => 'Patient';
+
+  @override
+  String get reviewTagUseful => 'Useful';
+
+  @override
+  String get reviewTagHelpedAsPromised => 'Helped as promised';
+
+  @override
+  String get reviewTagResponsive => 'Responsive';
+
+  @override
+  String get reviewTagInteresting => 'Interesting';
+
+  @override
+  String get reviewTagWellOrganized => 'Well organized';
+
+  @override
+  String get reviewTagOrganizerPunctual => 'The organiser was punctual';
+
+  @override
+  String get reviewTagAsDescribed => 'As described';
+
+  @override
+  String get reviewTagTransparentTerms => 'Transparent terms';
+
+  @override
+  String get reviewErrorForbidden =>
+      'Only a participant of the interaction can write a review.';
+
+  @override
+  String get reviewErrorOneWay =>
+      'Participants review the organiser; the organiser writes no review.';
+
+  @override
+  String get reviewErrorUnavailable =>
+      'A review is available only after the interaction is completed.';
+
+  @override
+  String get reviewErrorWindowClosed => 'The review window has closed.';
+
+  @override
+  String get reviewErrorExists => 'You have already reviewed this interaction.';
+
+  @override
+  String get reviewErrorPublished =>
+      'A review cannot be changed after the reveal.';
+
+  @override
+  String get reviewErrorHidden => 'The review is hidden by a moderator.';
+
+  @override
+  String get reviewErrorRating =>
+      'A rating is a whole number of stars from 1 to 5.';
+
+  @override
+  String get reviewErrorTags => 'These tags do not belong to the scenario.';
+
+  @override
+  String get reviewErrorText => 'The review text is too long.';
+
+  @override
+  String get reviewErrorReplyExists => 'The review has already been answered.';
+
+  @override
+  String get reviewErrorReplyInvalid =>
+      'Write the answer within the allowed length.';
+
+  @override
+  String get reviewErrorNotFound => 'The review is not available yet.';
+
+  @override
+  String get profileReviews => 'Reviews';
+
+  @override
+  String get profileReviewsTitle => 'Reviews about me';
+
+  @override
+  String get profileReviewsIntro =>
+      'Published reviews about you. Hidden and unrevealed reviews are not shown here.';
+
+  @override
+  String get profileReviewsEmpty => 'No published reviews yet.';
+
+  @override
+  String get profileReviewsMore => 'Show more';
 }

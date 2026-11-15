@@ -36,6 +36,8 @@ import '../../features/profile/presentation/profile_steps.dart';
 import '../../features/qr/domain/qr_availability.dart';
 import '../../features/qr/presentation/qr_presenter_screen.dart';
 import '../../features/qr/presentation/qr_scanner_screen.dart';
+import '../../features/reviews/presentation/profile_reviews_screen.dart';
+import '../../features/reviews/presentation/review_screen.dart';
 import '../../features/sessions/presentation/devices_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/update/presentation/update_required_screen.dart';
@@ -73,6 +75,13 @@ abstract final class AppRoutes {
 
   /// The place offer opened by a notification; the path keeps the listing id.
   static const placeOfferPath = '/offers/:listingId';
+
+  /// The published reviews about a user.
+  static const userReviewsPath = '/users/:userId/reviews';
+
+  /// The published reviews about [userId].
+  static String userReviewsOf(String userId) =>
+      '/users/${Uri.encodeComponent(userId)}/reviews';
 
   /// Location of the place offer of [listingId].
   static String placeOfferOf(String listingId) =>
@@ -244,6 +253,13 @@ GoRouter appRouter(Ref ref) {
                       : null,
                 ),
               ),
+              GoRoute(
+                path: 'review',
+                builder: (context, state) => ReviewScreen(
+                  listingId: state.pathParameters['id']!,
+                  interactionId: state.pathParameters['interactionId']!,
+                ),
+              ),
             ],
           ),
         ],
@@ -310,6 +326,11 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.notifications,
         builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.userReviewsPath,
+        builder: (context, state) =>
+            ProfileReviewsScreen(userId: state.pathParameters['userId']!),
       ),
       GoRoute(
         path: AppRoutes.chats,
