@@ -12,6 +12,7 @@ from campus.modules.notifications.delivery import (
 )
 from campus.modules.notifications.events import (
     IMPORTANT_TYPES,
+    LISTING_CANCELLED,
     LISTING_CHANGED,
     LISTING_OFFER,
     LISTING_OFFER_EXPIRED,
@@ -19,6 +20,7 @@ from campus.modules.notifications.events import (
     LISTING_WAITLIST_JOINED,
     LISTING_WAITLIST_OPEN,
     PURCHASE_CANCELLED,
+    PURCHASE_CANCELLED_BY_AUTHOR,
     PURCHASE_CONDITIONS_CHANGED,
     PURCHASE_FIXED,
     PURCHASE_REMINDER,
@@ -47,6 +49,7 @@ from campus.modules.notifications.reminders import cancel_reminders, schedule_re
 
 __all__ = [
     "IMPORTANT_TYPES",
+    "LISTING_CANCELLED",
     "LISTING_CHANGED",
     "LISTING_OFFER",
     "LISTING_OFFER_EXPIRED",
@@ -54,6 +57,7 @@ __all__ = [
     "LISTING_WAITLIST_JOINED",
     "LISTING_WAITLIST_OPEN",
     "PURCHASE_CANCELLED",
+    "PURCHASE_CANCELLED_BY_AUTHOR",
     "PURCHASE_CONDITIONS_CHANGED",
     "PURCHASE_FIXED",
     "PURCHASE_REMINDER",
