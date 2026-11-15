@@ -35,8 +35,14 @@ from campus.modules.chat.models import (
     ChatMessage,
     ChatMessageDedup,
 )
-from campus.modules.identity import User
-from campus.modules.listings import Interaction, Listing, readable
+from campus.modules.identity import User, serialize_contact_pair
+from campus.modules.listings import (
+    RELATED_INTERACTION_STATUSES,
+    Interaction,
+    Listing,
+    can_contact,
+    readable,
+)
 from campus.modules.realtime import grant_chat_access
 from campus.modules.university import AccountType
 
@@ -53,7 +59,7 @@ CHAT_FORBIDDEN = ProblemType(
     "chat_forbidden",
     403,
     N_("This action is not allowed."),
-    N_("Alumni and former employees can write only in existing chats."),
+    N_("Personal messaging with this user is not available."),
 )
 CHAT_SELF = ProblemType("chat_self", 422, N_("A chat must have two different members."))
 CHAT_LINK_INVALID = ProblemType(
@@ -151,7 +157,9 @@ async def check_link(
 
     A link never grants access to the object it names: the creator must be
     able to read the listing now, and an interaction chat is possible only
-    for the two parties of that interaction.
+    for the two parties of that interaction. A listing chat additionally
+    needs the recipient to be the author or a participant with a started
+    interaction, so an arbitrary third user cannot be attached to a listing.
     """
     if interaction_id is not None:
         interaction = await session.get(Interaction, interaction_id)
@@ -167,7 +175,21 @@ async def check_link(
             raise ProblemError(CHAT_LINK_INVALID)
         return interaction.listing_id
     if listing_id is not None:
-        await readable(session, listing_id, creator)
+        listing = await readable(session, listing_id, creator)
+        if listing.author_id == creator.id:
+            participant = await session.scalar(
+                select(Interaction.id)
+                .where(
+                    Interaction.listing_id == listing.id,
+                    Interaction.participant_id == recipient_id,
+                    Interaction.status.in_(RELATED_INTERACTION_STATUSES),
+                )
+                .limit(1)
+            )
+            if participant is None:
+                raise ProblemError(NOT_FOUND)
+        elif recipient_id != listing.author_id:
+            raise ProblemError(NOT_FOUND)
         return listing_id
     return None
 
@@ -197,6 +219,14 @@ async def create_personal_chat(
     linked_listing_id = await check_link(
         session, creator, recipient_id, listing_id, interaction_id
     )
+    await serialize_contact_pair(session, creator_id, recipient_id)
+    if not await can_contact(
+        session,
+        creator_id,
+        recipient_id,
+        linked=interaction_id is not None or linked_listing_id is not None,
+    ):
+        raise ProblemError(CHAT_FORBIDDEN)
     low, high = canonical_pair(creator_id, recipient_id)
     existing = await find_pair_chat(
         session, low, high, linked_listing_id, interaction_id
@@ -309,7 +339,22 @@ async def post_message(  # noqa: PLR0913 - message fields
     content: the stored message is returned, no new order number is taken
     and the outbox gets no new publication.
     """
-    await require_membership(session, chat_id, sender_id)
+    chat = await require_membership(session, chat_id, sender_id)
+    # A personal block changes only a personal dialog. A future group chat is
+    # shared by both members and keeps their messages visible, as the
+    # specification requires, so it is not filtered by the pair policy.
+    if chat.kind == PERSONAL_KIND:
+        recipient_id = (
+            chat.user_high_id if chat.user_low_id == sender_id else chat.user_low_id
+        )
+        await serialize_contact_pair(session, sender_id, recipient_id)
+        if not await can_contact(
+            session,
+            sender_id,
+            recipient_id,
+            linked=chat.listing_id is not None or chat.interaction_id is not None,
+        ):
+            raise ProblemError(CHAT_FORBIDDEN)
     if not text.strip() or len(text) > settings.chat_message_max_length:
         raise ProblemError(CHAT_MESSAGE_INVALID)
     await serialize_sender(session, sender_id)

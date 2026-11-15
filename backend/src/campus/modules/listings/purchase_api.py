@@ -42,6 +42,7 @@ from campus.modules.listings.service import (
     cancel_purchase_withdrawal,
     change_purchase_units,
     decide_purchase_withdrawal,
+    ensure_can_respond,
     join_purchase,
     leave_purchase,
     locked,
@@ -298,6 +299,7 @@ async def join_listing_purchase(
     if listing.kind != "purchase":
         raise ProblemError(CONFLICT)
     check_participant(listing, user)
+    await ensure_can_respond(session, user.id, listing.author_id)
     if not visible(listing, user):
         raise ProblemError(NOT_FOUND)
     require_live(listing)

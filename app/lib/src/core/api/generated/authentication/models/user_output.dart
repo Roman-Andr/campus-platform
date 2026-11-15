@@ -2,6 +2,7 @@
 
 import 'role_output.dart';
 import 'user_output_account_type.dart';
+import 'user_output_message_policy.dart';
 
 /// The user's account and profile.
 class UserOutput {
@@ -30,6 +31,9 @@ class UserOutput {
 
     /// When the name may change next; empty: now.
     required this.nameChangeAvailableAt,
+
+    /// Who may start a personal dialog: everybody or only users with a permitted listing or interaction relation.
+    this.messagePolicy = UserOutputMessagePolicy.all,
     this.additionalProperties = const {},
   });
 
@@ -76,6 +80,9 @@ class UserOutput {
       nameChangeAvailableAt: json["name_change_available_at"] == null
           ? null
           : DateTime.parse(json["name_change_available_at"] as String).toUtc(),
+      messagePolicy: json.containsKey("message_policy")
+          ? UserOutputMessagePolicy.fromJson(json["message_policy"])
+          : UserOutputMessagePolicy.all,
       additionalProperties: {
         for (final entry in json.entries)
           if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
@@ -116,6 +123,9 @@ class UserOutput {
   /// When the name may change next; empty: now.
   final DateTime? nameChangeAvailableAt;
 
+  /// Who may start a personal dialog: everybody or only users with a permitted listing or interaction relation.
+  final UserOutputMessagePolicy messagePolicy;
+
   static const _knownKeys = <String>{
     "cross_border_transfer_allowed",
     "roles",
@@ -131,6 +141,7 @@ class UserOutput {
     "course",
     "profile_complete",
     "name_change_available_at",
+    "message_policy",
   };
 
   final Map<String, Object?> additionalProperties;
@@ -154,6 +165,7 @@ class UserOutput {
     "name_change_available_at": this.nameChangeAvailableAt
         ?.toUtc()
         .toIso8601String(),
+    "message_policy": this.messagePolicy.toJson(),
   };
 }
 

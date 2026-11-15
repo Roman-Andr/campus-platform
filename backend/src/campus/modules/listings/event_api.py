@@ -43,6 +43,7 @@ from campus.modules.listings.service import (
     STALE,
     active_waitlist,
     claim_offer,
+    ensure_can_respond,
     event_offers,
     expire_offer,
     join_waitlist,
@@ -162,6 +163,7 @@ async def signup_event(
     listing = await locked(session, listing_id)
     user = await user_for(session, principal)
     check_participant(listing, user)
+    await ensure_can_respond(session, user.id, listing.author_id)
     if not visible(listing, user):
         raise ProblemError(NOT_FOUND)
     require_live(listing)

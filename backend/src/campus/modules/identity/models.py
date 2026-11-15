@@ -17,6 +17,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
+from campus.core import clock
 from campus.core.db import Base, Entity, LocalizedName
 from campus.modules.university import CODE_MAX_LENGTH, CODE_PATTERN, AccountType
 
@@ -42,6 +43,7 @@ class User(Entity):
             name="profile_whole",
         ),
         CheckConstraint("course >= 1", name="course_positive"),
+        CheckConstraint("message_policy IN ('all', 'related')", name="message_policy"),
         ForeignKeyConstraint(
             ["city_id", "dormitory_id"],
             ["university_dormitory.city_id", "university_dormitory.id"],
@@ -66,6 +68,12 @@ class User(Entity):
     dormitory_id: Mapped[UUID | None] = mapped_column(index=True)
     faculty_id: Mapped[UUID | None] = mapped_column(index=True)
     course: Mapped[int | None] = mapped_column(SmallInteger)
+    # Who may start a personal dialog with this user: everybody or only
+    # users with a permitted listing/interaction relation. Enforced by the
+    # contact policy, not only by clients.
+    message_policy: Mapped[str] = mapped_column(
+        String(16), default="all", server_default=text("'all'")
+    )
 
     @property
     def profile_complete(self) -> bool:
@@ -186,3 +194,27 @@ class NameChange(Entity):
     old_last_name: Mapped[str] = mapped_column(String(100))
     new_first_name: Mapped[str] = mapped_column(String(100))
     new_last_name: Mapped[str] = mapped_column(String(100))
+
+
+class Block(Base):
+    """A personal blacklist entry: ``blocker_id`` refuses ``blocked_id``.
+
+    A block is directional in storage and mutual in effect: the contact
+    policy rejects personal messages and responses in both directions, and
+    hides each author's listings from the other. Existing interactions stay
+    readable and completable; blocking never cancels them.
+    """
+
+    __tablename__ = "identity_block"
+    __table_args__ = (
+        CheckConstraint("blocker_id <> blocked_id", name="not_self"),
+        Index("ix_identity_block_blocked_id", "blocked_id"),
+    )
+
+    blocker_id: Mapped[UUID] = mapped_column(
+        ForeignKey("identity_user.id", ondelete="CASCADE"), primary_key=True
+    )
+    blocked_id: Mapped[UUID] = mapped_column(
+        ForeignKey("identity_user.id", ondelete="CASCADE"), primary_key=True
+    )
+    created_at: Mapped[datetime] = mapped_column(default=clock.now)
