@@ -30,6 +30,9 @@ String timelineAction(AppLocalizations l, EventOutput event) =>
       'transition' => l.timelineTransition,
       'auto_rejected' => l.timelineAutoRejected,
       'stage_changed' => l.timelineStageChanged,
+      'loan_handed_over' => l.timelineLoanHandedOver,
+      'loan_returned' => l.timelineLoanReturned,
+      'loan_not_returned' => l.timelineLoanNotReturned,
       _ => l.timelineOther,
     };
 

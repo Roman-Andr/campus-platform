@@ -11,11 +11,13 @@ import '../application/listings.dart';
 import '../application/my_listings.dart';
 import '../application/waitlist.dart';
 import '../domain/help.dart';
+import '../domain/loan.dart';
 import '../domain/purchase.dart';
 import '../domain/skills.dart';
 import 'interaction_widgets.dart';
 import 'lesson_widgets.dart';
 import 'listings_screens.dart';
+import 'loan_widgets.dart';
 import 'meeting_screen.dart';
 import 'no_meeting_screen.dart';
 import 'no_show_screen.dart';
@@ -32,6 +34,7 @@ String mySectionName(AppLocalizations l, MySection section) =>
 String listingKindName(AppLocalizations l, String kind) => switch (kind) {
   'giveaway' => l.listingKindGiveaway,
   'exchange' => l.listingKindExchange,
+  loanKind => l.listingKindLoan,
   'skill' => l.listingKindSkill,
   'publication' => l.listingKindPublication,
   'event' => l.listingKindEvent,
@@ -197,6 +200,7 @@ class ParticipationTile extends StatelessWidget {
     final l = context.l10n;
     final stage = item.stage;
     final purchase = item.listing.kind == purchaseKind;
+    final loan = item.listing.kind == loanKind;
     final interaction = asInteraction(item);
     return Column(
       children: [
@@ -211,6 +215,8 @@ class ParticipationTile extends StatelessWidget {
                   if (stage != null)
                     purchase
                         ? purchaseStageLabel(l, purchaseStageValue(stage))
+                        : loan
+                        ? l.loanStepIssued
                         : l.participationStage(stage),
                 ].join(' · '),
               ),
@@ -230,6 +236,12 @@ class ParticipationTile extends StatelessWidget {
         NoMeetingSummary(item: interaction, kind: item.listing.kind),
         QrConfirmationSummary(item: interaction, kind: item.listing.kind),
         NoShowSummary(
+          item: interaction,
+          kind: item.listing.kind,
+          timezone: item.listing.cityTimezone,
+          city: item.listing.cityTimezone,
+        ),
+        LoanSummary(
           item: interaction,
           kind: item.listing.kind,
           timezone: item.listing.cityTimezone,

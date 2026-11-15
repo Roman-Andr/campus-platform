@@ -2819,4 +2819,241 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noShowLoanUnavailable =>
       'A loan cannot be marked as a no-show: the item was handed over. After the return deadline its owner marks it not returned.';
+
+  @override
+  String get listingKindLoan => 'Lending';
+
+  @override
+  String get loanCreateTitle => 'New loan listing';
+
+  @override
+  String get loanPeriodLabel => 'Return period, days';
+
+  @override
+  String loanPeriodHint(int max) {
+    return 'From 1 to $max days';
+  }
+
+  @override
+  String loanPeriodInvalid(int max) {
+    return 'The return period must be from 1 to $max days';
+  }
+
+  @override
+  String loanPeriodShort(int days) {
+    return '$days d';
+  }
+
+  @override
+  String loanPeriodValue(int days) {
+    return 'Return period: $days days after the handover';
+  }
+
+  @override
+  String loanPeriodFixed(int days) {
+    return 'Return period set at publication: $days days';
+  }
+
+  @override
+  String get loanCardTitle => 'Loan';
+
+  @override
+  String get loanStepAccepted => 'Accepted';
+
+  @override
+  String get loanStepIssued => 'Handed over';
+
+  @override
+  String get loanStepReturned => 'Returned';
+
+  @override
+  String loanReturnDue(String time) {
+    return 'Return by $time';
+  }
+
+  @override
+  String get loanOverdueChip => 'Overdue';
+
+  @override
+  String get loanShowHandover => 'Show handover QR';
+
+  @override
+  String get loanScanHandover => 'Scan handover QR';
+
+  @override
+  String get loanShowReturn => 'Show return QR';
+
+  @override
+  String get loanScanReturn => 'Scan return QR';
+
+  @override
+  String get loanHandoverHint =>
+      'The owner shows the handover code; the borrower scans it.';
+
+  @override
+  String get loanReturnHint =>
+      'The borrower shows the return code; the owner scans it.';
+
+  @override
+  String get loanNotReturned => 'Item not returned';
+
+  @override
+  String loanNotReturnedUntil(String time) {
+    return 'Available from $time';
+  }
+
+  @override
+  String get loanNotReturnedConfirmTitle => 'Mark the item as not returned?';
+
+  @override
+  String get loanNotReturnedConfirmBody =>
+      'The borrower gets a no-show and may dispute it. The item stays busy until the dispute is decided.';
+
+  @override
+  String get loanNotReturnedConfirm => 'Mark';
+
+  @override
+  String get loanNotReturnedKeep => 'Cancel';
+
+  @override
+  String get loanNotReturnedMarked =>
+      'The owner marked the item as not returned.';
+
+  @override
+  String get loanBorrowerNoShow =>
+      'The borrower did not return the item in time: a no-show was recorded.';
+
+  @override
+  String get loanDisputeOpen =>
+      'The no-show is disputed; a moderator will decide.';
+
+  @override
+  String get loanDisputeWaiting =>
+      'The borrower may dispute the no-show within the dispute window.';
+
+  @override
+  String get loanDispute => 'Dispute the no-show';
+
+  @override
+  String get loanDisputeTitle => 'Dispute the no-show';
+
+  @override
+  String get loanDisputeReason => 'Reason';
+
+  @override
+  String get loanDisputeReasonRequired => 'Describe the reason';
+
+  @override
+  String loanDisputeReasonInvalid(int max) {
+    return 'The reason may be at most $max characters';
+  }
+
+  @override
+  String get loanDisputeSend => 'Send';
+
+  @override
+  String get loanDisputeKeep => 'Cancel';
+
+  @override
+  String get loanDisputeClosed => 'The dispute window is closed.';
+
+  @override
+  String get loanDisputeForbidden =>
+      'Only a participant of the interaction may dispute the no-show.';
+
+  @override
+  String get loanNoShowUnavailable => 'This no-show cannot be disputed.';
+
+  @override
+  String get loanQrAlreadyReturned => 'The item was already returned.';
+
+  @override
+  String get loanQrHandoverUnavailable =>
+      'The handover is already confirmed or the loan is closed.';
+
+  @override
+  String get loanQrReturnUnavailable =>
+      'The return is possible only after the handover.';
+
+  @override
+  String loanNotReturnedTooEarly(String time) {
+    return 'The item can be marked not returned from $time.';
+  }
+
+  @override
+  String get loanNotReturnedLater =>
+      'The item cannot be marked not returned yet.';
+
+  @override
+  String get loanNotReturnedForbidden =>
+      'Only the owner may mark the item as not returned.';
+
+  @override
+  String get loanNotReturnedUnavailable =>
+      'Only a handed-over item can be marked as not returned.';
+
+  @override
+  String loanReturnedAt(String time) {
+    return 'Returned $time';
+  }
+
+  @override
+  String get loanQrHandoverPresenterTitle => 'Handover QR code';
+
+  @override
+  String get loanQrHandoverPresenterIntro =>
+      'Show this code to the borrower: they confirm receiving the item.';
+
+  @override
+  String get loanQrReturnPresenterTitle => 'Return QR code';
+
+  @override
+  String get loanQrReturnPresenterIntro =>
+      'Show this code to the owner: they confirm the return.';
+
+  @override
+  String get loanQrHandoverScanTitle => 'Scan the handover';
+
+  @override
+  String get loanQrHandoverScanIntro =>
+      'Point the camera at the code the owner shows.';
+
+  @override
+  String get loanQrReturnScanTitle => 'Scan the return';
+
+  @override
+  String get loanQrReturnScanIntro =>
+      'Point the camera at the code the borrower shows.';
+
+  @override
+  String get loanQrHandoverDone => 'The handover is confirmed.';
+
+  @override
+  String get loanQrReturnDone =>
+      'The return is confirmed; the loan is complete.';
+
+  @override
+  String get qrScannerLoanNotHandedOver =>
+      'Confirm the handover of the item first.';
+
+  @override
+  String get qrScannerLoanAlreadyIssued =>
+      'The handover is already confirmed. Use the return code instead.';
+
+  @override
+  String get qrScannerLoanReturnMarked =>
+      'The owner marked the item as not returned; the dispute decides the outcome.';
+
+  @override
+  String get qrScannerLoanActionRequired =>
+      'A loan is confirmed by its handover and return actions.';
+
+  @override
+  String get timelineLoanHandedOver => 'Item handover confirmed';
+
+  @override
+  String get timelineLoanReturned => 'Item return confirmed';
+
+  @override
+  String get timelineLoanNotReturned => 'Item marked as not returned';
 }

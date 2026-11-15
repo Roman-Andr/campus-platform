@@ -16,6 +16,7 @@ import '../application/listings.dart';
 import '../application/meeting.dart';
 import '../domain/reservation.dart';
 import 'cancellation.dart';
+import 'loan_widgets.dart';
 import 'no_meeting_screen.dart';
 
 /// Route of the meeting of interaction [interactionId] of listing [listingId].
@@ -502,6 +503,12 @@ class _MeetingScreenState extends ConsumerState<MeetingScreen> {
         ),
         NoMeetingSummary(item: item, kind: listing.kind),
         QrConfirmationSummary(item: item, kind: listing.kind),
+        LoanSummary(
+          item: item,
+          kind: listing.kind,
+          timezone: listing.cityTimezone,
+          city: city,
+        ),
         if (_editing)
           MeetingProposalForm(
             initialTime: meetingInitialTime(meeting),

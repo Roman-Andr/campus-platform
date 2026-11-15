@@ -6,6 +6,7 @@ import '../../../core/api/api_client.dart';
 enum FeedKind {
   giveaway('giveaway'),
   exchange('exchange'),
+  loan('loan'),
   skill('skill'),
   publication('publication'),
   event('event'),
