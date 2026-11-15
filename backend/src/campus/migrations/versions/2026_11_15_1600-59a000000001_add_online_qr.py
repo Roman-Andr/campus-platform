@@ -1,7 +1,7 @@
 """Add Ed25519 device keys and one-time online QR scans.
 
 Revision ID: 59a000000001
-Revises: 78c0a7000001
+Revises: 55merge00001
 """
 
 from collections.abc import Sequence
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "59a000000001"
-down_revision: str | Sequence[str] | None = "82search00001"
+down_revision: str | Sequence[str] | None = "55merge00001"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

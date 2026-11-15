@@ -5,6 +5,7 @@ import 'dart:convert' as convert;
 import 'package:dio/dio.dart'
     show Dio, Options, ResponseType, CancelToken, ListParam, ListFormat;
 
+import 'models/cancel_listing_request.dart' as models show CancelListingRequest;
 import 'models/category_list.dart' as models show CategoryList;
 import 'models/event_edit.dart' as models show EventEdit;
 import 'models/event_input.dart' as models show EventInput;
@@ -12,12 +13,18 @@ import 'models/exchange_offer_input.dart' as models show ExchangeOfferInput;
 import 'models/exchange_offer_list.dart' as models show ExchangeOfferList;
 import 'models/giveaway_input.dart' as models show GiveawayInput;
 import 'models/help_request_input.dart' as models show HelpRequestInput;
+import 'models/interaction_cancellation_preview.dart'
+    as models
+    show InteractionCancellationPreview;
 import 'models/join_listing_waitlist_request.dart'
     as models
     show JoinListingWaitlistRequest;
 import 'models/lesson_accept_input.dart' as models show LessonAcceptInput;
 import 'models/lesson_input.dart' as models show LessonInput;
 import 'models/lesson_slot_input.dart' as models show LessonSlotInput;
+import 'models/listing_cancellation_preview.dart'
+    as models
+    show ListingCancellationPreview;
 import 'models/listing_edit.dart' as models show ListingEdit;
 import 'models/listing_output.dart' as models show ListingOutput;
 import 'models/listing_status.dart' as models show ListingStatus;
@@ -683,10 +690,10 @@ class ListingsClient {
     return models.ListingOutput.fromJson(response.data as Map<String, Object?>);
   }
 
-  /// Cancel Listing
+  /// Listing Cancellation Preview
   ///
-  /// Closing rejects pending applications and preserves accepted interactions.
-  Future<models.ListingOutput> cancelListing({
+  /// Tell the author whether a cancellation needs a reason (#55).
+  Future<models.ListingCancellationPreview> listingCancellationPreview({
     Map<String, Object?> extra = const {
       "openapi.security": [
         {"HTTPBearer": []},
@@ -703,15 +710,103 @@ class ListingsClient {
       throw ArgumentError('Invalid path segment.');
     }
     final _options = (options ?? Options()).copyWith(
-      method: "POST",
+      method: "GET",
       responseType: ResponseType.json,
       extra: {...?options?.extra, ...extra},
       headers: {...?options?.headers, 'Accept': "application/json"},
       validateStatus: (status) => status != null && (status == 200),
     );
     final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/cancellation",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.ListingCancellationPreview.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Interaction Cancellation Preview
+  ///
+  /// Warn a participant before a late cancellation; never mutate state.
+  Future<models.InteractionCancellationPreview> interactionCancellationPreview({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required String interactionId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(interactionId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/interactions/" +
+          Uri.encodeComponent(interactionId) +
+          "/cancellation",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.InteractionCancellationPreview.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Cancel Listing
+  ///
+  /// Cancel with a reason when accepted interactions would be affected.
+  Future<models.ListingOutput> cancelListing({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    models.CancelListingRequest? body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
       "/api/v1/listings/" + Uri.encodeComponent(listingId) + "/cancel",
       options: _options,
+      data: body == null ? null : convert.jsonEncode(body),
       cancelToken: cancelToken,
     );
     return models.ListingOutput.fromJson(response.data as Map<String, Object?>);

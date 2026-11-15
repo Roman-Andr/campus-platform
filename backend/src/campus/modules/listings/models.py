@@ -73,6 +73,14 @@ class CompletionMethod(StrEnum):
     NO_MEETING = "no_meeting"
 
 
+class CancellationActor(StrEnum):
+    """Who ended an interaction: its author, participant or the server."""
+
+    AUTHOR = "author"
+    PARTICIPANT = "participant"
+    SYSTEM = "system"
+
+
 class Visibility(StrEnum):
     UNIVERSITY = "university"
     CITY = "city"
@@ -330,6 +338,20 @@ class Interaction(Entity):
             name="completion_complete",
         ),
         CheckConstraint("units IS NULL OR units > 0", name="units"),
+        CheckConstraint(
+            "cancelled_by IS NULL OR cancelled_by IN ('author','participant','system')",
+            name="cancelled_by",
+        ),
+        CheckConstraint(
+            "(cancelled_by IS NULL AND cancellation_reason IS NULL "
+            "AND NOT late_cancelled) OR status = 'cancelled'",
+            name="cancellation_complete",
+        ),
+        Index(
+            "ix_listing_interaction_late_cancelled",
+            "participant_id",
+            postgresql_where=text("late_cancelled"),
+        ),
     )
     listing_id: Mapped[UUID] = mapped_column(ForeignKey("listing.id"))
     # Loaded explicitly by participant views; mutations lock the listing.
@@ -337,7 +359,9 @@ class Interaction(Entity):
     # Preserve explicit None for unlimited capacity; only omission defaults to 1.
     slot: Mapped[int | None] = mapped_column(Integer().evaluates_none(), default=1)
     participant_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
-    participant: Mapped[User] = relationship(lazy="joined", innerjoin=True)
+    participant: Mapped[User] = relationship(
+        lazy="joined", innerjoin=True, foreign_keys=[participant_id]
+    )
 
     @property
     def participant_name(self) -> str:
@@ -364,6 +388,18 @@ class Interaction(Entity):
     completion_method: Mapped[str | None] = mapped_column(String(16))
     completed_at: Mapped[datetime | None]
     completion_weight: Mapped[float | None]
+
+    # Set when the interaction is cancelled: who ended it, why (the author's
+    # reason) and whether it counted as a late cancellation by the participant.
+    cancelled_by: Mapped[str | None] = mapped_column(String(16))
+    cancellation_reason: Mapped[str | None] = mapped_column(Text)
+    late_cancelled: Mapped[bool] = mapped_column(default=False)
+    # The last author-side change of time, place, price or event conditions.
+    # A participant who cancels after it is not counted as late (#55).
+    conditions_changed_at: Mapped[datetime | None]
+    conditions_changed_by_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("identity_user.id")
+    )
 
     @property
     def without_meeting(self) -> bool:

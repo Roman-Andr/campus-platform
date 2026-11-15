@@ -36,6 +36,8 @@ enum ProblemCodeValue {
   invalidCursor("invalid_cursor"),
   lastCorporateEmail("last_corporate_email"),
   lessonOptionsInvalid("lesson_options_invalid"),
+  listingCancelReasonInvalid("listing_cancel_reason_invalid"),
+  listingCancelReasonRequired("listing_cancel_reason_required"),
   listingCategoryInvalid("listing_category_invalid"),
   listingConflict("listing_conflict"),
   listingContentInvalid("listing_content_invalid"),
@@ -191,6 +193,12 @@ sealed class ProblemCode {
   );
   static const lessonOptionsInvalid = ProblemCodeKnown(
     ProblemCodeValue.lessonOptionsInvalid,
+  );
+  static const listingCancelReasonInvalid = ProblemCodeKnown(
+    ProblemCodeValue.listingCancelReasonInvalid,
+  );
+  static const listingCancelReasonRequired = ProblemCodeKnown(
+    ProblemCodeValue.listingCancelReasonRequired,
   );
   static const listingCategoryInvalid = ProblemCodeKnown(
     ProblemCodeValue.listingCategoryInvalid,

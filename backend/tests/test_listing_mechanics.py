@@ -279,21 +279,27 @@ async def test_close_rejects_only_pending(
         ]
     )
     await owner.auth.db.commit()
-    assert (await request(owner, "POST", f"/{listing['id']}/cancel")).status_code == 200
+    body = {"reason": "No longer available"} if accepted else None
+    assert (
+        await request(owner, "POST", f"/{listing['id']}/cancel", body)
+    ).status_code == 200
     owner.auth.db.expire_all()
     rows = list(
         await owner.auth.db.scalars(select(Interaction).order_by(Interaction.id))
     )
     assert [row.status for row in rows] == [
-        "accepted" if accepted else "rejected",
+        "cancelled" if accepted else "rejected",
         "rejected",
         "rejected",
     ]
     if accepted:
-        # An accepted interaction is still cancellable after closure.
+        cancelled = rows[0]
+        assert cancelled.cancelled_by == "author"
+        assert cancelled.cancellation_reason == "No longer available"
+        assert cancelled.late_cancelled is False
         assert (
             await move(borrower, listing, interaction, "cancelled")
-        ).status_code == 200
+        ).status_code == 409
         assert (await request(owner, "GET", f"/{listing['id']}")).json()[
             "status"
         ] == "cancelled"
@@ -301,6 +307,10 @@ async def test_close_rejects_only_pending(
     assert {e["reason"] for e in events if e["action"] == "auto_rejected"} == {
         "listing_cancelled"
     }
+    if accepted:
+        by_author = next(e for e in events if e["action"] == "cancelled_by_author")
+        assert by_author["reason"] == "No longer available"
+        assert by_author["details"]["after_acceptance"] is True
 
 
 async def test_timeout_and_no_reputation_effect(

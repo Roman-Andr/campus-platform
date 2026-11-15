@@ -432,6 +432,7 @@ async def decide_my_purchase_withdrawal(  # noqa: PLR0913, PLR0917 - route field
         reason=data.reason,
         offer_timeout=offer_timeout,
         open_all_before=open_all_before,
+        settings=request.app.state.settings,
     )
     await session.flush()
     return share_output(listing, interaction)
