@@ -7,12 +7,20 @@ import '../l10n/l10n.dart';
 /// Shows why loading failed, in place of the content, with a way to try
 /// again.
 class ApiErrorView extends StatelessWidget {
-  const ApiErrorView({required this.error, this.onRetry, super.key});
+  const ApiErrorView({
+    required this.error,
+    this.onRetry,
+    this.message,
+    super.key,
+  });
 
   /// The error of the request, usually from an `AsyncValue`.
   final Object error;
 
   final VoidCallback? onRetry;
+
+  /// A feature-specific localized message; the shared API message by default.
+  final String Function(AppLocalizations l10n, Object error)? message;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +38,10 @@ class ApiErrorView extends StatelessWidget {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             const SizedBox(height: 16),
-            Text(apiFailureMessage(l10n, error), textAlign: TextAlign.center),
+            Text(
+              message?.call(l10n, error) ?? apiFailureMessage(l10n, error),
+              textAlign: TextAlign.center,
+            ),
             if (onRetry != null) ...[
               const SizedBox(height: 16),
               FilledButton.tonal(

@@ -473,11 +473,1403 @@ class ListingFeedsCompanion extends UpdateCompanion<ListingFeed> {
   }
 }
 
+class $ChatDialogsTable extends ChatDialogs
+    with TableInfo<$ChatDialogsTable, ChatDialogRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ChatDialogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _ownerMeta = const VerificationMeta('owner');
+  @override
+  late final GeneratedColumn<String> owner = GeneratedColumn<String>(
+    'owner',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _chatIdMeta = const VerificationMeta('chatId');
+  @override
+  late final GeneratedColumn<String> chatId = GeneratedColumn<String>(
+    'chat_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payloadMeta = const VerificationMeta(
+    'payload',
+  );
+  @override
+  late final GeneratedColumn<String> payload = GeneratedColumn<String>(
+    'payload',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [owner, chatId, updatedAt, payload];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chat_dialogs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ChatDialogRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('owner')) {
+      context.handle(
+        _ownerMeta,
+        owner.isAcceptableOrUnknown(data['owner']!, _ownerMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerMeta);
+    }
+    if (data.containsKey('chat_id')) {
+      context.handle(
+        _chatIdMeta,
+        chatId.isAcceptableOrUnknown(data['chat_id']!, _chatIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_chatIdMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('payload')) {
+      context.handle(
+        _payloadMeta,
+        payload.isAcceptableOrUnknown(data['payload']!, _payloadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_payloadMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {owner, chatId};
+  @override
+  ChatDialogRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ChatDialogRow(
+      owner: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner'],
+      )!,
+      chatId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}chat_id'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      payload: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload'],
+      )!,
+    );
+  }
+
+  @override
+  $ChatDialogsTable createAlias(String alias) {
+    return $ChatDialogsTable(attachedDatabase, alias);
+  }
+}
+
+class ChatDialogRow extends DataClass implements Insertable<ChatDialogRow> {
+  final String owner;
+  final String chatId;
+  final DateTime updatedAt;
+  final String payload;
+  const ChatDialogRow({
+    required this.owner,
+    required this.chatId,
+    required this.updatedAt,
+    required this.payload,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['owner'] = Variable<String>(owner);
+    map['chat_id'] = Variable<String>(chatId);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['payload'] = Variable<String>(payload);
+    return map;
+  }
+
+  ChatDialogsCompanion toCompanion(bool nullToAbsent) {
+    return ChatDialogsCompanion(
+      owner: Value(owner),
+      chatId: Value(chatId),
+      updatedAt: Value(updatedAt),
+      payload: Value(payload),
+    );
+  }
+
+  factory ChatDialogRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ChatDialogRow(
+      owner: serializer.fromJson<String>(json['owner']),
+      chatId: serializer.fromJson<String>(json['chatId']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      payload: serializer.fromJson<String>(json['payload']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'owner': serializer.toJson<String>(owner),
+      'chatId': serializer.toJson<String>(chatId),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'payload': serializer.toJson<String>(payload),
+    };
+  }
+
+  ChatDialogRow copyWith({
+    String? owner,
+    String? chatId,
+    DateTime? updatedAt,
+    String? payload,
+  }) => ChatDialogRow(
+    owner: owner ?? this.owner,
+    chatId: chatId ?? this.chatId,
+    updatedAt: updatedAt ?? this.updatedAt,
+    payload: payload ?? this.payload,
+  );
+  ChatDialogRow copyWithCompanion(ChatDialogsCompanion data) {
+    return ChatDialogRow(
+      owner: data.owner.present ? data.owner.value : this.owner,
+      chatId: data.chatId.present ? data.chatId.value : this.chatId,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      payload: data.payload.present ? data.payload.value : this.payload,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatDialogRow(')
+          ..write('owner: $owner, ')
+          ..write('chatId: $chatId, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('payload: $payload')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(owner, chatId, updatedAt, payload);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ChatDialogRow &&
+          other.owner == this.owner &&
+          other.chatId == this.chatId &&
+          other.updatedAt == this.updatedAt &&
+          other.payload == this.payload);
+}
+
+class ChatDialogsCompanion extends UpdateCompanion<ChatDialogRow> {
+  final Value<String> owner;
+  final Value<String> chatId;
+  final Value<DateTime> updatedAt;
+  final Value<String> payload;
+  final Value<int> rowid;
+  const ChatDialogsCompanion({
+    this.owner = const Value.absent(),
+    this.chatId = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.payload = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ChatDialogsCompanion.insert({
+    required String owner,
+    required String chatId,
+    required DateTime updatedAt,
+    required String payload,
+    this.rowid = const Value.absent(),
+  }) : owner = Value(owner),
+       chatId = Value(chatId),
+       updatedAt = Value(updatedAt),
+       payload = Value(payload);
+  static Insertable<ChatDialogRow> custom({
+    Expression<String>? owner,
+    Expression<String>? chatId,
+    Expression<DateTime>? updatedAt,
+    Expression<String>? payload,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (owner != null) 'owner': owner,
+      if (chatId != null) 'chat_id': chatId,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (payload != null) 'payload': payload,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ChatDialogsCompanion copyWith({
+    Value<String>? owner,
+    Value<String>? chatId,
+    Value<DateTime>? updatedAt,
+    Value<String>? payload,
+    Value<int>? rowid,
+  }) {
+    return ChatDialogsCompanion(
+      owner: owner ?? this.owner,
+      chatId: chatId ?? this.chatId,
+      updatedAt: updatedAt ?? this.updatedAt,
+      payload: payload ?? this.payload,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (owner.present) {
+      map['owner'] = Variable<String>(owner.value);
+    }
+    if (chatId.present) {
+      map['chat_id'] = Variable<String>(chatId.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (payload.present) {
+      map['payload'] = Variable<String>(payload.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatDialogsCompanion(')
+          ..write('owner: $owner, ')
+          ..write('chatId: $chatId, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('payload: $payload, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ChatMessagesTable extends ChatMessages
+    with TableInfo<$ChatMessagesTable, ChatMessageRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ChatMessagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _ownerMeta = const VerificationMeta('owner');
+  @override
+  late final GeneratedColumn<String> owner = GeneratedColumn<String>(
+    'owner',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _chatIdMeta = const VerificationMeta('chatId');
+  @override
+  late final GeneratedColumn<String> chatId = GeneratedColumn<String>(
+    'chat_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _clientIdMeta = const VerificationMeta(
+    'clientId',
+  );
+  @override
+  late final GeneratedColumn<String> clientId = GeneratedColumn<String>(
+    'client_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _serverIdMeta = const VerificationMeta(
+    'serverId',
+  );
+  @override
+  late final GeneratedColumn<String> serverId = GeneratedColumn<String>(
+    'server_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sequenceMeta = const VerificationMeta(
+    'sequence',
+  );
+  @override
+  late final GeneratedColumn<int> sequence = GeneratedColumn<int>(
+    'sequence',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _senderIdMeta = const VerificationMeta(
+    'senderId',
+  );
+  @override
+  late final GeneratedColumn<String> senderId = GeneratedColumn<String>(
+    'sender_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    owner,
+    chatId,
+    clientId,
+    serverId,
+    sequence,
+    senderId,
+    body,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chat_messages';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ChatMessageRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('owner')) {
+      context.handle(
+        _ownerMeta,
+        owner.isAcceptableOrUnknown(data['owner']!, _ownerMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerMeta);
+    }
+    if (data.containsKey('chat_id')) {
+      context.handle(
+        _chatIdMeta,
+        chatId.isAcceptableOrUnknown(data['chat_id']!, _chatIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_chatIdMeta);
+    }
+    if (data.containsKey('client_id')) {
+      context.handle(
+        _clientIdMeta,
+        clientId.isAcceptableOrUnknown(data['client_id']!, _clientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_clientIdMeta);
+    }
+    if (data.containsKey('server_id')) {
+      context.handle(
+        _serverIdMeta,
+        serverId.isAcceptableOrUnknown(data['server_id']!, _serverIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_serverIdMeta);
+    }
+    if (data.containsKey('sequence')) {
+      context.handle(
+        _sequenceMeta,
+        sequence.isAcceptableOrUnknown(data['sequence']!, _sequenceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sequenceMeta);
+    }
+    if (data.containsKey('sender_id')) {
+      context.handle(
+        _senderIdMeta,
+        senderId.isAcceptableOrUnknown(data['sender_id']!, _senderIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_senderIdMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {owner, chatId, clientId};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {owner, chatId, sequence},
+  ];
+  @override
+  ChatMessageRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ChatMessageRow(
+      owner: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner'],
+      )!,
+      chatId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}chat_id'],
+      )!,
+      clientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_id'],
+      )!,
+      serverId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}server_id'],
+      )!,
+      sequence: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sequence'],
+      )!,
+      senderId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sender_id'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ChatMessagesTable createAlias(String alias) {
+    return $ChatMessagesTable(attachedDatabase, alias);
+  }
+}
+
+class ChatMessageRow extends DataClass implements Insertable<ChatMessageRow> {
+  final String owner;
+  final String chatId;
+  final String clientId;
+  final String serverId;
+  final int sequence;
+  final String senderId;
+  final String body;
+  final DateTime createdAt;
+  const ChatMessageRow({
+    required this.owner,
+    required this.chatId,
+    required this.clientId,
+    required this.serverId,
+    required this.sequence,
+    required this.senderId,
+    required this.body,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['owner'] = Variable<String>(owner);
+    map['chat_id'] = Variable<String>(chatId);
+    map['client_id'] = Variable<String>(clientId);
+    map['server_id'] = Variable<String>(serverId);
+    map['sequence'] = Variable<int>(sequence);
+    map['sender_id'] = Variable<String>(senderId);
+    map['body'] = Variable<String>(body);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  ChatMessagesCompanion toCompanion(bool nullToAbsent) {
+    return ChatMessagesCompanion(
+      owner: Value(owner),
+      chatId: Value(chatId),
+      clientId: Value(clientId),
+      serverId: Value(serverId),
+      sequence: Value(sequence),
+      senderId: Value(senderId),
+      body: Value(body),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory ChatMessageRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ChatMessageRow(
+      owner: serializer.fromJson<String>(json['owner']),
+      chatId: serializer.fromJson<String>(json['chatId']),
+      clientId: serializer.fromJson<String>(json['clientId']),
+      serverId: serializer.fromJson<String>(json['serverId']),
+      sequence: serializer.fromJson<int>(json['sequence']),
+      senderId: serializer.fromJson<String>(json['senderId']),
+      body: serializer.fromJson<String>(json['body']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'owner': serializer.toJson<String>(owner),
+      'chatId': serializer.toJson<String>(chatId),
+      'clientId': serializer.toJson<String>(clientId),
+      'serverId': serializer.toJson<String>(serverId),
+      'sequence': serializer.toJson<int>(sequence),
+      'senderId': serializer.toJson<String>(senderId),
+      'body': serializer.toJson<String>(body),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  ChatMessageRow copyWith({
+    String? owner,
+    String? chatId,
+    String? clientId,
+    String? serverId,
+    int? sequence,
+    String? senderId,
+    String? body,
+    DateTime? createdAt,
+  }) => ChatMessageRow(
+    owner: owner ?? this.owner,
+    chatId: chatId ?? this.chatId,
+    clientId: clientId ?? this.clientId,
+    serverId: serverId ?? this.serverId,
+    sequence: sequence ?? this.sequence,
+    senderId: senderId ?? this.senderId,
+    body: body ?? this.body,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  ChatMessageRow copyWithCompanion(ChatMessagesCompanion data) {
+    return ChatMessageRow(
+      owner: data.owner.present ? data.owner.value : this.owner,
+      chatId: data.chatId.present ? data.chatId.value : this.chatId,
+      clientId: data.clientId.present ? data.clientId.value : this.clientId,
+      serverId: data.serverId.present ? data.serverId.value : this.serverId,
+      sequence: data.sequence.present ? data.sequence.value : this.sequence,
+      senderId: data.senderId.present ? data.senderId.value : this.senderId,
+      body: data.body.present ? data.body.value : this.body,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatMessageRow(')
+          ..write('owner: $owner, ')
+          ..write('chatId: $chatId, ')
+          ..write('clientId: $clientId, ')
+          ..write('serverId: $serverId, ')
+          ..write('sequence: $sequence, ')
+          ..write('senderId: $senderId, ')
+          ..write('body: $body, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    owner,
+    chatId,
+    clientId,
+    serverId,
+    sequence,
+    senderId,
+    body,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ChatMessageRow &&
+          other.owner == this.owner &&
+          other.chatId == this.chatId &&
+          other.clientId == this.clientId &&
+          other.serverId == this.serverId &&
+          other.sequence == this.sequence &&
+          other.senderId == this.senderId &&
+          other.body == this.body &&
+          other.createdAt == this.createdAt);
+}
+
+class ChatMessagesCompanion extends UpdateCompanion<ChatMessageRow> {
+  final Value<String> owner;
+  final Value<String> chatId;
+  final Value<String> clientId;
+  final Value<String> serverId;
+  final Value<int> sequence;
+  final Value<String> senderId;
+  final Value<String> body;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const ChatMessagesCompanion({
+    this.owner = const Value.absent(),
+    this.chatId = const Value.absent(),
+    this.clientId = const Value.absent(),
+    this.serverId = const Value.absent(),
+    this.sequence = const Value.absent(),
+    this.senderId = const Value.absent(),
+    this.body = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ChatMessagesCompanion.insert({
+    required String owner,
+    required String chatId,
+    required String clientId,
+    required String serverId,
+    required int sequence,
+    required String senderId,
+    required String body,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : owner = Value(owner),
+       chatId = Value(chatId),
+       clientId = Value(clientId),
+       serverId = Value(serverId),
+       sequence = Value(sequence),
+       senderId = Value(senderId),
+       body = Value(body),
+       createdAt = Value(createdAt);
+  static Insertable<ChatMessageRow> custom({
+    Expression<String>? owner,
+    Expression<String>? chatId,
+    Expression<String>? clientId,
+    Expression<String>? serverId,
+    Expression<int>? sequence,
+    Expression<String>? senderId,
+    Expression<String>? body,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (owner != null) 'owner': owner,
+      if (chatId != null) 'chat_id': chatId,
+      if (clientId != null) 'client_id': clientId,
+      if (serverId != null) 'server_id': serverId,
+      if (sequence != null) 'sequence': sequence,
+      if (senderId != null) 'sender_id': senderId,
+      if (body != null) 'body': body,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ChatMessagesCompanion copyWith({
+    Value<String>? owner,
+    Value<String>? chatId,
+    Value<String>? clientId,
+    Value<String>? serverId,
+    Value<int>? sequence,
+    Value<String>? senderId,
+    Value<String>? body,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return ChatMessagesCompanion(
+      owner: owner ?? this.owner,
+      chatId: chatId ?? this.chatId,
+      clientId: clientId ?? this.clientId,
+      serverId: serverId ?? this.serverId,
+      sequence: sequence ?? this.sequence,
+      senderId: senderId ?? this.senderId,
+      body: body ?? this.body,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (owner.present) {
+      map['owner'] = Variable<String>(owner.value);
+    }
+    if (chatId.present) {
+      map['chat_id'] = Variable<String>(chatId.value);
+    }
+    if (clientId.present) {
+      map['client_id'] = Variable<String>(clientId.value);
+    }
+    if (serverId.present) {
+      map['server_id'] = Variable<String>(serverId.value);
+    }
+    if (sequence.present) {
+      map['sequence'] = Variable<int>(sequence.value);
+    }
+    if (senderId.present) {
+      map['sender_id'] = Variable<String>(senderId.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatMessagesCompanion(')
+          ..write('owner: $owner, ')
+          ..write('chatId: $chatId, ')
+          ..write('clientId: $clientId, ')
+          ..write('serverId: $serverId, ')
+          ..write('sequence: $sequence, ')
+          ..write('senderId: $senderId, ')
+          ..write('body: $body, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ChatOutboxTable extends ChatOutbox
+    with TableInfo<$ChatOutboxTable, ChatOutboxRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ChatOutboxTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _ownerMeta = const VerificationMeta('owner');
+  @override
+  late final GeneratedColumn<String> owner = GeneratedColumn<String>(
+    'owner',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _chatIdMeta = const VerificationMeta('chatId');
+  @override
+  late final GeneratedColumn<String> chatId = GeneratedColumn<String>(
+    'chat_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _clientIdMeta = const VerificationMeta(
+    'clientId',
+  );
+  @override
+  late final GeneratedColumn<String> clientId = GeneratedColumn<String>(
+    'client_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _idempotencyKeyMeta = const VerificationMeta(
+    'idempotencyKey',
+  );
+  @override
+  late final GeneratedColumn<String> idempotencyKey = GeneratedColumn<String>(
+    'idempotency_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _attemptsMeta = const VerificationMeta(
+    'attempts',
+  );
+  @override
+  late final GeneratedColumn<int> attempts = GeneratedColumn<int>(
+    'attempts',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  static const VerificationMeta _failureMeta = const VerificationMeta(
+    'failure',
+  );
+  @override
+  late final GeneratedColumn<String> failure = GeneratedColumn<String>(
+    'failure',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    owner,
+    chatId,
+    clientId,
+    idempotencyKey,
+    body,
+    createdAt,
+    attempts,
+    status,
+    failure,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chat_outbox';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ChatOutboxRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('owner')) {
+      context.handle(
+        _ownerMeta,
+        owner.isAcceptableOrUnknown(data['owner']!, _ownerMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerMeta);
+    }
+    if (data.containsKey('chat_id')) {
+      context.handle(
+        _chatIdMeta,
+        chatId.isAcceptableOrUnknown(data['chat_id']!, _chatIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_chatIdMeta);
+    }
+    if (data.containsKey('client_id')) {
+      context.handle(
+        _clientIdMeta,
+        clientId.isAcceptableOrUnknown(data['client_id']!, _clientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_clientIdMeta);
+    }
+    if (data.containsKey('idempotency_key')) {
+      context.handle(
+        _idempotencyKeyMeta,
+        idempotencyKey.isAcceptableOrUnknown(
+          data['idempotency_key']!,
+          _idempotencyKeyMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_idempotencyKeyMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('attempts')) {
+      context.handle(
+        _attemptsMeta,
+        attempts.isAcceptableOrUnknown(data['attempts']!, _attemptsMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('failure')) {
+      context.handle(
+        _failureMeta,
+        failure.isAcceptableOrUnknown(data['failure']!, _failureMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {owner, chatId, clientId};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {owner, idempotencyKey},
+  ];
+  @override
+  ChatOutboxRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ChatOutboxRow(
+      owner: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner'],
+      )!,
+      chatId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}chat_id'],
+      )!,
+      clientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_id'],
+      )!,
+      idempotencyKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}idempotency_key'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      attempts: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempts'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      failure: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}failure'],
+      ),
+    );
+  }
+
+  @override
+  $ChatOutboxTable createAlias(String alias) {
+    return $ChatOutboxTable(attachedDatabase, alias);
+  }
+}
+
+class ChatOutboxRow extends DataClass implements Insertable<ChatOutboxRow> {
+  final String owner;
+  final String chatId;
+  final String clientId;
+  final String idempotencyKey;
+  final String body;
+  final DateTime createdAt;
+  final int attempts;
+  final String status;
+  final String? failure;
+  const ChatOutboxRow({
+    required this.owner,
+    required this.chatId,
+    required this.clientId,
+    required this.idempotencyKey,
+    required this.body,
+    required this.createdAt,
+    required this.attempts,
+    required this.status,
+    this.failure,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['owner'] = Variable<String>(owner);
+    map['chat_id'] = Variable<String>(chatId);
+    map['client_id'] = Variable<String>(clientId);
+    map['idempotency_key'] = Variable<String>(idempotencyKey);
+    map['body'] = Variable<String>(body);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['attempts'] = Variable<int>(attempts);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || failure != null) {
+      map['failure'] = Variable<String>(failure);
+    }
+    return map;
+  }
+
+  ChatOutboxCompanion toCompanion(bool nullToAbsent) {
+    return ChatOutboxCompanion(
+      owner: Value(owner),
+      chatId: Value(chatId),
+      clientId: Value(clientId),
+      idempotencyKey: Value(idempotencyKey),
+      body: Value(body),
+      createdAt: Value(createdAt),
+      attempts: Value(attempts),
+      status: Value(status),
+      failure: failure == null && nullToAbsent
+          ? const Value.absent()
+          : Value(failure),
+    );
+  }
+
+  factory ChatOutboxRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ChatOutboxRow(
+      owner: serializer.fromJson<String>(json['owner']),
+      chatId: serializer.fromJson<String>(json['chatId']),
+      clientId: serializer.fromJson<String>(json['clientId']),
+      idempotencyKey: serializer.fromJson<String>(json['idempotencyKey']),
+      body: serializer.fromJson<String>(json['body']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      attempts: serializer.fromJson<int>(json['attempts']),
+      status: serializer.fromJson<String>(json['status']),
+      failure: serializer.fromJson<String?>(json['failure']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'owner': serializer.toJson<String>(owner),
+      'chatId': serializer.toJson<String>(chatId),
+      'clientId': serializer.toJson<String>(clientId),
+      'idempotencyKey': serializer.toJson<String>(idempotencyKey),
+      'body': serializer.toJson<String>(body),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'attempts': serializer.toJson<int>(attempts),
+      'status': serializer.toJson<String>(status),
+      'failure': serializer.toJson<String?>(failure),
+    };
+  }
+
+  ChatOutboxRow copyWith({
+    String? owner,
+    String? chatId,
+    String? clientId,
+    String? idempotencyKey,
+    String? body,
+    DateTime? createdAt,
+    int? attempts,
+    String? status,
+    Value<String?> failure = const Value.absent(),
+  }) => ChatOutboxRow(
+    owner: owner ?? this.owner,
+    chatId: chatId ?? this.chatId,
+    clientId: clientId ?? this.clientId,
+    idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+    body: body ?? this.body,
+    createdAt: createdAt ?? this.createdAt,
+    attempts: attempts ?? this.attempts,
+    status: status ?? this.status,
+    failure: failure.present ? failure.value : this.failure,
+  );
+  ChatOutboxRow copyWithCompanion(ChatOutboxCompanion data) {
+    return ChatOutboxRow(
+      owner: data.owner.present ? data.owner.value : this.owner,
+      chatId: data.chatId.present ? data.chatId.value : this.chatId,
+      clientId: data.clientId.present ? data.clientId.value : this.clientId,
+      idempotencyKey: data.idempotencyKey.present
+          ? data.idempotencyKey.value
+          : this.idempotencyKey,
+      body: data.body.present ? data.body.value : this.body,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      attempts: data.attempts.present ? data.attempts.value : this.attempts,
+      status: data.status.present ? data.status.value : this.status,
+      failure: data.failure.present ? data.failure.value : this.failure,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatOutboxRow(')
+          ..write('owner: $owner, ')
+          ..write('chatId: $chatId, ')
+          ..write('clientId: $clientId, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
+          ..write('body: $body, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('attempts: $attempts, ')
+          ..write('status: $status, ')
+          ..write('failure: $failure')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    owner,
+    chatId,
+    clientId,
+    idempotencyKey,
+    body,
+    createdAt,
+    attempts,
+    status,
+    failure,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ChatOutboxRow &&
+          other.owner == this.owner &&
+          other.chatId == this.chatId &&
+          other.clientId == this.clientId &&
+          other.idempotencyKey == this.idempotencyKey &&
+          other.body == this.body &&
+          other.createdAt == this.createdAt &&
+          other.attempts == this.attempts &&
+          other.status == this.status &&
+          other.failure == this.failure);
+}
+
+class ChatOutboxCompanion extends UpdateCompanion<ChatOutboxRow> {
+  final Value<String> owner;
+  final Value<String> chatId;
+  final Value<String> clientId;
+  final Value<String> idempotencyKey;
+  final Value<String> body;
+  final Value<DateTime> createdAt;
+  final Value<int> attempts;
+  final Value<String> status;
+  final Value<String?> failure;
+  final Value<int> rowid;
+  const ChatOutboxCompanion({
+    this.owner = const Value.absent(),
+    this.chatId = const Value.absent(),
+    this.clientId = const Value.absent(),
+    this.idempotencyKey = const Value.absent(),
+    this.body = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.attempts = const Value.absent(),
+    this.status = const Value.absent(),
+    this.failure = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ChatOutboxCompanion.insert({
+    required String owner,
+    required String chatId,
+    required String clientId,
+    required String idempotencyKey,
+    required String body,
+    required DateTime createdAt,
+    this.attempts = const Value.absent(),
+    this.status = const Value.absent(),
+    this.failure = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : owner = Value(owner),
+       chatId = Value(chatId),
+       clientId = Value(clientId),
+       idempotencyKey = Value(idempotencyKey),
+       body = Value(body),
+       createdAt = Value(createdAt);
+  static Insertable<ChatOutboxRow> custom({
+    Expression<String>? owner,
+    Expression<String>? chatId,
+    Expression<String>? clientId,
+    Expression<String>? idempotencyKey,
+    Expression<String>? body,
+    Expression<DateTime>? createdAt,
+    Expression<int>? attempts,
+    Expression<String>? status,
+    Expression<String>? failure,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (owner != null) 'owner': owner,
+      if (chatId != null) 'chat_id': chatId,
+      if (clientId != null) 'client_id': clientId,
+      if (idempotencyKey != null) 'idempotency_key': idempotencyKey,
+      if (body != null) 'body': body,
+      if (createdAt != null) 'created_at': createdAt,
+      if (attempts != null) 'attempts': attempts,
+      if (status != null) 'status': status,
+      if (failure != null) 'failure': failure,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ChatOutboxCompanion copyWith({
+    Value<String>? owner,
+    Value<String>? chatId,
+    Value<String>? clientId,
+    Value<String>? idempotencyKey,
+    Value<String>? body,
+    Value<DateTime>? createdAt,
+    Value<int>? attempts,
+    Value<String>? status,
+    Value<String?>? failure,
+    Value<int>? rowid,
+  }) {
+    return ChatOutboxCompanion(
+      owner: owner ?? this.owner,
+      chatId: chatId ?? this.chatId,
+      clientId: clientId ?? this.clientId,
+      idempotencyKey: idempotencyKey ?? this.idempotencyKey,
+      body: body ?? this.body,
+      createdAt: createdAt ?? this.createdAt,
+      attempts: attempts ?? this.attempts,
+      status: status ?? this.status,
+      failure: failure ?? this.failure,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (owner.present) {
+      map['owner'] = Variable<String>(owner.value);
+    }
+    if (chatId.present) {
+      map['chat_id'] = Variable<String>(chatId.value);
+    }
+    if (clientId.present) {
+      map['client_id'] = Variable<String>(clientId.value);
+    }
+    if (idempotencyKey.present) {
+      map['idempotency_key'] = Variable<String>(idempotencyKey.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (attempts.present) {
+      map['attempts'] = Variable<int>(attempts.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (failure.present) {
+      map['failure'] = Variable<String>(failure.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatOutboxCompanion(')
+          ..write('owner: $owner, ')
+          ..write('chatId: $chatId, ')
+          ..write('clientId: $clientId, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
+          ..write('body: $body, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('attempts: $attempts, ')
+          ..write('status: $status, ')
+          ..write('failure: $failure, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $PreferencesTable preferences = $PreferencesTable(this);
   late final $ListingFeedsTable listingFeeds = $ListingFeedsTable(this);
+  late final $ChatDialogsTable chatDialogs = $ChatDialogsTable(this);
+  late final $ChatMessagesTable chatMessages = $ChatMessagesTable(this);
+  late final $ChatOutboxTable chatOutbox = $ChatOutboxTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -485,6 +1877,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     preferences,
     listingFeeds,
+    chatDialogs,
+    chatMessages,
+    chatOutbox,
   ];
   @override
   DriftDatabaseOptions get options =>
@@ -809,6 +2204,747 @@ typedef $$ListingFeedsTableProcessedTableManager =
       ListingFeed,
       PrefetchHooks Function()
     >;
+typedef $$ChatDialogsTableCreateCompanionBuilder =
+    ChatDialogsCompanion Function({
+      required String owner,
+      required String chatId,
+      required DateTime updatedAt,
+      required String payload,
+      Value<int> rowid,
+    });
+typedef $$ChatDialogsTableUpdateCompanionBuilder =
+    ChatDialogsCompanion Function({
+      Value<String> owner,
+      Value<String> chatId,
+      Value<DateTime> updatedAt,
+      Value<String> payload,
+      Value<int> rowid,
+    });
+
+class $$ChatDialogsTableFilterComposer
+    extends Composer<_$AppDatabase, $ChatDialogsTable> {
+  $$ChatDialogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get owner => $composableBuilder(
+    column: $table.owner,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get chatId => $composableBuilder(
+    column: $table.chatId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ChatDialogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ChatDialogsTable> {
+  $$ChatDialogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get owner => $composableBuilder(
+    column: $table.owner,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get chatId => $composableBuilder(
+    column: $table.chatId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ChatDialogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ChatDialogsTable> {
+  $$ChatDialogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get owner =>
+      $composableBuilder(column: $table.owner, builder: (column) => column);
+
+  GeneratedColumn<String> get chatId =>
+      $composableBuilder(column: $table.chatId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get payload =>
+      $composableBuilder(column: $table.payload, builder: (column) => column);
+}
+
+class $$ChatDialogsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ChatDialogsTable,
+          ChatDialogRow,
+          $$ChatDialogsTableFilterComposer,
+          $$ChatDialogsTableOrderingComposer,
+          $$ChatDialogsTableAnnotationComposer,
+          $$ChatDialogsTableCreateCompanionBuilder,
+          $$ChatDialogsTableUpdateCompanionBuilder,
+          (
+            ChatDialogRow,
+            BaseReferences<_$AppDatabase, $ChatDialogsTable, ChatDialogRow>,
+          ),
+          ChatDialogRow,
+          PrefetchHooks Function()
+        > {
+  $$ChatDialogsTableTableManager(_$AppDatabase db, $ChatDialogsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ChatDialogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ChatDialogsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ChatDialogsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> owner = const Value.absent(),
+                Value<String> chatId = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<String> payload = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ChatDialogsCompanion(
+                owner: owner,
+                chatId: chatId,
+                updatedAt: updatedAt,
+                payload: payload,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String owner,
+                required String chatId,
+                required DateTime updatedAt,
+                required String payload,
+                Value<int> rowid = const Value.absent(),
+              }) => ChatDialogsCompanion.insert(
+                owner: owner,
+                chatId: chatId,
+                updatedAt: updatedAt,
+                payload: payload,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ChatDialogsTable, ChatDialogRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $ChatDialogsTable,
+                    ChatDialogRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ChatDialogsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ChatDialogsTable,
+      ChatDialogRow,
+      $$ChatDialogsTableFilterComposer,
+      $$ChatDialogsTableOrderingComposer,
+      $$ChatDialogsTableAnnotationComposer,
+      $$ChatDialogsTableCreateCompanionBuilder,
+      $$ChatDialogsTableUpdateCompanionBuilder,
+      (
+        ChatDialogRow,
+        BaseReferences<_$AppDatabase, $ChatDialogsTable, ChatDialogRow>,
+      ),
+      ChatDialogRow,
+      PrefetchHooks Function()
+    >;
+typedef $$ChatMessagesTableCreateCompanionBuilder =
+    ChatMessagesCompanion Function({
+      required String owner,
+      required String chatId,
+      required String clientId,
+      required String serverId,
+      required int sequence,
+      required String senderId,
+      required String body,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$ChatMessagesTableUpdateCompanionBuilder =
+    ChatMessagesCompanion Function({
+      Value<String> owner,
+      Value<String> chatId,
+      Value<String> clientId,
+      Value<String> serverId,
+      Value<int> sequence,
+      Value<String> senderId,
+      Value<String> body,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$ChatMessagesTableFilterComposer
+    extends Composer<_$AppDatabase, $ChatMessagesTable> {
+  $$ChatMessagesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get owner => $composableBuilder(
+    column: $table.owner,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get chatId => $composableBuilder(
+    column: $table.chatId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clientId => $composableBuilder(
+    column: $table.clientId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get serverId => $composableBuilder(
+    column: $table.serverId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sequence => $composableBuilder(
+    column: $table.sequence,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get senderId => $composableBuilder(
+    column: $table.senderId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ChatMessagesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ChatMessagesTable> {
+  $$ChatMessagesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get owner => $composableBuilder(
+    column: $table.owner,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get chatId => $composableBuilder(
+    column: $table.chatId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get clientId => $composableBuilder(
+    column: $table.clientId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get serverId => $composableBuilder(
+    column: $table.serverId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sequence => $composableBuilder(
+    column: $table.sequence,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get senderId => $composableBuilder(
+    column: $table.senderId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ChatMessagesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ChatMessagesTable> {
+  $$ChatMessagesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get owner =>
+      $composableBuilder(column: $table.owner, builder: (column) => column);
+
+  GeneratedColumn<String> get chatId =>
+      $composableBuilder(column: $table.chatId, builder: (column) => column);
+
+  GeneratedColumn<String> get clientId =>
+      $composableBuilder(column: $table.clientId, builder: (column) => column);
+
+  GeneratedColumn<String> get serverId =>
+      $composableBuilder(column: $table.serverId, builder: (column) => column);
+
+  GeneratedColumn<int> get sequence =>
+      $composableBuilder(column: $table.sequence, builder: (column) => column);
+
+  GeneratedColumn<String> get senderId =>
+      $composableBuilder(column: $table.senderId, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$ChatMessagesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ChatMessagesTable,
+          ChatMessageRow,
+          $$ChatMessagesTableFilterComposer,
+          $$ChatMessagesTableOrderingComposer,
+          $$ChatMessagesTableAnnotationComposer,
+          $$ChatMessagesTableCreateCompanionBuilder,
+          $$ChatMessagesTableUpdateCompanionBuilder,
+          (
+            ChatMessageRow,
+            BaseReferences<_$AppDatabase, $ChatMessagesTable, ChatMessageRow>,
+          ),
+          ChatMessageRow,
+          PrefetchHooks Function()
+        > {
+  $$ChatMessagesTableTableManager(_$AppDatabase db, $ChatMessagesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ChatMessagesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ChatMessagesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ChatMessagesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> owner = const Value.absent(),
+                Value<String> chatId = const Value.absent(),
+                Value<String> clientId = const Value.absent(),
+                Value<String> serverId = const Value.absent(),
+                Value<int> sequence = const Value.absent(),
+                Value<String> senderId = const Value.absent(),
+                Value<String> body = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ChatMessagesCompanion(
+                owner: owner,
+                chatId: chatId,
+                clientId: clientId,
+                serverId: serverId,
+                sequence: sequence,
+                senderId: senderId,
+                body: body,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String owner,
+                required String chatId,
+                required String clientId,
+                required String serverId,
+                required int sequence,
+                required String senderId,
+                required String body,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => ChatMessagesCompanion.insert(
+                owner: owner,
+                chatId: chatId,
+                clientId: clientId,
+                serverId: serverId,
+                sequence: sequence,
+                senderId: senderId,
+                body: body,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ChatMessagesTable, ChatMessageRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $ChatMessagesTable,
+                    ChatMessageRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ChatMessagesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ChatMessagesTable,
+      ChatMessageRow,
+      $$ChatMessagesTableFilterComposer,
+      $$ChatMessagesTableOrderingComposer,
+      $$ChatMessagesTableAnnotationComposer,
+      $$ChatMessagesTableCreateCompanionBuilder,
+      $$ChatMessagesTableUpdateCompanionBuilder,
+      (
+        ChatMessageRow,
+        BaseReferences<_$AppDatabase, $ChatMessagesTable, ChatMessageRow>,
+      ),
+      ChatMessageRow,
+      PrefetchHooks Function()
+    >;
+typedef $$ChatOutboxTableCreateCompanionBuilder = ChatOutboxCompanion Function({
+  required String owner,
+  required String chatId,
+  required String clientId,
+  required String idempotencyKey,
+  required String body,
+  required DateTime createdAt,
+  Value<int> attempts,
+  Value<String> status,
+  Value<String?> failure,
+  Value<int> rowid,
+});
+typedef $$ChatOutboxTableUpdateCompanionBuilder = ChatOutboxCompanion Function({
+  Value<String> owner,
+  Value<String> chatId,
+  Value<String> clientId,
+  Value<String> idempotencyKey,
+  Value<String> body,
+  Value<DateTime> createdAt,
+  Value<int> attempts,
+  Value<String> status,
+  Value<String?> failure,
+  Value<int> rowid,
+});
+
+class $$ChatOutboxTableFilterComposer
+    extends Composer<_$AppDatabase, $ChatOutboxTable> {
+  $$ChatOutboxTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get owner => $composableBuilder(
+    column: $table.owner,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get chatId => $composableBuilder(
+    column: $table.chatId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clientId => $composableBuilder(
+    column: $table.clientId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get idempotencyKey => $composableBuilder(
+    column: $table.idempotencyKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get attempts => $composableBuilder(
+    column: $table.attempts,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get failure => $composableBuilder(
+    column: $table.failure,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ChatOutboxTableOrderingComposer
+    extends Composer<_$AppDatabase, $ChatOutboxTable> {
+  $$ChatOutboxTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get owner => $composableBuilder(
+    column: $table.owner,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get chatId => $composableBuilder(
+    column: $table.chatId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get clientId => $composableBuilder(
+    column: $table.clientId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get idempotencyKey => $composableBuilder(
+    column: $table.idempotencyKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get attempts => $composableBuilder(
+    column: $table.attempts,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get failure => $composableBuilder(
+    column: $table.failure,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ChatOutboxTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ChatOutboxTable> {
+  $$ChatOutboxTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get owner =>
+      $composableBuilder(column: $table.owner, builder: (column) => column);
+
+  GeneratedColumn<String> get chatId =>
+      $composableBuilder(column: $table.chatId, builder: (column) => column);
+
+  GeneratedColumn<String> get clientId =>
+      $composableBuilder(column: $table.clientId, builder: (column) => column);
+
+  GeneratedColumn<String> get idempotencyKey => $composableBuilder(
+    column: $table.idempotencyKey,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get attempts =>
+      $composableBuilder(column: $table.attempts, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get failure =>
+      $composableBuilder(column: $table.failure, builder: (column) => column);
+}
+
+class $$ChatOutboxTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ChatOutboxTable,
+          ChatOutboxRow,
+          $$ChatOutboxTableFilterComposer,
+          $$ChatOutboxTableOrderingComposer,
+          $$ChatOutboxTableAnnotationComposer,
+          $$ChatOutboxTableCreateCompanionBuilder,
+          $$ChatOutboxTableUpdateCompanionBuilder,
+          (
+            ChatOutboxRow,
+            BaseReferences<_$AppDatabase, $ChatOutboxTable, ChatOutboxRow>,
+          ),
+          ChatOutboxRow,
+          PrefetchHooks Function()
+        > {
+  $$ChatOutboxTableTableManager(_$AppDatabase db, $ChatOutboxTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ChatOutboxTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ChatOutboxTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ChatOutboxTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> owner = const Value.absent(),
+                Value<String> chatId = const Value.absent(),
+                Value<String> clientId = const Value.absent(),
+                Value<String> idempotencyKey = const Value.absent(),
+                Value<String> body = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> attempts = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> failure = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ChatOutboxCompanion(
+                owner: owner,
+                chatId: chatId,
+                clientId: clientId,
+                idempotencyKey: idempotencyKey,
+                body: body,
+                createdAt: createdAt,
+                attempts: attempts,
+                status: status,
+                failure: failure,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String owner,
+                required String chatId,
+                required String clientId,
+                required String idempotencyKey,
+                required String body,
+                required DateTime createdAt,
+                Value<int> attempts = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> failure = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ChatOutboxCompanion.insert(
+                owner: owner,
+                chatId: chatId,
+                clientId: clientId,
+                idempotencyKey: idempotencyKey,
+                body: body,
+                createdAt: createdAt,
+                attempts: attempts,
+                status: status,
+                failure: failure,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ChatOutboxTable, ChatOutboxRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $ChatOutboxTable,
+                    ChatOutboxRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ChatOutboxTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ChatOutboxTable,
+      ChatOutboxRow,
+      $$ChatOutboxTableFilterComposer,
+      $$ChatOutboxTableOrderingComposer,
+      $$ChatOutboxTableAnnotationComposer,
+      $$ChatOutboxTableCreateCompanionBuilder,
+      $$ChatOutboxTableUpdateCompanionBuilder,
+      (
+        ChatOutboxRow,
+        BaseReferences<_$AppDatabase, $ChatOutboxTable, ChatOutboxRow>,
+      ),
+      ChatOutboxRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -817,6 +2953,12 @@ class $AppDatabaseManager {
       $$PreferencesTableTableManager(_db, _db.preferences);
   $$ListingFeedsTableTableManager get listingFeeds =>
       $$ListingFeedsTableTableManager(_db, _db.listingFeeds);
+  $$ChatDialogsTableTableManager get chatDialogs =>
+      $$ChatDialogsTableTableManager(_db, _db.chatDialogs);
+  $$ChatMessagesTableTableManager get chatMessages =>
+      $$ChatMessagesTableTableManager(_db, _db.chatMessages);
+  $$ChatOutboxTableTableManager get chatOutbox =>
+      $$ChatOutboxTableTableManager(_db, _db.chatOutbox);
 }
 
 // **************************************************************************

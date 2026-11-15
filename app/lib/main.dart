@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'src/app.dart';
 import 'src/core/api/client_info.dart';
 import 'src/core/auth/auth_session.dart';
+import 'src/features/chat/application/chat_queue.dart';
 import 'src/features/settings/application/settings_controller.dart';
 
 Future<void> main() async {
@@ -23,6 +24,9 @@ Future<void> main() async {
   // Restore the session before the first frame, so the app opens on the
   // right screen: home when signed in, otherwise sign-in.
   await container.read(authStatusProvider.future);
+  // The durable chat queue is part of the app session: a process restart
+  // resumes saved messages and reconnects without opening a chat screen.
+  startChatQueueRuntime(container);
   runApp(
     UncontrolledProviderScope(container: container, child: const CampusApp()),
   );
