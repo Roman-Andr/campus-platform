@@ -109,6 +109,9 @@ FakeHttpAdapter meetingServer({
     if (options.path.endsWith('/reservations/mine')) {
       return jsonBody(200, pageJson([participation()]));
     }
+    if (options.method == 'GET' && options.path.endsWith('/cancellation')) {
+      return jsonBody(200, interactionCancellationJson());
+    }
     if (options.path.endsWith('/meeting/accept')) {
       return (onAccept ?? (_) => problemBody(404, 'not_found'))(options);
     }

@@ -13,6 +13,7 @@ import '../../profile/application/my_profile.dart';
 import '../application/events.dart';
 import '../application/listings.dart';
 import '../domain/event.dart';
+import 'cancellation.dart';
 import 'listings_screens.dart';
 import 'waitlist_widgets.dart';
 
@@ -446,16 +447,24 @@ class EventSeatSection extends ConsumerWidget {
                   buttonKey: const Key('event-cancel-signup'),
                   filled: false,
                   failureMessage: eventFailureMessage,
-                  run: () => ref
-                      .read(campusApiProvider)
-                      .listings
-                      .transitionInteraction(
-                        listingId: seat.listing.id,
-                        interactionId: interaction.id,
-                        body: const TransitionInput(
-                          status: InteractionStatus.cancelled,
-                        ),
-                      ),
+                  run: () async {
+                    await ensureParticipantCancellation(
+                      context,
+                      ref,
+                      listingId: seat.listing.id,
+                      interactionId: interaction.id,
+                    );
+                    await ref
+                        .read(campusApiProvider)
+                        .listings
+                        .transitionInteraction(
+                          listingId: seat.listing.id,
+                          interactionId: interaction.id,
+                          body: const TransitionInput(
+                            status: InteractionStatus.cancelled,
+                          ),
+                        );
+                  },
                 ),
               );
             }

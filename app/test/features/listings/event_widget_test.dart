@@ -139,6 +139,9 @@ class FakeEventBackend {
         pageJson([if (participants.contains(viewer)) participation(viewer)]),
       );
     }
+    if (method == 'GET' && path.endsWith('/cancellation')) {
+      return jsonBody(200, interactionCancellationJson());
+    }
     if (method == 'GET' && path == '/api/v1/listings/$id/waitlist/me') {
       return queue.contains(viewer)
           ? jsonBody(200, entry(viewer))

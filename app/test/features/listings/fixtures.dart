@@ -148,3 +148,27 @@ String _amount(String unitPrice, int units) {
   final cents = (double.parse(unitPrice) * 100).round() * units;
   return '${cents ~/ 100}.${(cents % 100).toString().padLeft(2, '0')}';
 }
+
+Map<String, Object?> interactionCancellationJson({
+  bool allowed = true,
+  bool late = false,
+  bool requiresApproval = false,
+  String? startsAt,
+}) => {
+  'allowed': allowed,
+  'late': late,
+  'requires_approval': requiresApproval,
+  'starts_at': startsAt,
+};
+
+Map<String, Object?> listingCancellationJson({
+  int accepted = 0,
+  bool required = false,
+  bool canCancel = true,
+  int maxLength = 500,
+}) => {
+  'accepted_interactions': accepted,
+  'reason_required': required,
+  'can_cancel': canCancel,
+  'reason_max_length': maxLength,
+};

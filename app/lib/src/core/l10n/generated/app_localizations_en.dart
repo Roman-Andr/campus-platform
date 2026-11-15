@@ -755,6 +755,74 @@ class AppLocalizationsEn extends AppLocalizations {
   String get listingExtended => 'The listing has been extended.';
 
   @override
+  String get listingCancel => 'Cancel listing';
+
+  @override
+  String get listingCancelTitle => 'Cancel the listing?';
+
+  @override
+  String get listingCancelBody =>
+      'The listing will close and accepted requests and reservations will be cancelled.';
+
+  @override
+  String listingCancelAcceptedWarning(int count) {
+    return 'Accepted interactions: $count. Participants will be notified with the reason.';
+  }
+
+  @override
+  String get listingCancelReason => 'Cancellation reason';
+
+  @override
+  String get listingCancelReasonRequired =>
+      'Enter a reason: the listing already has accepted interactions.';
+
+  @override
+  String get listingCancelReasonMissing => 'Enter a cancellation reason.';
+
+  @override
+  String listingCancelReasonTooLong(int max) {
+    return 'The reason is longer than $max characters.';
+  }
+
+  @override
+  String get listingCancelReasonInvalid => 'Check the cancellation reason.';
+
+  @override
+  String get listingCancelConfirm => 'Cancel listing';
+
+  @override
+  String get listingCancelKeep => 'Keep';
+
+  @override
+  String get listingCancelled => 'Listing cancelled.';
+
+  @override
+  String listingCancelledByAuthor(String reason) {
+    return 'The author cancelled: $reason';
+  }
+
+  @override
+  String get interactionCancelTitle => 'Cancel the interaction?';
+
+  @override
+  String get interactionCancelBody =>
+      'The request or reservation will be cancelled.';
+
+  @override
+  String get interactionLateCancellation =>
+      'This is a late cancellation: it will be counted as late.';
+
+  @override
+  String get interactionCancellationApproval =>
+      'The organiser must approve leaving.';
+
+  @override
+  String get interactionCancelKeep => 'Keep';
+
+  @override
+  String get interactionCancelConfirm => 'Cancel anyway';
+
+  @override
   String get meetingTitle => 'Meeting';
 
   @override

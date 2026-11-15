@@ -11,6 +11,7 @@ import '../../../core/l10n/l10n.dart';
 import '../application/listings.dart';
 import '../application/my_listings.dart';
 import '../application/waitlist.dart';
+import 'cancellation.dart';
 
 /// Explains the queue and offer conflicts of the server (Problem Details).
 String waitlistFailureMessage(
@@ -91,6 +92,8 @@ class _WaitlistActionState extends ConsumerState<WaitlistAction> {
       if (!mounted) return;
       refreshListings(ref);
       widget.after?.call();
+    } on CancellationDismissed {
+      // The user kept the interaction.
     } on Object catch (e) {
       if (mounted) {
         setState(

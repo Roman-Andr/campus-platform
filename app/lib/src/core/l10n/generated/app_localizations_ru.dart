@@ -752,6 +752,73 @@ class AppLocalizationsRu extends AppLocalizations {
   String get listingExtended => 'Срок объявления продлён.';
 
   @override
+  String get listingCancel => 'Отменить объявление';
+
+  @override
+  String get listingCancelTitle => 'Отменить объявление?';
+
+  @override
+  String get listingCancelBody =>
+      'Объявление закроется, а принятые заявки и брони будут отменены.';
+
+  @override
+  String listingCancelAcceptedWarning(int count) {
+    return 'Принятых взаимодействий: $count. Участники получат уведомление с причиной.';
+  }
+
+  @override
+  String get listingCancelReason => 'Причина отмены';
+
+  @override
+  String get listingCancelReasonRequired =>
+      'Укажите причину: объявление уже принято.';
+
+  @override
+  String get listingCancelReasonMissing => 'Укажите причину отмены.';
+
+  @override
+  String listingCancelReasonTooLong(int max) {
+    return 'Причина длиннее $max символов.';
+  }
+
+  @override
+  String get listingCancelReasonInvalid => 'Проверьте причину отмены.';
+
+  @override
+  String get listingCancelConfirm => 'Отменить объявление';
+
+  @override
+  String get listingCancelKeep => 'Оставить';
+
+  @override
+  String get listingCancelled => 'Объявление отменено.';
+
+  @override
+  String listingCancelledByAuthor(String reason) {
+    return 'Автор отменил: $reason';
+  }
+
+  @override
+  String get interactionCancelTitle => 'Отменить взаимодействие?';
+
+  @override
+  String get interactionCancelBody => 'Заявка или бронь будут отменены.';
+
+  @override
+  String get interactionLateCancellation =>
+      'Это поздняя отмена: она будет учтена как поздняя.';
+
+  @override
+  String get interactionCancellationApproval =>
+      'Организатор должен подтвердить выход.';
+
+  @override
+  String get interactionCancelKeep => 'Оставить';
+
+  @override
+  String get interactionCancelConfirm => 'Всё равно отменить';
+
+  @override
   String get meetingTitle => 'Встреча';
 
   @override
