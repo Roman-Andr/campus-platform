@@ -4,7 +4,7 @@ import 'interaction_status.dart';
 import 'lesson_option_output.dart';
 import 'participation_listing.dart';
 import 'participation_output_completion_method.dart';
-import 'participation_output_meeting.dart';
+import 'purchase_share_output_meeting.dart';
 
 class ParticipationOutput {
   const ParticipationOutput({
@@ -26,6 +26,12 @@ class ParticipationOutput {
 
     /// The item a participant offers for an exchange; null otherwise.
     this.offerDescription,
+
+    /// Units taken in a group purchase; null otherwise.
+    this.units,
+
+    /// When a participant asked to leave a fixed purchase.
+    this.leaveRequestedAt,
     required this.meeting,
 
     /// Time options of a skill lesson; empty for other types.
@@ -79,6 +85,16 @@ class ParticipationOutput {
           : null,
       offerDescription: json.containsKey("offer_description")
           ? json["offer_description"] as String?
+          : null,
+      units: json.containsKey("units")
+          ? json["units"] == null
+                ? null
+                : _readJsonInteger(json["units"])
+          : null,
+      leaveRequestedAt: json.containsKey("leave_requested_at")
+          ? json["leave_requested_at"] == null
+                ? null
+                : DateTime.parse(json["leave_requested_at"] as String).toUtc()
           : null,
       meeting: ParticipationOutputMeeting.fromJson(json["meeting"]),
       options: json.containsKey("options")
@@ -142,6 +158,12 @@ class ParticipationOutput {
   /// The item a participant offers for an exchange; null otherwise.
   final String? offerDescription;
 
+  /// Units taken in a group purchase; null otherwise.
+  final int? units;
+
+  /// When a participant asked to leave a fixed purchase.
+  final DateTime? leaveRequestedAt;
+
   final ParticipationOutputMeeting meeting;
 
   /// Time options of a skill lesson; empty for other types.
@@ -176,6 +198,8 @@ class ParticipationOutput {
     "executor",
     "reservation_due_at",
     "offer_description",
+    "units",
+    "leave_requested_at",
     "meeting",
     "options",
     "completion_method",
@@ -203,6 +227,9 @@ class ParticipationOutput {
       "reservation_due_at": this.reservationDueAt?.toUtc().toIso8601String(),
     if (this.offerDescription != null)
       "offer_description": this.offerDescription,
+    if (this.units != null) "units": this.units,
+    if (this.leaveRequestedAt != null)
+      "leave_requested_at": this.leaveRequestedAt?.toUtc().toIso8601String(),
     "meeting": this.meeting.toJson(),
     if (this.options != null)
       "options": this.options?.map((item) => item.toJson()).toList(),
@@ -216,4 +243,14 @@ class ParticipationOutput {
     "created_at": this.createdAt.toUtc().toIso8601String(),
     "listing": this.listing.toJson(),
   };
+}
+
+int _readJsonInteger(Object? value) {
+  if (value is int) {
+    return value;
+  }
+  if (value is double && value.isFinite && value == value.toInt()) {
+    return value.toInt();
+  }
+  throw FormatException('Expected a JSON integer.', value);
 }

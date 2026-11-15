@@ -35,6 +35,18 @@ enum ProblemCodeValue {
   listingOfferExpired("listing_offer_expired"),
   listingOfferMissing("listing_offer_missing"),
   listingOfferPending("listing_offer_pending"),
+  listingPurchaseCapacityConflict("listing_purchase_capacity_conflict"),
+  listingPurchaseClosed("listing_purchase_closed"),
+  listingPurchaseDeadlineInvalid("listing_purchase_deadline_invalid"),
+  listingPurchaseLeaveRequiresApproval(
+    "listing_purchase_leave_requires_approval",
+  ),
+  listingPurchaseNotFixed("listing_purchase_not_fixed"),
+  listingPurchaseShareExists("listing_purchase_share_exists"),
+  listingPurchaseUnitsUnavailable("listing_purchase_units_unavailable"),
+  listingPurchaseVolumeInvalid("listing_purchase_volume_invalid"),
+  listingPurchaseWithdrawalExists("listing_purchase_withdrawal_exists"),
+  listingPurchaseWithdrawalMissing("listing_purchase_withdrawal_missing"),
   listingRateLimited("listing_rate_limited"),
   listingVersionConflict("listing_version_conflict"),
   listingWaitlistDuplicate("listing_waitlist_duplicate"),
@@ -161,6 +173,36 @@ sealed class ProblemCode {
   );
   static const listingOfferPending = ProblemCodeKnown(
     ProblemCodeValue.listingOfferPending,
+  );
+  static const listingPurchaseCapacityConflict = ProblemCodeKnown(
+    ProblemCodeValue.listingPurchaseCapacityConflict,
+  );
+  static const listingPurchaseClosed = ProblemCodeKnown(
+    ProblemCodeValue.listingPurchaseClosed,
+  );
+  static const listingPurchaseDeadlineInvalid = ProblemCodeKnown(
+    ProblemCodeValue.listingPurchaseDeadlineInvalid,
+  );
+  static const listingPurchaseLeaveRequiresApproval = ProblemCodeKnown(
+    ProblemCodeValue.listingPurchaseLeaveRequiresApproval,
+  );
+  static const listingPurchaseNotFixed = ProblemCodeKnown(
+    ProblemCodeValue.listingPurchaseNotFixed,
+  );
+  static const listingPurchaseShareExists = ProblemCodeKnown(
+    ProblemCodeValue.listingPurchaseShareExists,
+  );
+  static const listingPurchaseUnitsUnavailable = ProblemCodeKnown(
+    ProblemCodeValue.listingPurchaseUnitsUnavailable,
+  );
+  static const listingPurchaseVolumeInvalid = ProblemCodeKnown(
+    ProblemCodeValue.listingPurchaseVolumeInvalid,
+  );
+  static const listingPurchaseWithdrawalExists = ProblemCodeKnown(
+    ProblemCodeValue.listingPurchaseWithdrawalExists,
+  );
+  static const listingPurchaseWithdrawalMissing = ProblemCodeKnown(
+    ProblemCodeValue.listingPurchaseWithdrawalMissing,
   );
   static const listingRateLimited = ProblemCodeKnown(
     ProblemCodeValue.listingRateLimited,
