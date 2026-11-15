@@ -135,6 +135,69 @@ def test_purchase_columns_migrate(empty_database: str) -> None:
     assert asyncio.run(fetch(empty_database, constraints)) == []
 
 
+def test_chat_archive_and_retention_schema_migrates(empty_database: str) -> None:
+    columns = """
+        SELECT table_name, column_name FROM information_schema.columns
+        WHERE (table_name = 'chat' AND column_name = 'empty_since')
+           OR (table_name = 'chat_member' AND column_name = 'left_at')
+           OR (table_name = 'file' AND column_name = 'chat_id')
+    """
+    partitions = """
+        SELECT relname FROM pg_class
+        WHERE relname LIKE 'chat_message_archive_%' AND relkind = 'r'
+    """
+    index = """
+        SELECT indexname FROM pg_indexes
+        WHERE tablename = 'chat_message_archive'
+    """
+    view = """
+        SELECT pg_get_viewdef('chat_message_history'::regclass) AS definition
+    """
+    snapshot_fks = """
+        SELECT conname FROM pg_constraint
+        WHERE conrelid = to_regclass('chat_message_snapshot') AND contype = 'f'
+    """
+
+    run_alembic(empty_database, "upgrade", "head")
+    names = {
+        (row["table_name"], row["column_name"])
+        for row in asyncio.run(fetch(empty_database, columns))
+    }
+    assert names == {
+        ("chat", "empty_since"),
+        ("chat_member", "left_at"),
+        ("file", "chat_id"),
+    }
+    partition_names = {
+        row["relname"] for row in asyncio.run(fetch(empty_database, partitions))
+    }
+    assert {
+        "chat_message_archive_2020",
+        "chat_message_archive_2035",
+        "chat_message_archive_default",
+    } <= partition_names
+    index_names = {
+        row["indexname"] for row in asyncio.run(fetch(empty_database, index))
+    }
+    assert {
+        "ix_chat_message_archive_chat_id_sequence",
+        "ix_chat_message_archive_search",
+    } <= index_names
+    definition = asyncio.run(fetch(empty_database, view))[0]["definition"]
+    assert "chat_message" in definition
+    assert "chat_message_archive" in definition
+    assert asyncio.run(fetch(empty_database, snapshot_fks)) == []
+
+    run_alembic(empty_database, "downgrade", "78c0a7000001")
+    names = {
+        (row["table_name"], row["column_name"])
+        for row in asyncio.run(fetch(empty_database, columns))
+    }
+    assert names == set()
+    assert asyncio.run(fetch(empty_database, partitions)) == []
+    assert asyncio.run(fetch(empty_database, snapshot_fks)) == []
+
+
 def test_models_match_migrations(empty_database: str) -> None:
     run_alembic(empty_database, "upgrade", "head")
 

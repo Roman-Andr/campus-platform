@@ -35,6 +35,8 @@ from campus.modules.chat.models import (
     ChatMember,
     ChatMessage,
     ChatMessageDedup,
+    ChatMessageHistory,
+    ChatMessageSnapshot,
 )
 from campus.modules.identity import User, serialize_contact_pair
 from campus.modules.listings import (
@@ -44,7 +46,7 @@ from campus.modules.listings import (
     can_contact,
     readable,
 )
-from campus.modules.realtime import grant_chat_access
+from campus.modules.realtime import grant_chat_access, revoke_chat_access
 from campus.modules.university import AccountType
 
 MESSAGE_TOPIC = "chat.message"
@@ -138,31 +140,48 @@ def message_payload(message: ChatMessage) -> dict[str, Any]:
 
 
 async def require_membership(
-    session: AsyncSession, chat_id: UUID, user_id: UUID
+    session: AsyncSession, chat_id: UUID, user_id: UUID, *, lock: bool = False
 ) -> Chat:
-    """The chat if ``user_id`` is a member; otherwise hide it with 404.
+    """The chat if ``user_id`` is an active member; otherwise hide it with 404.
 
-    No role grants access to somebody else's chat: moderators and
-    administrators use the separate complaint and dispute entry points.
+    ``lock`` serializes a send with leaving and retention cleanup: the chat
+    row is locked before the membership is checked, so a member cannot send
+    after their leave transaction commits. No role grants access to somebody
+    else's chat: moderators and administrators use the separate complaint and
+    dispute entry points.
     """
-    chat = await session.scalar(
+    query = (
         select(Chat)
         .join(ChatMember, ChatMember.chat_id == Chat.id)
-        .where(Chat.id == chat_id, ChatMember.user_id == user_id)
+        .where(
+            Chat.id == chat_id,
+            ChatMember.user_id == user_id,
+            ChatMember.left_at.is_(None),
+        )
     )
+    if lock:
+        query = query.with_for_update(of=Chat)
+    chat = await session.scalar(query)
     if chat is None:
         raise ProblemError(CHAT_NOT_FOUND)
     return chat
 
 
-async def find_pair_chat(
+async def find_pair_chat(  # noqa: PLR0913
     session: AsyncSession,
     low: UUID,
     high: UUID,
     listing_id: UUID | None,
     interaction_id: UUID | None,
+    *,
+    lock: bool = False,
 ) -> Chat | None:
-    """The chat that already represents this pair and link, if any."""
+    """The chat that already represents this pair and link, if any.
+
+    ``lock`` waits for a concurrent leave or retention cleanup of this chat;
+    if the cleanup won, the lookup returns no row and creation starts a new
+    dialog instead of resurrecting a deleted one.
+    """
     query = select(Chat).where(
         Chat.kind == "personal",
         Chat.user_low_id == low,
@@ -176,7 +195,72 @@ async def find_pair_chat(
         )
     else:
         query = query.where(Chat.listing_id.is_(None), Chat.interaction_id.is_(None))
+    if lock:
+        query = query.with_for_update(of=Chat)
     return await session.scalar(query)
+
+
+async def active_members(session: AsyncSession, chat_id: UUID) -> list[ChatMember]:
+    """Memberships that still grant access, with their rows locked."""
+    return list(
+        await session.scalars(
+            select(ChatMember)
+            .where(ChatMember.chat_id == chat_id, ChatMember.left_at.is_(None))
+            .with_for_update()
+        )
+    )
+
+
+async def ensure_member(session: AsyncSession, chat: Chat, user_id: UUID) -> ChatMember:
+    """Make ``user_id`` an active member of ``chat`` and cancel retention.
+
+    The caller holds the chat row lock. An existing left membership keeps its
+    row (and the history), only ``left_at`` is cleared and the channel grant
+    is activated again. The empty-chat clock is cleared for both a new and a
+    returning member.
+    """
+    member = await session.get(ChatMember, (chat.id, user_id), with_for_update=True)
+    if member is None:
+        member = ChatMember(chat_id=chat.id, user_id=user_id, joined_at=clock.now())
+        session.add(member)
+    else:
+        member.left_at = None
+    chat.empty_since = None
+    await grant_chat_access(session, chat.id, user_id)
+    return member
+
+
+async def leave_chat(session: AsyncSession, chat_id: UUID, user_id: UUID) -> bool:
+    """Leave a chat; the last active member starts the retention clock.
+
+    The membership row stays, so the same dialog and its history are
+    restored by a later creation. Repeating the request is a no-op and
+    returns ``False``. A user without any membership row gets 404.
+    """
+    chat = await session.scalar(
+        select(Chat).where(Chat.id == chat_id).with_for_update(of=Chat)
+    )
+    member = await session.scalar(
+        select(ChatMember)
+        .where(ChatMember.chat_id == chat_id, ChatMember.user_id == user_id)
+        .with_for_update()
+    )
+    if chat is None or member is None:
+        raise ProblemError(CHAT_NOT_FOUND)
+    if member.left_at is not None:
+        return False
+    now = clock.now()
+    member.left_at = now
+    await revoke_chat_access(session, chat_id, user_id)
+    remaining = await session.scalar(
+        select(func.count())
+        .select_from(ChatMember)
+        .where(ChatMember.chat_id == chat_id, ChatMember.left_at.is_(None))
+    )
+    if not remaining:
+        chat.empty_since = now
+    chat.updated_at = now
+    return True
 
 
 async def check_link(
@@ -262,9 +346,10 @@ async def create_personal_chat(
         raise ProblemError(CHAT_FORBIDDEN)
     low, high = canonical_pair(creator_id, recipient_id)
     existing = await find_pair_chat(
-        session, low, high, linked_listing_id, interaction_id
+        session, low, high, linked_listing_id, interaction_id, lock=True
     )
     if existing is not None:
+        await ensure_member(session, existing, creator_id)
         return existing, False
     now = clock.now()
     # One statement claims the pair: a concurrent creation conflicts on the
@@ -287,11 +372,12 @@ async def create_personal_chat(
     )
     if created_id is None:
         stored = await find_pair_chat(
-            session, low, high, linked_listing_id, interaction_id
+            session, low, high, linked_listing_id, interaction_id, lock=True
         )
         if stored is None:  # pragma: no cover - the unique index guarantees it
             msg = "the conflicting chat is not visible"
             raise RuntimeError(msg)
+        await ensure_member(session, stored, creator_id)
         return stored, False
     chat = await session.get_one(Chat, created_id)
     for member_id in (low, high):
@@ -321,18 +407,18 @@ async def check_rate_limit(
     window_start = now - settings.chat_message_window
     sent = await session.scalar(
         select(func.count())
-        .select_from(ChatMessage)
+        .select_from(ChatMessageHistory)
         .where(
-            ChatMessage.sender_id == sender_id,
-            ChatMessage.created_at > window_start,
+            ChatMessageHistory.sender_id == sender_id,
+            ChatMessageHistory.created_at > window_start,
         )
     )
     if sent is None or sent < settings.chat_message_limit:
         return
     oldest = await session.scalar(
-        select(func.min(ChatMessage.created_at)).where(
-            ChatMessage.sender_id == sender_id,
-            ChatMessage.created_at > window_start,
+        select(func.min(ChatMessageHistory.created_at)).where(
+            ChatMessageHistory.sender_id == sender_id,
+            ChatMessageHistory.created_at > window_start,
         )
     )
     retry = 1
@@ -344,12 +430,18 @@ async def check_rate_limit(
     raise ProblemError(CHAT_RATE_LIMITED, headers={"Retry-After": str(retry)})
 
 
-async def stored_message(session: AsyncSession, dedup: ChatMessageDedup) -> ChatMessage:
-    """Load the message recorded by ``dedup``; it exists by construction."""
+async def stored_message(
+    session: AsyncSession, dedup: ChatMessageDedup
+) -> ChatMessageHistory:
+    """Load the message recorded by ``dedup``, active or archived.
+
+    The union view makes the replay of an old client UUID independent of the
+    partition that currently stores the row.
+    """
     message = await session.scalar(
-        select(ChatMessage).where(
-            ChatMessage.id == dedup.message_id,
-            ChatMessage.created_at == dedup.message_created_at,
+        select(ChatMessageHistory).where(
+            ChatMessageHistory.id == dedup.message_id,
+            ChatMessageHistory.created_at == dedup.message_created_at,
         )
     )
     if message is None:  # pragma: no cover - written in one transaction
@@ -365,14 +457,14 @@ async def post_message(  # noqa: PLR0913 - message fields
     client_id: UUID,
     text: str,
     settings: Settings,
-) -> tuple[ChatMessage, bool]:
+) -> tuple[ChatMessage | ChatMessageHistory, bool]:
     """Store a message once, deduplicated by its client identifier.
 
     The second result is ``False`` for a repeat of the same client UUID and
     content: the stored message is returned, no new order number is taken
     and the outbox gets no new publication.
     """
-    chat = await require_membership(session, chat_id, sender_id)
+    chat = await require_membership(session, chat_id, sender_id, lock=True)
     # A personal block changes only a personal dialog. A future group chat is
     # shared by both members and keeps their messages visible, as the
     # specification requires, so it is not filtered by the pair policy.
@@ -458,3 +550,40 @@ async def post_message(  # noqa: PLR0913 - message fields
     session.add(message)
     add_message(session, MESSAGE_TOPIC, message_payload(message))
     return message, True
+
+
+async def snapshot_message(
+    session: AsyncSession, *, complaint_id: UUID, message_id: UUID
+) -> ChatMessageSnapshot:
+    """Copy a message into an immutable complaint attachment.
+
+    The copy has no foreign keys, so deleting the chat later does not erase
+    the evidence. Repeating the capture for the same complaint and message
+    returns the first snapshot instead of creating a second one.
+    """
+    snapshot = await session.scalar(
+        select(ChatMessageSnapshot).where(
+            ChatMessageSnapshot.complaint_id == complaint_id,
+            ChatMessageSnapshot.message_id == message_id,
+        )
+    )
+    if snapshot is not None:
+        return snapshot
+    message = await session.scalar(
+        select(ChatMessageHistory).where(ChatMessageHistory.id == message_id)
+    )
+    if message is None:
+        raise ProblemError(NOT_FOUND)
+    snapshot = ChatMessageSnapshot(
+        complaint_id=complaint_id,
+        chat_id=message.chat_id,
+        message_id=message.id,
+        sender_id=message.sender_id,
+        sequence=message.sequence,
+        text=message.text,
+        message_created_at=message.created_at,
+        captured_at=clock.now(),
+    )
+    session.add(snapshot)
+    await session.flush()
+    return snapshot

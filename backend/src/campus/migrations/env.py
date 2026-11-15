@@ -22,10 +22,14 @@ if not context.is_offline_mode():
 modules.import_all()
 target_metadata = Base.metadata
 
-# Child partitions of chat_message are data storage, not schema: migrations
-# create and drop them with their parent, and autogenerate must neither see
-# them as extra tables nor compare their indexes.
-PARTITION_TABLE = re.compile(r"^chat_message_(?:\d{4}_\d{2}|default)$")
+# Child partitions of chat_message and chat_message_archive are data
+# storage, not schema: migrations create and drop them with their parent, and
+# autogenerate must neither see them as extra tables nor compare their
+# indexes. The history view is read-only and is compared in neither direction.
+PARTITION_TABLE = re.compile(
+    r"^chat_message_(?:\d{4}_\d{2}|archive_\d{4}|(?:archive_)?default)$"
+)
+VIEW_TABLE = "chat_message_history"
 
 
 def include_object(
@@ -33,10 +37,12 @@ def include_object(
 ) -> bool:
     """Keep reflected chat_message partitions out of autogenerate."""
     del compare_to
-    if reflected and name is not None:
-        if type_ == "table" and PARTITION_TABLE.match(name):
+    if name is not None:
+        if type_ == "table" and name == VIEW_TABLE:
             return False
-        if type_ == "index":
+        if reflected and type_ == "table" and PARTITION_TABLE.match(name):
+            return False
+        if reflected and type_ == "index":
             table = getattr(obj, "table", None)
             table_name = getattr(table, "name", None)
             if isinstance(table_name, str) and PARTITION_TABLE.match(table_name):
