@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 03:10+0300\n"
+"POT-Creation-Date: 2026-11-15 15:39+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -90,6 +90,13 @@ msgstr "Выберите опубликованную версию правил 
 msgid "Client version missing"
 msgstr "Не указана версия клиента"
 
+msgid ""
+"Confirm the current scenario stage by its own action; an online QR code "
+"completes only the final meeting."
+msgstr ""
+"Подтвердите текущий этап сценария отдельным действием; онлайн-QR-код "
+"завершает только финальную встречу."
+
 #, python-brace-format
 msgid ""
 "Confirm your e-mail address with code: {code}. It expires in {minutes} "
@@ -103,6 +110,9 @@ msgstr "Необходимо принять актуальные докумен�
 
 msgid "Describe the item you offer."
 msgstr "Опишите вещь, которую предлагаете."
+
+msgid "Device key conflict"
+msgstr "Конфликт ключа устройства"
 
 msgid "E-mail address already in use"
 msgstr "Адрес электронной почты уже используется"
@@ -133,6 +143,9 @@ msgstr "Нет ключа идемпотентности"
 
 msgid "Idempotency key reused"
 msgstr "Ключ идемпотентности уже использован"
+
+msgid "Interaction already completed"
+msgstr "Взаимодействие уже завершено"
 
 msgid "Internal error"
 msgstr "Внутренняя ошибка"
@@ -292,6 +305,9 @@ msgstr ""
 msgid "Only the composition exchange is available at this stage."
 msgstr "На этом этапе доступны только действия с составом закупки."
 
+msgid "Only the two participants of the interaction can confirm it."
+msgstr "Подтвердить взаимодействие могут только два его участника."
+
 #, python-brace-format
 msgid "Only {available} units are available."
 msgstr "Доступно только {available} ед."
@@ -304,6 +320,27 @@ msgstr "Места открыты для всех; бронируйте сейч
 
 msgid "Profile incomplete"
 msgstr "Профиль не заполнен"
+
+msgid "QR code already used"
+msgstr "QR-код уже использован"
+
+msgid "QR code cannot be used"
+msgstr "QR-код нельзя использовать"
+
+msgid "QR code cannot complete this stage"
+msgstr "QR-код не может завершить этот этап"
+
+msgid "QR code expired"
+msgstr "Срок QR-кода истёк"
+
+msgid "QR code is from the future"
+msgstr "Время QR-кода в будущем"
+
+msgid "QR code rejected"
+msgstr "QR-код отклонён"
+
+msgid "QR confirmation is unavailable"
+msgstr "Подтверждение по QR недоступно"
 
 msgid "Quiet hours must start and end at different times."
 msgstr "Начало и конец тихих часов должны различаться."
@@ -363,6 +400,15 @@ msgstr "Студенту нужно указать курс."
 msgid "The Idempotency-Key header must be a UUID."
 msgstr "Заголовок Idempotency-Key должен быть UUID."
 
+msgid "The QR code payload is malformed or does not match the request."
+msgstr "Содержимое QR-кода повреждено или не относится к запросу."
+
+msgid "The QR code signature is invalid."
+msgstr "Подпись QR-кода неверна."
+
+msgid "The QR code time is ahead of the server clock by too much."
+msgstr "Время QR-кода слишком опережает серверные часы."
+
 msgid "The X-Client-Platform and X-Client-Version headers are required."
 msgstr "Нужны заголовки X-Client-Platform и X-Client-Version."
 
@@ -405,6 +451,9 @@ msgstr "Условия закупки изменились."
 msgid "The current volume is {taken} units."
 msgstr "Текущий объём — {taken} ед."
 
+msgid "The device key is unknown, revoked or belongs to another user."
+msgstr "Ключ устройства неизвестен, отозван или принадлежит другому пользователю."
+
 msgid "The event must start in the future and end after its start."
 msgstr "Мероприятие должно начинаться в будущем и заканчиваться после начала."
 
@@ -418,8 +467,14 @@ msgstr ""
 "Запрос о помощи должен завершаться в будущем и не позже срока жизни "
 "объявления."
 
+msgid "The interaction is not accepted and cannot be completed."
+msgstr "Взаимодействие не принято и не может быть завершено."
+
 msgid "The interaction must be accepted and have a current meeting proposal."
 msgstr "Взаимодействие должно быть принято и иметь текущее предложение встречи."
+
+msgid "The interaction was completed by another method."
+msgstr "Взаимодействие завершено другим способом."
 
 msgid "The listing and the interaction do not belong together."
 msgstr "Объявление и взаимодействие не относятся друг к другу."
@@ -490,6 +545,9 @@ msgstr "Тип уведомления {type} не поддерживается."
 msgid "The offer of a place has expired."
 msgstr "Срок предложения места истёк."
 
+msgid "The online QR code is older than the allowed lifetime."
+msgstr "Онлайн-QR-код старше допустимого срока."
+
 msgid "The organiser has decided on your request to leave."
 msgstr "Организатор принял решение по вашему запросу на выход."
 
@@ -533,6 +591,9 @@ msgstr "Ресурс не поддерживает этот метод."
 msgid "The same client message identifier carries different content."
 msgstr "Один и тот же идентификатор сообщения клиента передан с другим содержимым."
 
+msgid "The same participant cannot show and scan the same QR code."
+msgstr "Один и тот же участник не может показывать и сканировать один QR-код."
+
 msgid "There is an update to your listing."
 msgstr "Появилось обновление вашего объявления."
 
@@ -553,6 +614,15 @@ msgstr "Это взаимодействие нельзя завершить бе
 
 msgid "This listing has no queue."
 msgstr "У этого объявления нет очереди."
+
+msgid "This one-time QR code has already been used."
+msgstr "Этот одноразовый QR-код уже использован."
+
+msgid "This public key is already registered to another device session."
+msgstr "Этот открытый ключ уже зарегистрирован в другой сессии устройства."
+
+msgid "This type of interaction is not completed with an online QR code."
+msgstr "Этот тип взаимодействия не завершается онлайн-QR-кодом."
 
 #, python-brace-format
 msgid ""

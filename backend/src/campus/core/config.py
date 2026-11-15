@@ -423,6 +423,19 @@ class Settings(BaseSettings):
         gt=timedelta(0),
         description="Last reminder before a scheduled meeting, e.g. 1 hour.",
     )
+    # Online QR confirmation (specification, 5.1.1, module 5; Appendix 4):
+    # a code may be at most 30 seconds old, while a clock up to 10 seconds
+    # ahead is accepted. Both bounds are inclusive.
+    qr_online_ttl: timedelta = Field(
+        default=timedelta(seconds=30),
+        gt=timedelta(0),
+        description="Maximum accepted age of an online QR code.",
+    )
+    qr_clock_skew: timedelta = Field(
+        default=timedelta(seconds=10),
+        ge=timedelta(0),
+        description="Maximum accepted clock skew into the future.",
+    )
     # Review weights of completed interactions (Appendix 4): a review after
     # an online lesson or help confirmed without a meeting weighs less.
     rating_weight_qr: float = Field(
