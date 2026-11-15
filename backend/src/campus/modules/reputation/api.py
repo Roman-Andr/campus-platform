@@ -18,10 +18,12 @@ from campus.core.web import (
     api_router,
 )
 from campus.core.web.auth import UNAUTHORIZED, CurrentUser, Principal
+from campus.core.web.problems import IdempotentProblemResponse, problem_from_error
 from campus.modules.identity import Session
 from campus.modules.listings import CompletionMethod, InteractionStatus
 from campus.modules.reputation.models import DeviceKey
 from campus.modules.reputation.service import (
+    CODE_CONFIRM_PROBLEMS,
     QR_ALGORITHM,
     CodeIssue,
     CodeResult,
@@ -396,24 +398,31 @@ async def confirm_code(  # noqa: PLR0913, PLR0917 - request parts
 ) -> CodeConfirmOutput:
     """Complete an accepted interaction with the other participant's code.
 
-    The server checks the code against a keyed hash and counts an incorrect
-    entry in a separate committed transaction. The interaction, its journal
-    event and its outbox message are updated atomically; the code response
-    never contains the plaintext.
+    The server checks the code against a keyed hash and increments the
+    counter in the request transaction. A wrong entry is returned as an
+    idempotent 4xx response, so a retry with the same key neither changes
+    the counter nor opens a second database transaction. A successful
+    completion updates the interaction, its journal event and its outbox
+    message atomically; the code response never contains the plaintext.
     """
-    factory = request.app.state.session_factory
-    if factory is None:  # pragma: no cover - mutating routes require a database
-        raise RuntimeError("database is not configured")
     now = clock.now()
-    result = await confirm_with_code(
-        session,
-        factory,
-        listing_id,
-        interaction_id,
-        principal.user_id,
-        data.code,
-        request.app.state.settings,
-    )
+    try:
+        result = await confirm_with_code(
+            session,
+            listing_id,
+            interaction_id,
+            principal.user_id,
+            data.code,
+            request.app.state.settings,
+        )
+    except ProblemError as exc:
+        if exc.problem_type not in CODE_CONFIRM_PROBLEMS:
+            raise
+        return problem_from_error(  # type: ignore[return-value]
+            request,
+            exc,
+            response_class=IdempotentProblemResponse,
+        )
     response.headers["Cache-Control"] = "no-store"
     return code_result_output(result, now)
 

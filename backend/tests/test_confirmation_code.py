@@ -4,6 +4,8 @@ import asyncio
 import json
 import logging
 import re
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
@@ -12,8 +14,10 @@ import httpx2
 import pytest
 import time_machine
 from sqlalchemy import func, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from campus.core import clock
+from campus.core.db import create_engine, create_session_factory
 from campus.core.outbox import OutboxMessage
 from campus.modules.identity import Role, RoleAssignment, User
 from campus.modules.listings import (
@@ -653,6 +657,161 @@ async def test_code_idempotency_replay_and_body_conflict(
     )
     assert conflict.status_code == 422
     assert conflict.json()["code"] == "idempotency_key_reused"
+
+
+async def test_wrong_code_idempotency_replay_keeps_attempt_count(
+    owner: Account, borrower: Account
+) -> None:
+    listing, interaction = await accepted(owner, borrower)
+    interaction_id = UUID(interaction["id"])
+    issued = (await issue(owner, listing, interaction)).json()
+    wrong = other_code(issued["code"])
+    key = str(uuid4())
+
+    first = await confirm(borrower, listing, interaction, wrong, key=key)
+    assert first.status_code == 422
+    assert first.json()["code"] == "confirmation_code_invalid"
+    assert "Idempotent-Replayed" not in first.headers
+    row = await code_row(owner, interaction_id)
+    assert row is not None
+    assert row.attempts == 1
+
+    replay = await confirm(borrower, listing, interaction, wrong, key=key)
+    assert replay.status_code == 422
+    assert replay.headers["Idempotent-Replayed"] == "true"
+    assert replay.json() == first.json()
+    row = await code_row(owner, interaction_id)
+    assert row is not None
+    assert row.attempts == 1
+
+    conflict = await confirm(borrower, listing, interaction, other_code(wrong), key=key)
+    assert conflict.status_code == 422
+    assert conflict.json()["code"] == "idempotency_key_reused"
+    row = await code_row(owner, interaction_id)
+    assert row is not None
+    assert row.attempts == 1
+
+    completed = await confirm(borrower, listing, interaction, issued["code"])
+    assert completed.status_code == 200, completed.text
+
+
+async def test_exhausted_limit_replays_the_stored_429(
+    owner: Account, borrower: Account
+) -> None:
+    listing, interaction = await accepted(owner, borrower)
+    interaction_id = UUID(interaction["id"])
+    issued = (await issue(owner, listing, interaction)).json()
+    wrong = other_code(issued["code"])
+    for _ in range(4):
+        attempt = await confirm(borrower, listing, interaction, wrong)
+        assert attempt.status_code == 422, attempt.text
+
+    key = str(uuid4())
+    fifth = await confirm(borrower, listing, interaction, wrong, key=key)
+    assert fifth.status_code == 429
+    assert fifth.json()["code"] == "confirmation_code_attempts_exceeded"
+    assert "Idempotent-Replayed" not in fifth.headers
+    row = await code_row(owner, interaction_id)
+    assert row is not None
+    assert row.attempts == 5
+
+    replay = await confirm(borrower, listing, interaction, wrong, key=key)
+    assert replay.status_code == 429
+    assert replay.headers["Idempotent-Replayed"] == "true"
+    assert replay.json() == fifth.json()
+    row = await code_row(owner, interaction_id)
+    assert row is not None
+    assert row.attempts == 5
+
+    conflict = await confirm(borrower, listing, interaction, other_code(wrong), key=key)
+    assert conflict.status_code == 422
+    assert conflict.json()["code"] == "idempotency_key_reused"
+
+    correct = await confirm(borrower, listing, interaction, issued["code"])
+    assert correct.status_code == 429
+    reissue = await issue(owner, listing, interaction)
+    assert reissue.status_code == 429
+
+
+async def test_parallel_wrong_code_replays_count_once(
+    owner: Account, borrower: Account
+) -> None:
+    listing, interaction = await accepted(owner, borrower)
+    issued = (await issue(owner, listing, interaction)).json()
+    wrong = other_code(issued["code"])
+    key = str(uuid4())
+    responses = await asyncio.gather(
+        *(confirm(borrower, listing, interaction, wrong, key=key) for _ in range(6))
+    )
+    assert all(response.status_code == 422 for response in responses)
+    assert all(response.json() == responses[0].json() for response in responses)
+    assert sum("Idempotent-Replayed" in response.headers for response in responses) == 5
+    row = await code_row(owner, UUID(interaction["id"]))
+    assert row is not None
+    assert row.attempts == 1
+
+
+@pytest.mark.parametrize("correct", [True, False])
+async def test_concurrent_confirmation_with_single_connection_pool(
+    owner: Account, borrower: Account, correct: bool
+) -> None:
+    listing, interaction = await accepted(owner, borrower)
+    issued = (await issue(owner, listing, interaction)).json()
+    code = issued["code"] if correct else other_code(issued["code"])
+    app = owner.auth.app
+    original = app.state.session_factory
+    settings = owner.auth.settings.model_copy(
+        update={
+            "database_pool_size": 1,
+            "database_max_overflow": 0,
+            "database_pool_timeout": 2,
+        }
+    )
+    engine = create_engine(settings)
+    app.state.session_factory = create_session_factory(engine)
+    try:
+        async with asyncio.timeout(10):
+            responses = await asyncio.gather(
+                *(confirm(borrower, listing, interaction, code) for _ in range(6))
+            )
+    finally:
+        app.state.session_factory = original
+        await engine.dispose()
+    expected = [200] * 6 if correct else [422] * 4 + [429] * 2
+    assert sorted(response.status_code for response in responses) == expected
+    row = await code_row(owner, UUID(interaction["id"]))
+    assert row is not None
+    assert row.attempts == (0 if correct else 5)
+
+
+async def test_confirm_uses_one_database_session(
+    owner: Account, borrower: Account
+) -> None:
+    listing, interaction = await accepted(owner, borrower)
+    code = (await issue(owner, listing, interaction)).json()["code"]
+    app = owner.auth.app
+    original = app.state.session_factory
+    opened = 0
+    peak = 0
+
+    @asynccontextmanager
+    async def counted() -> AsyncIterator[AsyncSession]:
+        nonlocal opened, peak
+        opened += 1
+        peak = max(peak, opened)
+        try:
+            async with original() as session:
+                yield session
+        finally:
+            opened -= 1
+
+    app.state.session_factory = counted
+    try:
+        response = await confirm(borrower, listing, interaction, code)
+    finally:
+        app.state.session_factory = original
+    assert response.status_code == 200, response.text
+    assert peak == 1
 
 
 async def test_failed_completion_rolls_back_consumption(

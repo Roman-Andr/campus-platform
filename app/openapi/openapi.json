@@ -18963,7 +18963,7 @@
           "Confirmation code"
         ],
         "summary": "Confirm Code",
-        "description": "Complete an accepted interaction with the other participant's code.\n\nThe server checks the code against a keyed hash and counts an incorrect\nentry in a separate committed transaction. The interaction, its journal\nevent and its outbox message are updated atomically; the code response\nnever contains the plaintext.",
+        "description": "Complete an accepted interaction with the other participant's code.\n\nThe server checks the code against a keyed hash and increments the\ncounter in the request transaction. A wrong entry is returned as an\nidempotent 4xx response, so a retry with the same key neither changes\nthe counter nor opens a second database transaction. A successful\ncompletion updates the interaction, its journal event and its outbox\nmessage atomically; the code response never contains the plaintext.",
         "operationId": "confirm_code",
         "security": [
           {
