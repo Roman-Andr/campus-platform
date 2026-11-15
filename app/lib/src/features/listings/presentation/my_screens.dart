@@ -16,6 +16,7 @@ import 'interaction_timeline_screen.dart';
 import 'lesson_widgets.dart';
 import 'listings_screens.dart';
 import 'meeting_screen.dart';
+import 'no_meeting_screen.dart';
 import 'waitlist_widgets.dart';
 
 String mySectionName(AppLocalizations l, MySection section) =>
@@ -221,6 +222,7 @@ class ParticipationTile extends StatelessWidget {
           timezone: item.listing.cityTimezone,
           city: item.listing.cityTimezone,
         ),
+        NoMeetingSummary(item: interaction, kind: item.listing.kind),
         if (item.listing.kind == helpKind) ...[
           if (interaction.executor)
             Text(

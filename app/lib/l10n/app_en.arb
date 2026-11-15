@@ -396,6 +396,24 @@
   "meetingCancelBody": "The meeting and its reminders will be cancelled.",
   "meetingCancelKeep": "Keep",
   "meetingCancelConfirm": "Cancel",
+  "noMeetingTitle": "Without a meeting",
+  "noMeetingBothConfirm": "Both participants confirm that the interaction took place without a meeting.",
+  "noMeetingOpen": "Open confirmation",
+  "noMeetingIntro": "Confirm that the interaction took place without a meeting. It is completed after both participants agree.",
+  "noMeetingConfirm": "Confirm without a meeting",
+  "noMeetingYourConsent": "Your consent",
+  "noMeetingOtherConsent": "The other participant's consent",
+  "noMeetingConfirmedAt": "Confirmed {time}",
+  "noMeetingNotConfirmed": "Not yet",
+  "noMeetingWaiting": "Waiting for the other participant.",
+  "noMeetingRefresh": "Refresh",
+  "noMeetingCompletedStatus": "Completed without a meeting",
+  "noMeetingCompleted": "The interaction is completed without a meeting.",
+  "noMeetingAgreedAt": "Agreed time: {time}",
+  "noMeetingCompletedAt": "Completed: {time}",
+  "noMeetingSent": "Consent sent.",
+  "noMeetingUnavailable": "This interaction cannot be completed without a meeting.",
+  "noMeetingForbidden": "You cannot confirm this interaction.",
   "@meetingTitle": {
     "description": "Title of the meeting screen and of the meeting card."
   },
@@ -496,6 +514,75 @@
   },
   "@meetingCancelConfirm": {
     "description": "Confirms withdrawing the interaction."
+  },
+  "@noMeetingTitle": {
+    "description": "Title of the no-meeting confirmation screen and card."
+  },
+  "@noMeetingBothConfirm": {
+    "description": "Explains the mutual confirmation without a meeting."
+  },
+  "@noMeetingOpen": {
+    "description": "Opens the no-meeting confirmation screen from an interaction card."
+  },
+  "@noMeetingIntro": {
+    "description": "Explains that the interaction is completed after both consents."
+  },
+  "@noMeetingConfirm": {
+    "description": "Records the current user's consent."
+  },
+  "@noMeetingYourConsent": {
+    "description": "Label of the current user's consent."
+  },
+  "@noMeetingOtherConsent": {
+    "description": "Label of the other participant's consent."
+  },
+  "@noMeetingConfirmedAt": {
+    "description": "Time of a participant's consent in the city zone.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@noMeetingNotConfirmed": {
+    "description": "A participant has not confirmed the interaction yet."
+  },
+  "@noMeetingWaiting": {
+    "description": "The current user waits for the second consent."
+  },
+  "@noMeetingRefresh": {
+    "description": "Reloads the server state while waiting for the second consent."
+  },
+  "@noMeetingCompletedStatus": {
+    "description": "Completion label of an interaction finished without a meeting."
+  },
+  "@noMeetingCompleted": {
+    "description": "The interaction became completed after the second consent."
+  },
+  "@noMeetingAgreedAt": {
+    "description": "The agreed server moment in the city zone.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@noMeetingCompletedAt": {
+    "description": "When the interaction was completed, in the city zone.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@noMeetingSent": {
+    "description": "The first consent was recorded; the second participant is awaited."
+  },
+  "@noMeetingUnavailable": {
+    "description": "The interaction cannot be completed without a meeting."
+  },
+  "@noMeetingForbidden": {
+    "description": "The user is not a participant of the interaction."
   },
   "mySectionDrafts": "Drafts",
   "@mySectionDrafts": {

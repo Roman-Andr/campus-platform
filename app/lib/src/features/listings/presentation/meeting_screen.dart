@@ -11,6 +11,7 @@ import '../../../core/widgets/city_date_time_picker.dart';
 import '../../profile/application/my_profile.dart';
 import '../application/listings.dart';
 import '../application/meeting.dart';
+import 'no_meeting_screen.dart';
 
 /// Route of the meeting of interaction [interactionId] of listing [listingId].
 String meetingPath(String listingId, String interactionId) =>
@@ -353,6 +354,7 @@ class _MeetingScreenState extends ConsumerState<MeetingScreen> {
           city: city,
           showOpen: false,
         ),
+        NoMeetingSummary(item: item, kind: listing.kind),
         if (_editing)
           MeetingProposalForm(
             initialTime: meetingInitialTime(meeting),

@@ -3,11 +3,11 @@
 STUDENT_NAME := АндрусевичРД
 TYPST := TYPST_FONT_PATHS=fonts typst
 
-# Fixed document date (UNIX time, 2026-11-14 00:00 UTC). Typst writes it into
+# Fixed document date (UNIX time, 2026-11-15 00:00 UTC). Typst writes it into
 # the PDF metadata and returns it from datetime.today(), so rebuilding
 # unchanged sources yields a byte-identical PDF. Bump it when a new edition
 # of the documents is issued.
-SOURCE_DATE_EPOCH := 1794614400
+SOURCE_DATE_EPOCH := 1794700800
 export SOURCE_DATE_EPOCH
 
 DOCS := ТЗ РО ПЗ ПМИ ТП ПЗ_Титульный_лист

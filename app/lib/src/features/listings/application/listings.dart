@@ -166,6 +166,18 @@ void refreshListings(WidgetRef ref) {
   ref.invalidate(purchaseCompositionProvider);
 }
 
+/// Refresh interaction rows after a completion without refetching the listing
+/// itself: a screen that still shows the agreed time keeps its time zone even
+/// when the network drops right after the mutation.
+void refreshInteractionLists(WidgetRef ref) {
+  ref.invalidate(myListingsProvider);
+  ref.invalidate(myParticipationProvider);
+  ref.invalidate(incomingProvider);
+  ref.invalidate(interactionRejectionProvider);
+  ref.invalidate(listingParticipationProvider);
+  ref.invalidate(interactionTimelineProvider);
+}
+
 /// Events are ascending and paginated. Keep the latest rejection only.
 final interactionRejectionProvider = FutureProvider.autoDispose
     .family<String?, (String, String)>((ref, ids) async {

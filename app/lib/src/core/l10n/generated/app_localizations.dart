@@ -1586,6 +1586,114 @@ abstract class AppLocalizations {
   /// **'Отменить'**
   String get meetingCancelConfirm;
 
+  /// Title of the no-meeting confirmation screen and card.
+  ///
+  /// In ru, this message translates to:
+  /// **'Без встречи'**
+  String get noMeetingTitle;
+
+  /// Explains the mutual confirmation without a meeting.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оба участника подтверждают, что взаимодействие состоялось без встречи.'**
+  String get noMeetingBothConfirm;
+
+  /// Opens the no-meeting confirmation screen from an interaction card.
+  ///
+  /// In ru, this message translates to:
+  /// **'Открыть подтверждение'**
+  String get noMeetingOpen;
+
+  /// Explains that the interaction is completed after both consents.
+  ///
+  /// In ru, this message translates to:
+  /// **'Подтвердите, что взаимодействие состоялось без встречи. Оно завершится после согласия обоих участников.'**
+  String get noMeetingIntro;
+
+  /// Records the current user's consent.
+  ///
+  /// In ru, this message translates to:
+  /// **'Подтвердить без встречи'**
+  String get noMeetingConfirm;
+
+  /// Label of the current user's consent.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ваше согласие'**
+  String get noMeetingYourConsent;
+
+  /// Label of the other participant's consent.
+  ///
+  /// In ru, this message translates to:
+  /// **'Согласие второго участника'**
+  String get noMeetingOtherConsent;
+
+  /// Time of a participant's consent in the city zone.
+  ///
+  /// In ru, this message translates to:
+  /// **'Подтверждено {time}'**
+  String noMeetingConfirmedAt(String time);
+
+  /// A participant has not confirmed the interaction yet.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пока нет'**
+  String get noMeetingNotConfirmed;
+
+  /// The current user waits for the second consent.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ожидаем подтверждения второго участника.'**
+  String get noMeetingWaiting;
+
+  /// Reloads the server state while waiting for the second consent.
+  ///
+  /// In ru, this message translates to:
+  /// **'Обновить'**
+  String get noMeetingRefresh;
+
+  /// Completion label of an interaction finished without a meeting.
+  ///
+  /// In ru, this message translates to:
+  /// **'Завершено без встречи'**
+  String get noMeetingCompletedStatus;
+
+  /// The interaction became completed after the second consent.
+  ///
+  /// In ru, this message translates to:
+  /// **'Взаимодействие завершено без встречи.'**
+  String get noMeetingCompleted;
+
+  /// The agreed server moment in the city zone.
+  ///
+  /// In ru, this message translates to:
+  /// **'Согласованное время: {time}'**
+  String noMeetingAgreedAt(String time);
+
+  /// When the interaction was completed, in the city zone.
+  ///
+  /// In ru, this message translates to:
+  /// **'Завершено: {time}'**
+  String noMeetingCompletedAt(String time);
+
+  /// The first consent was recorded; the second participant is awaited.
+  ///
+  /// In ru, this message translates to:
+  /// **'Согласие отправлено.'**
+  String get noMeetingSent;
+
+  /// The interaction cannot be completed without a meeting.
+  ///
+  /// In ru, this message translates to:
+  /// **'Это взаимодействие нельзя завершить без встречи.'**
+  String get noMeetingUnavailable;
+
+  /// The user is not a participant of the interaction.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы не можете подтвердить это взаимодействие.'**
+  String get noMeetingForbidden;
+
   /// Own listings filter: drafts.
   ///
   /// In ru, this message translates to:
