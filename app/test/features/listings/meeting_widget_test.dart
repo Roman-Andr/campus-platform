@@ -169,8 +169,14 @@ void main() {
     await tester.tap(find.text('My participation'));
     await tester.pumpAndSettle();
     expect(find.text('Current meeting'), findsOneWidget);
-    // 15:00 UTC is 18:00 in Moscow.
-    expect(find.textContaining('18:00'), findsOneWidget);
+    // 15:00 UTC is 18:00 in Moscow, in the meeting card itself.
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('meeting-request-1')),
+        matching: find.textContaining('18:00'),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Place: Library'), findsOneWidget);
     expect(find.text('New proposal'), findsOneWidget);
     expect(find.text('Place: Cafe'), findsOneWidget);

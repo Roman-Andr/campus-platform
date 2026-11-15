@@ -10,6 +10,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/api/api_failure_message.dart';
 import '../../../core/api/interceptors.dart' show idempotencyKeyHeader;
+import '../../../core/api/mutation_keys.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/realtime/realtime_status_view.dart';
 import '../../profile/application/my_profile.dart';
@@ -139,7 +140,7 @@ class OrganizerAttendanceScreen extends ConsumerStatefulWidget {
 
 class _OrganizerAttendanceScreenState
     extends ConsumerState<OrganizerAttendanceScreen> {
-  final _keys = AttendanceKeys();
+  final _keys = MutationKeys();
   final _scanController = TextEditingController();
   Timer? _ticker;
   bool _busy = false;
@@ -407,7 +408,7 @@ class ParticipantAttendanceScreen extends ConsumerStatefulWidget {
 
 class _ParticipantAttendanceScreenState
     extends ConsumerState<ParticipantAttendanceScreen> {
-  final _keys = AttendanceKeys();
+  final _keys = MutationKeys();
   final _codeController = TextEditingController();
   Timer? _ticker;
   bool _busy = false;

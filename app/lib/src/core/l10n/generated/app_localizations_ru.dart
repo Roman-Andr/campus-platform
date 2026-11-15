@@ -2531,4 +2531,286 @@ class AppLocalizationsRu extends AppLocalizations {
   String qrCompletedAt(String time) {
     return 'Завершено $time';
   }
+
+  @override
+  String get noShowSummaryTitle => 'Встреча не состоялась';
+
+  @override
+  String get noShowSummaryHint =>
+      'Отметьте, что встреча не состоялась: причина обязательна.';
+
+  @override
+  String get noShowSummaryWaiting => 'Отметка станет доступна позже.';
+
+  @override
+  String noShowOpensAt(String time) {
+    return 'Отметить неявку можно с $time.';
+  }
+
+  @override
+  String get noShowAction => 'Встреча не состоялась';
+
+  @override
+  String get noShowOpenResult => 'Посмотреть отметку';
+
+  @override
+  String get noShowScreenTitle => 'Встреча не состоялась';
+
+  @override
+  String get noShowIntro =>
+      'Отметьте, что встреча не состоялась, если другой участник не пришёл. Причина обязательна и будет видна ему.';
+
+  @override
+  String get noShowBasisUnmarked => 'Отметок нет';
+
+  @override
+  String get noShowBasisMarked => 'Отметка участника';
+
+  @override
+  String get noShowBasisAutomatic => '«Не состоялось» по сроку';
+
+  @override
+  String get noShowBasisMutualDispute => 'Взаимные отметки: идёт спор';
+
+  @override
+  String get noShowBasisCompleted => 'Встреча состоялась';
+
+  @override
+  String noShowAt(String time) {
+    return 'Отмечено: $time';
+  }
+
+  @override
+  String noShowWindowOpen(String time) {
+    return 'Отметить неявку можно до $time.';
+  }
+
+  @override
+  String get noShowClosedMessage =>
+      'Отметка неявки закрыта: взаимодействие уже перешло в «не состоялось».';
+
+  @override
+  String get noShowUnavailable =>
+      'Для этого взаимодействия неявку отметить нельзя.';
+
+  @override
+  String get noShowReasonHint => 'Почему встреча не состоялась?';
+
+  @override
+  String get noShowReasonLabel => 'Причина';
+
+  @override
+  String get noShowAnswerLabel => 'Почему встреча всё-таки состоялась';
+
+  @override
+  String get noShowReasonRequired => 'Опишите причину неявки.';
+
+  @override
+  String get noShowMarkAction => 'Отметить неявку';
+
+  @override
+  String get noShowAnswerAction => 'Оспорить: встреча состоялась';
+
+  @override
+  String get noShowMarkedDone => 'Неявка отмечена.';
+
+  @override
+  String get noShowAnswerDone =>
+      'Возражение записано: спор рассмотрит модератор.';
+
+  @override
+  String get noShowAlreadyMarked => 'Вы уже отметили эту встречу.';
+
+  @override
+  String get noShowNoAction => 'Сейчас вам нечего здесь сделать.';
+
+  @override
+  String get noShowDisputeOpenNotice =>
+      'Оба участника отметили, что встреча не состоялась. Пока модератор не решит спор, неявки не учитываются.';
+
+  @override
+  String get noShowDisputeClosedNotice => 'Спор закрыт.';
+
+  @override
+  String get noShowLiftedAfterQr =>
+      'Неявка снята: встреча подтверждена поздним QR-кодом.';
+
+  @override
+  String get noShowMarksTitle => 'Отметки';
+
+  @override
+  String get noShowMarksEmpty => 'Отметок пока нет.';
+
+  @override
+  String noShowMarkChargedTo(String name) {
+    return 'Записано на: $name';
+  }
+
+  @override
+  String noShowMarkBy(String name) {
+    return 'Отметил: $name';
+  }
+
+  @override
+  String get noShowMarkAutomatic => 'автоматическое правило';
+
+  @override
+  String get noShowMarkCounted => 'учитывается';
+
+  @override
+  String get noShowMarkDisputed => 'приостановлена спором';
+
+  @override
+  String get noShowMarkRemoved => 'снята';
+
+  @override
+  String noShowMarkReason(String reason) {
+    return 'Причина: $reason';
+  }
+
+  @override
+  String noShowRemovedAt(String time) {
+    return 'снята $time';
+  }
+
+  @override
+  String get noShowRefresh => 'Обновить';
+
+  @override
+  String get noShowChargedYou => 'вы';
+
+  @override
+  String get noShowForbidden =>
+      'Неявку могут отметить только двое участников взаимодействия.';
+
+  @override
+  String get noShowTooEarly =>
+      'Время встречи ещё слишком свежее: отметить неявку пока нельзя.';
+
+  @override
+  String get noShowStateConflict => 'Взаимодействие уже нельзя отметить.';
+
+  @override
+  String get noShowReasonInvalid => 'Причина пустая или слишком длинная.';
+
+  @override
+  String get eventNoShowTitle => 'Мероприятие не состоялось';
+
+  @override
+  String get eventNoShowAction => 'Мероприятие не состоялось';
+
+  @override
+  String get eventNoShowResultAction => 'Итог мероприятия';
+
+  @override
+  String get eventNoShowIntro =>
+      'Записавшиеся участники решают, состоялось ли мероприятие. Если за несостоявшееся выскажется треть записей (с округлением вверх), неявку получает организатор.';
+
+  @override
+  String eventNoShowVotes(int votes, int threshold, int registered) {
+    return 'Голоса: $votes из $threshold нужных · записей: $registered';
+  }
+
+  @override
+  String eventNoShowVoteOpensAt(String time) {
+    return 'Голосование откроется в $time.';
+  }
+
+  @override
+  String eventNoShowVoteClosesAt(String time) {
+    return 'Голосование идёт до $time.';
+  }
+
+  @override
+  String get eventNoShowVoteWindowClosed =>
+      'Голосование закрыто: прошло больше недели после мероприятия.';
+
+  @override
+  String get eventNoShowVoteAction => 'Голосовать: не состоялось';
+
+  @override
+  String get eventNoShowVoted =>
+      'Вы проголосовали, что мероприятие не состоялось.';
+
+  @override
+  String get eventNoShowVotedDone => 'Голос учтён.';
+
+  @override
+  String get eventNoShowNoVote => 'Голосовать сейчас нельзя.';
+
+  @override
+  String eventNoShowOrganizerCharged(String time) {
+    return 'Вам начислена неявка: $time';
+  }
+
+  @override
+  String get eventNoShowOrganizerClear => 'Неявка вам не начислена.';
+
+  @override
+  String get eventNoShowDisputeAction => 'Оспорить неявку';
+
+  @override
+  String eventNoShowDisputeUntil(String time) {
+    return 'Оспорить можно до $time.';
+  }
+
+  @override
+  String get eventNoShowDisputeOpen =>
+      'Спор у модератора: пока решение не принято, неявка не учитывается.';
+
+  @override
+  String get eventNoShowDisputeResolved => 'Спор закрыт.';
+
+  @override
+  String get eventNoShowDisputeDone => 'Спор открыт.';
+
+  @override
+  String get eventNoShowParticipantMarksTitle => 'Неявки участников';
+
+  @override
+  String get eventNoShowParticipantMarksEmpty =>
+      'Никому из участников неявка не начислена.';
+
+  @override
+  String get eventNoShowParticipant => 'участник';
+
+  @override
+  String get eventNoShowModerationNote =>
+      'Спор решает модератор в панели модерации; решение в приложении пока не показывается.';
+
+  @override
+  String get eventNoShowNotRegistered =>
+      'Голосовать может только записавшийся участник.';
+
+  @override
+  String get eventNoShowForbidden =>
+      'Итог мероприятия видят организатор и записавшиеся участники.';
+
+  @override
+  String get eventNoShowUnavailable => 'Для этого мероприятия итог недоступен.';
+
+  @override
+  String get eventNoShowVoteClosed => 'Голосование закрыто.';
+
+  @override
+  String get eventNoShowDisputeClosed => 'Спор уже закрыт.';
+
+  @override
+  String get eventNoShowDisputeForbidden =>
+      'Оспорить неявку может только организатор мероприятия.';
+
+  @override
+  String get eventNoShowDisputeUnavailable =>
+      'Начисленной неявки, которую можно оспорить, нет.';
+
+  @override
+  String get noShowOtherParticipant => 'другой участник';
+
+  @override
+  String get noShowAnswerHint =>
+      'Если встреча всё-таки состоялась, ответьте: это взаимное возражение, спор рассмотрит модератор.';
+
+  @override
+  String get noShowLoanUnavailable =>
+      'Неявку в займе нельзя отметить: вещь уже передана. После срока возврата владелец отмечает «не вернули».';
 }

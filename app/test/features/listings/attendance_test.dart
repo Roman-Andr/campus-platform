@@ -1,6 +1,7 @@
 import 'dart:ui' show Locale;
 
 import 'package:campus/src/core/api/api_client.dart';
+import 'package:campus/src/core/api/mutation_keys.dart';
 import 'package:campus/src/core/l10n/generated/app_localizations.dart';
 import 'package:campus/src/features/listings/application/attendance.dart';
 import 'package:campus/src/features/listings/domain/attendance.dart';
@@ -308,7 +309,7 @@ void main() {
 
     test('a repeat of a request keeps the key of its intent', () {
       var counter = 0;
-      final keys = AttendanceKeys(generate: () => 'key-${++counter}');
+      final keys = MutationKeys(generate: () => 'key-${++counter}');
 
       expect(keys.of('self:code-a'), 'key-1');
       expect(keys.of('self:code-a'), 'key-1');
