@@ -90,8 +90,13 @@ enum ProblemCodeValue {
   notificationTypeUnknown("notification_type_unknown"),
   photoUnavailable("photo_unavailable"),
   profileIncomplete("profile_incomplete"),
+  qrAcceptanceUnknown("qr_acceptance_unknown"),
   qrAlreadyCompleted("qr_already_completed"),
+  qrAlreadyConfirmed("qr_already_confirmed"),
+  qrBeforeAcceptance("qr_before_acceptance"),
+  qrConfirmationConflict("qr_confirmation_conflict"),
   qrExpired("qr_expired"),
+  qrIssuedInFuture("qr_issued_in_future"),
   qrKeyInvalid("qr_key_invalid"),
   qrNonceReused("qr_nonce_reused"),
   qrNotAccepted("qr_not_accepted"),
@@ -357,10 +362,25 @@ sealed class ProblemCode {
   static const profileIncomplete = ProblemCodeKnown(
     ProblemCodeValue.profileIncomplete,
   );
+  static const qrAcceptanceUnknown = ProblemCodeKnown(
+    ProblemCodeValue.qrAcceptanceUnknown,
+  );
   static const qrAlreadyCompleted = ProblemCodeKnown(
     ProblemCodeValue.qrAlreadyCompleted,
   );
+  static const qrAlreadyConfirmed = ProblemCodeKnown(
+    ProblemCodeValue.qrAlreadyConfirmed,
+  );
+  static const qrBeforeAcceptance = ProblemCodeKnown(
+    ProblemCodeValue.qrBeforeAcceptance,
+  );
+  static const qrConfirmationConflict = ProblemCodeKnown(
+    ProblemCodeValue.qrConfirmationConflict,
+  );
   static const qrExpired = ProblemCodeKnown(ProblemCodeValue.qrExpired);
+  static const qrIssuedInFuture = ProblemCodeKnown(
+    ProblemCodeValue.qrIssuedInFuture,
+  );
   static const qrKeyInvalid = ProblemCodeKnown(ProblemCodeValue.qrKeyInvalid);
   static const qrNonceReused = ProblemCodeKnown(ProblemCodeValue.qrNonceReused);
   static const qrNotAccepted = ProblemCodeKnown(ProblemCodeValue.qrNotAccepted);

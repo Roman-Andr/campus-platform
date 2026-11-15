@@ -154,6 +154,9 @@ msgstr ""
 msgid "Interaction already completed"
 msgstr ""
 
+msgid "Interaction already confirmed"
+msgstr ""
+
 msgid "Internal error"
 msgstr ""
 
@@ -341,6 +344,9 @@ msgstr ""
 msgid "Profile incomplete"
 msgstr ""
 
+msgid "QR acceptance time is unavailable"
+msgstr ""
+
 msgid "QR code already used"
 msgstr ""
 
@@ -356,7 +362,13 @@ msgstr ""
 msgid "QR code is from the future"
 msgstr ""
 
+msgid "QR code predates acceptance"
+msgstr ""
+
 msgid "QR code rejected"
+msgstr ""
+
+msgid "QR confirmation conflict"
 msgstr ""
 
 msgid "QR confirmation is unavailable"
@@ -492,6 +504,11 @@ msgid ""
 "lifetime."
 msgstr ""
 
+msgid ""
+"The interaction is already completed by a stored QR confirmation; this "
+"offline confirmation was not stored."
+msgstr ""
+
 msgid "The interaction is not accepted and cannot be completed."
 msgstr ""
 
@@ -569,6 +586,12 @@ msgstr ""
 msgid "The offer of a place has expired."
 msgstr ""
 
+msgid "The offline QR code time is later than the server received it."
+msgstr ""
+
+msgid "The offline QR code was formed before the interaction was accepted."
+msgstr ""
+
 msgid "The online QR code is older than the allowed lifetime."
 msgstr ""
 
@@ -634,6 +657,11 @@ msgstr ""
 msgid "The search query must be at most {max_length} characters."
 msgstr ""
 
+msgid ""
+"The server has no trusted acceptance time for this interaction and cannot"
+" verify the offline QR code."
+msgstr ""
+
 msgid "The six-digit confirmation code has expired; request a new one."
 msgstr ""
 
@@ -647,6 +675,9 @@ msgid "This Idempotency-Key was already used for a different request."
 msgstr ""
 
 msgid "This action is not allowed."
+msgstr ""
+
+msgid "This device confirmation ID was already used for a different payload."
 msgstr ""
 
 msgid "This field is not allowed."

@@ -30,6 +30,7 @@ from campus.modules.reputation.service import (
     QrResult,
     base64url_encode,
     confirm_with_code,
+    confirm_with_offline_qr,
     confirm_with_qr,
     issue_confirmation_code,
     public_key_bytes,
@@ -173,6 +174,56 @@ class QrScanOutput(BaseModel):
     )
 
 
+class OfflineQrScanInput(BaseModel):
+    """A stored offline QR code and its detached signature."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    payload: str = Field(
+        max_length=4096,
+        description=(
+            "Base64url-encoded UTF-8 JSON with v=2, confirmation_id,"
+            " listing_id, interaction_id, presenter_id, key_id, issued_at"
+            " and nonce. The private key never leaves the showing device."
+        ),
+    )
+    signature: str = Field(
+        max_length=256,
+        description=(
+            "Base64url-encoded 64-byte Ed25519 signature of the decoded payload"
+            " bytes, made by the showing device."
+        ),
+    )
+
+
+class OfflineQrScanOutput(BaseModel):
+    """The interaction after a delayed offline QR confirmation."""
+
+    listing_id: UUID
+    interaction_id: UUID
+    confirmation_id: UUID
+    presenter_id: UUID
+    scanner_id: UUID
+    mode: str = Field(default="offline", description="Always 'offline'.")
+    status: InteractionStatus
+    completed: bool
+    completed_at: Instant | None
+    completion_method: CompletionMethod | None
+    rating_weight: float | None
+    nonce: UUID
+    issued_at: Instant
+    received_at: Instant
+    replayed: bool = Field(
+        description=(
+            "True when the same confirmation_id was already stored and the"
+            " original result is returned without a second effect."
+        )
+    )
+    server_time: Instant = Field(
+        description="Current server time, so the client can correct its clock."
+    )
+
+
 class CodeIssueOutput(BaseModel):
     """A freshly issued code; only its requester receives the plaintext."""
 
@@ -222,11 +273,14 @@ class CodeConfirmOutput(BaseModel):
 
 
 class ServerTimeOutput(BaseModel):
-    """Server time and the online QR timing parameters."""
+    """Server time and the QR timing parameters."""
 
     now: Instant
     qr_online_ttl: int = Field(
         ge=1, description="Maximum age of an online QR code, in seconds."
+    )
+    qr_offline_ttl: int = Field(
+        ge=1, description="Maximum accepted age of an offline QR code, in seconds."
     )
     qr_clock_skew: int = Field(
         ge=0, description="Accepted clock skew into the future, in seconds."
@@ -302,6 +356,35 @@ def qr_scan_output(result: QrResult, now: Instant) -> QrScanOutput:
     )
 
 
+def offline_qr_scan_output(result: QrResult, now: Instant) -> OfflineQrScanOutput:
+    interaction = result.interaction
+    status = InteractionStatus(interaction.status)
+    method = (
+        CompletionMethod(interaction.completion_method)
+        if interaction.completion_method is not None
+        else None
+    )
+    if result.confirmation_id is None:  # pragma: no cover - offline always has one
+        raise RuntimeError("offline QR result without a confirmation id")
+    return OfflineQrScanOutput(
+        listing_id=interaction.listing_id,
+        interaction_id=interaction.id,
+        confirmation_id=result.confirmation_id,
+        presenter_id=result.presenter_id,
+        scanner_id=result.scanner_id,
+        status=status,
+        completed=status == InteractionStatus.COMPLETED,
+        completed_at=interaction.completed_at,
+        completion_method=method,
+        rating_weight=interaction.completion_weight,
+        nonce=result.nonce,
+        issued_at=result.issued_at,
+        received_at=result.received_at,
+        replayed=result.replayed,
+        server_time=now,
+    )
+
+
 @device_router.put("")
 async def register_key(
     data: DeviceKeyInput,
@@ -357,6 +440,38 @@ async def scan_qr(  # noqa: PLR0913, PLR0917 - request parts
         request.app.state.settings,
     )
     return qr_scan_output(result, now)
+
+
+@qr_router.post("/offline")
+async def scan_offline_qr(  # noqa: PLR0913, PLR0917 - request parts
+    listing_id: UUID,
+    interaction_id: UUID,
+    data: OfflineQrScanInput,
+    request: Request,
+    session: DbSession,
+    principal: ActiveSession,
+) -> OfflineQrScanOutput:
+    """Confirm an accepted interaction with a code stored while offline.
+
+    The showing device signs the version 2 payload once and keeps it; the
+    scanning device may deliver it later. The server accepts it when the
+    Ed25519 signature is valid for the key that existed at ``issued_at``,
+    the interaction was already accepted, ``issued_at`` is not later than
+    the receipt and the code is at most 24 hours old. The device-generated
+    ``confirmation_id`` makes a retry after the Idempotency-Key expiry
+    return the stored result; an altered payload with the same id conflicts.
+    """
+    now = clock.now()
+    result = await confirm_with_offline_qr(
+        session,
+        listing_id,
+        interaction_id,
+        principal.user_id,
+        data.payload,
+        data.signature,
+        request.app.state.settings,
+    )
+    return offline_qr_scan_output(result, now)
 
 
 @code_router.post("")
@@ -437,5 +552,6 @@ async def server_time(request: Request) -> ServerTimeOutput:
     return ServerTimeOutput(
         now=clock.now(),
         qr_online_ttl=max(1, math.ceil(settings.qr_online_ttl.total_seconds())),
+        qr_offline_ttl=max(1, math.ceil(settings.qr_offline_ttl.total_seconds())),
         qr_clock_skew=max(0, math.ceil(settings.qr_clock_skew.total_seconds())),
     )

@@ -352,3 +352,34 @@ def test_notification_importance_is_backfilled(empty_database: str) -> None:
     assert rows[0]["important"] is False
     run_alembic(empty_database, "downgrade", "85a000000001")
     assert len(asyncio.run(fetch(empty_database, "SELECT id FROM notification"))) == 1
+
+
+def test_offline_qr_schema_migrates(empty_database: str) -> None:
+    columns = """
+        SELECT column_name FROM information_schema.columns
+        WHERE table_name = 'reputation_qr_scan'
+    """
+    constraints = """
+        SELECT conname FROM pg_constraint
+        WHERE conname IN (
+            'uq_reputation_qr_scan_confirmation_id',
+            'ck_reputation_qr_scan_mode',
+            'ck_reputation_qr_scan_offline_fields'
+        )
+    """
+    indexes = """
+        SELECT indexname FROM pg_indexes
+        WHERE indexname = 'ix_listing_event_interaction_accepted'
+    """
+
+    run_alembic(empty_database, "upgrade", "head")
+    names = {row["column_name"] for row in asyncio.run(fetch(empty_database, columns))}
+    assert {"mode", "confirmation_id", "payload_hash", "received_at"} <= names
+    assert len(asyncio.run(fetch(empty_database, constraints))) == 3
+    assert asyncio.run(fetch(empty_database, indexes))
+
+    run_alembic(empty_database, "downgrade", "81a000000001")
+    names = {row["column_name"] for row in asyncio.run(fetch(empty_database, columns))}
+    assert not {"mode", "confirmation_id", "payload_hash", "received_at"} & names
+    assert asyncio.run(fetch(empty_database, constraints)) == []
+    assert asyncio.run(fetch(empty_database, indexes)) == []
