@@ -67,6 +67,7 @@ class FakeHttpAdapter implements HttpClientAdapter {
     },
     this.photos = const {'items': <Object?>[]},
     this.skills = const {'can': <Object?>[], 'wants': <Object?>[]},
+    this.blocks = const {'items': <Object?>[], 'next_page': null},
     this.photo,
   });
 
@@ -77,6 +78,11 @@ class FakeHttpAdapter implements HttpClientAdapter {
   /// Answer to `GET /api/v1/me/skills`; `null` passes those requests to
   /// the queued replies.
   Map<String, Object?>? skills;
+
+  /// Answer to `GET /api/v1/me/blocks`; an empty blacklist by default, so
+  /// opening a chat does not need a queued reply. `null` passes the request
+  /// to the queued replies.
+  Map<String, Object?>? blocks;
 
   /// The profile photo `GET /api/v1/me/photo` returns; `null`: none (404).
   Map<String, Object?>? photo;
@@ -184,6 +190,11 @@ class FakeHttpAdapter implements HttpClientAdapter {
         options.method == 'GET' &&
         options.path == '$mePath/skills') {
       return jsonBody(200, skills);
+    }
+    if (blocks != null &&
+        options.method == 'GET' &&
+        options.path == '$mePath/blocks') {
+      return jsonBody(200, blocks);
     }
     final reply = _replies.isEmpty ? _last : _replies.removeAt(0);
     if (reply == null && options.path == '/api/v1/auth/token/refresh') {

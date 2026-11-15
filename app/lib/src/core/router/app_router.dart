@@ -24,6 +24,8 @@ import '../../features/listings/presentation/publication_screen.dart';
 import '../../features/listings/presentation/purchase_screen.dart';
 import '../../features/listings/presentation/skill_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
+import '../../features/privacy/presentation/blocked_users_screen.dart';
+import '../../features/privacy/presentation/message_policy_screen.dart';
 import '../../features/profile/application/my_profile.dart';
 import '../../features/profile/presentation/profile_form_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -50,6 +52,8 @@ abstract final class AppRoutes {
   static const profileEdit = '/profile/edit';
   static const profileEmails = '/profile/emails';
   static const profileSkills = '/profile/skills';
+  static const messagePolicy = '/profile/message-policy';
+  static const blockedUsers = '/profile/blocked';
   static const notifications = '/notifications';
   static const chats = '/chats';
   static const chatSearch = '/chats/search';
@@ -191,6 +195,14 @@ GoRouter appRouter(Ref ref) {
               GoRoute(
                 path: AppRoutes.profileSkills.split('/').last,
                 builder: (context, state) => const SkillsScreen(),
+              ),
+              GoRoute(
+                path: AppRoutes.messagePolicy.split('/').last,
+                builder: (context, state) => const MessagePolicyScreen(),
+              ),
+              GoRoute(
+                path: AppRoutes.blockedUsers.split('/').last,
+                builder: (context, state) => const BlockedUsersScreen(),
               ),
             ],
           ),

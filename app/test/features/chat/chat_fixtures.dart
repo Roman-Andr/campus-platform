@@ -41,13 +41,14 @@ ParticipantOutput participantJson({
 
 ChatOutput chatJson({
   String id = 'chat-1',
+  String kind = 'personal',
   List<ParticipantOutput>? participants,
   MessageOutput? lastMessage,
   String? listingId = 'listing-1',
   DateTime? updatedAt,
 }) => ChatOutput(
   id: id,
-  kind: 'personal',
+  kind: kind,
   listingId: listingId,
   interactionId: null,
   createdAt: DateTime.utc(2026, 11, 14, 10),

@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../../core/l10n/l10n.dart';
 import '../../../core/router/app_router.dart';
+import '../../profile/application/my_profile.dart';
 import '../application/chats.dart';
 import 'chat_labels.dart';
 
@@ -44,7 +45,12 @@ class _ListingChatButtonState extends ConsumerState<ListingChatButton> {
       await context.push(AppRoutes.chatOf(chat.id));
     } on Object catch (error) {
       if (!mounted) return;
-      setState(() => _error = chatFailureMessage(context.l10n, error));
+      final alumni =
+          ref.read(myProfileProvider).value?.accountType.toJson() ==
+          'former_employee';
+      setState(
+        () => _error = chatFailureMessage(context.l10n, error, alumni: alumni),
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }

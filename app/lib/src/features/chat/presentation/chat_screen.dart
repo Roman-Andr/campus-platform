@@ -2,10 +2,14 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../core/api/generated/campus_api.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/widgets/api_error_view.dart';
+import '../../listings/application/listings.dart';
+import '../../privacy/application/privacy.dart';
+import '../../privacy/presentation/privacy_labels.dart';
 import '../../profile/application/my_profile.dart';
 import '../application/chat_config.dart';
 import '../application/chat_history.dart';
@@ -15,6 +19,8 @@ import '../domain/chat.dart';
 import 'chat_input_limit.dart';
 import 'chat_labels.dart';
 import 'chats_screen.dart' show chatTime;
+
+enum _ChatPrivacyAction { block, unblock }
 
 /// One personal dialog: history ordered by the server, a durable composer
 /// and live wakeups that reconcile the history through the API.
@@ -39,6 +45,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   late final ChatQueue _queue;
   String? _formError;
   String? _olderError;
+  String? _privacyError;
+  String? _blockKey;
+  String? _unblockKey;
+  bool _privacyBusy = false;
   bool _prependInProgress = false;
   bool _initialScrollDone = false;
   bool _jumpLoading = false;
@@ -176,6 +186,82 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
+  Future<bool> _confirmBlock() async {
+    final l10n = context.l10n;
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(l10n.chatBlockTitle),
+            content: Text(l10n.chatBlockExplanation),
+            actions: [
+              TextButton(
+                key: const Key('chat-block-cancel'),
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(l10n.chatBlockCancel),
+              ),
+              FilledButton(
+                key: const Key('chat-block-confirm'),
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text(l10n.chatBlock),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  Future<void> _block(ParticipantOutput other) async {
+    if (_privacyBusy || !await _confirmBlock()) return;
+    final key = _blockKey ??= const Uuid().v7();
+    setState(() {
+      _privacyBusy = true;
+      _privacyError = null;
+    });
+    try {
+      await ref
+          .read(blockedUsersProvider.notifier)
+          .block(other.id, idempotencyKey: key);
+      if (!mounted) return;
+      _blockKey = null;
+      refreshListings(ref);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(context.l10n.chatBlocked)));
+    } on Object catch (error) {
+      if (!mounted) return;
+      setState(
+        () => _privacyError = privacyFailureMessage(context.l10n, error),
+      );
+    } finally {
+      if (mounted) setState(() => _privacyBusy = false);
+    }
+  }
+
+  Future<void> _unblock(ParticipantOutput other) async {
+    if (_privacyBusy) return;
+    final key = _unblockKey ??= const Uuid().v7();
+    setState(() {
+      _privacyBusy = true;
+      _privacyError = null;
+    });
+    try {
+      await ref
+          .read(blockedUsersProvider.notifier)
+          .unblock(other.id, idempotencyKey: key);
+      if (!mounted) return;
+      _unblockKey = null;
+      refreshListings(ref);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(context.l10n.chatUnblocked)));
+    } on Object catch (error) {
+      if (!mounted) return;
+      setState(
+        () => _privacyError = privacyFailureMessage(context.l10n, error),
+      );
+    } finally {
+      if (mounted) setState(() => _privacyBusy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -184,18 +270,61 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final history = ref.watch(chatHistoryProvider(widget.id));
     final queue = ref.watch(chatQueueProvider).value ?? const ChatQueueState();
     final other = chat == null ? null : otherParticipant(chat, user?.id);
+    final personal = chat?.kind == 'personal';
     final title = other == null || participantName(other).isEmpty
         ? l10n.chatTitle
         : participantName(other);
+    final blockedUsers = ref.watch(blockedUsersProvider).value;
+    final knownBlocked =
+        personal &&
+        other != null &&
+        (blockedUsers?.contains(other.id) ?? false);
+    // The first loaded page may not contain the participant. Walk the
+    // remaining pages before showing the composer as available; a block
+    // made on another device must not be mistaken for an unblocked user.
+    final checkOther =
+        personal &&
+        other != null &&
+        !knownBlocked &&
+        blockedUsers?.nextPage != null;
+    final foundBlocked = other != null && checkOther
+        ? ref.watch(blockedUserProvider(other.id)).value ?? false
+        : false;
+    final blocked = knownBlocked || foundBlocked;
 
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+        actions: [
+          if (personal && other != null && other.id != user?.id)
+            PopupMenuButton<_ChatPrivacyAction>(
+              key: const Key('chat-menu'),
+              tooltip: l10n.moreActions,
+              enabled: !_privacyBusy,
+              onSelected: (action) => unawaited(
+                action == _ChatPrivacyAction.block
+                    ? _block(other)
+                    : _unblock(other),
+              ),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  key: ValueKey(blocked ? 'chat-unblock' : 'chat-block'),
+                  value: blocked
+                      ? _ChatPrivacyAction.unblock
+                      : _ChatPrivacyAction.block,
+                  child: Text(blocked ? l10n.chatUnblock : l10n.chatBlock),
+                ),
+              ],
+            ),
+        ],
+      ),
       body: switch (history) {
         AsyncValue(value: final state?) => _buildChat(
           context,
           user: user,
           history: state,
           queue: queue,
+          blocked: blocked,
         ),
         AsyncValue(:final error?) => ApiErrorView(
           error: error,
@@ -215,6 +344,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     required UserOutput? user,
     required ChatHistoryState history,
     required ChatQueueState queue,
+    required bool blocked,
   }) {
     final l10n = context.l10n;
     final items = chatThread(
@@ -395,43 +525,71 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
-        SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: TextField(
-                    key: const Key('chat-input'),
-                    controller: _input,
-                    minLines: 1,
-                    maxLines: 5,
-                    textInputAction: TextInputAction.newline,
-                    inputFormatters: [
-                      ChatMessageLengthFormatter(
-                        ref.watch(chatConfigProvider).maxMessageLength,
-                      ),
-                    ],
-                    decoration: InputDecoration(
-                      hintText: l10n.chatInputHint,
-                      border: const OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton.filled(
-                  key: const Key('chat-send'),
-                  tooltip: l10n.chatSend,
-                  onPressed: _send,
-                  icon: const Icon(Icons.send),
-                ),
-              ],
+        if (_privacyError != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              _privacyError!,
+              key: const Key('chat-privacy-error'),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
-        ),
+        if (blocked)
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: Row(
+                key: const Key('chat-blocked-banner'),
+                children: [
+                  Icon(
+                    Icons.shield_outlined,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(l10n.chatBlockedNotice)),
+                ],
+              ),
+            ),
+          )
+        else
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: TextField(
+                      key: const Key('chat-input'),
+                      controller: _input,
+                      minLines: 1,
+                      maxLines: 5,
+                      textInputAction: TextInputAction.newline,
+                      inputFormatters: [
+                        ChatMessageLengthFormatter(
+                          ref.watch(chatConfigProvider).maxMessageLength,
+                        ),
+                      ],
+                      decoration: InputDecoration(
+                        hintText: l10n.chatInputHint,
+                        border: const OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton.filled(
+                    key: const Key('chat-send'),
+                    tooltip: l10n.chatSend,
+                    onPressed: _send,
+                    icon: const Icon(Icons.send),
+                  ),
+                ],
+              ),
+            ),
+          ),
       ],
     );
   }

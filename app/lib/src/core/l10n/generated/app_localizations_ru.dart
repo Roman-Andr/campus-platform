@@ -2073,4 +2073,75 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get purchaseManageShare => 'Доля меняется в карточке закупки.';
+
+  @override
+  String get profilePrivacy => 'Приватность';
+
+  @override
+  String get messagePolicyTitle => 'Кто может мне писать';
+
+  @override
+  String get messagePolicyIntro =>
+      'Настройка действует на всех ваших устройствах.';
+
+  @override
+  String get messagePolicyAll => 'Все пользователи';
+
+  @override
+  String get messagePolicyAllHint =>
+      'Любой студент или сотрудник может начать с вами личный диалог.';
+
+  @override
+  String get messagePolicyRelated => 'Только по объявлениям и взаимодействиям';
+
+  @override
+  String get messagePolicyRelatedHint =>
+      'Писать могут только те, с кем у вас есть общее объявление или начатое взаимодействие.';
+
+  @override
+  String get blockedUsersTitle => 'Чёрный список';
+
+  @override
+  String get blockedUsersEmpty => 'В чёрном списке пока никого нет.';
+
+  @override
+  String blockedUsersBlockedAt(String date) {
+    return 'В чёрном списке с $date';
+  }
+
+  @override
+  String get blockedUsersMore => 'Загрузить ещё';
+
+  @override
+  String get blockedUsersUnblock => 'Разблокировать';
+
+  @override
+  String get chatBlock => 'Заблокировать';
+
+  @override
+  String get chatUnblock => 'Разблокировать';
+
+  @override
+  String get chatBlockTitle => 'Заблокировать пользователя?';
+
+  @override
+  String get chatBlockExplanation =>
+      'Новые личные сообщения и отклики в обе стороны станут недоступны. Начатые взаимодействия и история диалога сохранятся.';
+
+  @override
+  String get chatBlockCancel => 'Отмена';
+
+  @override
+  String get chatBlocked => 'Пользователь заблокирован.';
+
+  @override
+  String get chatUnblocked => 'Пользователь разблокирован.';
+
+  @override
+  String get chatBlockedNotice =>
+      'Вы заблокировали этого пользователя. Новые сообщения недоступны.';
+
+  @override
+  String get chatUnavailable =>
+      'Личные сообщения с этим пользователем недоступны.';
 }

@@ -2081,4 +2081,75 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get purchaseManageShare => 'Change your share on the purchase card.';
+
+  @override
+  String get profilePrivacy => 'Privacy';
+
+  @override
+  String get messagePolicyTitle => 'Who can message me';
+
+  @override
+  String get messagePolicyIntro => 'This setting applies on all your devices.';
+
+  @override
+  String get messagePolicyAll => 'Everyone';
+
+  @override
+  String get messagePolicyAllHint =>
+      'Any student or employee can start a personal chat with you.';
+
+  @override
+  String get messagePolicyRelated =>
+      'Only people with a listing or interaction';
+
+  @override
+  String get messagePolicyRelatedHint =>
+      'Only people who share a listing or a started interaction with you can write.';
+
+  @override
+  String get blockedUsersTitle => 'Blocked users';
+
+  @override
+  String get blockedUsersEmpty => 'No one is blocked yet.';
+
+  @override
+  String blockedUsersBlockedAt(String date) {
+    return 'Blocked on $date';
+  }
+
+  @override
+  String get blockedUsersMore => 'Load more';
+
+  @override
+  String get blockedUsersUnblock => 'Unblock';
+
+  @override
+  String get chatBlock => 'Block';
+
+  @override
+  String get chatUnblock => 'Unblock';
+
+  @override
+  String get chatBlockTitle => 'Block this user?';
+
+  @override
+  String get chatBlockExplanation =>
+      'New personal messages and responses in both directions will be unavailable. Started interactions and the chat history stay available.';
+
+  @override
+  String get chatBlockCancel => 'Cancel';
+
+  @override
+  String get chatBlocked => 'The user is blocked.';
+
+  @override
+  String get chatUnblocked => 'The user is unblocked.';
+
+  @override
+  String get chatBlockedNotice =>
+      'You blocked this user. New messages are unavailable.';
+
+  @override
+  String get chatUnavailable =>
+      'Personal messaging with this user is unavailable.';
 }
