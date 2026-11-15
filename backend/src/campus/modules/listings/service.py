@@ -25,6 +25,7 @@ from campus.modules.identity import (
 from campus.modules.listings.models import (
     PERMANENT_KINDS,
     Audience,
+    CancellationActor,
     CompletionMethod,
     Interaction,
     InteractionStatus,
@@ -41,12 +42,14 @@ from campus.modules.listings.models import (
     WaitlistStatus,
 )
 from campus.modules.notifications import (
+    LISTING_CANCELLED,
     LISTING_OFFER,
     LISTING_OFFER_EXPIRED,
     LISTING_WAITLIST_CLEARED,
     LISTING_WAITLIST_JOINED,
     LISTING_WAITLIST_OPEN,
     PURCHASE_CANCELLED,
+    PURCHASE_CANCELLED_BY_AUTHOR,
     PURCHASE_CONDITIONS_CHANGED,
     PURCHASE_FIXED,
     PURCHASE_REMINDER,
@@ -192,6 +195,18 @@ PURCHASE_WITHDRAWAL_MISSING = ProblemType(
     "listing_purchase_withdrawal_missing",
     409,
     N_("You have no pending request to leave."),
+)
+CANCEL_REASON_REQUIRED = ProblemType(
+    "listing_cancel_reason_required",
+    422,
+    N_("A cancellation reason is required."),
+    N_("Accepted interactions can only be cancelled with a reason."),
+)
+CANCEL_REASON_INVALID = ProblemType(
+    "listing_cancel_reason_invalid",
+    422,
+    N_("Invalid cancellation reason."),
+    N_("The reason must be at most {max} characters."),
 )
 
 MEETING_PROPOSED = N_("A meeting time and place were proposed.")
@@ -424,6 +439,75 @@ def listing_start(listing: Listing) -> datetime | None:
     """Start time of a listing whose type has one; ``None`` otherwise."""
     resolver = TYPE_POLICIES[listing.kind].start_time
     return resolver(listing) if resolver is not None else None
+
+
+def interaction_start(listing: Listing, interaction: Interaction) -> datetime | None:
+    """The moment before which a participant cancellation may be late."""
+    meeting = interaction.meeting
+    if meeting is not None and meeting.scheduled_at is not None:
+        return meeting.scheduled_at
+    return listing.event_starts_at
+
+
+def normalized_cancellation_reason(
+    reason: str | None, settings: Settings, *, required: bool
+) -> str | None:
+    """Strip an author's reason; require it for a listing with accepted people."""
+    text = (reason or "").strip()
+    if not text:
+        if required:
+            raise ProblemError(CANCEL_REASON_REQUIRED)
+        return None
+    if len(text) > settings.listing_cancellation_reason_max_length:
+        raise ProblemError(
+            CANCEL_REASON_INVALID,
+            max=settings.listing_cancellation_reason_max_length,
+        )
+    return text
+
+
+async def accepted_interactions(
+    session: AsyncSession, listing_id: UUID
+) -> list[Interaction]:
+    return list(
+        await session.scalars(
+            select(Interaction).where(
+                Interaction.listing_id == listing_id,
+                Interaction.status == InteractionStatus.ACCEPTED,
+            )
+        )
+    )
+
+
+def is_late_cancellation(
+    listing: Listing, interaction: Interaction, settings: Settings
+) -> bool:
+    """Whether a participant cancellation counts as late (#55).
+
+    A change of conditions initiated by the other party makes the exit
+    penalty-free. A fixed purchase share is late regardless of a meeting;
+    after the collection is frozen its volume is already committed.
+    """
+    if interaction.status != InteractionStatus.ACCEPTED:
+        return False
+    if (
+        interaction.conditions_changed_at is not None
+        and interaction.conditions_changed_by_id != interaction.participant_id
+    ):
+        return False
+    if listing.kind == "purchase":
+        return listing.purchase_stage == PurchaseStage.FIXED
+    start = interaction_start(listing, interaction)
+    return (
+        start is not None
+        and start - clock.now() < settings.listing_late_cancellation_threshold
+    )
+
+
+def mark_conditions_changed(interaction: Interaction, actor_id: UUID) -> None:
+    """Remember an author-side change that removes the late-cancel penalty."""
+    interaction.conditions_changed_at = clock.now()
+    interaction.conditions_changed_by_id = actor_id
 
 
 def offer_timing(
@@ -1175,6 +1259,9 @@ async def leave_purchase(
     units = interaction.units or 0
     interaction.status = InteractionStatus.CANCELLED
     interaction.stage = None
+    interaction.cancelled_by = CancellationActor.PARTICIPANT.value
+    interaction.cancellation_reason = None
+    interaction.late_cancelled = False
     listing.purchase_taken_units = max(0, listing.purchase_taken_units - units)
     listing.version += 1
     record(
@@ -1184,7 +1271,7 @@ async def leave_purchase(
         "share_left",
         InteractionStatus.ACCEPTED,
         interaction,
-        details={"units": units},
+        details={"units": units, "late": False},
     )
     await offer_next(
         session,
@@ -1265,6 +1352,7 @@ async def decide_purchase_withdrawal(  # noqa: PLR0913 - decision fields
     reason: str | None,
     offer_timeout: timedelta,
     open_all_before: timedelta,
+    settings: Settings | None = None,
 ) -> None:
     """The organiser approves or rejects a request to leave a fixed purchase."""
     if listing.author_id != actor_id:
@@ -1277,8 +1365,12 @@ async def decide_purchase_withdrawal(  # noqa: PLR0913 - decision fields
     listing.version += 1
     if approve:
         units = interaction.units or 0
+        late = is_late_cancellation(listing, interaction, settings or get_settings())
         interaction.status = InteractionStatus.CANCELLED
         interaction.stage = None
+        interaction.cancelled_by = CancellationActor.PARTICIPANT.value
+        interaction.cancellation_reason = reason
+        interaction.late_cancelled = late
         listing.purchase_taken_units = max(0, listing.purchase_taken_units - units)
         append_event(
             session,
@@ -1288,7 +1380,7 @@ async def decide_purchase_withdrawal(  # noqa: PLR0913 - decision fields
             InteractionStatus.ACCEPTED,
             interaction,
             reason=reason,
-            details={"units": units},
+            details={"units": units, "late": late},
         )
         notify(
             session,
@@ -1383,6 +1475,8 @@ async def update_purchase_conditions(  # noqa: PLR0913 - edited fields
             "previous": previous,
         },
     )
+    for share in await accepted_interactions(session, listing.id):
+        mark_conditions_changed(share, listing.author_id)
     await cancel_purchase_deadlines(session, listing.id)
     await schedule_purchase_deadlines(session, listing, settings)
     recipients = await purchase_participants(session, listing)
@@ -1507,46 +1601,130 @@ async def fix_purchase_composition(session: AsyncSession, listing: Listing) -> N
     await cancel_purchase_deadlines(session, listing.id)
 
 
-async def cancel_purchase(session: AsyncSession, listing: Listing, reason: str) -> None:
-    """Cancel a collecting purchase and every share in it."""
+async def cancel_purchase(
+    session: AsyncSession,
+    listing: Listing,
+    reason: str | None,
+    *,
+    actor_id: UUID | None = None,
+) -> None:
+    """Cancel a collecting purchase and every share in it.
+
+    The organiser supplies a reason that every participant can read; a
+    deadline cancellation is attributed to the server instead.
+    """
     if listing.purchase_stage != PurchaseStage.COLLECTING:
         raise ProblemError(PURCHASE_CLOSED)
-    shares = list(
-        await session.scalars(
-            select(Interaction).where(
-                Interaction.listing_id == listing.id,
-                Interaction.status == InteractionStatus.ACCEPTED,
-            )
-        )
-    )
+    shares = await accepted_interactions(session, listing.id)
     recipients = {share.participant_id for share in shares}
+    actor = (
+        CancellationActor.AUTHOR if actor_id is not None else CancellationActor.SYSTEM
+    )
     for share in shares:
         share.status = InteractionStatus.CANCELLED
         share.stage = None
+        share.cancelled_by = actor.value
+        share.cancellation_reason = reason if actor_id is not None else None
+        share.late_cancelled = False
         append_event(
             session,
             listing,
-            None,
+            actor_id,
             "purchase_cancelled",
             InteractionStatus.ACCEPTED,
             share,
             reason=reason,
-            details={"units": share.units or 0},
+            details={
+                "units": share.units or 0,
+                "by_author": actor_id is not None,
+                "late": False,
+            },
         )
     listing.purchase_taken_units = 0
     listing.purchase_fixed_units = None
     listing.purchase_stage = PurchaseStage.CANCELLED
     listing.version += 1
-    await clear_waitlist(session, listing, reason)
-    change_listing(session, listing, ListingStatus.CANCELLED, None, "cancelled")
+    await clear_waitlist(session, listing, reason or "listing_cancelled")
+    change_listing(
+        session,
+        listing,
+        ListingStatus.CANCELLED,
+        actor_id,
+        "cancelled",
+        reason=reason,
+    )
     notify(
         session,
         recipients,
         "listing.purchase.cancelled",
         {"listing_id": str(listing.id), "reason": reason},
-        message=PURCHASE_CANCELLED,
+        message=(
+            PURCHASE_CANCELLED_BY_AUTHOR if actor_id is not None else PURCHASE_CANCELLED
+        ),
+        message_params={"reason": reason or ""} if actor_id is not None else None,
     )
     await cancel_purchase_deadlines(session, listing.id)
+
+
+async def cancel_listing_by_author(
+    session: AsyncSession,
+    listing: Listing,
+    actor_id: UUID,
+    reason: str | None,
+    settings: Settings,
+) -> None:
+    """Cancel a listing, including its accepted interactions (#55).
+
+    Accepted interactions are cancelled with the author's reason and marked
+    as after-acceptance; pending applications are rejected and the queue is
+    cleared. The caller has already locked the listing and checked rights.
+    """
+    accepted = await accepted_interactions(session, listing.id)
+    reason = normalized_cancellation_reason(reason, settings, required=bool(accepted))
+    change_listing(
+        session,
+        listing,
+        ListingStatus.CANCELLED,
+        actor_id,
+        "cancelled",
+        reason=reason,
+    )
+    for interaction in accepted:
+        await cancel_meeting_reminders(session, interaction.id)
+        await cancel_deadline(session, reservation_key(interaction.id))
+        interaction.status = InteractionStatus.CANCELLED
+        interaction.stage = None
+        interaction.reservation_due_at = None
+        interaction.cancelled_by = CancellationActor.AUTHOR.value
+        interaction.cancellation_reason = reason
+        interaction.late_cancelled = False
+        if listing.kind == "event":
+            listing.event_registered = max(0, listing.event_registered - 1)
+        append_event(
+            session,
+            listing,
+            actor_id,
+            "cancelled_by_author",
+            InteractionStatus.ACCEPTED,
+            interaction,
+            reason=reason,
+            details={"after_acceptance": True, "late": False},
+        )
+        notify(
+            session,
+            {interaction.participant_id},
+            "listing.cancelled",
+            {
+                "listing_id": str(listing.id),
+                "interaction_id": str(interaction.id),
+                "reason": reason,
+            },
+            message=LISTING_CANCELLED,
+            message_params={"reason": reason or ""},
+        )
+    await reject_pending(session, listing, "listing_cancelled")
+    await clear_waitlist(session, listing, "listing_cancelled")
+    await session.flush()
 
 
 async def close_purchase_collection(session: AsyncSession, listing: Listing) -> None:
@@ -1798,12 +1976,14 @@ def record(  # noqa: PLR0913, PLR0917 - event fields
     )
 
 
-def change_listing(
+def change_listing(  # noqa: PLR0913 - transition fields
     session: AsyncSession,
     listing: Listing,
     target: ListingStatus,
     actor_id: UUID | None,
     action: str,
+    *,
+    reason: str | None = None,
 ) -> None:
     if target not in LISTING_TRANSITIONS[ListingStatus(listing.status)]:
         raise ProblemError(CONFLICT)
@@ -1811,7 +1991,14 @@ def change_listing(
     listing.status = target
     listing.version += 1
     listing.archived_at = clock.now() if target in ARCHIVED else None
-    record(session, listing, actor_id, action, previous, reason=listing.hidden_reason)
+    record(
+        session,
+        listing,
+        actor_id,
+        action,
+        previous,
+        reason=reason if reason is not None else listing.hidden_reason,
+    )
 
 
 def reservation_key(interaction_id: UUID) -> str:
@@ -1880,6 +2067,9 @@ async def release_reservation(
     interaction.status = InteractionStatus.CANCELLED
     interaction.stage = None
     interaction.reservation_due_at = None
+    interaction.cancelled_by = CancellationActor.SYSTEM.value
+    interaction.cancellation_reason = None
+    interaction.late_cancelled = False
     released = False
     if listing.status == ListingStatus.BUSY:
         if listing.expires_at is not None and listing.expires_at <= clock.now():
@@ -1897,6 +2087,7 @@ async def release_reservation(
         previous,
         interaction,
         reason=RESERVATION_EXPIRED,
+        details={"late": False},
     )
     if released and listing.kind == "giveaway":
         await offer_next(
@@ -2121,6 +2312,7 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
     completion_method: CompletionMethod | None = None,
     action: str = "transition",
     details: dict[str, Any] | None = None,
+    reason: str | None = None,
 ) -> None:
     expected = TRANSITIONS.get((InteractionStatus(interaction.status), target))
     if expected is None:
@@ -2163,6 +2355,16 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
         ):
             raise ProblemError(CONFLICT)
     previous = interaction.status
+    late = False
+    if target == InteractionStatus.CANCELLED:
+        late = previous == InteractionStatus.ACCEPTED and is_late_cancellation(
+            listing, interaction, settings
+        )
+        interaction.cancelled_by = CancellationActor.PARTICIPANT.value
+        interaction.cancellation_reason = normalized_cancellation_reason(
+            reason, settings, required=False
+        )
+        interaction.late_cancelled = late
     interaction.status = target
     interaction.stage = (
         TYPE_POLICIES[listing.kind].initial_stage
@@ -2219,6 +2421,10 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
         await clear_waitlist(session, listing, "listing_completed")
     elif not claimed:
         listing.version += 1
+    event_details = dict(details or {})
+    if target == InteractionStatus.CANCELLED:
+        event_details["late"] = late
+        event_details["after_acceptance"] = previous == InteractionStatus.ACCEPTED
     record(
         session,
         listing,
@@ -2226,7 +2432,7 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
         action,
         previous,
         interaction,
-        details=details,
+        details=event_details or None,
     )
     if target == InteractionStatus.ACCEPTED:
         await schedule_reservation(session, listing, interaction, settings)

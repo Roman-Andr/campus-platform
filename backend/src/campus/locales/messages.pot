@@ -1,3 +1,6 @@
+msgid "A cancellation reason is required."
+msgstr ""
+
 msgid "A chat must have two different members."
 msgstr ""
 
@@ -14,6 +17,9 @@ msgstr ""
 msgid ""
 "A place in the queue is available for you. Confirm it before the timer "
 "ends."
+msgstr ""
+
+msgid "Accepted interactions can only be cancelled with a reason."
 msgstr ""
 
 msgid "An event or return deadline is approaching."
@@ -109,6 +115,9 @@ msgid "Idempotency key reused"
 msgstr ""
 
 msgid "Internal error"
+msgstr ""
+
+msgid "Invalid cancellation reason."
 msgstr ""
 
 msgid "Invalid client version"
@@ -344,6 +353,10 @@ msgstr ""
 msgid "The X-Client-Platform and X-Client-Version headers are required."
 msgstr ""
 
+#, python-brace-format
+msgid "The author cancelled the listing: {reason}"
+msgstr ""
+
 msgid "The capacity cannot be less than the number registered."
 msgstr ""
 
@@ -462,6 +475,10 @@ msgstr ""
 msgid "The offer of a place has expired."
 msgstr ""
 
+#, python-brace-format
+msgid "The organiser cancelled the purchase: {reason}"
+msgstr ""
+
 msgid "The organiser has decided on your request to leave."
 msgstr ""
 
@@ -484,6 +501,10 @@ msgid "The purchase is no longer collecting."
 msgstr ""
 
 msgid "The realtime server is temporarily unavailable. Try again later."
+msgstr ""
+
+#, python-brace-format
+msgid "The reason must be at most {max} characters."
 msgstr ""
 
 msgid "The request body is not valid JSON."

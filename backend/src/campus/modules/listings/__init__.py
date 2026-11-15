@@ -12,6 +12,7 @@ from campus.modules.listings.event_api import router
 from campus.modules.listings.models import (
     PERMANENT_KINDS,
     Audience,
+    CancellationActor,
     Category,
     CompletionMethod,
     Favorite,
@@ -97,6 +98,7 @@ __all__ = [
     "TYPE_POLICIES",
     "ArchivePurger",
     "Audience",
+    "CancellationActor",
     "Category",
     "CompletionMethod",
     "Favorite",

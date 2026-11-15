@@ -48,6 +48,7 @@ from campus.modules.listings.service import (
     expire_offer,
     join_waitlist,
     locked,
+    mark_conditions_changed,
     offer_next,
     record,
     record_waitlist,
@@ -305,6 +306,7 @@ async def edit_event(
                 message=EVENT_CONDITIONS_CHANGED,
             )
         for interaction in participants:
+            mark_conditions_changed(interaction, principal.user_id)
             meeting = interaction.meeting
             if meeting is not None:
                 meeting.scheduled_at, meeting.location = data.starts_at, location

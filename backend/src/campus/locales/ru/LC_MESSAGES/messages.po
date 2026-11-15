@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 16:13+0300\n"
+"POT-Creation-Date: 2026-11-15 16:42+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -16,6 +16,9 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
+
+msgid "A cancellation reason is required."
+msgstr "Нужна причина отмены."
 
 msgid "A chat must have two different members."
 msgstr "В чате должно быть два разных участника."
@@ -36,6 +39,9 @@ msgid ""
 msgstr ""
 "Для вас освободилось место в очереди. Подтвердите его до истечения "
 "таймера."
+
+msgid "Accepted interactions can only be cancelled with a reason."
+msgstr "Принятые взаимодействия можно отменить только с указанием причины."
 
 msgid "An event or return deadline is approaching."
 msgstr "Приближается мероприятие или срок возврата."
@@ -133,6 +139,9 @@ msgstr "Ключ идемпотентности уже использован"
 
 msgid "Internal error"
 msgstr "Внутренняя ошибка"
+
+msgid "Invalid cancellation reason."
+msgstr "Некорректная причина отмены."
 
 msgid "Invalid client version"
 msgstr "Неверная версия клиента"
@@ -369,6 +378,10 @@ msgstr "Заголовок Idempotency-Key должен быть UUID."
 msgid "The X-Client-Platform and X-Client-Version headers are required."
 msgstr "Нужны заголовки X-Client-Platform и X-Client-Version."
 
+#, python-brace-format
+msgid "The author cancelled the listing: {reason}"
+msgstr "Автор отменил объявление: {reason}"
+
 msgid "The capacity cannot be less than the number registered."
 msgstr "Лимит мест не может быть меньше числа записавшихся."
 
@@ -493,6 +506,10 @@ msgstr "Тип уведомления {type} не поддерживается."
 msgid "The offer of a place has expired."
 msgstr "Срок предложения места истёк."
 
+#, python-brace-format
+msgid "The organiser cancelled the purchase: {reason}"
+msgstr "Организатор отменил закупку: {reason}"
+
 msgid "The organiser has decided on your request to leave."
 msgstr "Организатор принял решение по вашему запросу на выход."
 
@@ -516,6 +533,10 @@ msgstr "Закупка больше не на этапе сбора."
 
 msgid "The realtime server is temporarily unavailable. Try again later."
 msgstr "Сервер реального времени временно недоступен. Повторите попытку позже."
+
+#, python-brace-format
+msgid "The reason must be at most {max} characters."
+msgstr "Причина должна быть не длиннее {max} символов."
 
 msgid "The request body is not valid JSON."
 msgstr "Тело запроса — некорректный JSON."

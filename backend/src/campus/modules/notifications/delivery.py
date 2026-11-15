@@ -26,6 +26,7 @@ from campus.modules.notifications.preferences import external_delivery_allowed
 NOTIFICATION_TYPES = frozenset(
     {
         "listing.activity",
+        "listing.cancelled",
         "listing.waitlist_joined",
         "listing.waitlist_cleared",
         "listing.waitlist_open",
