@@ -20,6 +20,7 @@ class ChatHistoryState {
   const ChatHistoryState({
     this.messages = const <MessageOutput>[],
     this.nextPage,
+    this.syncError,
   });
 
   /// Ordered by the server sequence, oldest first.
@@ -27,6 +28,10 @@ class ChatHistoryState {
 
   /// Cursor of the next older page; null when the beginning is loaded.
   final String? nextPage;
+
+  /// A realtime wakeup could not load the gap; the loaded messages stay and
+  /// the screen offers a retry instead of silently dropping the event.
+  final Object? syncError;
 }
 
 /// Loads and reconciles the history of one personal dialog.
@@ -118,6 +123,7 @@ class ChatHistory extends _$ChatHistory {
         ChatHistoryState(
           messages: mergeMessages(latest.messages, page.items),
           nextPage: page.nextPage,
+          syncError: latest.syncError,
         ),
       );
     } finally {
@@ -202,13 +208,25 @@ class ChatHistory extends _$ChatHistory {
   }
 
   Future<void> _syncFromEvent() async {
+    final generation = _generation;
     try {
       await sync();
-    } on Object {
-      // The realtime banner reports connectivity; the next wakeup or the
-      // explicit retry of the screen loads the history again.
+    } on Object catch (error) {
+      if (!_isGeneration(generation)) return;
+      final current = state.value;
+      if (current == null) return;
+      state = AsyncData(
+        ChatHistoryState(
+          messages: current.messages,
+          nextPage: current.nextPage,
+          syncError: error,
+        ),
+      );
     }
   }
+
+  /// Retries the realtime gap load from the stale-state banner.
+  Future<void> retrySync() => _syncFromEvent();
 
   /// Applies a message delivered by our own outbox without another request.
   Future<void> mergeDelivered(MessageOutput message) async {
@@ -223,7 +241,11 @@ class ChatHistory extends _$ChatHistory {
     if (!_isCurrent(generation, owner)) return;
     final messages = mergeMessages(current?.messages ?? const [], [message]);
     state = AsyncData(
-      ChatHistoryState(messages: messages, nextPage: current?.nextPage),
+      ChatHistoryState(
+        messages: messages,
+        nextPage: current?.nextPage,
+        syncError: current?.syncError,
+      ),
     );
   }
 
@@ -238,7 +260,7 @@ class ChatHistory extends _$ChatHistory {
     try {
       final subscription = await realtime.subscribe(
         RealtimeChannel.chat(chatId),
-        reload: sync,
+        reload: _syncFromEvent,
       );
       if (!ref.mounted || generation != _realtimeGeneration) {
         await subscription.close();

@@ -1632,6 +1632,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMessageRetry => 'Retry';
 
   @override
+  String get chatMessageDiscard => 'Delete';
+
+  @override
+  String get chatLoadMoreFailed => 'Could not load more chats.';
+
+  @override
+  String get chatLoadOlderFailed => 'Could not load earlier messages.';
+
+  @override
+  String get chatSyncFailed => 'Could not refresh the chat.';
+
+  @override
   String get chatLoadOlder => 'Show earlier';
 
   @override

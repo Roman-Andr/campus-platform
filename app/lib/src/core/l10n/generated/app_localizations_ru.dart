@@ -1623,6 +1623,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get chatMessageRetry => 'Повторить';
 
   @override
+  String get chatMessageDiscard => 'Удалить';
+
+  @override
+  String get chatLoadMoreFailed => 'Не удалось загрузить ещё диалоги.';
+
+  @override
+  String get chatLoadOlderFailed =>
+      'Не удалось загрузить более ранние сообщения.';
+
+  @override
+  String get chatSyncFailed => 'Не удалось обновить чат.';
+
+  @override
   String get chatLoadOlder => 'Показать ранее';
 
   @override

@@ -12,6 +12,7 @@ import '../application/chat_history.dart';
 import '../application/chat_queue.dart';
 import '../application/chats.dart';
 import '../domain/chat.dart';
+import 'chat_input_limit.dart';
 import 'chat_labels.dart';
 import 'chats_screen.dart' show chatTime;
 
@@ -34,6 +35,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   late final ChatHistory _history;
   late final ChatQueue _queue;
   String? _formError;
+  String? _olderError;
+  bool _prependInProgress = false;
+  bool _initialScrollDone = false;
   int _shownMessages = 0;
 
   @override
@@ -90,6 +94,43 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
   }
 
+  bool get _isNearBottom =>
+      !_scroll.hasClients ||
+      _scroll.position.maxScrollExtent - _scroll.position.pixels <= 80;
+
+  Future<void> _loadOlder() async {
+    if (_prependInProgress || !_scroll.hasClients) return;
+    final oldMax = _scroll.position.maxScrollExtent;
+    final oldPixels = _scroll.position.pixels;
+    _prependInProgress = true;
+    try {
+      await _history.loadOlder();
+      if (!mounted) return;
+      // The error belongs to the button at the top of the list, not to the
+      // composer at the bottom; a successful page clears it.
+      setState(() => _olderError = null);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_scroll.hasClients) {
+          _prependInProgress = false;
+          return;
+        }
+        final added = _scroll.position.maxScrollExtent - oldMax;
+        if (added > 0) {
+          _scroll.jumpTo(
+            (oldPixels + added).clamp(0.0, _scroll.position.maxScrollExtent),
+          );
+        }
+        _prependInProgress = false;
+      });
+    } on Object catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _olderError = chatFailureMessage(context.l10n, error);
+        _prependInProgress = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -137,8 +178,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       myId: user?.id ?? '',
     );
     if (items.length != _shownMessages) {
+      final grew = items.length > _shownMessages;
+      final nearBottom = _isNearBottom;
       _shownMessages = items.length;
-      _scrollToEnd();
+      if (!_initialScrollDone && items.isNotEmpty) {
+        _initialScrollDone = true;
+        _scrollToEnd();
+      } else if (grew && nearBottom && !_prependInProgress) {
+        // Do not pull the reader away from older messages; only follow new
+        // messages when the viewport was already at the bottom.
+        _scrollToEnd();
+      }
     }
     return Column(
       children: [
@@ -164,24 +214,30 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       if (history.nextPage == null) {
                         return const SizedBox.shrink();
                       }
-                      return Center(
-                        child: TextButton(
-                          key: const Key('chat-load-older'),
-                          onPressed: () async {
-                            try {
-                              await _history.loadOlder();
-                            } on Object catch (error) {
-                              if (!mounted) return;
-                              setState(
-                                () => _formError = chatFailureMessage(
-                                  context.l10n,
-                                  error,
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextButton(
+                            key: const Key('chat-load-older'),
+                            onPressed: _loadOlder,
+                            child: Text(l10n.chatLoadOlder),
+                          ),
+                          if (_olderError case final error?)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 4,
+                              ),
+                              child: Text(
+                                error,
+                                key: const Key('chat-older-error'),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
                                 ),
-                              );
-                            }
-                          },
-                          child: Text(l10n.chatLoadOlder),
-                        ),
+                              ),
+                            ),
+                        ],
                       );
                     }
                     final item = items[index - 1];
@@ -200,10 +256,40 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 item.outgoing!.clientId,
                               ),
                             ),
+                      onDiscard: item.outgoing == null
+                          ? null
+                          : () => unawaited(
+                              _queue.discard(
+                                item.outgoing!.chatId,
+                                item.outgoing!.clientId,
+                              ),
+                            ),
                     );
                   },
                 ),
         ),
+        if (history.syncError != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 8, 0),
+            child: Row(
+              key: const Key('chat-sync-error'),
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.chatSyncFailed,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  key: const Key('chat-sync-retry'),
+                  onPressed: () => unawaited(_history.retrySync()),
+                  child: Text(l10n.chatMessageRetry),
+                ),
+              ],
+            ),
+          ),
         if (_formError != null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -227,13 +313,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     minLines: 1,
                     maxLines: 5,
                     textInputAction: TextInputAction.newline,
-                    maxLength: ref.watch(chatConfigProvider).maxMessageLength,
-                    buildCounter: (
-                      context, {
-                      required currentLength,
-                      required isFocused,
-                      required maxLength,
-                    }) => null,
+                    inputFormatters: [
+                      ChatMessageLengthFormatter(
+                        ref.watch(chatConfigProvider).maxMessageLength,
+                      ),
+                    ],
                     decoration: InputDecoration(
                       hintText: l10n.chatInputHint,
                       border: const OutlineInputBorder(),
@@ -264,6 +348,7 @@ class _MessageBubble extends StatelessWidget {
     required this.sending,
     required this.user,
     this.onRetry,
+    this.onDiscard,
   });
 
   final ChatThreadItem item;
@@ -271,6 +356,7 @@ class _MessageBubble extends StatelessWidget {
   final bool sending;
   final UserOutput? user;
   final VoidCallback? onRetry;
+  final VoidCallback? onDiscard;
 
   @override
   Widget build(BuildContext context) {
@@ -342,6 +428,17 @@ class _MessageBubble extends StatelessWidget {
                       child: Text(l10n.chatMessageRetry),
                     ),
                   ],
+                  if (failed && onDiscard != null)
+                    TextButton(
+                      key: ValueKey('chat-discard-${item.clientId}'),
+                      onPressed: onDiscard,
+                      style: TextButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: const Size(0, 32),
+                      ),
+                      child: Text(l10n.chatMessageDiscard),
+                    ),
                 ] else
                   Text(
                     chatTime(item.createdAt, user, l10n),

@@ -90,6 +90,14 @@ class FakeChatApi implements ChatApi {
   /// While set, dialogs requests snapshot the data, then wait for it.
   Completer<void>? listChatsGate;
 
+  /// Maximum dialogs per page; the next cursor is the last dialog id.
+  int? listChatsPageLimit;
+
+  /// Throws this instead of answering the next dialogs request.
+  Object? listChatsError;
+
+  final listChatsCalls = <String?>[];
+
   /// Maximum rows per messages page; the next cursor is the last sequence.
   int? pageLimit;
 
@@ -111,10 +119,31 @@ class FakeChatApi implements ChatApi {
 
   @override
   Future<PageChatOutput> listChats({String? cursor}) async {
+    listChatsCalls.add(cursor);
     final snapshot = List<ChatOutput>.of(chats);
     final gate = listChatsGate;
     if (gate != null) await gate.future;
-    return PageChatOutput(items: snapshot, nextPage: null);
+    final error = listChatsError;
+    if (error != null) {
+      listChatsError = null;
+      throw error;
+    }
+    var start = 0;
+    if (cursor != null) {
+      final index = snapshot.indexWhere((chat) => chat.id == cursor);
+      start = index < 0 ? 0 : index + 1;
+    }
+    final limit = listChatsPageLimit ?? snapshot.length;
+    final end = start + limit > snapshot.length
+        ? snapshot.length
+        : start + limit;
+    final items = snapshot.sublist(start, end);
+    return PageChatOutput(
+      items: items,
+      nextPage: end < snapshot.length && items.isNotEmpty
+          ? items.last.id
+          : null,
+    );
   }
 
   @override

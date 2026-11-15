@@ -138,7 +138,7 @@ class ChatQueue extends _$ChatQueue {
     await future;
     final config = _config!;
     if (text.trim().isEmpty) throw const ChatMessageEmpty();
-    if (text.length > config.maxMessageLength) {
+    if (text.runes.length > config.maxMessageLength) {
       throw ChatMessageTooLong(config.maxMessageLength);
     }
     final owner = _owner;
@@ -168,6 +168,24 @@ class ChatQueue extends _$ChatQueue {
     if (message == null) return;
     await _store!.retry(owner: owner, message: message);
     _retryStep = 0;
+    await _reload();
+    unawaited(_drain());
+  }
+
+  /// Removes a refused row, so later messages of the same chat can go.
+  ///
+  /// Only a terminal [OutgoingChatState.failed] row can be discarded: a
+  /// pending message is owned by the queue until the server answers.
+  Future<void> discard(String chatId, String clientId) async {
+    await future;
+    final owner = _owner;
+    final store = _store;
+    if (owner == null || store == null) return;
+    final message = state.value?.messages
+        .where((row) => row.chatId == chatId && row.clientId == clientId)
+        .firstOrNull;
+    if (message == null || message.state != OutgoingChatState.failed) return;
+    await store.discard(owner: owner, message: message);
     await _reload();
     unawaited(_drain());
   }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:campus/src/core/api/api_client.dart';
 import 'package:campus/src/core/api/network_status.dart';
 import 'package:campus/src/core/auth/auth_service.dart';
 import 'package:campus/src/core/auth/auth_session.dart';
@@ -89,6 +90,58 @@ void main() {
     expect(api.sendCalls.single.clientId, queued.clientId);
     expect(container.read(chatQueueProvider).value?.messages, isEmpty);
   });
+
+  test(
+    'sends a message of 4000 code points with a longer UTF-16 length',
+    () async {
+      await create();
+      final text = '👍' * 3000;
+      expect(text.length, 6000);
+
+      final sent = await container
+          .read(chatQueueProvider.notifier)
+          .send('chat-1', text);
+      await pumpEventQueue(times: 80);
+
+      expect(sent.text, text);
+      expect(api.sendCalls.single.text, text);
+      expect(container.read(chatQueueProvider).value?.messages, isEmpty);
+    },
+  );
+
+  test(
+    'discarding a refused head lets later messages of the chat go',
+    () async {
+      await create();
+      api.sendError = const ProblemFailure(
+        Problem(
+          type: 'urn:problem:campus:chat_message_invalid',
+          title: 'Invalid message',
+          status: 422,
+          code: ProblemCode.chatMessageInvalid,
+        ),
+      );
+      final queue = container.read(chatQueueProvider.notifier);
+      final refused = await queue.send('chat-1', 'bad');
+      await pumpEventQueue(times: 60);
+      expect(api.sendCalls, hasLength(1));
+      expect(
+        container.read(chatQueueProvider).value?.messages.single.state,
+        OutgoingChatState.failed,
+      );
+
+      await queue.send('chat-1', 'good');
+      await pumpEventQueue(times: 40);
+      // The refused head still blocks the chat.
+      expect(api.sendCalls, hasLength(1));
+
+      await queue.discard('chat-1', refused.clientId);
+      await pumpEventQueue(times: 80);
+
+      expect(api.sendCalls.map((call) => call.text), ['bad', 'good']);
+      expect(container.read(chatQueueProvider).value?.messages, isEmpty);
+    },
+  );
 
   test('sends sequentially with a stable UUID and idempotency key', () async {
     await create();

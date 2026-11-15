@@ -212,6 +212,19 @@ class ChatStore {
     attempts: message.attempts + 1,
   );
 
+  /// Removes a permanently refused row after the user discards it.
+  Future<void> discard({
+    required String owner,
+    required OutgoingChatMessage message,
+  }) =>
+      (db.delete(db.chatOutbox)..where(
+            (row) =>
+                row.owner.equals(owner) &
+                row.chatId.equals(message.chatId) &
+                row.clientId.equals(message.clientId),
+          ))
+          .go();
+
   /// Puts a failed row back into the queue after the user asks to retry.
   Future<void> retry({
     required String owner,

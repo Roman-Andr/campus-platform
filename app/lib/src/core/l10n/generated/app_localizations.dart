@@ -2948,6 +2948,30 @@ abstract class AppLocalizations {
   /// **'Повторить'**
   String get chatMessageRetry;
 
+  /// Удаляет неотправленное сообщение из очереди.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить'**
+  String get chatMessageDiscard;
+
+  /// The next page of dialogs failed to load.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось загрузить ещё диалоги.'**
+  String get chatLoadMoreFailed;
+
+  /// The previous page of the chat history failed to load.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось загрузить более ранние сообщения.'**
+  String get chatLoadOlderFailed;
+
+  /// A realtime update failed to load the missed messages.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось обновить чат.'**
+  String get chatSyncFailed;
+
   /// Загрузить предыдущую страницу истории.
   ///
   /// In ru, this message translates to:

@@ -222,7 +222,13 @@ void main() {
     expect(find.text('Failed text'), findsOneWidget);
     expect(find.text('Not sent'), findsOneWidget);
     expect(find.text('Retry'), findsOneWidget);
+    expect(find.text('Delete'), findsOneWidget);
     expect(find.byKey(const Key('chat-messages')), findsOneWidget);
+
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+    expect(find.text('Failed text'), findsNothing);
+    expect(find.text('Not sent'), findsNothing);
   });
 
   testWidgets('a pending message says so while the request is in flight', (
@@ -321,6 +327,146 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('an older-page error stays at the top and can be retried', (
+    tester,
+  ) async {
+    final api = FakeChatApi(
+      chats: [chatJson(id: testChatId)],
+      messages: {
+        testChatId: [
+          messageJson(chatId: testChatId, sequence: 1, text: 'Oldest'),
+          messageJson(chatId: testChatId, sequence: 2, text: 'Newest'),
+        ],
+      },
+    )..pageLimit = 1;
+    await pumpChats(tester, api: api);
+    await openChat(tester);
+    expect(find.byKey(const Key('chat-load-older')), findsOneWidget);
+
+    api.listError = const NetworkFailure();
+    await tester.tap(find.byKey(const Key('chat-load-older')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('chat-older-error')), findsOneWidget);
+    expect(find.byKey(const Key('chat-form-error')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('chat-load-older')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('chat-older-error')), findsNothing);
+    expect(find.text('Oldest'), findsOneWidget);
+  });
+
+  testWidgets('loading an older page keeps the reader near the top', (
+    tester,
+  ) async {
+    final api = FakeChatApi(
+      chats: [chatJson(id: testChatId)],
+      messages: {
+        testChatId: [
+          for (var sequence = 1; sequence <= 30; sequence++)
+            messageJson(
+              chatId: testChatId,
+              sequence: sequence,
+              text: 'Message $sequence',
+            ),
+        ],
+      },
+    )..pageLimit = 20;
+    await pumpChats(tester, api: api);
+    await openChat(tester);
+
+    final list = find.byKey(const Key('chat-messages'));
+    await tester.drag(list, const Offset(0, 10000));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('chat-load-older')));
+    final scrollable = find.descendant(
+      of: list,
+      matching: find.byType(Scrollable),
+    );
+    final position = tester.state<ScrollableState>(scrollable.first).position;
+    expect(position.pixels, lessThan(position.maxScrollExtent));
+
+    await tester.tap(find.byKey(const Key('chat-load-older')));
+    await tester.pumpAndSettle();
+
+    final after = tester.state<ScrollableState>(scrollable.first).position;
+    expect(after.pixels, greaterThan(0));
+    expect(after.pixels, lessThan(after.maxScrollExtent));
+    expect(find.text('Message 10'), findsOneWidget);
+  });
+
+  testWidgets('a failed realtime refresh offers a stale-state retry', (
+    tester,
+  ) async {
+    final realtime = FakeChatRealtime();
+    final api = FakeChatApi(
+      chats: [chatJson(id: testChatId)],
+      messages: {
+        testChatId: [
+          messageJson(chatId: testChatId, sequence: 1, text: 'First'),
+        ],
+      },
+    );
+    await pumpChats(tester, api: api, realtime: realtime);
+    await openChat(tester);
+
+    api.listError = const NetworkFailure();
+    api.messages[testChatId]!.add(
+      messageJson(chatId: testChatId, sequence: 2, text: 'From another device'),
+    );
+    realtime.emit();
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('chat-sync-error')), findsOneWidget);
+    expect(find.text('From another device'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('chat-sync-retry')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('chat-sync-error')), findsNothing);
+    expect(find.text('From another device'), findsOneWidget);
+  });
+
+  testWidgets('a failed next dialogs page can be retried', (tester) async {
+    final ids = [
+      for (var index = 0; index < 12; index++)
+        '01890a5d-ac96-774b-bcce-b302099a${(0x8060 + index).toRadixString(16).padLeft(4, '0')}',
+    ];
+    final api = FakeChatApi(chats: [for (final id in ids) chatJson(id: id)])
+      ..listChatsPageLimit = 10;
+    await pumpChats(tester, api: api);
+    await openChats(tester);
+
+    api.listChatsError = const NetworkFailure();
+    await tester.drag(
+      find.byKey(const Key('chats-list')),
+      const Offset(0, -2000),
+    );
+    await tester.pumpAndSettle();
+    // The footer is lazily built; scroll it into the viewport.
+    await tester.drag(
+      find.byKey(const Key('chats-list')),
+      const Offset(0, -1000),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('chats-more-error')), findsOneWidget);
+    expect(find.byKey(const Key('chats-more-loading')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('chats-more-retry')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('chats-more-error')), findsNothing);
+    await tester.drag(
+      find.byKey(const Key('chats-list')),
+      const Offset(0, -1000),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(ValueKey('chat-tile-${ids.last}')), findsOneWidget);
   });
 
   testWidgets('the profile leads to the chats list', (tester) async {

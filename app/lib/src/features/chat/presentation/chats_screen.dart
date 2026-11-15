@@ -25,6 +25,8 @@ class ChatsScreen extends ConsumerStatefulWidget {
 
 class _ChatsScreenState extends ConsumerState<ChatsScreen> {
   final _scroll = ScrollController();
+  bool _loadingMore = false;
+  Object? _moreError;
 
   @override
   void initState() {
@@ -39,15 +41,37 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
   }
 
   void _onScroll() {
+    if (_loadingMore || _moreError != null) return;
     if (_scroll.position.extentAfter > 240) return;
-    unawaited(
-      ref.read(chatDialogsProvider.notifier).more().catchError((Object _) {}),
-    );
+    unawaited(_loadMore());
+  }
+
+  Future<void> _loadMore() async {
+    if (_loadingMore) return;
+    final state = ref.read(chatDialogsProvider).value;
+    if (state == null || state.nextPage == null) return;
+    setState(() {
+      _loadingMore = true;
+      _moreError = null;
+    });
+    try {
+      await ref.read(chatDialogsProvider.notifier).more();
+    } on Object catch (error) {
+      if (mounted) setState(() => _moreError = error);
+    } finally {
+      if (mounted) setState(() => _loadingMore = false);
+    }
+  }
+
+  void _retryMore() {
+    setState(() => _moreError = null);
+    unawaited(_loadMore());
   }
 
   Future<void> _refresh() async {
     try {
       await ref.read(chatDialogsProvider.notifier).refresh();
+      if (mounted) setState(() => _moreError = null);
     } on Object catch (error) {
       _showFailure(error);
     }
@@ -86,6 +110,9 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
           scroll: _scroll,
           onRefresh: _refresh,
           onOpen: _open,
+          loadingMore: _loadingMore,
+          moreError: _moreError,
+          onLoadMore: _retryMore,
         ),
         AsyncValue(:final error?) => ApiErrorView(
           error: error,
@@ -108,6 +135,9 @@ class _Body extends StatelessWidget {
     required this.scroll,
     required this.onRefresh,
     required this.onOpen,
+    required this.loadingMore,
+    required this.moreError,
+    required this.onLoadMore,
   });
 
   final ChatDialogsState state;
@@ -115,6 +145,9 @@ class _Body extends StatelessWidget {
   final ScrollController scroll;
   final Future<void> Function() onRefresh;
   final void Function(ChatOutput chat) onOpen;
+  final bool loadingMore;
+  final Object? moreError;
+  final VoidCallback onLoadMore;
 
   @override
   Widget build(BuildContext context) {
@@ -156,12 +189,36 @@ class _Body extends StatelessWidget {
         itemCount: state.items.length + 1,
         itemBuilder: (context, index) {
           if (index == state.items.length) {
-            return Padding(
-              padding: const EdgeInsets.all(16),
+            if (state.nextPage == null) return const SizedBox.shrink();
+            if (moreError != null) {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Text(
+                      l10n.chatLoadMoreFailed,
+                      key: const Key('chats-more-error'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    TextButton(
+                      key: const Key('chats-more-retry'),
+                      onPressed: onLoadMore,
+                      child: Text(l10n.chatMessageRetry),
+                    ),
+                  ],
+                ),
+              );
+            }
+            if (!loadingMore) return const SizedBox.shrink();
+            return const Padding(
+              padding: EdgeInsets.all(16),
               child: Center(
-                child: state.nextPage == null
-                    ? const SizedBox.shrink()
-                    : const CircularProgressIndicator(),
+                key: Key('chats-more-loading'),
+                child: CircularProgressIndicator(),
               ),
             );
           }

@@ -209,6 +209,36 @@ void main() {
     expect(realtime.subscription?.closed, isTrue);
   });
 
+  test('a failed realtime sync stays visible and can be retried', () async {
+    await create(messages: [messageJson(chatId: chatId, sequence: 1)]);
+    final provider = chatHistoryProvider(chatId);
+    final listener = container.listen(provider, (_, _) {});
+    addTearDown(listener.close);
+    await container.read(provider.future);
+    final realtime = FakeChatRealtime();
+    final history = container.read(provider.notifier);
+    await history.watchRealtime(realtime);
+
+    api.listError = const NetworkFailure();
+    api.messages[chatId]!.add(
+      messageJson(chatId: chatId, sequence: 2, text: 'missed while failing'),
+    );
+    realtime.emit();
+    await pumpEventQueue(times: 40);
+
+    final stale = container.read(provider).value!;
+    expect(stale.syncError, isA<NetworkFailure>());
+    expect(stale.messages.map((message) => message.sequence), [1]);
+
+    await history.retrySync();
+    await pumpEventQueue(times: 40);
+
+    final fresh = container.read(provider).value!;
+    expect(fresh.syncError, isNull);
+    expect(fresh.messages.map((message) => message.sequence), [1, 2]);
+    await history.unwatchRealtime();
+  });
+
   test('an exhausted realtime history reloads the missed messages', () async {
     await create(messages: [messageJson(chatId: chatId, sequence: 1)]);
     final provider = chatHistoryProvider(chatId);

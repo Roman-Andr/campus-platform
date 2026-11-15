@@ -48,7 +48,7 @@ final class ChatDialogsProvider
   ChatDialogs create() => ChatDialogs();
 }
 
-String _$chatDialogsHash() => r'0260cf1db56adca6786836601b6b2a6a6ed3a950';
+String _$chatDialogsHash() => r'cdd35ca1b909a41553dbf6b7c7ef0bf20f6d967f';
 
 /// Dialogs of the signed-in user, the most recently active first.
 ///
@@ -138,7 +138,7 @@ final class ChatProvider
   }
 }
 
-String _$chatHash() => r'2cdc471167e40ec9ab93b2b379e25ef0716b5363';
+String _$chatHash() => r'0f6c99ab007f59215d83aca0f175dbab31f0dcbf';
 
 /// One dialog of the signed-in user, with the cached copy as an offline
 /// fallback. Somebody else's dialog is `404` and never appears here.
