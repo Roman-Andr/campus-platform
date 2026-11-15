@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -20,6 +21,7 @@ class ChatHistoryState {
   const ChatHistoryState({
     this.messages = const <MessageOutput>[],
     this.nextPage,
+    this.olderBefore,
     this.syncError,
   });
 
@@ -28,6 +30,11 @@ class ChatHistoryState {
 
   /// Cursor of the next older page; null when the beginning is loaded.
   final String? nextPage;
+
+  /// In jump mode the sequence below which older messages are requested.
+  /// The server cursor belongs to the newest-first query, so jumping to an
+  /// old hit uses an explicit sequence boundary instead.
+  final int? olderBefore;
 
   /// A realtime wakeup could not load the gap; the loaded messages stay and
   /// the screen offers a retry instead of silently dropping the event.
@@ -44,6 +51,8 @@ class ChatHistoryState {
 /// [sync] again.
 @Riverpod(retry: chatRetry)
 class ChatHistory extends _$ChatHistory {
+  static const _jumpBefore = 20;
+
   String? _owner;
   ChatStore? _store;
   bool _loadingOlder = false;
@@ -103,32 +112,93 @@ class ChatHistory extends _$ChatHistory {
     final store = _store;
     final current = state.value;
     final cursor = current?.nextPage;
+    final olderBefore = current?.olderBefore;
     if (owner == null ||
         store == null ||
         _loadingOlder ||
         current == null ||
-        cursor == null) {
+        (cursor == null && (olderBefore == null || olderBefore <= 1))) {
       return;
     }
     _loadingOlder = true;
     try {
-      final page = await ref
-          .read(chatApiProvider)
-          .listMessages(chatId, cursor: cursor);
+      final page = cursor != null
+          ? await ref.read(chatApiProvider).listMessages(chatId, cursor: cursor)
+          : await ref
+                .read(chatApiProvider)
+                .listMessages(
+                  chatId,
+                  afterSequence: math.max(0, olderBefore! - _jumpBefore - 1),
+                  ascending: true,
+                  size: _jumpBefore,
+                );
       if (!_isCurrent(generation, owner)) return;
-      await store.saveMessages(owner, chatId, page.items);
+      final items = cursor != null
+          ? page.items
+          : page.items
+                .where((message) => message.sequence < olderBefore!)
+                .toList();
+      await store.saveMessages(owner, chatId, items);
       if (!_isCurrent(generation, owner)) return;
       final latest = state.value ?? current;
+      final merged = mergeMessages(latest.messages, items);
+      final oldest = merged.isEmpty ? null : merged.first.sequence;
       state = AsyncData(
         ChatHistoryState(
-          messages: mergeMessages(latest.messages, page.items),
-          nextPage: page.nextPage,
+          messages: merged,
+          nextPage: cursor != null ? page.nextPage : null,
+          olderBefore: cursor != null
+              ? latest.olderBefore
+              : (items.isNotEmpty && oldest != null && oldest > 1
+                    ? oldest
+                    : null),
           syncError: latest.syncError,
         ),
       );
     } finally {
       if (_generation == generation) _loadingOlder = false;
     }
+  }
+
+  /// Loads the context around a search hit and makes it the visible place.
+  ///
+  /// The history API has no "around" cursor: an ascending page after
+  /// ``sequence - _jumpBefore`` gives at least the requested message while
+  /// keeping the response bounded. The page replaces the newest-first older
+  /// cursor with [ChatHistoryState.olderBefore], so "show earlier" keeps
+  /// working from the loaded context.
+  Future<void> openAt(int sequence) async {
+    final generation = _generation;
+    final owner = _owner;
+    final store = _store;
+    final current = state.value;
+    if (owner == null || store == null || current == null) return;
+    final lower = math.max(0, sequence - _jumpBefore);
+    final page = await ref
+        .read(chatApiProvider)
+        .listMessages(
+          chatId,
+          afterSequence: lower,
+          ascending: true,
+          size: _jumpBefore * 2 + 1,
+        );
+    if (!_isCurrent(generation, owner)) return;
+    if (!page.items.any((message) => message.sequence == sequence)) {
+      throw const ChatMessageContextUnavailable();
+    }
+    final messages = mergeMessages(current.messages, page.items);
+    await store.saveMessages(owner, chatId, messages);
+    if (!_isCurrent(generation, owner)) return;
+    final latest = state.value ?? current;
+    final loaded = mergeMessages(latest.messages, messages);
+    final oldest = page.items.isEmpty ? null : page.items.first.sequence;
+    state = AsyncData(
+      ChatHistoryState(
+        messages: loaded,
+        olderBefore: oldest != null && oldest > 1 ? oldest : null,
+        syncError: latest.syncError,
+      ),
+    );
   }
 
   /// Fetches every message after the newest loaded sequence.
@@ -177,6 +247,7 @@ class ChatHistory extends _$ChatHistory {
         ChatHistoryState(
           messages: current.messages,
           nextPage: current.nextPage,
+          olderBefore: current.olderBefore,
         ),
       );
     }
@@ -215,6 +286,7 @@ class ChatHistory extends _$ChatHistory {
         // A request after the newest message never replaces the older
         // cursor; only the initial load adds one.
         nextPage: latest.nextPage ?? olderCursor,
+        olderBefore: latest.olderBefore,
         syncError: latest.syncError,
       ),
     );
@@ -232,6 +304,7 @@ class ChatHistory extends _$ChatHistory {
         ChatHistoryState(
           messages: current.messages,
           nextPage: current.nextPage,
+          olderBefore: current.olderBefore,
           syncError: error,
         ),
       );
@@ -259,6 +332,7 @@ class ChatHistory extends _$ChatHistory {
       ChatHistoryState(
         messages: mergeMessages(latest?.messages ?? const [], [message]),
         nextPage: latest?.nextPage,
+        olderBefore: latest?.olderBefore,
         syncError: latest?.syncError,
       ),
     );
@@ -313,6 +387,12 @@ class ChatHistory extends _$ChatHistory {
 
   bool _isCurrent(int generation, String owner) =>
       _isGeneration(generation) && _owner == owner;
+}
+
+/// The search hit is no longer in the visible history (for example, it was
+/// deleted between the search response and opening the chat).
+class ChatMessageContextUnavailable implements Exception {
+  const ChatMessageContextUnavailable();
 }
 
 /// Subscription API of the realtime service, replaceable in tests.

@@ -3188,6 +3188,72 @@ abstract class AppLocalizations {
   /// **'Сообщение не отправлено. Попробуйте ещё раз.'**
   String get chatFailureUnexpected;
 
+  /// Заголовок экрана поиска по сообщениям.
+  ///
+  /// In ru, this message translates to:
+  /// **'Поиск по диалогам'**
+  String get chatSearchTitle;
+
+  /// Подсказка поля поиска по диалогам.
+  ///
+  /// In ru, this message translates to:
+  /// **'Слово или фраза'**
+  String get chatSearchHint;
+
+  /// Очищает запрос и результаты поиска по диалогам.
+  ///
+  /// In ru, this message translates to:
+  /// **'Очистить поиск'**
+  String get chatSearchClear;
+
+  /// Начальное состояние поиска до запроса.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите слово или фразу, чтобы найти сообщения в своих диалогах.'**
+  String get chatSearchPrompt;
+
+  /// Поиск не нашёл сообщений.
+  ///
+  /// In ru, this message translates to:
+  /// **'По запросу «{query}» ничего не найдено.'**
+  String chatSearchEmpty(String query);
+
+  /// Первая страница поиска завершилась ошибкой.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось выполнить поиск. Попробуйте ещё раз.'**
+  String get chatSearchFailed;
+
+  /// Поиск не удался, потому что устройство без сети.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет сети. Проверьте подключение и повторите поиск.'**
+  String get chatSearchNetwork;
+
+  /// Сервер отклонил слишком длинный запрос поиска.
+  ///
+  /// In ru, this message translates to:
+  /// **'Запрос слишком длинный. Сократите его.'**
+  String get chatSearchTooLong;
+
+  /// Загружает следующую страницу результатов поиска.
+  ///
+  /// In ru, this message translates to:
+  /// **'Загрузить ещё'**
+  String get chatSearchLoadMore;
+
+  /// Следующая страница результатов поиска не загрузилась.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось загрузить ещё результаты.'**
+  String get chatSearchLoadMoreFailed;
+
+  /// Контекст найденного сообщения не удалось загрузить.
+  ///
+  /// In ru, this message translates to:
+  /// **'Найденное сообщение больше недоступно.'**
+  String get chatSearchMessageUnavailable;
+
   /// Переход к личным диалогам из профиля.
   ///
   /// In ru, this message translates to:

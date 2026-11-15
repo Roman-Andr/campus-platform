@@ -13,6 +13,12 @@ part 'chat_api.g.dart';
 abstract interface class ChatApi {
   Future<PageChatOutput> listChats({String? cursor});
 
+  Future<PageChatSearchResult> searchChats({
+    required String query,
+    String? cursor,
+    int? size,
+  });
+
   Future<ChatOutput> createChat({
     required String recipientId,
     String? listingId,
@@ -47,6 +53,13 @@ class GeneratedChatApi implements ChatApi {
   @override
   Future<PageChatOutput> listChats({String? cursor}) =>
       _chats.listChats(orderBy: ListChatsOrderBy.updatedAt, cursor: cursor);
+
+  @override
+  Future<PageChatSearchResult> searchChats({
+    required String query,
+    String? cursor,
+    int? size,
+  }) => _chats.searchChats(q: query, cursor: cursor, size: size);
 
   @override
   Future<ChatOutput> createChat({
