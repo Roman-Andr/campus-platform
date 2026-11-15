@@ -15,6 +15,7 @@ worker and the tests exercise the same code:
 
 import hashlib
 import math
+import re
 from typing import Any
 from uuid import UUID, uuid7
 
@@ -79,6 +80,12 @@ CHAT_MESSAGE_CONFLICT = ProblemType(
 CHAT_RATE_LIMITED = ProblemType(
     "chat_rate_limited", 429, N_("Too many messages. Try again later.")
 )
+CHAT_SEARCH_INVALID = ProblemType(
+    "chat_search_invalid",
+    422,
+    N_("Invalid search query."),
+    N_("The search query must be at most {max_length} characters."),
+)
 
 
 def canonical_pair(first: UUID, second: UUID) -> tuple[UUID, UUID]:
@@ -89,6 +96,32 @@ def canonical_pair(first: UUID, second: UUID) -> tuple[UUID, UUID]:
 def content_hash(text_value: str) -> str:
     """Hash that makes one client identifier stand for exactly one text."""
     return hashlib.sha256(text_value.encode()).hexdigest()
+
+
+def message_snippet(text_value: str, query: str, limit: int) -> str:
+    """A bounded excerpt around the first query word of a search hit.
+
+    The snippet is plain text: the client highlights the query itself. It
+    never exceeds ``limit`` characters plus the two ellipsis characters.
+    """
+    collapsed = " ".join(text_value.split())
+    if len(collapsed) <= limit:
+        return collapsed
+    folded = collapsed.casefold()
+    positions = [
+        folded.find(word.casefold()) for word in re.findall(r"\w+", query) if word
+    ]
+    hit = min((position for position in positions if position >= 0), default=0)
+    start = max(0, hit - limit // 3)
+    end = min(len(collapsed), start + limit)
+    if end - start < limit:
+        start = max(0, end - limit)
+    snippet = collapsed[start:end].strip()
+    if start:
+        snippet = "…" + snippet
+    if end < len(collapsed):
+        snippet += "…"
+    return snippet
 
 
 def message_payload(message: ChatMessage) -> dict[str, Any]:

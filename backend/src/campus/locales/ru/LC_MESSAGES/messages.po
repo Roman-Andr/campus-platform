@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 15:30+0300\n"
+"POT-Creation-Date: 2026-11-15 16:13+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -181,6 +181,9 @@ msgstr "Неверные данные запроса"
 
 msgid "Invalid rules clause"
 msgstr "Неверный пункт правил"
+
+msgid "Invalid search query."
+msgstr "Неверный поисковый запрос."
 
 msgid "Invalid sign-in code"
 msgstr "Неверный код входа"
@@ -532,6 +535,10 @@ msgstr "Ресурс не поддерживает этот метод."
 
 msgid "The same client message identifier carries different content."
 msgstr "Один и тот же идентификатор сообщения клиента передан с другим содержимым."
+
+#, python-brace-format
+msgid "The search query must be at most {max_length} characters."
+msgstr "Поисковый запрос должен быть не длиннее {max_length} символов."
 
 msgid "There is an update to your listing."
 msgstr "Появилось обновление вашего объявления."
