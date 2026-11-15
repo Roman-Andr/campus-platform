@@ -521,6 +521,19 @@ class Settings(BaseSettings):
         gt=timedelta(0),
         description="Maximum accepted age of an offline QR code.",
     )
+    # Event attendance (specification, 5.1.1, module 5; Appendix 4): a
+    # participant may be marked from 30 minutes before the start until the
+    # end, both bounds inclusive. The organiser's and personal codes rotate.
+    event_attendance_opens_before: timedelta = Field(
+        default=timedelta(minutes=30),
+        ge=timedelta(0),
+        description="How long before an event starts attendance opens.",
+    )
+    event_attendance_code_ttl: timedelta = Field(
+        default=timedelta(seconds=30),
+        gt=timedelta(0),
+        description="How long a rotating attendance code is accepted.",
+    )
     confirmation_code_ttl: timedelta = Field(
         default=timedelta(seconds=30),
         gt=timedelta(0),

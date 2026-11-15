@@ -81,6 +81,17 @@ class CancellationActor(StrEnum):
     SYSTEM = "system"
 
 
+class AttendanceMode(StrEnum):
+    """How participants of an event are marked as present.
+
+    ``SELF`` lets a registered participant scan the organiser's rotating
+    code; ``SCAN`` lets the organiser scan a participant's personal code.
+    """
+
+    SELF = "self"
+    SCAN = "scan"
+
+
 class Visibility(StrEnum):
     UNIVERSITY = "university"
     CITY = "city"
@@ -129,6 +140,11 @@ class Listing(Entity):
             "AND event_location IS NOT NULL "
             "AND event_capacity IS NOT NULL AND event_capacity > 0)",
             name="event_details",
+        ),
+        CheckConstraint(
+            "(kind = 'event' AND event_attendance_mode IN ('self', 'scan')) OR "
+            "(kind != 'event' AND event_attendance_mode IS NULL)",
+            name="event_attendance_mode",
         ),
         CheckConstraint(
             "kind != 'purchase' OR (purchase_unit_price IS NOT NULL "
@@ -187,6 +203,8 @@ class Listing(Entity):
     event_location: Mapped[str | None] = mapped_column(Text)
     event_capacity: Mapped[int | None]
     event_registered: Mapped[int] = mapped_column(default=0, server_default="0")
+    # How the organiser marks attendance; NULL for every non-event listing.
+    event_attendance_mode: Mapped[str | None] = mapped_column(String(8))
 
     purchase_unit_price: Mapped[Decimal | None]
     purchase_min_units: Mapped[int | None]

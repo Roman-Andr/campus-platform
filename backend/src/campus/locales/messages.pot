@@ -42,6 +42,27 @@ msgstr ""
 msgid "At most {max} skills."
 msgstr ""
 
+msgid "Attendance code expired"
+msgstr ""
+
+msgid "Attendance code rejected"
+msgstr ""
+
+msgid "Attendance is closed"
+msgstr ""
+
+msgid "Attendance is unavailable"
+msgstr ""
+
+msgid "Attendance mark not found"
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"Attendance opens {minutes} minutes before the event starts and closes "
+"when the event ends."
+msgstr ""
+
 msgid "Authentication required"
 msgstr ""
 
@@ -314,12 +335,24 @@ msgstr ""
 msgid "Not found"
 msgstr ""
 
+msgid "Not registered"
+msgstr ""
+
+msgid "Only a participant registered for this event can be marked."
+msgstr ""
+
 msgid ""
 "Only an accepted online lesson or a help interaction without an agreed "
 "meeting can be completed this way."
 msgstr ""
 
+msgid "Only an event has attendance."
+msgstr ""
+
 msgid "Only the composition exchange is available at this stage."
+msgstr ""
+
+msgid "Only the organiser of this event can do this."
 msgstr ""
 
 msgid "Only the two participants of the interaction can confirm it."
@@ -402,6 +435,9 @@ msgstr ""
 msgid "Request a new chat photo upload."
 msgstr ""
 
+msgid "Request a new rotating attendance code."
+msgstr ""
+
 msgid "Request failed"
 msgstr ""
 
@@ -461,6 +497,9 @@ msgid "The chat does not exist or you are not a member."
 msgstr ""
 
 msgid "The client platform or version is not recognized."
+msgstr ""
+
+msgid "The code is malformed or belongs to another event or participant."
 msgstr ""
 
 msgid ""
@@ -677,6 +716,9 @@ msgstr ""
 msgid "This action is not allowed."
 msgstr ""
 
+msgid "This code belongs to the other attendance mode of the event."
+msgstr ""
+
 msgid "This device confirmation ID was already used for a different payload."
 msgstr ""
 
@@ -696,6 +738,9 @@ msgid "This listing has no queue."
 msgstr ""
 
 msgid "This one-time QR code has already been used."
+msgstr ""
+
+msgid "This participant has no mark at the event."
 msgstr ""
 
 msgid "This public key is already registered to another device session."
@@ -738,6 +783,9 @@ msgid "Wait for the author's decision."
 msgstr ""
 
 msgid "Wait for the offer timer to end or join the queue."
+msgstr ""
+
+msgid "Wrong attendance mode"
 msgstr ""
 
 msgid "You already asked to leave the purchase."

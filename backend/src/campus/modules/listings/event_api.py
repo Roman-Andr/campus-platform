@@ -26,6 +26,7 @@ from campus.modules.listings.api import (
     user_for,
 )
 from campus.modules.listings.models import (
+    AttendanceMode,
     Audience,
     Interaction,
     InteractionStatus,
@@ -143,6 +144,7 @@ async def publish_event(
         event_location=location,
         event_capacity=data.capacity,
         event_registered=0,
+        event_attendance_mode=AttendanceMode.SELF,
     )
     session.add(listing)
     await session.flush()

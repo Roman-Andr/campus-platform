@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 20:23+0300\n"
+"POT-Creation-Date: 2026-11-15 21:08+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -64,6 +64,29 @@ msgstr "Попросите организатора перед выходом и
 #, python-brace-format
 msgid "At most {max} skills."
 msgstr "Не больше {max} навыков."
+
+msgid "Attendance code expired"
+msgstr "Срок кода отметки истёк"
+
+msgid "Attendance code rejected"
+msgstr "Код отметки отклонён"
+
+msgid "Attendance is closed"
+msgstr "Отметка закрыта"
+
+msgid "Attendance is unavailable"
+msgstr "Отметка недоступна"
+
+msgid "Attendance mark not found"
+msgstr "Отметка не найдена"
+
+#, python-brace-format
+msgid ""
+"Attendance opens {minutes} minutes before the event starts and closes "
+"when the event ends."
+msgstr ""
+"Отметка открывается за {minutes} мин до начала мероприятия и закрывается "
+"в момент его окончания."
 
 msgid "Authentication required"
 msgstr "Требуется вход в аккаунт"
@@ -343,6 +366,12 @@ msgstr "Не хватает свободных единиц."
 msgid "Not found"
 msgstr "Не найдено"
 
+msgid "Not registered"
+msgstr "Вы не записаны"
+
+msgid "Only a participant registered for this event can be marked."
+msgstr "Отметить можно только записавшегося участника мероприятия."
+
 msgid ""
 "Only an accepted online lesson or a help interaction without an agreed "
 "meeting can be completed this way."
@@ -350,8 +379,14 @@ msgstr ""
 "Так можно завершить только принятое онлайн-занятие или помощь без "
 "назначенной встречи."
 
+msgid "Only an event has attendance."
+msgstr "Отметка есть только у мероприятия."
+
 msgid "Only the composition exchange is available at this stage."
 msgstr "На этом этапе доступны только действия с составом закупки."
+
+msgid "Only the organiser of this event can do this."
+msgstr "Это может сделать только организатор мероприятия."
 
 msgid "Only the two participants of the interaction can confirm it."
 msgstr "Подтвердить взаимодействие могут только два его участника."
@@ -433,6 +468,9 @@ msgstr "Обновите настройки. Их текущая версия: {
 msgid "Request a new chat photo upload."
 msgstr "Запросите новую загрузку фото в чат."
 
+msgid "Request a new rotating attendance code."
+msgstr "Запросите новый обновляемый код отметки."
+
 msgid "Request failed"
 msgstr "Запрос не выполнен"
 
@@ -493,6 +531,9 @@ msgstr "Чат не существует или вы не его участни�
 
 msgid "The client platform or version is not recognized."
 msgstr "Платформа или версия клиента не распознаны."
+
+msgid "The code is malformed or belongs to another event or participant."
+msgstr "Код повреждён или относится к другому мероприятию или участнику."
 
 msgid ""
 "The collection deadline must be in the future and within the listing "
@@ -720,6 +761,9 @@ msgstr "Этот Idempotency-Key уже использован для друго
 msgid "This action is not allowed."
 msgstr "Это действие запрещено."
 
+msgid "This code belongs to the other attendance mode of the event."
+msgstr "Код относится к другому режиму отметки мероприятия."
+
 msgid "This device confirmation ID was already used for a different payload."
 msgstr ""
 "Этот идентификатор подтверждения устройства уже использован для другого "
@@ -742,6 +786,9 @@ msgstr "У этого объявления нет очереди."
 
 msgid "This one-time QR code has already been used."
 msgstr "Этот одноразовый QR-код уже использован."
+
+msgid "This participant has no mark at the event."
+msgstr "У этого участника нет отметки на мероприятии."
 
 msgid "This public key is already registered to another device session."
 msgstr "Этот открытый ключ уже зарегистрирован в другой сессии устройства."
@@ -786,6 +833,9 @@ msgstr "Дождитесь решения автора."
 
 msgid "Wait for the offer timer to end or join the queue."
 msgstr "Дождитесь окончания таймера предложения или встаньте в очередь."
+
+msgid "Wrong attendance mode"
+msgstr "Неверный режим отметки"
 
 msgid "You already asked to leave the purchase."
 msgstr "Вы уже попросили выйти из закупки."

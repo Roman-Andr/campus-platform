@@ -6,8 +6,8 @@ import 'cancellation_actor.dart';
 sealed class ParticipationOutputCancelledBy {
   factory ParticipationOutputCancelledBy.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches61(json)) "CancellationActor",
-      if (_matches62(json)) "Null",
+      if (_matches64(json)) "CancellationActor",
+      if (_matches65(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -44,8 +44,8 @@ class ParticipationOutputCancelledByNull
   Object? toJson() => value;
 }
 
-bool _matches61(Object? value) => (_matches27(value));
+bool _matches64(Object? value) => (_matches27(value));
 bool _matches27(Object? value) =>
     (const <Object?>["author", "participant", "system"].contains(value)) &&
     ((value is String));
-bool _matches62(Object? value) => ((value == null));
+bool _matches65(Object? value) => ((value == null));

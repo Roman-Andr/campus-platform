@@ -58,6 +58,7 @@ from campus.modules.identity import (
 )
 from campus.modules.listings.models import (
     PERMANENT_KINDS,
+    AttendanceMode,
     Audience,
     CancellationActor,
     Category,
@@ -255,6 +256,10 @@ class ListingOutput(BaseModel):
     event_ends_at: Instant | None = None
     event_location: str | None = None
     event_capacity: int | None = None
+    event_attendance_mode: AttendanceMode | None = Field(
+        default=None,
+        description="How the organiser marks attendance; null for non-events.",
+    )
     remaining_places: int | None = None
     purchase_unit_price: Decimal | None = Field(
         default=None, description="Price of one unit of a group purchase."

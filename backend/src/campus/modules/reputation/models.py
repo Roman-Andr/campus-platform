@@ -13,10 +13,11 @@ from sqlalchemy import (
     UniqueConstraint,
     text,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from campus.core import clock
 from campus.core.db import Entity
+from campus.modules.identity import User
 
 
 class DeviceKey(Entity):
@@ -136,3 +137,51 @@ class ConfirmationCode(Entity):
     expires_at: Mapped[datetime]
     attempts: Mapped[int] = mapped_column(default=0)
     consumed_at: Mapped[datetime | None]
+
+
+class AttendanceRecord(Entity):
+    """A participant marked present at an event by one of the two modes.
+
+    One row per (event, participant): marking again updates the row instead
+    of adding a duplicate, and removing a mark is soft, so the organiser's
+    list and the future no-show logic still see the latest state. The
+    ``interaction_id`` names the signup that was active when the mark was
+    taken; a cancelled signup is not a registration any more.
+    """
+
+    __tablename__ = "reputation_attendance"
+    __table_args__ = (
+        CheckConstraint("method IN ('self', 'scan')", name="method"),
+        CheckConstraint(
+            "(removed_at IS NULL AND removed_by_id IS NULL) OR "
+            "(removed_at IS NOT NULL AND removed_by_id IS NOT NULL)",
+            name="removal_complete",
+        ),
+        UniqueConstraint("listing_id", "participant_id"),
+        Index("ix_reputation_attendance_listing", "listing_id", "marked_at", "id"),
+    )
+
+    listing_id: Mapped[UUID] = mapped_column(
+        ForeignKey("listing.id", ondelete="CASCADE")
+    )
+    participant_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
+    participant: Mapped[User] = relationship(
+        lazy="joined", innerjoin=True, foreign_keys=[participant_id]
+    )
+    interaction_id: Mapped[UUID] = mapped_column(
+        ForeignKey("listing_interaction.id", ondelete="CASCADE")
+    )
+    # How the mark was taken; the event's current mode is read from the listing.
+    method: Mapped[str] = mapped_column(String(8))
+    marked_at: Mapped[datetime]
+    marked_by_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
+    removed_at: Mapped[datetime | None]
+    removed_by_id: Mapped[UUID | None] = mapped_column(ForeignKey("identity_user.id"))
+
+    @property
+    def active(self) -> bool:
+        return self.removed_at is None
+
+    @property
+    def participant_name(self) -> str:
+        return f"{self.participant.first_name} {self.participant.last_name}"
