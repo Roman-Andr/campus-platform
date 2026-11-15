@@ -115,6 +115,11 @@ class HomeScreen extends ConsumerWidget {
                 child: Text(l10n.listingsMine),
               ),
               PopupMenuItem(
+                key: const Key('home-chats'),
+                value: AppRoutes.chats,
+                child: Text(l10n.chatsTitle),
+              ),
+              PopupMenuItem(
                 key: const Key('home-profile'),
                 value: AppRoutes.profile,
                 child: Text(l10n.profileTitle),

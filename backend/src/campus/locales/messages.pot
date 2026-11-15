@@ -171,6 +171,9 @@ msgstr ""
 msgid "Invalid rules clause"
 msgstr ""
 
+msgid "Invalid search query."
+msgstr ""
+
 msgid "Invalid sign-in code"
 msgstr ""
 
@@ -519,6 +522,10 @@ msgid "The resource does not support this method."
 msgstr ""
 
 msgid "The same client message identifier carries different content."
+msgstr ""
+
+#, python-brace-format
+msgid "The search query must be at most {max_length} characters."
 msgstr ""
 
 msgid "There is an update to your listing."

@@ -19,11 +19,13 @@ the dedup table is the authority for both constraints.
 """
 
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import (
     BigInteger,
     CheckConstraint,
+    Computed,
     ForeignKey,
     Index,
     PrimaryKeyConstraint,
@@ -33,6 +35,7 @@ from sqlalchemy import (
     func,
     text,
 )
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
 from campus.core import clock
@@ -145,6 +148,12 @@ class ChatMessage(Base):
     The key is ``(id, created_at)`` because PostgreSQL requires the
     partition key in the primary key. Look a message up by id together with
     its creation time, taken from :class:`ChatMessageDedup`.
+
+    ``search_vector`` is maintained by PostgreSQL from the current text, so
+    an edit reindexes the message without a worker. The partial GIN index
+    covers only messages visible in history; deleting a message removes it
+    from both the index and search results. The revision table of #81 is not
+    part of this vector, so original versions are never searchable.
     """
 
     __tablename__ = "chat_message"
@@ -153,6 +162,12 @@ class ChatMessage(Base):
         CheckConstraint("sequence > 0", name="sequence_positive"),
         CheckConstraint("length(text) > 0", name="text_not_empty"),
         Index("ix_chat_message_chat_id_sequence", "chat_id", "sequence"),
+        Index(
+            "ix_chat_message_search",
+            "search_vector",
+            postgresql_using="gin",
+            postgresql_where=text("deleted_at IS NULL"),
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(server_default=func.uuidv7())
@@ -163,4 +178,16 @@ class ChatMessage(Base):
     client_id: Mapped[UUID]
     sequence: Mapped[int] = mapped_column(BigInteger)
     text: Mapped[str] = mapped_column(Text)
+    # Set by #81 when a message is deleted; search hides such rows.
+    deleted_at: Mapped[datetime | None]
+    # Both dictionaries feed one vector: a query in either language matches,
+    # and PostgreSQL recomputes it whenever ``text`` changes.
+    search_vector: Mapped[Any] = mapped_column(
+        TSVECTOR,
+        Computed(
+            "to_tsvector('russian', text) || to_tsvector('english', text)",
+            persisted=True,
+        ),
+        nullable=False,
+    )
     created_at: Mapped[datetime] = mapped_column(default=clock.now)

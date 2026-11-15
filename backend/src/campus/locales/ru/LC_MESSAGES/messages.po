@@ -194,6 +194,9 @@ msgstr "Неверные данные запроса"
 msgid "Invalid rules clause"
 msgstr "Неверный пункт правил"
 
+msgid "Invalid search query."
+msgstr "Неверный поисковый запрос."
+
 msgid "Invalid sign-in code"
 msgstr "Неверный код входа"
 
@@ -553,6 +556,10 @@ msgstr "Ресурс не поддерживает этот метод."
 
 msgid "The same client message identifier carries different content."
 msgstr "Один и тот же идентификатор сообщения клиента передан с другим содержимым."
+
+#, python-brace-format
+msgid "The search query must be at most {max_length} characters."
+msgstr "Поисковый запрос должен быть не длиннее {max_length} символов."
 
 msgid "There is an update to your listing."
 msgstr "Появилось обновление вашего объявления."

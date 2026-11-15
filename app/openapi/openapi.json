@@ -16814,6 +16814,184 @@
         }
       }
     },
+    "/api/v1/chats/search": {
+      "get": {
+        "tags": [
+          "Chats"
+        ],
+        "summary": "Search Chats",
+        "description": "Search messages only in dialogs of the current user.\n\nThe GIN index on the partitioned message table supplies the hits from\nactive and archived partitions; membership is checked in SQL before a\nrow can leave the database. Relevance is ordered by the combined\nRussian and English vector, then by creation time and id, so equal\nrelevance still has a total, repeatable order. A cursor is bound to the\nuser and the normalized query and cannot be reused for another search.",
+        "operationId": "search_chats",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Russian or English full-text query; blank returns no matches.",
+              "default": "",
+              "title": "Q"
+            },
+            "description": "Russian or English full-text query; blank returns no matches."
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Number of items; the default (20) and the maximum (100) are set in the server configuration.",
+              "title": "Size"
+            },
+            "description": "Number of items; the default (20) and the maximum (100) are set in the server configuration."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "`next_page` of the previous page.",
+              "title": "Cursor"
+            },
+            "description": "`next_page` of the previous page."
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_ChatSearchResult_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid, expired or revoked authentication (unauthorized).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/chats/{chat_id}": {
       "get": {
         "tags": [
@@ -17717,6 +17895,29 @@
           "participants"
         ],
         "title": "ChatOutput"
+      },
+      "ChatSearchResult": {
+        "properties": {
+          "chat": {
+            "$ref": "#/components/schemas/ChatOutput"
+          },
+          "message": {
+            "$ref": "#/components/schemas/MessageOutput"
+          },
+          "snippet": {
+            "type": "string",
+            "title": "Snippet",
+            "description": "Bounded plain-text excerpt around the matched message text."
+          }
+        },
+        "type": "object",
+        "required": [
+          "chat",
+          "message",
+          "snippet"
+        ],
+        "title": "ChatSearchResult",
+        "description": "One matching message and enough context to open its dialog."
       },
       "CityList": {
         "properties": {
@@ -20033,6 +20234,31 @@
         ],
         "title": "Page[ChatOutput]"
       },
+      "Page_ChatSearchResult_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ChatSearchResult"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_page": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Next Page",
+            "description": "Cursor of the next page; null on the last page."
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "next_page"
+        ],
+        "title": "Page[ChatSearchResult]"
+      },
       "Page_ComplaintReasonOut_": {
         "properties": {
           "items": {
@@ -20633,6 +20859,7 @@
               "chat_message_invalid",
               "chat_not_found",
               "chat_rate_limited",
+              "chat_search_invalid",
               "chat_self",
               "client_update_required",
               "client_version_invalid",

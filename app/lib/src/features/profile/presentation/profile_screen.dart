@@ -24,6 +24,12 @@ class ProfileScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l10n.profileTitle),
         actions: [
+          IconButton(
+            key: const Key('profile-chats'),
+            icon: const Icon(Icons.chat_bubble_outline),
+            tooltip: l10n.profileChats,
+            onPressed: () => context.push(AppRoutes.chats),
+          ),
           if (user != null)
             IconButton(
               key: const Key('profile-edit'),

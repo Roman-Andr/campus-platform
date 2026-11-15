@@ -1665,6 +1665,107 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get chatsTitle => 'Диалоги';
+
+  @override
+  String get chatsEmpty => 'Диалогов пока нет. Напишите автору объявления.';
+
+  @override
+  String get chatsNoMessages => 'Сообщений пока нет';
+
+  @override
+  String get chatsUnnamed => 'Диалог';
+
+  @override
+  String get chatTitle => 'Чат';
+
+  @override
+  String get chatEmpty => 'Сообщений пока нет. Напишите первым.';
+
+  @override
+  String get chatInputHint => 'Сообщение';
+
+  @override
+  String get chatSend => 'Отправить';
+
+  @override
+  String get chatMessageEmpty => 'Введите сообщение.';
+
+  @override
+  String chatMessageTooLong(int max) {
+    return 'Сообщение длиннее $max символов.';
+  }
+
+  @override
+  String get chatMessageSending => 'Отправляется…';
+
+  @override
+  String get chatMessageWaiting => 'Ждёт отправки';
+
+  @override
+  String get chatMessageFailed => 'Не отправлено';
+
+  @override
+  String get chatMessageRetry => 'Повторить';
+
+  @override
+  String get chatMessageDiscard => 'Удалить';
+
+  @override
+  String get chatLoadMoreFailed => 'Не удалось загрузить ещё диалоги.';
+
+  @override
+  String get chatLoadOlderFailed =>
+      'Не удалось загрузить более ранние сообщения.';
+
+  @override
+  String get chatSyncFailed => 'Не удалось обновить чат.';
+
+  @override
+  String get chatLoadOlder => 'Показать ранее';
+
+  @override
+  String get chatStart => 'Написать сообщение';
+
+  @override
+  String get chatNotFound => 'Диалог недоступен';
+
+  @override
+  String get chatForbiddenAlumni =>
+      'Выпускники могут писать только в существующие диалоги.';
+
+  @override
+  String get chatFailureConflict =>
+      'Это сообщение уже отправлено с другим текстом.';
+
+  @override
+  String get chatFailureInvalid => 'Сообщение не отправлено: проверьте текст.';
+
+  @override
+  String get chatFailureRateLimited =>
+      'Слишком много сообщений. Попробуйте позже.';
+
+  @override
+  String get chatFailureNetwork =>
+      'Нет сети. Сообщение отправится, когда связь вернётся.';
+
+  @override
+  String get chatFailureForbidden => 'Вы не можете писать в этот диалог.';
+
+  @override
+  String get chatFailureUnauthorized => 'Сессия истекла. Войдите снова.';
+
+  @override
+  String get chatFailureServer => 'Сообщение не отправлено: сервер недоступен.';
+
+  @override
+  String get chatFailureUnexpected =>
+      'Сообщение не отправлено. Попробуйте ещё раз.';
+
+  @override
+  String get profileChats => 'Мои диалоги';
+
+  @override
   String get listingKindPurchase => 'Совместная закупка';
 
   @override
