@@ -14946,6 +14946,15 @@ export interface operations {
       };
     };
     responses: {
+      /** @description The chat already exists for this pair and link. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ChatOutput'];
+        };
+      };
       /** @description Successful Response */
       201: {
         headers: {
@@ -15283,6 +15292,15 @@ export interface operations {
       };
     };
     responses: {
+      /** @description The message was already stored for this client UUID. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MessageOutput'];
+        };
+      };
       /** @description Successful Response */
       201: {
         headers: {

@@ -16287,6 +16287,16 @@
               }
             },
             "description": "Too Many Requests"
+          },
+          "200": {
+            "description": "The chat already exists for this pair and link.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatOutput"
+                }
+              }
+            }
           }
         }
       },
@@ -16990,6 +17000,16 @@
               }
             },
             "description": "Too Many Requests"
+          },
+          "200": {
+            "description": "The message was already stored for this client UUID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageOutput"
+                }
+              }
+            }
           }
         }
       }
