@@ -3008,6 +3008,192 @@ abstract class AppLocalizations {
   /// **'Актуален до {date}'**
   String helpRelevantUntil(String date);
 
+  /// Заголовок списка личных диалогов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Диалоги'**
+  String get chatsTitle;
+
+  /// Пустой список личных диалогов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Диалогов пока нет. Напишите автору объявления.'**
+  String get chatsEmpty;
+
+  /// В диалоге ещё нет сообщений.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сообщений пока нет'**
+  String get chatsNoMessages;
+
+  /// Имя собеседника не удалось определить.
+  ///
+  /// In ru, this message translates to:
+  /// **'Диалог'**
+  String get chatsUnnamed;
+
+  /// Заголовок личного чата без имени собеседника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Чат'**
+  String get chatTitle;
+
+  /// Пустая история личного чата.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сообщений пока нет. Напишите первым.'**
+  String get chatEmpty;
+
+  /// Подсказка поля ввода сообщения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сообщение'**
+  String get chatInputHint;
+
+  /// Кнопка отправки сообщения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отправить'**
+  String get chatSend;
+
+  /// Текст сообщения пуст.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите сообщение.'**
+  String get chatMessageEmpty;
+
+  /// Текст сообщения превышает допустимую длину.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сообщение длиннее {max} символов.'**
+  String chatMessageTooLong(int max);
+
+  /// Сообщение отправляется на сервер.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отправляется…'**
+  String get chatMessageSending;
+
+  /// Сообщение в очереди ждёт сети.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ждёт отправки'**
+  String get chatMessageWaiting;
+
+  /// Сообщение не отправлено из-за ошибки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не отправлено'**
+  String get chatMessageFailed;
+
+  /// Повторить отправку сообщения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Повторить'**
+  String get chatMessageRetry;
+
+  /// Удаляет неотправленное сообщение из очереди.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить'**
+  String get chatMessageDiscard;
+
+  /// The next page of dialogs failed to load.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось загрузить ещё диалоги.'**
+  String get chatLoadMoreFailed;
+
+  /// The previous page of the chat history failed to load.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось загрузить более ранние сообщения.'**
+  String get chatLoadOlderFailed;
+
+  /// A realtime update failed to load the missed messages.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось обновить чат.'**
+  String get chatSyncFailed;
+
+  /// Загрузить предыдущую страницу истории.
+  ///
+  /// In ru, this message translates to:
+  /// **'Показать ранее'**
+  String get chatLoadOlder;
+
+  /// Открыть личный диалог с автором объявления.
+  ///
+  /// In ru, this message translates to:
+  /// **'Написать сообщение'**
+  String get chatStart;
+
+  /// Диалог не существует или недоступен.
+  ///
+  /// In ru, this message translates to:
+  /// **'Диалог недоступен'**
+  String get chatNotFound;
+
+  /// Выпускник не может создать новый диалог.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выпускники могут писать только в существующие диалоги.'**
+  String get chatForbiddenAlumni;
+
+  /// Один идентификатор сообщения использован с другим текстом.
+  ///
+  /// In ru, this message translates to:
+  /// **'Это сообщение уже отправлено с другим текстом.'**
+  String get chatFailureConflict;
+
+  /// Сервер отклонил текст сообщения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сообщение не отправлено: проверьте текст.'**
+  String get chatFailureInvalid;
+
+  /// Превышен лимит отправки сообщений.
+  ///
+  /// In ru, this message translates to:
+  /// **'Слишком много сообщений. Попробуйте позже.'**
+  String get chatFailureRateLimited;
+
+  /// Сообщение ждёт восстановления сети.
+  ///
+  /// In ru, this message translates to:
+  /// **'Нет сети. Сообщение отправится, когда связь вернётся.'**
+  String get chatFailureNetwork;
+
+  /// Действие в диалоге запрещено.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы не можете писать в этот диалог.'**
+  String get chatFailureForbidden;
+
+  /// Сессия завершена, сообщение не отправлено.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сессия истекла. Войдите снова.'**
+  String get chatFailureUnauthorized;
+
+  /// Временная ошибка сервера при отправке.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сообщение не отправлено: сервер недоступен.'**
+  String get chatFailureServer;
+
+  /// Неизвестная ошибка отправки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сообщение не отправлено. Попробуйте ещё раз.'**
+  String get chatFailureUnexpected;
+
+  /// Переход к личным диалогам из профиля.
+  ///
+  /// In ru, this message translates to:
+  /// **'Мои диалоги'**
+  String get profileChats;
+
   /// Listing kind name: group purchase.
   ///
   /// In ru, this message translates to:

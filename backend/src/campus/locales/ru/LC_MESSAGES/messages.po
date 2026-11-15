@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 15:39+0300\n"
+"POT-Creation-Date: 2026-11-15 16:12+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -197,6 +197,9 @@ msgstr "Неверные данные запроса"
 
 msgid "Invalid rules clause"
 msgstr "Неверный пункт правил"
+
+msgid "Invalid search query."
+msgstr "Неверный поисковый запрос."
 
 msgid "Invalid sign-in code"
 msgstr "Неверный код входа"
@@ -593,6 +596,10 @@ msgstr "Один и тот же идентификатор сообщения к
 
 msgid "The same participant cannot show and scan the same QR code."
 msgstr "Один и тот же участник не может показывать и сканировать один QR-код."
+
+#, python-brace-format
+msgid "The search query must be at most {max_length} characters."
+msgstr "Поисковый запрос должен быть не длиннее {max_length} символов."
 
 msgid "There is an update to your listing."
 msgstr "Появилось обновление вашего объявления."

@@ -406,6 +406,16 @@ class Settings(BaseSettings):
         gt=timedelta(0),
         description="Rate-limit window of chat messages (Appendix 4: a minute).",
     )
+    chat_search_query_max_length: int = Field(
+        default=500,
+        ge=1,
+        description="Longest chat search query, in characters.",
+    )
+    chat_search_snippet_length: int = Field(
+        default=240,
+        ge=1,
+        description="Longest excerpt around a matched chat message.",
+    )
 
     meeting_place_max_length: int = Field(default=200, ge=1)
     return_reminder_before: timedelta = Field(

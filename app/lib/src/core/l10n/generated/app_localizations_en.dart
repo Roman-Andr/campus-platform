@@ -1672,6 +1672,105 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get chatsTitle => 'Chats';
+
+  @override
+  String get chatsEmpty => 'No chats yet. Write to the author of a listing.';
+
+  @override
+  String get chatsNoMessages => 'No messages yet';
+
+  @override
+  String get chatsUnnamed => 'Chat';
+
+  @override
+  String get chatTitle => 'Chat';
+
+  @override
+  String get chatEmpty => 'No messages yet. Say hello.';
+
+  @override
+  String get chatInputHint => 'Message';
+
+  @override
+  String get chatSend => 'Send';
+
+  @override
+  String get chatMessageEmpty => 'Enter a message.';
+
+  @override
+  String chatMessageTooLong(int max) {
+    return 'The message is longer than $max characters.';
+  }
+
+  @override
+  String get chatMessageSending => 'Sending…';
+
+  @override
+  String get chatMessageWaiting => 'Waiting to be sent';
+
+  @override
+  String get chatMessageFailed => 'Not sent';
+
+  @override
+  String get chatMessageRetry => 'Retry';
+
+  @override
+  String get chatMessageDiscard => 'Delete';
+
+  @override
+  String get chatLoadMoreFailed => 'Could not load more chats.';
+
+  @override
+  String get chatLoadOlderFailed => 'Could not load earlier messages.';
+
+  @override
+  String get chatSyncFailed => 'Could not refresh the chat.';
+
+  @override
+  String get chatLoadOlder => 'Show earlier';
+
+  @override
+  String get chatStart => 'Write a message';
+
+  @override
+  String get chatNotFound => 'Chat unavailable';
+
+  @override
+  String get chatForbiddenAlumni => 'Alumni can write only in existing chats.';
+
+  @override
+  String get chatFailureConflict =>
+      'This message was already sent with different text.';
+
+  @override
+  String get chatFailureInvalid => 'The message was not sent: check the text.';
+
+  @override
+  String get chatFailureRateLimited => 'Too many messages. Try again later.';
+
+  @override
+  String get chatFailureNetwork =>
+      'No network. The message will be sent when the connection returns.';
+
+  @override
+  String get chatFailureForbidden => 'You can\'t write in this chat.';
+
+  @override
+  String get chatFailureUnauthorized =>
+      'Your session has expired. Sign in again.';
+
+  @override
+  String get chatFailureServer =>
+      'The message was not sent: the server is unavailable.';
+
+  @override
+  String get chatFailureUnexpected => 'The message was not sent. Try again.';
+
+  @override
+  String get profileChats => 'My chats';
+
+  @override
   String get listingKindPurchase => 'Group purchase';
 
   @override
