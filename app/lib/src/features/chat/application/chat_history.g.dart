@@ -74,7 +74,7 @@ final class ChatHistoryProvider
   }
 }
 
-String _$chatHistoryHash() => r'ef28548b13995b6f5545cb4b7af6c619aa1ebb7e';
+String _$chatHistoryHash() => r'ff98f450e525fc44e03eaac83c493f029a5387db';
 
 /// Loads and reconciles the history of one personal dialog.
 ///

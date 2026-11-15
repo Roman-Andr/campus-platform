@@ -17,6 +17,7 @@ import '../application/listings.dart';
 import '../domain/event.dart';
 import '../domain/feed.dart';
 import '../domain/help.dart';
+import '../domain/purchase.dart';
 import '../domain/skills.dart';
 import 'event_screen.dart';
 import 'exchange_widgets.dart';
@@ -27,6 +28,7 @@ import 'meeting_screen.dart';
 import 'my_screens.dart';
 import 'no_meeting_screen.dart';
 import 'publication_screen.dart';
+import 'purchase_screen.dart';
 import 'status_labels.dart';
 import 'waitlist_widgets.dart';
 
@@ -397,6 +399,10 @@ class FeedFiltersBar extends ConsumerWidget {
                 value: FeedKind.help.apiValue,
                 child: Text(l.listingKindHelp),
               ),
+              DropdownMenuItem(
+                value: FeedKind.purchase.apiValue,
+                child: Text(l.listingKindPurchase),
+              ),
             ],
             onChanged: (value) => onChanged(
               filters.withKind(
@@ -463,6 +469,7 @@ class ListingTile extends ConsumerWidget {
     final publication = item.kind == 'publication';
     final event = item.kind == 'event';
     final help = isHelpRequest(item);
+    final purchase = isPurchase(item);
     final seats = eventSeatsText(l, item.remainingPlaces);
     final skill = isSkillListing(item);
     final direction = skillDirectionOf(item);
@@ -474,6 +481,8 @@ class ListingTile extends ConsumerWidget {
         ? l.listingKindEvent
         : help
         ? l.listingKindHelp
+        : purchase
+        ? l.listingKindPurchase
         : listingName(l, item.status);
     return Column(
       children: [
@@ -484,6 +493,7 @@ class ListingTile extends ConsumerWidget {
             [
               item.authorName,
               kind,
+              if (purchase) purchaseCollectedLabel(l, item),
               if (event && seats.isNotEmpty) seats,
               if (direction != null) skillDirectionLabel(l, direction),
             ].join(' · '),
@@ -539,6 +549,7 @@ class ListingScreen extends ConsumerWidget {
               final skill = isSkillListing(item);
               final direction = skillDirectionOf(item);
               final help = isHelpRequest(item);
+              final purchase = isPurchase(item);
               final pinned = isPinnedAt(item, clock.now());
               return ListView(
                 padding: const EdgeInsets.all(16),
@@ -571,7 +582,7 @@ class ListingScreen extends ConsumerWidget {
                       listing: item,
                       showEmptySeats: item.authorId == user?.id,
                     ),
-                  ] else if (publication || exchange || skill)
+                  ] else if (publication || exchange || skill || purchase)
                     Text(listingKindName(l, item.kind))
                   else if (help)
                     Text(
@@ -597,6 +608,7 @@ class ListingScreen extends ConsumerWidget {
                     ),
                   ],
                   Text(item.description),
+                  if (purchase) PurchaseSummary(listing: item),
                   if (help && item.expiresAt != null)
                     Text(
                       l.helpRelevantUntil(
@@ -618,6 +630,7 @@ class ListingScreen extends ConsumerWidget {
                       !event &&
                       !skill &&
                       !help &&
+                      !purchase &&
                       item.authorId == user?.id)
                     ListingOwnerActions(item: item),
                   if (event && item.authorId == user?.id)
@@ -631,6 +644,7 @@ class ListingScreen extends ConsumerWidget {
                       !exchange &&
                       !skill &&
                       !help &&
+                      !purchase &&
                       item.authorId != user?.id &&
                       user != null)
                     ListingWaitlistSection(listing: item),
@@ -641,17 +655,23 @@ class ListingScreen extends ConsumerWidget {
                   if (!publication &&
                       !event &&
                       !exchange &&
+                      !purchase &&
                       item.authorId == user?.id)
                     IncomingList(id: id),
+                  if (purchase && item.authorId == user?.id)
+                    PurchaseCompositionSection(listingId: id),
                   if (skill && user != null && item.authorId != user.id)
                     LessonParticipationSection(listing: item),
                   if (help && user != null && item.authorId != user.id)
                     HelpRequestSection(listing: item),
+                  if (purchase && user != null && item.authorId != user.id)
+                    PurchaseShareSection(listing: item),
                   if (!publication &&
                       !event &&
                       !exchange &&
                       !skill &&
                       !help &&
+                      !purchase &&
                       user != null &&
                       item.authorId != user.id)
                     ListingParticipation(id: id),

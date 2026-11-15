@@ -10,6 +10,7 @@ import '../application/listings.dart';
 import '../application/my_listings.dart';
 import '../application/waitlist.dart';
 import '../domain/help.dart';
+import '../domain/purchase.dart';
 import '../domain/skills.dart';
 import 'interaction_widgets.dart';
 import 'lesson_widgets.dart';
@@ -33,6 +34,7 @@ String listingKindName(AppLocalizations l, String kind) => switch (kind) {
   'publication' => l.listingKindPublication,
   'event' => l.listingKindEvent,
   'help' => l.listingKindHelp,
+  'purchase' => l.listingKindPurchase,
   _ => kind,
 };
 
@@ -192,6 +194,7 @@ class ParticipationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final stage = item.stage;
+    final purchase = item.listing.kind == purchaseKind;
     final interaction = asInteraction(item);
     return Column(
       children: [
@@ -203,7 +206,10 @@ class ParticipationTile extends StatelessWidget {
               Text(
                 [
                   listingKindName(l, item.listing.kind),
-                  if (stage != null) l.participationStage(stage),
+                  if (stage != null)
+                    purchase
+                        ? purchaseStageLabel(l, purchaseStageValue(stage))
+                        : l.participationStage(stage),
                 ].join(' · '),
               ),
               if (item.offerDescription case final description?)
@@ -235,7 +241,16 @@ class ParticipationTile extends StatelessWidget {
         ],
         if (item.listing.kind == skillKind)
           _SkillLessonActions(item: interaction),
-        ParticipantCancel(item: interaction),
+        if (purchase)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              l.purchaseManageShare,
+              key: Key('purchase-manage-${interaction.id}'),
+            ),
+          )
+        else
+          ParticipantCancel(item: interaction),
       ],
     );
   }

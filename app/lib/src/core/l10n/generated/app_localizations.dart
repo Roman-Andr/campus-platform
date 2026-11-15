@@ -3193,6 +3193,348 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Мои диалоги'**
   String get profileChats;
+
+  /// Listing kind name: group purchase.
+  ///
+  /// In ru, this message translates to:
+  /// **'Совместная закупка'**
+  String get listingKindPurchase;
+
+  /// Title of the group purchase form.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новая закупка'**
+  String get purchaseCreateTitle;
+
+  /// The group purchase was created.
+  ///
+  /// In ru, this message translates to:
+  /// **'Закупка опубликована.'**
+  String get purchasePublished;
+
+  /// Field of the unit price of a group purchase.
+  ///
+  /// In ru, this message translates to:
+  /// **'Цена за единицу'**
+  String get purchasePrice;
+
+  /// The unit price is invalid.
+  ///
+  /// In ru, this message translates to:
+  /// **'Укажите положительную цену не более чем с двумя знаками после запятой.'**
+  String get purchasePriceInvalid;
+
+  /// Field of the minimum volume of a purchase.
+  ///
+  /// In ru, this message translates to:
+  /// **'Минимальный объём'**
+  String get purchaseMinUnits;
+
+  /// Field of the maximum volume of a purchase.
+  ///
+  /// In ru, this message translates to:
+  /// **'Максимальный объём'**
+  String get purchaseMaxUnits;
+
+  /// The minimum volume is invalid.
+  ///
+  /// In ru, this message translates to:
+  /// **'Объём должен быть не меньше 1.'**
+  String get purchaseMinInvalid;
+
+  /// The maximum volume is below the minimum.
+  ///
+  /// In ru, this message translates to:
+  /// **'Максимум не может быть меньше минимума ({min}).'**
+  String purchaseMaxBelowMin(int min);
+
+  /// Field of the collection deadline.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сбор до'**
+  String get purchaseCollectionDeadline;
+
+  /// The collection deadline is in the past.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите срок сбора в будущем.'**
+  String get purchaseDeadlinePast;
+
+  /// The collection deadline exceeds the listing lifetime.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок сбора не может быть позже {days} дн.'**
+  String purchaseDeadlineTooLate(int days);
+
+  /// The purchase is collecting shares.
+  ///
+  /// In ru, this message translates to:
+  /// **'Идёт сбор'**
+  String get purchaseStageCollecting;
+
+  /// The purchase composition is fixed.
+  ///
+  /// In ru, this message translates to:
+  /// **'Состав зафиксирован'**
+  String get purchaseStageFixed;
+
+  /// The purchase was cancelled.
+  ///
+  /// In ru, this message translates to:
+  /// **'Закупка отменена'**
+  String get purchaseStageCancelled;
+
+  /// Unit price on a purchase card.
+  ///
+  /// In ru, this message translates to:
+  /// **'Цена за единицу: {price}'**
+  String purchaseUnitPriceValue(String price);
+
+  /// Collected volume of a purchase.
+  ///
+  /// In ru, this message translates to:
+  /// **'Набрано {taken} из {limit} ед.'**
+  String purchaseCollected(int taken, int limit);
+
+  /// Minimum volume of a purchase.
+  ///
+  /// In ru, this message translates to:
+  /// **'Минимум для закупки: {min} ед.'**
+  String purchaseMinimumValue(int min);
+
+  /// Fixed volume of a purchase.
+  ///
+  /// In ru, this message translates to:
+  /// **'Зафиксировано: {units} ед.'**
+  String purchaseFixedUnitsValue(int units);
+
+  /// Collection deadline on a purchase card.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сбор до {date}'**
+  String purchaseCollectionDeadlineValue(String date);
+
+  /// Heading of the own share of a purchase.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ваша доля'**
+  String get purchaseShareTitle;
+
+  /// Free volume available to take.
+  ///
+  /// In ru, this message translates to:
+  /// **'Свободно: {available} ед.'**
+  String purchaseShareAvailable(int available);
+
+  /// Field of the number of units in a share.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сколько единиц'**
+  String get purchaseShareInput;
+
+  /// Amount of a purchase share.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сумма: {amount}'**
+  String purchaseShareAmount(String amount);
+
+  /// Amount the changed share would cost.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новая сумма: {amount}'**
+  String purchaseNewAmount(String amount);
+
+  /// Takes a share of a purchase.
+  ///
+  /// In ru, this message translates to:
+  /// **'Записаться'**
+  String get purchaseShareJoin;
+
+  /// The share was taken.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы записались в закупку.'**
+  String get purchaseShareJoined;
+
+  /// Changes the number of units of a share.
+  ///
+  /// In ru, this message translates to:
+  /// **'Изменить долю'**
+  String get purchaseShareChange;
+
+  /// The share was changed.
+  ///
+  /// In ru, this message translates to:
+  /// **'Доля изменена.'**
+  String get purchaseShareChanged;
+
+  /// Leaves a purchase while collecting.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выйти из закупки'**
+  String get purchaseShareLeave;
+
+  /// The participant left the purchase.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы вышли из закупки.'**
+  String get purchaseShareLeft;
+
+  /// Number of units in a share.
+  ///
+  /// In ru, this message translates to:
+  /// **'Доля: {units} ед.'**
+  String purchaseShareUnits(int units);
+
+  /// No free volume is left in the purchase.
+  ///
+  /// In ru, this message translates to:
+  /// **'Свободных единиц не осталось.'**
+  String get purchaseShareNoUnits;
+
+  /// The share must contain at least one unit.
+  ///
+  /// In ru, this message translates to:
+  /// **'Укажите хотя бы одну единицу.'**
+  String get purchaseUnitsPositive;
+
+  /// The requested share exceeds the free volume.
+  ///
+  /// In ru, this message translates to:
+  /// **'Доступно только {available} ед.'**
+  String purchaseUnitsUnavailable(int available);
+
+  /// A fixed purchase requires the organiser's approval to leave.
+  ///
+  /// In ru, this message translates to:
+  /// **'После фиксации состава выход только с согласия организатора.'**
+  String get purchaseLeaveApprovalRequired;
+
+  /// Asks the organiser to leave a fixed purchase.
+  ///
+  /// In ru, this message translates to:
+  /// **'Запросить выход'**
+  String get purchaseLeaveRequest;
+
+  /// The leave request was sent.
+  ///
+  /// In ru, this message translates to:
+  /// **'Запрос на выход отправлен организатору.'**
+  String get purchaseLeaveRequestSent;
+
+  /// The leave request is pending.
+  ///
+  /// In ru, this message translates to:
+  /// **'Запрос на выход ждёт решения организатора.'**
+  String get purchaseLeaveRequestPending;
+
+  /// Cancels the leave request of the participant.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отменить запрос'**
+  String get purchaseLeaveCancel;
+
+  /// The leave request was cancelled.
+  ///
+  /// In ru, this message translates to:
+  /// **'Запрос на выход отменён.'**
+  String get purchaseLeaveRequestCancelled;
+
+  /// Heading of the purchase composition for the organiser.
+  ///
+  /// In ru, this message translates to:
+  /// **'Состав закупки'**
+  String get purchaseCompositionTitle;
+
+  /// No shares have been taken yet.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пока никто не записался.'**
+  String get purchaseCompositionEmpty;
+
+  /// Total volume and amount of a purchase.
+  ///
+  /// In ru, this message translates to:
+  /// **'Итого: {units} ед. на {amount}'**
+  String purchaseCompositionTotal(int units, String amount);
+
+  /// A participant asked to leave a fixed purchase.
+  ///
+  /// In ru, this message translates to:
+  /// **'Просит выйти'**
+  String get purchaseLeaveRequestedBy;
+
+  /// The organiser approves leaving.
+  ///
+  /// In ru, this message translates to:
+  /// **'Разрешить выход'**
+  String get purchaseLeaveApprove;
+
+  /// The organiser rejects the leave request.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отклонить'**
+  String get purchaseLeaveReject;
+
+  /// The leave request was approved.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выход разрешён.'**
+  String get purchaseLeaveApproved;
+
+  /// The leave request was rejected.
+  ///
+  /// In ru, this message translates to:
+  /// **'Запрос на выход отклонён.'**
+  String get purchaseLeaveRejected;
+
+  /// The account already holds a share.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы уже участвуете в этой закупке.'**
+  String get purchaseShareExists;
+
+  /// The server rejected the price or volume bounds.
+  ///
+  /// In ru, this message translates to:
+  /// **'Проверьте цену и объёмы закупки.'**
+  String get purchaseVolumeInvalid;
+
+  /// The server rejected the collection deadline.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок сбора должен быть в будущем и не позже срока жизни объявления.'**
+  String get purchaseDeadlineInvalid;
+
+  /// There is no leave request to act on.
+  ///
+  /// In ru, this message translates to:
+  /// **'Запроса на выход нет.'**
+  String get purchaseLeaveRequestMissing;
+
+  /// The purchase is not fixed yet.
+  ///
+  /// In ru, this message translates to:
+  /// **'Состав закупки ещё не зафиксирован.'**
+  String get purchaseNotFixed;
+
+  /// The purchase volume conflicts with new conditions.
+  ///
+  /// In ru, this message translates to:
+  /// **'Объём закупки уже изменился. Обновите карточку.'**
+  String get purchaseCapacityConflict;
+
+  /// The purchase no longer collects shares.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сбор завершён.'**
+  String get purchaseCollectionClosed;
+
+  /// A purchase share is managed on the listing card.
+  ///
+  /// In ru, this message translates to:
+  /// **'Доля меняется в карточке закупки.'**
+  String get purchaseManageShare;
 }
 
 class _AppLocalizationsDelegate

@@ -23,7 +23,13 @@ String? notificationRoute(String type, Map<String, Object?> data) {
     'listing.offer_expired' ||
     'listing.waitlist_joined' ||
     'listing.waitlist_open' ||
-    'listing.waitlist_cleared' => listing,
+    'listing.waitlist_cleared' ||
+    'listing.purchase.conditions_changed' ||
+    'listing.purchase.fixed' ||
+    'listing.purchase.cancelled' ||
+    'listing.purchase.reminder' ||
+    'listing.purchase.withdrawal_requested' ||
+    'listing.purchase.withdrawal_decided' => listing,
     _ => null,
   };
 }

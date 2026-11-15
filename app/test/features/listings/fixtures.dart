@@ -90,3 +90,61 @@ Map<String, Object?> eventListingJson({
     'remaining_places': remaining,
   };
 }
+
+Map<String, Object?> purchaseListingJson({
+  String id = 'purchase-1',
+  String? author,
+  String status = 'active',
+  String title = 'A bag of rice',
+  String stage = 'collecting',
+  String unitPrice = '12.50',
+  int minUnits = 2,
+  int maxUnits = 10,
+  int takenUnits = 0,
+  int? fixedUnits,
+  String? deadline,
+}) => {
+  ...listingJson(id: id, author: author, status: status, kind: 'purchase'),
+  'title': title,
+  'description': 'Bulk order from the market',
+  'expires_at': '2099-12-14T00:00:00Z',
+  'purchase_unit_price': unitPrice,
+  'purchase_min_units': minUnits,
+  'purchase_max_units': maxUnits,
+  'purchase_taken_units': takenUnits,
+  'purchase_fixed_units': fixedUnits,
+  'purchase_collection_deadline': deadline ?? '2099-01-01T00:00:00Z',
+  'purchase_stage': stage,
+};
+
+Map<String, Object?> purchaseShareJson({
+  String id = 'share-1',
+  String listingId = 'purchase-1',
+  String participantId = 'participant-1',
+  String participantName = 'Petr Petrov',
+  int units = 1,
+  String unitPrice = '12.50',
+  String? amount,
+  String stage = 'collecting',
+  String status = 'accepted',
+  String? leaveRequestedAt,
+}) => {
+  'id': id,
+  'listing_id': listingId,
+  'participant_id': participantId,
+  'participant_name': participantName,
+  'status': status,
+  'stage': stage,
+  'response_due_at': null,
+  'executor': false,
+  'units': units,
+  'leave_requested_at': leaveRequestedAt,
+  'meeting': null,
+  'unit_price': unitPrice,
+  'amount': amount ?? _amount(unitPrice, units),
+};
+
+String _amount(String unitPrice, int units) {
+  final cents = (double.parse(unitPrice) * 100).round() * units;
+  return '${cents ~/ 100}.${(cents % 100).toString().padLeft(2, '0')}';
+}
