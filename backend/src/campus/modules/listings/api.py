@@ -98,6 +98,7 @@ from campus.modules.listings.service import (
     OFFER_PENDING,
     PURCHASE_CLOSED,
     RATE_LIMIT,
+    RELATED_INTERACTION_STATUSES,
     STALE,
     TYPE_POLICIES,
     accept_lesson_option,
@@ -750,6 +751,7 @@ async def readable(session: DbSession, listing_id: UUID, user: User) -> Listing:
         select(Interaction.id).where(
             Interaction.listing_id == listing.id,
             Interaction.participant_id == user.id,
+            Interaction.status.in_(RELATED_INTERACTION_STATUSES),
         )
     )
     if await blocked_between(session, user.id, listing.author_id):
@@ -2632,6 +2634,7 @@ async def accept_place_offer(
     listing = await locked(session, listing_id)
     user = await user_for(session, principal)
     check_participant(listing, user)
+    await ensure_can_respond(session, user.id, listing.author_id)
     interaction = await claim_offer(session, listing, user, request.app.state.settings)
     return InteractionOutput.model_validate(interaction)
 

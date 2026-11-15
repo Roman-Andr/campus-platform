@@ -288,6 +288,8 @@ async def check_link(
         parties = {interaction.participant_id, listing.author_id}
         if creator.id not in parties or recipient_id not in parties:
             raise ProblemError(NOT_FOUND)
+        if interaction.status not in RELATED_INTERACTION_STATUSES:
+            raise ProblemError(NOT_FOUND)
         if listing_id is not None and listing_id != interaction.listing_id:
             raise ProblemError(CHAT_LINK_INVALID)
         return interaction.listing_id
@@ -463,8 +465,12 @@ async def post_message(  # noqa: PLR0913 - message fields
     The second result is ``False`` for a repeat of the same client UUID and
     content: the stored message is returned, no new order number is taken
     and the outbox gets no new publication.
+
+    Read the chat without its row lock, take the pair lock, and only then
+    take the chat lock. Creation uses the same order, so a concurrent
+    message and create cannot wait on each other's locks.
     """
-    chat = await require_membership(session, chat_id, sender_id, lock=True)
+    chat = await require_membership(session, chat_id, sender_id)
     # A personal block changes only a personal dialog. A future group chat is
     # shared by both members and keeps their messages visible, as the
     # specification requires, so it is not filtered by the pair policy.
@@ -473,6 +479,9 @@ async def post_message(  # noqa: PLR0913 - message fields
             chat.user_high_id if chat.user_low_id == sender_id else chat.user_low_id
         )
         await serialize_contact_pair(session, sender_id, recipient_id)
+        # Recheck membership under the row lock: a concurrent leave may have
+        # committed while this request waited for the pair.
+        chat = await require_membership(session, chat_id, sender_id, lock=True)
         if not await can_contact(
             session,
             sender_id,
@@ -480,6 +489,8 @@ async def post_message(  # noqa: PLR0913 - message fields
             linked=chat.listing_id is not None or chat.interaction_id is not None,
         ):
             raise ProblemError(CHAT_FORBIDDEN)
+    else:
+        chat = await require_membership(session, chat_id, sender_id, lock=True)
     if not text.strip() or len(text) > settings.chat_message_max_length:
         raise ProblemError(CHAT_MESSAGE_INVALID)
     await serialize_sender(session, sender_id)

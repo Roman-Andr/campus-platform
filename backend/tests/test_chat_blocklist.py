@@ -10,6 +10,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 import httpx2
+import pytest
 from sqlalchemy import select
 
 from campus.core import clock
@@ -471,3 +472,99 @@ async def test_existing_chat_model_is_unaffected_by_a_third_party_block(
     assert (await send_message(bob, chat["id"], "still private")).status_code == 201
     stored = await chat_auth.db.get(Chat, UUID(chat["id"]))
     assert stored is not None
+
+
+async def test_block_refuses_waitlist_offer_acceptance(
+    chat_auth: Any, reference: Reference
+) -> None:
+    alice = await account(chat_auth, "offer-alice@university.example", reference.places)
+    bob = await account(chat_auth, "offer-bob@university.example", reference.places)
+    carol = await account(chat_auth, "offer-carol@university.example", reference.places)
+    listing = await publish_listing(alice, reference)
+    occupied = await reserve(bob, listing["id"])
+    assert occupied.status_code == 201, occupied.text
+
+    joined = await carol.auth.client.post(
+        f"{LISTINGS}/{listing['id']}/waitlist",
+        headers={"Idempotency-Key": api_key(), **bearer(carol)},
+    )
+    assert joined.status_code == 201, joined.text
+    rejected = await transition(alice, listing["id"], occupied.json()["id"], "rejected")
+    assert rejected.status_code == 200, rejected.text
+    entry = await carol.auth.client.get(
+        f"{LISTINGS}/{listing['id']}/waitlist/me", headers=bearer(carol)
+    )
+    assert entry.json()["status"] == "offered"
+
+    assert (await block(alice, carol)).status_code == 201
+    accepted = await carol.auth.client.post(
+        f"{LISTINGS}/{listing['id']}/waitlist/offer/accept",
+        headers={"Idempotency-Key": api_key(), **bearer(carol)},
+    )
+    assert accepted.status_code == 404, accepted.text
+    assert accepted.json()["code"] == "not_found"
+
+    chat_auth.db.expire_all()
+    stored = await chat_auth.db.scalar(
+        select(Interaction).where(
+            Interaction.listing_id == UUID(listing["id"]),
+            Interaction.participant_id == UUID(carol.tokens["user"]["id"]),
+        )
+    )
+    assert stored is None
+
+
+@pytest.mark.parametrize(
+    ("status", "actor"),
+    [("rejected", "author"), ("cancelled", "participant")],
+)
+async def test_finished_interaction_does_not_keep_listing_after_block(
+    chat_auth: Any, reference: Reference, status: str, actor: str
+) -> None:
+    alice = await account(chat_auth, "done-alice@university.example", reference.places)
+    bob = await account(chat_auth, "done-bob@university.example", reference.places)
+    listing = await publish_listing(alice, reference)
+    interaction = await reserve(bob, listing["id"])
+    assert interaction.status_code == 201, interaction.text
+    who = alice if actor == "author" else bob
+    finished = await transition(who, listing["id"], interaction.json()["id"], status)
+    assert finished.status_code == 200, finished.text
+
+    assert (await block(alice, bob)).status_code == 201
+    direct = await bob.auth.client.get(
+        f"{LISTINGS}/{listing['id']}", headers=bearer(bob)
+    )
+    assert direct.status_code == 404, direct.text
+    assert listing["id"] not in {
+        item["id"] for item in (await feed(bob)).json()["items"]
+    }
+    assert listing["id"] not in {
+        item["id"] for item in (await feed(bob, "desk")).json()["items"]
+    }
+
+
+@pytest.mark.parametrize(
+    ("status", "actor"),
+    [("rejected", "author"), ("cancelled", "participant")],
+)
+async def test_interaction_chat_requires_a_started_status(
+    chat_auth: Any, reference: Reference, status: str, actor: str
+) -> None:
+    alice = await account(chat_auth, "link-alice@university.example", reference.places)
+    bob = await account(chat_auth, "link-bob@university.example", reference.places)
+    listing = await publish_listing(alice, reference)
+    interaction = await reserve(bob, listing["id"])
+    assert interaction.status_code == 201, interaction.text
+    who = alice if actor == "author" else bob
+    finished = await transition(who, listing["id"], interaction.json()["id"], status)
+    assert finished.status_code == 200, finished.text
+    assert (await set_policy(alice, "related")).status_code == 200
+
+    denied = await create_chat(
+        bob,
+        alice,
+        listing_id=listing["id"],
+        interaction_id=interaction.json()["id"],
+    )
+    assert denied.status_code == 404, denied.text
+    assert denied.json()["code"] == "not_found"
