@@ -73,10 +73,11 @@ void main() {
 
     try {
       await start(ownerRefresh);
-      final create = find.byKey(const Key('feed-create-purchase'));
+      var create = find.byKey(const Key('feed-create-purchase'));
       if (create.evaluate().isEmpty) {
         await tester.tap(find.byKey(const Key('home-menu')));
         await tester.pumpAndSettle();
+        create = find.byKey(const Key('home-create-purchase'));
       }
       await tester.tap(create);
       await tester.pumpAndSettle();

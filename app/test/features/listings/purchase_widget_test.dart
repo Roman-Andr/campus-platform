@@ -249,6 +249,26 @@ Future<void> fillCategory(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('a narrow phone opens the purchase form from the menu', (
+    tester,
+  ) async {
+    english(tester);
+    tester.view.physicalSize = const Size(350, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final server = FakeHttpAdapter(feed: pageJson([]));
+    await tester.pumpCampusApp(InMemorySettingsRepository(), adapter: server);
+
+    expect(find.byKey(const Key('feed-create-purchase')), findsNothing);
+    await tester.tap(find.byKey(const Key('home-menu')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('home-create-purchase')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('home-create-purchase')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('purchase-category')), findsOneWidget);
+  });
+
   testWidgets('the form publishes price, volume bounds and deadline', (
     tester,
   ) async {

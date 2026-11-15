@@ -20,10 +20,10 @@ class HomeScreen extends ConsumerWidget {
     final user = ref.watch(myProfileProvider).value;
     final headman = isHeadman(user);
     // The narrowest phones cannot fit every create action in the bar; the
-    // exchange form stays available from the overflow menu there.
+    // exchange form stays available from the overflow menu below 400.
     final compact = MediaQuery.sizeOf(context).width < 400;
-    // The purchase entry moves into the menu even earlier, so the remaining
-    // actions stay tappable on narrow phones.
+    // Purchase stays in the bar a little longer than exchange and moves into
+    // the menu only on the narrowest phones, below 360.
     final narrow = MediaQuery.sizeOf(context).width < 360;
 
     return Scaffold(
