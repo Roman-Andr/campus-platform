@@ -70,11 +70,25 @@ class FakeChatApi implements ChatApi {
   FakeChatApi({
     List<ChatOutput>? chats,
     Map<String, List<MessageOutput>>? messages,
+    List<ChatSearchResult>? searchResults,
   }) : chats = chats ?? [chatJson()],
-       messages = messages ?? {};
+       messages = messages ?? {},
+       searchResults = searchResults ?? [];
 
   final List<ChatOutput> chats;
   final Map<String, List<MessageOutput>> messages;
+  final List<ChatSearchResult> searchResults;
+
+  final searchCalls = <({String query, String? cursor})>[];
+
+  /// While set, a search request snapshots the results, then waits for it.
+  Completer<void>? searchGate;
+
+  /// Throws this instead of answering the next search request.
+  Object? searchError;
+
+  /// Maximum search results per page; the next cursor is the last message id.
+  int? searchPageLimit;
 
   final createCalls = <ChatInput>[];
   final sendCalls =
@@ -142,6 +156,49 @@ class FakeChatApi implements ChatApi {
       items: items,
       nextPage: end < snapshot.length && items.isNotEmpty
           ? items.last.id
+          : null,
+    );
+  }
+
+  @override
+  Future<PageChatSearchResult> searchChats({
+    required String query,
+    String? cursor,
+    int? size,
+  }) async {
+    searchCalls.add((query: query, cursor: cursor));
+    final normalized = query.trim().toLowerCase();
+    final snapshot = searchResults
+        .where(
+          (result) =>
+              normalized.isEmpty ||
+              result.message.text.toLowerCase().contains(normalized) ||
+              result.snippet.toLowerCase().contains(normalized),
+        )
+        .toList();
+    final gate = searchGate;
+    if (gate != null) await gate.future;
+    final error = searchError;
+    if (error != null) {
+      searchError = null;
+      throw error;
+    }
+    var start = 0;
+    if (cursor != null) {
+      final index = snapshot.indexWhere(
+        (result) => result.message.id == cursor,
+      );
+      start = index < 0 ? 0 : index + 1;
+    }
+    final limit = searchPageLimit ?? size ?? 20;
+    final end = start + limit > snapshot.length
+        ? snapshot.length
+        : start + limit;
+    final items = snapshot.sublist(start, end);
+    return PageChatSearchResult(
+      items: items,
+      nextPage: end < snapshot.length && items.isNotEmpty
+          ? items.last.message.id
           : null,
     );
   }

@@ -1968,6 +1968,81 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/me/device-key': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /**
+     * Register Key
+     * @description Register or replace this device session's Ed25519 public key.
+     *
+     *     A different key for the same device revokes the previous key, including
+     *     keys of older sessions of that device. The private key never reaches the
+     *     API.
+     */
+    put: operations['register_key'];
+    post?: never;
+    /**
+     * Revoke Key
+     * @description Revoke this device session's active key; repeating it is harmless.
+     */
+    delete: operations['revoke_key'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{listing_id}/interactions/{interaction_id}/qr': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Scan Qr
+     * @description Confirm an accepted interaction with a scanned online QR code.
+     *
+     *     The signed payload names the interaction, the showing participant, the
+     *     device key, the issue time and a one-time nonce. The authenticated
+     *     scanner must be the other participant. The server accepts a code whose
+     *     receipt time differs from its issue time by -10 to +30 seconds inclusive.
+     */
+    post: operations['scan_qr'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/time': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Server Time
+     * @description Current server time and the online QR timing parameters.
+     *
+     *     Clients use this to correct their local clock before signing a QR code.
+     */
+    get: operations['server_time'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2362,6 +2437,47 @@ export interface components {
       document_id: string;
       /** Accepted */
       accepted: boolean;
+    };
+    /**
+     * DeviceKeyInput
+     * @description The public half of a device-generated Ed25519 key pair.
+     */
+    DeviceKeyInput: {
+      /**
+       * Public Key
+       * @description Base64url-encoded 32-byte Ed25519 public key. The private key is generated and kept on the device and is never sent to the server.
+       */
+      public_key: string;
+    };
+    /**
+     * DeviceKeyOutput
+     * @description A registered key; it never contains private material.
+     */
+    DeviceKeyOutput: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Algorithm
+       * @description Always 'ed25519'.
+       * @default ed25519
+       */
+      algorithm: string;
+      /**
+       * Public Key
+       * @description Base64url-encoded Ed25519 public key.
+       */
+      public_key: string;
+      /**
+       * Registered At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      registered_at: string;
+      /** Revoked At */
+      revoked_at: string | null;
     };
     /**
      * DocumentKind
@@ -3659,6 +3775,7 @@ export interface components {
         | 'complaint_reason_version_conflict'
         | 'consent_invalid'
         | 'consent_required'
+        | 'device_key_conflict'
         | 'email_conflict'
         | 'email_kind_invalid'
         | 'email_not_found'
@@ -3715,6 +3832,18 @@ export interface components {
         | 'notification_type_unknown'
         | 'photo_unavailable'
         | 'profile_incomplete'
+        | 'qr_already_completed'
+        | 'qr_expired'
+        | 'qr_key_invalid'
+        | 'qr_nonce_reused'
+        | 'qr_not_accepted'
+        | 'qr_not_participant'
+        | 'qr_not_yet_valid'
+        | 'qr_payload_invalid'
+        | 'qr_same_participant'
+        | 'qr_signature_invalid'
+        | 'qr_stage_unavailable'
+        | 'qr_unavailable'
         | 'rate_limited'
         | 'realtime_channel_forbidden'
         | 'realtime_channel_invalid'
@@ -4045,6 +4174,79 @@ export interface components {
       token: string;
     };
     /**
+     * QrScanInput
+     * @description A scanned online QR code and its detached signature.
+     */
+    QrScanInput: {
+      /**
+       * Payload
+       * @description Base64url-encoded UTF-8 JSON with v=1, listing_id, interaction_id, presenter_id, key_id, issued_at and nonce.
+       */
+      payload: string;
+      /**
+       * Signature
+       * @description Base64url-encoded 64-byte Ed25519 signature of the decoded payload bytes, made by the showing device.
+       */
+      signature: string;
+    };
+    /**
+     * QrScanOutput
+     * @description The interaction after a successful or replayed QR scan.
+     */
+    QrScanOutput: {
+      /**
+       * Listing Id
+       * Format: uuid
+       */
+      listing_id: string;
+      /**
+       * Interaction Id
+       * Format: uuid
+       */
+      interaction_id: string;
+      /**
+       * Presenter Id
+       * Format: uuid
+       */
+      presenter_id: string;
+      /**
+       * Scanner Id
+       * Format: uuid
+       */
+      scanner_id: string;
+      status: components['schemas']['InteractionStatus'];
+      /** Completed */
+      completed: boolean;
+      /** Completed At */
+      completed_at: string | null;
+      completion_method: components['schemas']['CompletionMethod'] | null;
+      /** Rating Weight */
+      rating_weight: number | null;
+      /**
+       * Nonce
+       * Format: uuid
+       */
+      nonce: string;
+      /**
+       * Issued At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      issued_at: string;
+      /**
+       * Received At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      received_at: string;
+      /**
+       * Server Time
+       * Format: date-time
+       * @description Current server time, so the client can correct its clock.
+       */
+      server_time: string;
+    };
+    /**
      * QuietHours
      * @description Daily quiet interval in the wall clock of the user's city.
      */
@@ -4138,6 +4340,28 @@ export interface components {
       dormitory_id: string | null;
       /** Faculty Id */
       faculty_id: string | null;
+    };
+    /**
+     * ServerTimeOutput
+     * @description Server time and the online QR timing parameters.
+     */
+    ServerTimeOutput: {
+      /**
+       * Now
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      now: string;
+      /**
+       * Qr Online Ttl
+       * @description Maximum age of an online QR code, in seconds.
+       */
+      qr_online_ttl: number;
+      /**
+       * Qr Clock Skew
+       * @description Accepted clock skew into the future, in seconds.
+       */
+      qr_clock_skew: number;
     };
     /** SessionOutput */
     SessionOutput: {
@@ -16586,6 +16810,373 @@ export interface operations {
       };
       /** @description Too Many Requests */
       429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  register_key: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DeviceKeyInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeviceKeyOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  revoke_key: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  scan_qr: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+        interaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['QrScanInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['QrScanOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  server_time: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ServerTimeOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
         headers: {
           [name: string]: unknown;
         };

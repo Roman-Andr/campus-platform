@@ -19,6 +19,7 @@ enum ProblemCodeValue {
   complaintReasonVersionConflict("complaint_reason_version_conflict"),
   consentInvalid("consent_invalid"),
   consentRequired("consent_required"),
+  deviceKeyConflict("device_key_conflict"),
   emailConflict("email_conflict"),
   emailKindInvalid("email_kind_invalid"),
   emailNotFound("email_not_found"),
@@ -77,6 +78,18 @@ enum ProblemCodeValue {
   notificationTypeUnknown("notification_type_unknown"),
   photoUnavailable("photo_unavailable"),
   profileIncomplete("profile_incomplete"),
+  qrAlreadyCompleted("qr_already_completed"),
+  qrExpired("qr_expired"),
+  qrKeyInvalid("qr_key_invalid"),
+  qrNonceReused("qr_nonce_reused"),
+  qrNotAccepted("qr_not_accepted"),
+  qrNotParticipant("qr_not_participant"),
+  qrNotYetValid("qr_not_yet_valid"),
+  qrPayloadInvalid("qr_payload_invalid"),
+  qrSameParticipant("qr_same_participant"),
+  qrSignatureInvalid("qr_signature_invalid"),
+  qrStageUnavailable("qr_stage_unavailable"),
+  qrUnavailable("qr_unavailable"),
   rateLimited("rate_limited"),
   realtimeChannelForbidden("realtime_channel_forbidden"),
   realtimeChannelInvalid("realtime_channel_invalid"),
@@ -140,6 +153,9 @@ sealed class ProblemCode {
   );
   static const consentRequired = ProblemCodeKnown(
     ProblemCodeValue.consentRequired,
+  );
+  static const deviceKeyConflict = ProblemCodeKnown(
+    ProblemCodeValue.deviceKeyConflict,
   );
   static const emailConflict = ProblemCodeKnown(ProblemCodeValue.emailConflict);
   static const emailKindInvalid = ProblemCodeKnown(
@@ -293,6 +309,30 @@ sealed class ProblemCode {
   static const profileIncomplete = ProblemCodeKnown(
     ProblemCodeValue.profileIncomplete,
   );
+  static const qrAlreadyCompleted = ProblemCodeKnown(
+    ProblemCodeValue.qrAlreadyCompleted,
+  );
+  static const qrExpired = ProblemCodeKnown(ProblemCodeValue.qrExpired);
+  static const qrKeyInvalid = ProblemCodeKnown(ProblemCodeValue.qrKeyInvalid);
+  static const qrNonceReused = ProblemCodeKnown(ProblemCodeValue.qrNonceReused);
+  static const qrNotAccepted = ProblemCodeKnown(ProblemCodeValue.qrNotAccepted);
+  static const qrNotParticipant = ProblemCodeKnown(
+    ProblemCodeValue.qrNotParticipant,
+  );
+  static const qrNotYetValid = ProblemCodeKnown(ProblemCodeValue.qrNotYetValid);
+  static const qrPayloadInvalid = ProblemCodeKnown(
+    ProblemCodeValue.qrPayloadInvalid,
+  );
+  static const qrSameParticipant = ProblemCodeKnown(
+    ProblemCodeValue.qrSameParticipant,
+  );
+  static const qrSignatureInvalid = ProblemCodeKnown(
+    ProblemCodeValue.qrSignatureInvalid,
+  );
+  static const qrStageUnavailable = ProblemCodeKnown(
+    ProblemCodeValue.qrStageUnavailable,
+  );
+  static const qrUnavailable = ProblemCodeKnown(ProblemCodeValue.qrUnavailable);
   static const rateLimited = ProblemCodeKnown(ProblemCodeValue.rateLimited);
   static const realtimeChannelForbidden = ProblemCodeKnown(
     ProblemCodeValue.realtimeChannelForbidden,

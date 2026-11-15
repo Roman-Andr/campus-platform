@@ -29,6 +29,7 @@ from campus.modules import (
     moderation,
     notifications,
     realtime,
+    reputation,
     university,
 )
 
@@ -107,6 +108,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(realtime.router, prefix=API_PREFIX)
     app.include_router(notifications.router, prefix=API_PREFIX)
     app.include_router(chat.router, prefix=API_PREFIX)
+    app.include_router(reputation.device_router, prefix=API_PREFIX)
+    app.include_router(reputation.qr_router, prefix=API_PREFIX)
+    app.include_router(reputation.time_router, prefix=API_PREFIX)
 
     # The last added middleware is the outermost: the request ID is set
     # before the access log record is written.
