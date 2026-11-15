@@ -1,6 +1,7 @@
 """Persistent state of QR confirmation and device signing keys."""
 
 from datetime import datetime
+from enum import StrEnum
 from uuid import UUID
 
 from sqlalchemy import (
@@ -14,6 +15,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
+from campus.core import clock
 from campus.core.db import Entity
 
 
@@ -49,20 +51,40 @@ class DeviceKey(Entity):
     revoked_at: Mapped[datetime | None]
 
 
+class QrMode(StrEnum):
+    """How a confirmation code reached the server."""
+
+    ONLINE = "online"
+    OFFLINE = "offline"
+
+
 class QrScan(Entity):
-    """A successfully used online QR code.
+    """A successfully used online or offline QR code.
 
     The row is inserted in the same transaction as the completion. Its
     unique nonce makes a code single-use; the signature and the participant
     checks are performed before the row is written. Only successful scans
     are stored, so a rejected request leaves no journal entry either.
+
+    An offline code also carries a device-generated ``confirmation_id``.
+    It is unique, so a retry after the idempotency key expired returns the
+    stored result instead of completing the interaction twice, and an
+    altered payload reusing the id is rejected. ``payload_hash`` makes that
+    comparison exact.
     """
 
     __tablename__ = "reputation_qr_scan"
     __table_args__ = (
         CheckConstraint("presenter_id <> scanner_id", name="distinct_participants"),
         CheckConstraint("result = 'completed'", name="result"),
+        CheckConstraint("mode IN ('online','offline')", name="mode"),
+        CheckConstraint(
+            "(mode = 'offline') = (confirmation_id IS NOT NULL)"
+            " AND (mode = 'offline') = (payload_hash IS NOT NULL)",
+            name="offline_fields",
+        ),
         UniqueConstraint("nonce"),
+        UniqueConstraint("confirmation_id"),
         Index("ix_reputation_qr_scan_interaction", "interaction_id", "created_at"),
     )
 
@@ -79,6 +101,10 @@ class QrScan(Entity):
     scanner_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
     nonce: Mapped[UUID]
     issued_at: Mapped[datetime]
+    received_at: Mapped[datetime] = mapped_column(default=clock.now)
+    mode: Mapped[str] = mapped_column(String(8), default=QrMode.ONLINE.value)
+    confirmation_id: Mapped[UUID | None]
+    payload_hash: Mapped[str | None] = mapped_column(String(64))
     result: Mapped[str] = mapped_column(String(16), default="completed")
 
 

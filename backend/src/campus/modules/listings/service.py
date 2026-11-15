@@ -373,6 +373,22 @@ async def locked(session: AsyncSession, listing_id: UUID) -> Listing:
     return listing
 
 
+async def accepted_at(session: AsyncSession, interaction_id: UUID) -> datetime | None:
+    """The first journal event that put the interaction into ``accepted``.
+
+    The append-only journal is the only source of truth for the acceptance
+    time; there is no duplicate column that could drift from it. ``None``
+    means the event is missing, e.g. a row changed outside the domain, and
+    callers must fail closed rather than guess from ``created_at``.
+    """
+    return await session.scalar(
+        select(func.min(ListingEvent.created_at)).where(
+            ListingEvent.interaction_id == interaction_id,
+            ListingEvent.status == InteractionStatus.ACCEPTED.value,
+        )
+    )
+
+
 async def related_between(session: AsyncSession, first: UUID, second: UUID) -> bool:
     """Whether the users share a permitted listing interaction."""
     found = await session.scalar(
@@ -2313,6 +2329,7 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
     action: str = "transition",
     details: dict[str, Any] | None = None,
     reason: str | None = None,
+    offline_qr: bool = False,
 ) -> None:
     expected = TRANSITIONS.get((InteractionStatus(interaction.status), target))
     if expected is None:
@@ -2433,6 +2450,7 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
         previous,
         interaction,
         details=event_details or None,
+        offline_qr=offline_qr,
     )
     if target == InteractionStatus.ACCEPTED:
         await schedule_reservation(session, listing, interaction, settings)

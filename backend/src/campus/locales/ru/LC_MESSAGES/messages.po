@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 19:20+0300\n"
+"POT-Creation-Date: 2026-11-15 20:23+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -37,7 +37,9 @@ msgid "A participant asks to leave the purchase."
 msgstr "Участник просит выйти из закупки."
 
 msgid "A photo must be ready, belong to this chat and not be attached yet."
-msgstr "Фото должно быть готово, принадлежать этому чату и ещё не быть прикреплённым."
+msgstr ""
+"Фото должно быть готово, принадлежать этому чату и ещё не быть "
+"прикреплённым."
 
 msgid ""
 "A place in the queue is available for you. Confirm it before the timer "
@@ -180,6 +182,9 @@ msgstr "Ключ идемпотентности уже использован"
 
 msgid "Interaction already completed"
 msgstr "Взаимодействие уже завершено"
+
+msgid "Interaction already confirmed"
+msgstr "Взаимодействие уже подтверждено"
 
 msgid "Internal error"
 msgstr "Внутренняя ошибка"
@@ -370,6 +375,9 @@ msgstr "Места открыты для всех; бронируйте сейч
 msgid "Profile incomplete"
 msgstr "Профиль не заполнен"
 
+msgid "QR acceptance time is unavailable"
+msgstr "Время принятия взаимодействия недоступно"
+
 msgid "QR code already used"
 msgstr "QR-код уже использован"
 
@@ -385,8 +393,14 @@ msgstr "Срок QR-кода истёк"
 msgid "QR code is from the future"
 msgstr "Время QR-кода в будущем"
 
+msgid "QR code predates acceptance"
+msgstr "QR-код сформирован до принятия взаимодействия"
+
 msgid "QR code rejected"
 msgstr "QR-код отклонён"
+
+msgid "QR confirmation conflict"
+msgstr "Конфликт подтверждения по QR"
 
 msgid "QR confirmation is unavailable"
 msgstr "Подтверждение по QR недоступно"
@@ -523,6 +537,13 @@ msgstr ""
 "Запрос о помощи должен завершаться в будущем и не позже срока жизни "
 "объявления."
 
+msgid ""
+"The interaction is already completed by a stored QR confirmation; this "
+"offline confirmation was not stored."
+msgstr ""
+"Взаимодействие уже завершено сохранённым QR-подтверждением; это "
+"офлайн-подтверждение не сохранено."
+
 msgid "The interaction is not accepted and cannot be completed."
 msgstr "Взаимодействие не принято и не может быть завершено."
 
@@ -604,6 +625,12 @@ msgstr "Тип уведомления {type} не поддерживается."
 msgid "The offer of a place has expired."
 msgstr "Срок предложения места истёк."
 
+msgid "The offline QR code time is later than the server received it."
+msgstr "Время офлайн-QR-кода позже момента получения его сервером."
+
+msgid "The offline QR code was formed before the interaction was accepted."
+msgstr "Офлайн-QR-код сформирован до принятия взаимодействия."
+
 msgid "The online QR code is older than the allowed lifetime."
 msgstr "Онлайн-QR-код старше допустимого срока."
 
@@ -671,6 +698,13 @@ msgstr "Один и тот же участник не может показыв�
 msgid "The search query must be at most {max_length} characters."
 msgstr "Поисковый запрос должен быть не длиннее {max_length} символов."
 
+msgid ""
+"The server has no trusted acceptance time for this interaction and cannot"
+" verify the offline QR code."
+msgstr ""
+"У сервера нет достоверного времени принятия взаимодействия, поэтому "
+"офлайн-QR-код невозможно проверить."
+
 msgid "The six-digit confirmation code has expired; request a new one."
 msgstr "Срок шестизначного кода подтверждения истёк; запросите новый."
 
@@ -685,6 +719,11 @@ msgstr "Этот Idempotency-Key уже использован для друго
 
 msgid "This action is not allowed."
 msgstr "Это действие запрещено."
+
+msgid "This device confirmation ID was already used for a different payload."
+msgstr ""
+"Этот идентификатор подтверждения устройства уже использован для другого "
+"содержимого."
 
 msgid "This field is not allowed."
 msgstr "Это поле недопустимо."

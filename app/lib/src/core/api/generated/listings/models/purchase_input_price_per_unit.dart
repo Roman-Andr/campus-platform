@@ -4,8 +4,8 @@ class PurchaseInputPricePerUnit {
   PurchaseInputPricePerUnit._(this._json, this.hasNumber, this.hasString);
 
   factory PurchaseInputPricePerUnit.fromJson(Object? json) {
-    final hasNumber = _matches74(json);
-    final hasString = _matches75(json);
+    final hasNumber = _matches76(json);
+    final hasString = _matches77(json);
     if (!(hasNumber || hasString)) {
       throw const FormatException(
         "No matching PurchaseInputPricePerUnit variant.",
@@ -39,9 +39,9 @@ class PurchaseInputPricePerUnit {
   Object? toJson() => _copyJson(_json);
 }
 
-bool _matches74(Object? value) =>
+bool _matches76(Object? value) =>
     (value is! num || (value > 0.0)) && (((value is num && value.isFinite)));
-bool _matches75(Object? value) => ((value is String));
+bool _matches77(Object? value) => ((value is String));
 Object? _copyJson(Object? value) {
   return switch (value) {
     Map<String, Object?> map => map.map(

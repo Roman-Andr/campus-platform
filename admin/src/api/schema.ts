@@ -2125,6 +2125,34 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/listings/{listing_id}/interactions/{interaction_id}/qr/offline': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Scan Offline Qr
+     * @description Confirm an accepted interaction with a code stored while offline.
+     *
+     *     The showing device signs the version 2 payload once and keeps it; the
+     *     scanning device may deliver it later. The server accepts it when the
+     *     Ed25519 signature is valid for the key that existed at ``issued_at``,
+     *     the interaction was already accepted, ``issued_at`` is not later than
+     *     the receipt and the code is at most 24 hours old. The device-generated
+     *     ``confirmation_id`` makes a retry after the Idempotency-Key expiry
+     *     return the stored result; an altered payload with the same id conflicts.
+     */
+    post: operations['scan_offline_qr'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/listings/{listing_id}/interactions/{interaction_id}/code': {
     parameters: {
       query?: never;
@@ -3834,6 +3862,95 @@ export interface components {
        */
       muted_chat_ids?: string[] | null;
     };
+    /**
+     * OfflineQrScanInput
+     * @description A stored offline QR code and its detached signature.
+     */
+    OfflineQrScanInput: {
+      /**
+       * Payload
+       * @description Base64url-encoded UTF-8 JSON with v=2, confirmation_id, listing_id, interaction_id, presenter_id, key_id, issued_at and nonce. The private key never leaves the showing device.
+       */
+      payload: string;
+      /**
+       * Signature
+       * @description Base64url-encoded 64-byte Ed25519 signature of the decoded payload bytes, made by the showing device.
+       */
+      signature: string;
+    };
+    /**
+     * OfflineQrScanOutput
+     * @description The interaction after a delayed offline QR confirmation.
+     */
+    OfflineQrScanOutput: {
+      /**
+       * Listing Id
+       * Format: uuid
+       */
+      listing_id: string;
+      /**
+       * Interaction Id
+       * Format: uuid
+       */
+      interaction_id: string;
+      /**
+       * Confirmation Id
+       * Format: uuid
+       */
+      confirmation_id: string;
+      /**
+       * Presenter Id
+       * Format: uuid
+       */
+      presenter_id: string;
+      /**
+       * Scanner Id
+       * Format: uuid
+       */
+      scanner_id: string;
+      /**
+       * Mode
+       * @description Always 'offline'.
+       * @default offline
+       */
+      mode: string;
+      status: components['schemas']['InteractionStatus'];
+      /** Completed */
+      completed: boolean;
+      /** Completed At */
+      completed_at: string | null;
+      completion_method: components['schemas']['CompletionMethod'] | null;
+      /** Rating Weight */
+      rating_weight: number | null;
+      /**
+       * Nonce
+       * Format: uuid
+       */
+      nonce: string;
+      /**
+       * Issued At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      issued_at: string;
+      /**
+       * Received At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      received_at: string;
+      /**
+       * Replayed
+       * @description True when the same confirmation_id was already stored and the original result is returned without a second effect.
+       */
+      replayed: boolean;
+      /**
+       * Server Time
+       * Format: date-time
+       * @description Current server time, so the client can correct its clock.
+       */
+      server_time: string;
+    };
     /** Page[AuditRecordOut] */
     Page_AuditRecordOut_: {
       /** Items */
@@ -4239,8 +4356,13 @@ export interface components {
         | 'notification_type_unknown'
         | 'photo_unavailable'
         | 'profile_incomplete'
+        | 'qr_acceptance_unknown'
         | 'qr_already_completed'
+        | 'qr_already_confirmed'
+        | 'qr_before_acceptance'
+        | 'qr_confirmation_conflict'
         | 'qr_expired'
+        | 'qr_issued_in_future'
         | 'qr_key_invalid'
         | 'qr_nonce_reused'
         | 'qr_not_accepted'
@@ -4774,7 +4896,7 @@ export interface components {
     };
     /**
      * ServerTimeOutput
-     * @description Server time and the online QR timing parameters.
+     * @description Server time and the QR timing parameters.
      */
     ServerTimeOutput: {
       /**
@@ -4788,6 +4910,11 @@ export interface components {
        * @description Maximum age of an online QR code, in seconds.
        */
       qr_online_ttl: number;
+      /**
+       * Qr Offline Ttl
+       * @description Maximum accepted age of an offline QR code, in seconds.
+       */
+      qr_offline_ttl: number;
       /**
        * Qr Clock Skew
        * @description Accepted clock skew into the future, in seconds.
@@ -18134,6 +18261,112 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['QrScanOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  scan_offline_qr: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+        interaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['OfflineQrScanInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OfflineQrScanOutput'];
         };
       };
       /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */

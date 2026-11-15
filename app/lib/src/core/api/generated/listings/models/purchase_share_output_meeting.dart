@@ -155,8 +155,8 @@ class InteractionOutputMeetingNull implements InteractionOutputMeeting {
 sealed class ParticipationOutputMeeting {
   factory ParticipationOutputMeeting.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches61(json)) "MeetingOutput",
-      if (_matches62(json)) "Null",
+      if (_matches63(json)) "MeetingOutput",
+      if (_matches64(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -184,8 +184,8 @@ class ParticipationOutputMeetingNull implements ParticipationOutputMeeting {
 sealed class PurchaseShareOutputMeeting {
   factory PurchaseShareOutputMeeting.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches67(json)) "MeetingOutput",
-      if (_matches68(json)) "Null",
+      if (_matches69(json)) "MeetingOutput",
+      if (_matches70(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -270,10 +270,10 @@ bool _matches38(Object? value) => ((value is String) || (value == null));
 bool _matches39(Object? value) => ((value is String) || (value == null));
 bool _matches40(Object? value) => ((value is String) || (value == null));
 bool _matches42(Object? value) => ((value == null));
-bool _matches61(Object? value) => (_matches30(value));
-bool _matches62(Object? value) => ((value == null));
-bool _matches67(Object? value) => (_matches30(value));
-bool _matches68(Object? value) => ((value == null));
+bool _matches63(Object? value) => (_matches30(value));
+bool _matches64(Object? value) => ((value == null));
+bool _matches69(Object? value) => (_matches30(value));
+bool _matches70(Object? value) => ((value == null));
 int _readJsonInteger(Object? value) {
   if (value is int) {
     return value;

@@ -4,6 +4,8 @@ import 'dart:convert' as convert;
 
 import 'package:dio/dio.dart' show Dio, Options, ResponseType, CancelToken;
 
+import 'models/offline_qr_scan_input.dart' as models show OfflineQrScanInput;
+import 'models/offline_qr_scan_output.dart' as models show OfflineQrScanOutput;
 import 'models/qr_scan_input.dart' as models show QrScanInput;
 import 'models/qr_scan_output.dart' as models show QrScanOutput;
 
@@ -65,5 +67,65 @@ class QrClient {
       cancelToken: cancelToken,
     );
     return models.QrScanOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Scan Offline Qr
+  ///
+  /// Confirm an accepted interaction with a code stored while offline.
+  ///
+  /// The showing device signs the version 2 payload once and keeps it; the
+  /// scanning device may deliver it later. The server accepts it when the
+  /// Ed25519 signature is valid for the key that existed at ``issued_at``,
+  /// the interaction was already accepted, ``issued_at`` is not later than
+  /// the receipt and the code is at most 24 hours old. The device-generated
+  /// ``confirmation_id`` makes a retry after the Idempotency-Key expiry
+  /// return the stored result; an altered payload with the same id conflicts.
+  Future<models.OfflineQrScanOutput> scanOfflineQr({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required String interactionId,
+    required models.OfflineQrScanInput body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(interactionId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/interactions/" +
+          Uri.encodeComponent(interactionId) +
+          "/qr/offline",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.OfflineQrScanOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
   }
 }
