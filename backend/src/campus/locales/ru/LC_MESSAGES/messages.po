@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 22:07+0300\n"
+"POT-Creation-Date: 2026-11-15 22:49+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -394,6 +394,9 @@ msgstr "Не найдено"
 msgid "Not registered"
 msgstr "Вы не записаны"
 
+msgid "Nothing to dispute"
+msgstr "Нечего оспаривать."
+
 msgid "Only a participant registered for the event can vote."
 msgstr "Голосовать может только записавшийся на мероприятие участник."
 
@@ -425,6 +428,9 @@ msgstr "На этом этапе доступны только действия 
 
 msgid "Only the organiser and the registered participants see the event result."
 msgstr "Результат мероприятия видят только организатор и записавшиеся участники."
+
+msgid "Only the organiser can dispute the no-show of their event."
+msgstr "Оспорить неявку может только организатор мероприятия."
 
 msgid "Only the organiser of this event can do this."
 msgstr "Это может сделать только организатор мероприятия."
@@ -612,6 +618,9 @@ msgstr "Текущий объём — {taken} ед."
 msgid "The device key is unknown, revoked or belongs to another user."
 msgstr "Ключ устройства неизвестен, отозван или принадлежит другому пользователю."
 
+msgid "The dispute is closed"
+msgstr "Оспаривание закрыто."
+
 msgid "The event cannot be judged"
 msgstr "Нельзя оценить мероприятие."
 
@@ -719,6 +728,9 @@ msgstr ""
 msgid "The name can be changed once in {days} days; see available_at."
 msgstr "Имя можно менять раз в {days} дней; ближайшая дата — в available_at."
 
+msgid "The no-show can be disputed only within 7 days after it was charged."
+msgstr "Неявку можно оспорить только в течение 7 дней после её начисления."
+
 msgid ""
 "The no-show window has passed: after 7 days the interaction becomes 'did "
 "not take place' without a no-show."
@@ -751,6 +763,9 @@ msgstr "Организатор отменил закупку: {reason}"
 
 msgid "The organiser has decided on your request to leave."
 msgstr "Организатор принял решение по вашему запросу на выход."
+
+msgid "The organiser has no charged no-show at this event yet."
+msgstr "У организатора пока нет начисленной неявки на мероприятии."
 
 msgid "The page cursor is invalid or belongs to another list; start over."
 msgstr "Курсор страницы неверен или относится к другому списку; начните сначала."

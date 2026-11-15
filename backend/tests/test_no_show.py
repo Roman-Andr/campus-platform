@@ -122,6 +122,14 @@ async def event_state(account: Account, listing: dict[str, Any]) -> httpx2.Respo
     return await request(account, "GET", f"/{listing['id']}/event/no-show")
 
 
+async def dispute_event(
+    account: Account, listing: dict[str, Any], key: str | None = None
+) -> httpx2.Response:
+    return await request(
+        account, "POST", f"/{listing['id']}/event/no-show/dispute", None, key=key
+    )
+
+
 async def run_deadlines(account: Account) -> int:
     assert isinstance(account.auth.db.bind, AsyncEngine)
     return await process_due_deadlines(
@@ -1111,3 +1119,143 @@ async def test_an_online_code_formed_after_the_mark_has_no_effect(
         assert refused.json()["code"] == "qr_after_no_show"
     row = await reload_interaction(owner, UUID(interaction["id"]))
     assert row.status == InteractionStatus.NO_SHOW
+
+
+async def test_organizer_disputes_the_event_no_show(
+    owner: Account, borrower: Account, staff: Account, auth: Auth, places: Places
+) -> None:
+    extras = [await new_student(auth, places, number) for number in (11, 12)]
+    now = clock.now()
+    starts_at = now + timedelta(hours=2)
+    ends_at = now + timedelta(hours=4)
+    with time_machine.travel(now, tick=False):
+        listing = await event_at(owner, starts_at, ends_at)
+        await signup(borrower, listing)
+        for extra in extras:
+            await signup(extra, listing)
+    listing_id = UUID(listing["id"])
+
+    with time_machine.travel(ends_at + timedelta(hours=1), tick=False):
+        assert (await vote(borrower, listing)).status_code == 200
+        denied = await dispute_event(borrower, listing)
+        assert denied.status_code == 403, denied.text
+        assert denied.json()["code"] == "event_no_show_dispute_forbidden"
+        outsider = await dispute_event(staff, listing)
+        assert outsider.status_code == 403, outsider.text
+        await staff.auth.db.rollback()
+        staff.auth.db.add(
+            RoleAssignment(user_id=user_id(staff), role=Role.ADMINISTRATOR)
+        )
+        await staff.auth.db.commit()
+        admin = await dispute_event(staff, listing)
+        assert admin.status_code == 403, admin.text
+        assert admin.json()["code"] == "event_no_show_dispute_forbidden"
+
+        opened = await dispute_event(owner, listing)
+        assert opened.status_code == 200, opened.text
+        body = opened.json()
+        assert body["not_held"] is True
+        assert body["organizer_mark"]["status"] == "disputed"
+        assert body["dispute"]["status"] == "open"
+        assert body["can_dispute"] is False
+
+        repeat = await dispute_event(owner, listing)
+        assert repeat.status_code == 200, repeat.text
+        assert repeat.json()["dispute"]["id"] == body["dispute"]["id"]
+        assert repeat.json()["organizer_mark"]["status"] == "disputed"
+        participant_view = (await event_state(borrower, listing)).json()
+        assert participant_view["dispute"]["status"] == "open"
+        assert participant_view["organizer_mark"]["status"] == "disputed"
+        assert participant_view["can_dispute"] is False
+
+    await owner.auth.db.rollback()
+    disputes = list(
+        await owner.auth.db.scalars(
+            select(Dispute).where(Dispute.listing_id == listing_id)
+        )
+    )
+    assert len(disputes) == 1
+    assert disputes[0].interaction_id is None
+    assert disputes[0].status == DisputeStatus.OPEN.value
+    marks = await listing_marks(owner, listing_id)
+    assert [(mark.kind, mark.status) for mark in marks] == [
+        ("event_vote", NoShowStatus.DISPUTED.value)
+    ]
+    events = list(
+        await owner.auth.db.scalars(
+            select(ListingEvent).where(ListingEvent.listing_id == listing_id)
+        )
+    )
+    actions = [event.action for event in events]
+    assert actions.count("event_no_show_disputed") == 1
+    assert actions.count("event_not_held") == 1
+
+
+async def test_parallel_event_disputes_leave_one_case(
+    owner: Account, borrower: Account, auth: Auth, places: Places
+) -> None:
+    extras = [await new_student(auth, places, number) for number in (13, 14, 15)]
+    now = clock.now()
+    starts_at = now + timedelta(hours=2)
+    ends_at = now + timedelta(hours=4)
+    with time_machine.travel(now, tick=False):
+        listing = await event_at(owner, starts_at, ends_at)
+        await signup(borrower, listing)
+        for extra in extras:
+            await signup(extra, listing)
+    listing_id = UUID(listing["id"])
+    with time_machine.travel(ends_at + timedelta(hours=1), tick=False):
+        assert (await vote(borrower, listing)).json()["votes"] == 1
+        assert (await vote(extras[0], listing)).json()["not_held"] is True
+        first, second = await asyncio.gather(
+            dispute_event(owner, listing), dispute_event(owner, listing)
+        )
+    assert first.status_code == 200, first.text
+    assert second.status_code == 200, second.text
+    assert first.json()["dispute"]["id"] == second.json()["dispute"]["id"]
+    await owner.auth.db.rollback()
+    disputes = list(
+        await owner.auth.db.scalars(
+            select(Dispute).where(Dispute.listing_id == listing_id)
+        )
+    )
+    assert len(disputes) == 1
+    marks = await listing_marks(owner, listing_id)
+    assert [mark.status for mark in marks] == [NoShowStatus.DISPUTED.value]
+    await owner.auth.db.rollback()
+    count = await owner.auth.db.scalar(
+        select(func.count())
+        .select_from(ListingEvent)
+        .where(
+            ListingEvent.listing_id == listing_id,
+            ListingEvent.action == "event_no_show_disputed",
+        )
+    )
+    assert count == 1
+
+
+async def test_event_dispute_needs_a_charge_and_has_a_window(
+    owner: Account, borrower: Account, auth: Auth, places: Places
+) -> None:
+    extras = [await new_student(auth, places, number) for number in (16, 17, 18)]
+    now = clock.now()
+    starts_at = now + timedelta(hours=2)
+    ends_at = now + timedelta(hours=4)
+    with time_machine.travel(now, tick=False):
+        listing = await event_at(owner, starts_at, ends_at)
+        await signup(borrower, listing)
+        for extra in extras:
+            await signup(extra, listing)
+    with time_machine.travel(ends_at + timedelta(hours=1), tick=False):
+        assert (await vote(borrower, listing)).json()["votes"] == 1
+        unavailable = await dispute_event(owner, listing)
+        assert unavailable.status_code == 409, unavailable.text
+        assert unavailable.json()["code"] == "event_no_show_dispute_unavailable"
+        charged = (await vote(extras[0], listing)).json()
+        assert charged["not_held"] is True
+    with time_machine.travel(
+        ends_at + timedelta(hours=1, days=7, seconds=1), tick=False
+    ):
+        closed = await dispute_event(owner, listing)
+        assert closed.status_code == 409, closed.text
+        assert closed.json()["code"] == "event_no_show_dispute_closed"

@@ -359,6 +359,9 @@ msgstr ""
 msgid "Not registered"
 msgstr ""
 
+msgid "Nothing to dispute"
+msgstr ""
+
 msgid "Only a participant registered for the event can vote."
 msgstr ""
 
@@ -383,6 +386,9 @@ msgid "Only the composition exchange is available at this stage."
 msgstr ""
 
 msgid "Only the organiser and the registered participants see the event result."
+msgstr ""
+
+msgid "Only the organiser can dispute the no-show of their event."
 msgstr ""
 
 msgid "Only the organiser of this event can do this."
@@ -571,6 +577,9 @@ msgstr ""
 msgid "The device key is unknown, revoked or belongs to another user."
 msgstr ""
 
+msgid "The dispute is closed"
+msgstr ""
+
 msgid "The event cannot be judged"
 msgstr ""
 
@@ -668,6 +677,9 @@ msgstr ""
 msgid "The name can be changed once in {days} days; see available_at."
 msgstr ""
 
+msgid "The no-show can be disputed only within 7 days after it was charged."
+msgstr ""
+
 msgid ""
 "The no-show window has passed: after 7 days the interaction becomes 'did "
 "not take place' without a no-show."
@@ -697,6 +709,9 @@ msgid "The organiser cancelled the purchase: {reason}"
 msgstr ""
 
 msgid "The organiser has decided on your request to leave."
+msgstr ""
+
+msgid "The organiser has no charged no-show at this event yet."
 msgstr ""
 
 msgid "The page cursor is invalid or belongs to another list; start over."

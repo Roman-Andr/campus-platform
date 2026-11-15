@@ -22036,6 +22036,161 @@
         }
       }
     },
+    "/api/v1/listings/{listing_id}/event/no-show/dispute": {
+      "post": {
+        "tags": [
+          "Event no-shows"
+        ],
+        "summary": "Dispute Event No Show Endpoint",
+        "description": "Dispute the organiser's no-show charged by the event vote.\n\nOnly the organiser may do this, within 7 days after the charge. The\nno-show stops counting until the moderator decides (#94); repeating the\nrequest returns the same open case.",
+        "operationId": "dispute_event_no_show_endpoint",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventNoShowOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        }
+      }
+    },
     "/api/v1/listings/{listing_id}/event/no-show": {
       "get": {
         "tags": [
@@ -24018,6 +24173,11 @@
             "format": "uuid",
             "title": "Listing Id"
           },
+          "organizer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Organizer Id"
+          },
           "registered": {
             "type": "integer",
             "minimum": 0.0,
@@ -24049,6 +24209,25 @@
               }
             ]
           },
+          "dispute": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NoShowDisputeOutput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dispute_deadline": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC.",
+            "title": "Dispute Deadline"
+          },
           "participant_marks": {
             "items": {
               "$ref": "#/components/schemas/NoShowMarkOutput"
@@ -24078,6 +24257,11 @@
             "type": "boolean",
             "title": "Can Vote"
           },
+          "can_dispute": {
+            "type": "boolean",
+            "title": "Can Dispute",
+            "description": "Whether the requester may dispute the organiser's no-show now."
+          },
           "voted": {
             "type": "boolean",
             "title": "Voted",
@@ -24093,15 +24277,19 @@
         "type": "object",
         "required": [
           "listing_id",
+          "organizer_id",
           "registered",
           "votes",
           "threshold",
           "not_held",
           "organizer_mark",
+          "dispute",
+          "dispute_deadline",
           "participant_marks",
           "vote_opens_at",
           "vote_closes_at",
           "can_vote",
+          "can_dispute",
           "voted",
           "server_time"
         ],
@@ -27045,6 +27233,9 @@
               "event_attendance_not_registered",
               "event_attendance_unavailable",
               "event_capacity_conflict",
+              "event_no_show_dispute_closed",
+              "event_no_show_dispute_forbidden",
+              "event_no_show_dispute_unavailable",
               "event_no_show_forbidden",
               "event_no_show_not_registered",
               "event_no_show_unavailable",

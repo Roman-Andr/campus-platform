@@ -52,6 +52,48 @@ class EventNoShowsClient {
     );
   }
 
+  /// Dispute Event No Show Endpoint
+  ///
+  /// Dispute the organiser's no-show charged by the event vote.
+  ///
+  /// Only the organiser may do this, within 7 days after the charge. The
+  /// no-show stops counting until the moderator decides (#94); repeating the
+  /// request returns the same open case.
+  Future<models.EventNoShowOutput> disputeEventNoShowEndpoint({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/event/no-show/dispute",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.EventNoShowOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
   /// Event No Show
   ///
   /// Votes, the threshold and the marks of an event.

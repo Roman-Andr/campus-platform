@@ -44,6 +44,9 @@ enum ProblemCodeValue {
   eventAttendanceNotRegistered("event_attendance_not_registered"),
   eventAttendanceUnavailable("event_attendance_unavailable"),
   eventCapacityConflict("event_capacity_conflict"),
+  eventNoShowDisputeClosed("event_no_show_dispute_closed"),
+  eventNoShowDisputeForbidden("event_no_show_dispute_forbidden"),
+  eventNoShowDisputeUnavailable("event_no_show_dispute_unavailable"),
   eventNoShowForbidden("event_no_show_forbidden"),
   eventNoShowNotRegistered("event_no_show_not_registered"),
   eventNoShowUnavailable("event_no_show_unavailable"),
@@ -260,6 +263,15 @@ sealed class ProblemCode {
   );
   static const eventCapacityConflict = ProblemCodeKnown(
     ProblemCodeValue.eventCapacityConflict,
+  );
+  static const eventNoShowDisputeClosed = ProblemCodeKnown(
+    ProblemCodeValue.eventNoShowDisputeClosed,
+  );
+  static const eventNoShowDisputeForbidden = ProblemCodeKnown(
+    ProblemCodeValue.eventNoShowDisputeForbidden,
+  );
+  static const eventNoShowDisputeUnavailable = ProblemCodeKnown(
+    ProblemCodeValue.eventNoShowDisputeUnavailable,
   );
   static const eventNoShowForbidden = ProblemCodeKnown(
     ProblemCodeValue.eventNoShowForbidden,

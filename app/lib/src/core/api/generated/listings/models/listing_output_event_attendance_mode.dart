@@ -6,8 +6,8 @@ import 'attendance_mode.dart';
 sealed class ListingOutputEventAttendanceMode {
   factory ListingOutputEventAttendanceMode.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches62(json)) "AttendanceMode",
-      if (_matches64(json)) "Null",
+      if (_matches71(json)) "AttendanceMode",
+      if (_matches73(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -44,7 +44,7 @@ class ListingOutputEventAttendanceModeNull
   Object? toJson() => value;
 }
 
-bool _matches62(Object? value) => (_matches63(value));
-bool _matches63(Object? value) =>
+bool _matches71(Object? value) => (_matches72(value));
+bool _matches72(Object? value) =>
     (const <Object?>["self", "scan"].contains(value)) && ((value is String));
-bool _matches64(Object? value) => ((value == null));
+bool _matches73(Object? value) => ((value == null));

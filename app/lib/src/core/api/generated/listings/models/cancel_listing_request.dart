@@ -25,8 +25,8 @@ class CancelListingInput implements CancelListingRequest {
 sealed class CancelListingRequest {
   factory CancelListingRequest.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches146(json)) "CancelListingInput",
-      if (_matches149(json)) "Null",
+      if (_matches148(json)) "CancelListingInput",
+      if (_matches151(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -51,13 +51,13 @@ class CancelListingRequestNull implements CancelListingRequest {
   Object? toJson() => value;
 }
 
-bool _matches146(Object? value) => (_matches147(value));
-bool _matches147(Object? value) =>
+bool _matches148(Object? value) => (_matches149(value));
+bool _matches149(Object? value) =>
     (value is! Map<String, Object?> ||
         !value.containsKey("reason") ||
-        _matches148(value["reason"])) &&
+        _matches150(value["reason"])) &&
     (value is! Map<String, Object?> ||
         value.keys.every(const <String>{"reason"}.contains)) &&
     ((value is Map<String, Object?>));
-bool _matches148(Object? value) => ((value is String) || (value == null));
-bool _matches149(Object? value) => ((value == null));
+bool _matches150(Object? value) => ((value is String) || (value == null));
+bool _matches151(Object? value) => ((value == null));

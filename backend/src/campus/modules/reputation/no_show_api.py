@@ -17,6 +17,7 @@ from campus.modules.reputation.no_show import (
     NO_SHOW_FORBIDDEN,
     EventNoShowState,
     NoShowState,
+    dispute_event_no_show,
     mark_no_show,
     no_show_state,
     vote_event_not_held,
@@ -118,15 +119,21 @@ class NoShowOutput(BaseModel):
 
 class EventNoShowOutput(BaseModel):
     listing_id: UUID
+    organizer_id: UUID
     registered: int = Field(ge=0)
     votes: int = Field(ge=0)
     threshold: int = Field(ge=0, description="ceil(registered / 3).")
     not_held: bool = Field(description="Whether the organiser is already charged.")
     organizer_mark: NoShowMarkOutput | None
+    dispute: NoShowDisputeOutput | None
+    dispute_deadline: Instant | None
     participant_marks: list[NoShowMarkOutput]
     vote_opens_at: Instant | None
     vote_closes_at: Instant | None
     can_vote: bool
+    can_dispute: bool = Field(
+        description=("Whether the requester may dispute the organiser's no-show now.")
+    )
     voted: bool = Field(description="Whether the requester has already voted.")
     server_time: Instant
 
@@ -171,19 +178,39 @@ def no_show_output(state: NoShowState) -> NoShowOutput:
 
 
 def event_output(state: EventNoShowState, viewer_id: UUID) -> EventNoShowOutput:
+    organizer_mark = state.organizer_mark
+    can_dispute = (
+        viewer_id == state.organizer_id
+        and state.dispute is None
+        and organizer_mark is not None
+        and organizer_mark.kind == NoShowKind.EVENT_VOTE.value
+        and organizer_mark.status == NoShowStatus.COUNTED.value
+        and state.dispute_deadline is not None
+        and clock.now() <= state.dispute_deadline
+    )
     return EventNoShowOutput(
         listing_id=state.listing_id,
+        organizer_id=state.organizer_id,
         registered=state.registered,
         votes=state.votes,
         threshold=state.threshold,
         not_held=state.not_held,
-        organizer_mark=None
-        if state.organizer_mark is None
-        else mark_output(state.organizer_mark),
+        organizer_mark=None if organizer_mark is None else mark_output(organizer_mark),
+        dispute=None
+        if state.dispute is None
+        else NoShowDisputeOutput(
+            id=state.dispute.id,
+            status=DisputeStatus(state.dispute.status),
+            opened_at=state.dispute.opened_at,
+            resolved_at=state.dispute.resolved_at,
+            resolution=state.dispute.resolution,
+        ),
+        dispute_deadline=state.dispute_deadline,
         participant_marks=[mark_output(mark) for mark in state.participant_marks],
         vote_opens_at=state.vote_opens_at,
         vote_closes_at=state.vote_closes_at,
         can_vote=state.can_vote and viewer_id in state.registered_ids,
+        can_dispute=can_dispute,
         voted=viewer_id in state.voter_ids,
         server_time=clock.now(),
     )
@@ -273,6 +300,28 @@ async def vote_event(
     """
     state = await vote_event_not_held(
         session, listing_id, principal.user_id, request.app.state.settings
+    )
+    return event_output(state, principal.user_id)
+
+
+@event_no_show_router.post("/dispute")
+async def dispute_event_no_show_endpoint(
+    listing_id: UUID,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> EventNoShowOutput:
+    """Dispute the organiser's no-show charged by the event vote.
+
+    Only the organiser may do this, within 7 days after the charge. The
+    no-show stops counting until the moderator decides (#94); repeating the
+    request returns the same open case.
+    """
+    state = await dispute_event_no_show(
+        session,
+        listing_id,
+        principal.user_id,
+        request.app.state.settings,
     )
     return event_output(state, principal.user_id)
 

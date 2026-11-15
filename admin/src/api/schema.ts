@@ -2436,6 +2436,30 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/listings/{listing_id}/event/no-show/dispute': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Dispute Event No Show Endpoint
+     * @description Dispute the organiser's no-show charged by the event vote.
+     *
+     *     Only the organiser may do this, within 7 days after the charge. The
+     *     no-show stops counting until the moderator decides (#94); repeating the
+     *     request returns the same open case.
+     */
+    post: operations['dispute_event_no_show_endpoint'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/listings/{listing_id}/event/no-show': {
     parameters: {
       query?: never;
@@ -3436,6 +3460,11 @@ export interface components {
        * Format: uuid
        */
       listing_id: string;
+      /**
+       * Organizer Id
+       * Format: uuid
+       */
+      organizer_id: string;
       /** Registered */
       registered: number;
       /** Votes */
@@ -3451,6 +3480,9 @@ export interface components {
        */
       not_held: boolean;
       organizer_mark: components['schemas']['NoShowMarkOutput'] | null;
+      dispute: components['schemas']['NoShowDisputeOutput'] | null;
+      /** Dispute Deadline */
+      dispute_deadline: string | null;
       /** Participant Marks */
       participant_marks: components['schemas']['NoShowMarkOutput'][];
       /** Vote Opens At */
@@ -3459,6 +3491,11 @@ export interface components {
       vote_closes_at: string | null;
       /** Can Vote */
       can_vote: boolean;
+      /**
+       * Can Dispute
+       * @description Whether the requester may dispute the organiser's no-show now.
+       */
+      can_dispute: boolean;
       /**
        * Voted
        * @description Whether the requester has already voted.
@@ -4924,6 +4961,9 @@ export interface components {
         | 'event_attendance_not_registered'
         | 'event_attendance_unavailable'
         | 'event_capacity_conflict'
+        | 'event_no_show_dispute_closed'
+        | 'event_no_show_dispute_forbidden'
+        | 'event_no_show_dispute_unavailable'
         | 'event_no_show_forbidden'
         | 'event_no_show_not_registered'
         | 'event_no_show_unavailable'
@@ -20304,6 +20344,107 @@ export interface operations {
     };
   };
   vote_event: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EventNoShowOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  dispute_event_no_show_endpoint: {
     parameters: {
       query?: never;
       header: {

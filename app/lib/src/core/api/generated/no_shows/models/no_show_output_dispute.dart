@@ -2,7 +2,8 @@
 
 import 'dispute_status.dart';
 
-class NoShowDisputeOutput implements NoShowOutputDispute {
+class NoShowDisputeOutput
+    implements EventNoShowOutputDispute, NoShowOutputDispute {
   const NoShowDisputeOutput({
     required this.id,
 
@@ -74,11 +75,40 @@ class NoShowDisputeOutput implements NoShowOutputDispute {
   };
 }
 
+sealed class EventNoShowOutputDispute {
+  factory EventNoShowOutputDispute.fromJson(Object? json) {
+    final matches = <String>[
+      if (_matches40(json)) "NoShowDisputeOutput",
+      if (_matches48(json)) "Null",
+    ];
+    if (matches.length != 1) {
+      throw FormatException(
+        "Expected exactly one EventNoShowOutputDispute variant. Matches: " +
+            matches.toString(),
+      );
+    }
+    if (matches.single == "NoShowDisputeOutput") {
+      return NoShowDisputeOutput.fromJson(json as Map<String, Object?>);
+    }
+    return EventNoShowOutputDisputeNull(json as Null);
+  }
+
+  Object? toJson();
+}
+
+class EventNoShowOutputDisputeNull implements EventNoShowOutputDispute {
+  const EventNoShowOutputDisputeNull(this.value);
+
+  final Null value;
+
+  Object? toJson() => value;
+}
+
 sealed class NoShowOutputDispute {
   factory NoShowOutputDispute.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches70(json)) "NoShowDisputeOutput",
-      if (_matches78(json)) "Null",
+      if (_matches79(json)) "NoShowDisputeOutput",
+      if (_matches80(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -103,8 +133,8 @@ class NoShowOutputDisputeNull implements NoShowOutputDispute {
   Object? toJson() => value;
 }
 
-bool _matches70(Object? value) => (_matches71(value));
-bool _matches71(Object? value) =>
+bool _matches40(Object? value) => (_matches41(value));
+bool _matches41(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("id")) &&
     (value is! Map<String, Object?> || value.containsKey("status")) &&
     (value is! Map<String, Object?> || value.containsKey("opened_at")) &&
@@ -112,26 +142,28 @@ bool _matches71(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("resolution")) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("id") ||
-        _matches72(value["id"])) &&
+        _matches42(value["id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("status") ||
-        _matches73(value["status"])) &&
+        _matches43(value["status"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("opened_at") ||
-        _matches74(value["opened_at"])) &&
+        _matches44(value["opened_at"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("resolved_at") ||
-        _matches75(value["resolved_at"])) &&
+        _matches45(value["resolved_at"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("resolution") ||
-        _matches76(value["resolution"])) &&
+        _matches46(value["resolution"])) &&
     ((value is Map<String, Object?>));
-bool _matches72(Object? value) => ((value is String));
-bool _matches73(Object? value) => (_matches77(value));
-bool _matches77(Object? value) =>
+bool _matches42(Object? value) => ((value is String));
+bool _matches43(Object? value) => (_matches47(value));
+bool _matches47(Object? value) =>
     (const <Object?>["open", "resolved"].contains(value)) &&
     ((value is String));
-bool _matches74(Object? value) => ((value is String));
-bool _matches75(Object? value) => ((value is String) || (value == null));
-bool _matches76(Object? value) => ((value is String) || (value == null));
-bool _matches78(Object? value) => ((value == null));
+bool _matches44(Object? value) => ((value is String));
+bool _matches45(Object? value) => ((value is String) || (value == null));
+bool _matches46(Object? value) => ((value is String) || (value == null));
+bool _matches48(Object? value) => ((value == null));
+bool _matches79(Object? value) => (_matches41(value));
+bool _matches80(Object? value) => ((value == null));

@@ -145,6 +145,24 @@ EVENT_NO_SHOW_FORBIDDEN = ProblemType(
     N_("Forbidden"),
     N_("Only the organiser and the registered participants see the event result."),
 )
+EVENT_DISPUTE_FORBIDDEN = ProblemType(
+    "event_no_show_dispute_forbidden",
+    403,
+    N_("Forbidden"),
+    N_("Only the organiser can dispute the no-show of their event."),
+)
+EVENT_DISPUTE_UNAVAILABLE = ProblemType(
+    "event_no_show_dispute_unavailable",
+    409,
+    N_("Nothing to dispute"),
+    N_("The organiser has no charged no-show at this event yet."),
+)
+EVENT_DISPUTE_CLOSED = ProblemType(
+    "event_no_show_dispute_closed",
+    409,
+    N_("The dispute is closed"),
+    N_("The no-show can be disputed only within 7 days after it was charged."),
+)
 
 Basis = Literal["unmarked", "marked", "automatic", "mutual_dispute", "completed"]
 
@@ -170,6 +188,7 @@ class EventNoShowState:
     """Votes and marks of one event."""
 
     listing_id: UUID
+    organizer_id: UUID
     registered: int
     votes: int
     threshold: int
@@ -177,6 +196,8 @@ class EventNoShowState:
     registered_ids: set[UUID]
     not_held: bool
     organizer_mark: NoShowMark | None
+    dispute: Dispute | None
+    dispute_deadline: datetime | None
     participant_marks: list[NoShowMark]
     vote_opens_at: datetime | None
     vote_closes_at: datetime | None
@@ -698,6 +719,12 @@ async def event_no_show_state(
             .order_by(NoShowMark.created_at, NoShowMark.id)
         )
     )
+    dispute = await event_dispute_of(session, listing.id)
+    dispute_deadline = (
+        None
+        if organizer_mark is None
+        else organizer_mark.created_at + settings.no_show_dispute_window
+    )
     now = clock.now()
     opens_at = listing.event_ends_at
     closes_at = (
@@ -705,6 +732,7 @@ async def event_no_show_state(
     )
     return EventNoShowState(
         listing_id=listing.id,
+        organizer_id=listing.author_id,
         registered=registered_count,
         votes=int(votes or 0),
         threshold=threshold,
@@ -712,6 +740,8 @@ async def event_no_show_state(
         registered_ids=registered_ids,
         not_held=organizer_mark is not None,
         organizer_mark=organizer_mark,
+        dispute=dispute,
+        dispute_deadline=dispute_deadline,
         participant_marks=participant_marks,
         vote_opens_at=opens_at,
         vote_closes_at=closes_at,
@@ -841,6 +871,126 @@ async def vote_event_not_held(
         await session.flush()
         state = await event_no_show_state(session, listing, settings)
     return state
+
+
+async def event_dispute_of(session: AsyncSession, listing_id: UUID) -> Dispute | None:
+    """The single case of the organiser's event no-show, if it exists."""
+    return await session.scalar(
+        select(Dispute).where(
+            Dispute.listing_id == listing_id,
+            Dispute.interaction_id.is_(None),
+        )
+    )
+
+
+async def _open_event_dispute(
+    session: AsyncSession, listing: Listing, now: datetime
+) -> Dispute:
+    """Create the one event dispute, or return the existing one."""
+    dispute_id = await session.scalar(
+        insert(Dispute)
+        .values(
+            kind=DisputeKind.NO_SHOW.value,
+            status=DisputeStatus.OPEN.value,
+            listing_id=listing.id,
+            interaction_id=None,
+            opened_at=now,
+            version=1,
+            created_at=now,
+            updated_at=now,
+        )
+        .on_conflict_do_nothing(
+            index_elements=["listing_id"],
+            index_where=text("interaction_id IS NULL"),
+        )
+        .returning(Dispute.id)
+    )
+    if dispute_id is not None:
+        dispute = await session.get(Dispute, dispute_id)
+        if dispute is None:  # pragma: no cover - the insert just returned this id
+            raise RuntimeError("event dispute disappeared")
+        return dispute
+    existing = await event_dispute_of(session, listing.id)
+    if existing is None:  # pragma: no cover - only the unique key can race
+        raise RuntimeError("event dispute conflict without a stored case")
+    return existing
+
+
+async def dispute_event_no_show(
+    session: AsyncSession,
+    listing_id: UUID,
+    actor_id: UUID,
+    settings: Settings,
+) -> EventNoShowState:
+    """Let the organiser dispute the no-show charged by the event vote.
+
+    The listing lock serializes the command with the vote that charges the
+    mark and with another dispute request. The mark becomes ``disputed`` and
+    stops counting until the moderator decides (#94); the event-level case is
+    one per listing, so a repeat or a parallel request is idempotent.
+    """
+    listing = await locked(session, listing_id)
+    await require_event(listing)
+    if listing.author_id != actor_id:
+        raise ProblemError(EVENT_DISPUTE_FORBIDDEN)
+    now = clock.now()
+    state = await event_no_show_state(session, listing, settings)
+    mark = state.organizer_mark
+    if mark is None or mark.kind != NoShowKind.EVENT_VOTE.value:
+        raise ProblemError(EVENT_DISPUTE_UNAVAILABLE)
+    if state.dispute is not None:
+        if (
+            mark.status == NoShowStatus.DISPUTED.value
+            and state.dispute.status == DisputeStatus.OPEN.value
+        ):
+            return state
+        raise ProblemError(EVENT_DISPUTE_CLOSED)
+    if mark.status != NoShowStatus.COUNTED.value:
+        raise ProblemError(EVENT_DISPUTE_UNAVAILABLE)
+    if now > mark.created_at + settings.no_show_dispute_window:
+        raise ProblemError(EVENT_DISPUTE_CLOSED)
+    suspended = await session.scalar(
+        update(NoShowMark)
+        .where(
+            NoShowMark.id == mark.id,
+            NoShowMark.status == NoShowStatus.COUNTED.value,
+        )
+        .values(
+            status=NoShowStatus.DISPUTED.value,
+            disputed_at=now,
+            updated_at=now,
+        )
+        .returning(NoShowMark.id)
+    )
+    if suspended is None:  # pragma: no cover - the listing lock serializes
+        raise ProblemError(EVENT_DISPUTE_UNAVAILABLE)
+    dispute = await _open_event_dispute(session, listing, now)
+    listing.version += 1
+    record(
+        session,
+        listing,
+        actor_id,
+        "event_no_show_disputed",
+        listing.status,
+        details={
+            "mark_id": str(mark.id),
+            "dispute_id": str(dispute.id),
+            "rule": "event_vote",
+        },
+    )
+    queue_no_show(
+        session,
+        listing,
+        {
+            "mark_id": str(mark.id),
+            "dispute_id": str(dispute.id),
+            "kind": NoShowKind.EVENT_VOTE.value,
+            "status": "disputed",
+        },
+        {listing.author_id} | state.registered_ids,
+    )
+    await session.flush()
+    return await event_no_show_state(session, listing, settings)
 
 
 async def event_result(
@@ -1083,6 +1233,7 @@ __all__ = [
     "auto_event_no_show",
     "auto_no_show",
     "disarm_no_show_timer",
+    "dispute_event_no_show",
     "event_no_show_state",
     "event_result",
     "mark_no_show",
