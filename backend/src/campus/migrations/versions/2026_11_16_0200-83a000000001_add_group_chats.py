@@ -1,18 +1,19 @@
 """Add group chats of events and purchases.
 
 A group chat belongs to one listing and has no member pair: the organiser of
-the listing and every participant with an accepted interaction are its
-members. The partial unique index on the listing keeps one chat per event or
+the listing and every participant with an accepted or completed interaction
+are its members. The partial unique index on the listing keeps one chat per event or
 purchase; the pair of the personal chat stays NULL and is excluded from it.
 The chat kind is re-checked together with the member columns, so a group row
 and a personal row cannot be mixed up by a direct write.
 
-Existing accepted participations receive their chat and realtime grants in
-the same migration: a deployed event with already registered participants
-must not wait for the next signup to open its group.
+Existing accepted or completed participations receive their chat and
+realtime grants in the same migration: a deployed event with already
+registered participants must not wait for the next signup to open its
+group.
 
 Revision ID: 83a000000001
-Revises: 63a000000001
+Revises: 64a000000001
 """
 
 from collections.abc import Sequence
@@ -21,7 +22,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "83a000000001"
-down_revision: str | Sequence[str] | None = "63a000000001"
+down_revision: str | Sequence[str] | None = "64a000000001"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
