@@ -1,4 +1,4 @@
-"""Personal chats: create, list, history and ordered idempotent sending."""
+"""Chats: personal dialogs and the groups of events and purchases."""
 
 from collections import defaultdict
 from typing import Annotated, Literal, cast
@@ -27,7 +27,9 @@ from campus.core.web import (
     sort_by,
 )
 from campus.core.web.problems import NOT_FOUND
+from campus.modules.chat.groups import organizer_id
 from campus.modules.chat.models import (
+    GROUP_CHATS,
     Chat,
     ChatMember,
     ChatMessage,
@@ -49,6 +51,7 @@ from campus.modules.chat.service import (
 )
 from campus.modules.files import File, expire_later, locked_file
 from campus.modules.identity import User
+from campus.modules.listings import Listing
 
 router = api_router(
     prefix="/chats",
@@ -155,11 +158,32 @@ class ChatItem(BaseModel):
     updated_at: Instant
 
 
+class MemberOutput(ParticipantOutput):
+    """An active member of a chat and the role that grants access."""
+
+    joined_at: Instant
+    is_organizer: bool = Field(
+        default=False,
+        description="The author of the event or the purchase of a group chat.",
+    )
+
+
 class ChatOutput(BaseModel):
     id: UUID
     kind: str
     listing_id: UUID | None
     interaction_id: UUID | None
+    listing_title: str | None = Field(
+        default=None,
+        description="Title of the linked listing, if the chat has one.",
+    )
+    organizer_id: UUID | None = Field(
+        default=None,
+        description=(
+            "Author of the listing; set for the group chats of events and"
+            " purchases only."
+        ),
+    )
     created_at: Instant
     updated_at: Instant
     participants: list[ParticipantOutput]
@@ -267,12 +291,17 @@ def chat_output(
     chat: Chat,
     participants: list[ParticipantOutput],
     last_message: MessageOutput | None,
+    *,
+    listing_title: str | None = None,
+    organizer: UUID | None = None,
 ) -> ChatOutput:
     return ChatOutput(
         id=chat.id,
         kind=chat.kind,
         listing_id=chat.listing_id,
         interaction_id=chat.interaction_id,
+        listing_title=listing_title,
+        organizer_id=organizer,
         created_at=chat.created_at,
         updated_at=chat.updated_at,
         participants=participants,
@@ -303,22 +332,46 @@ async def search_results(
     ]
 
 
+async def listing_details(
+    session: AsyncSession, chats: list[Chat]
+) -> dict[UUID, tuple[str, UUID]]:
+    """Title and author of every linked listing, one query for the page."""
+    ids = {chat.listing_id for chat in chats if chat.listing_id is not None}
+    if not ids:
+        return {}
+    rows = await session.execute(
+        select(Listing.id, Listing.title, Listing.author_id).where(Listing.id.in_(ids))
+    )
+    return {row.id: (row.title, row.author_id) for row in rows}
+
+
 async def hydrate(session: AsyncSession, chats: list[Chat]) -> list[ChatOutput]:
-    """Attach participants and the last message to ``chats`` with two queries."""
+    """Attach participants and the last message to ``chats`` with three queries.
+
+    A group chat shows its active members only: a participant who left the
+    event or the purchase is not part of the composition any more, even
+    though the row keeps their history beyond the retention window. A
+    personal dialog keeps the other member visible after they left, so the
+    remaining one still sees whom the dialog is with.
+    """
     if not chats:
         return []
     ids = [chat.id for chat in chats]
+    by_id = {chat.id: chat for chat in chats}
     members: dict[UUID, list[ParticipantOutput]] = defaultdict(list)
     rows = await session.execute(
-        select(ChatMember.chat_id, User)
+        select(ChatMember.chat_id, ChatMember.left_at, User)
         .join(User, User.id == ChatMember.user_id)
         .where(ChatMember.chat_id.in_(ids))
         .order_by(ChatMember.chat_id, ChatMember.joined_at, ChatMember.user_id)
     )
-    for chat_id, user in rows:
+    for chat_id, left_at, user in rows:
+        if left_at is not None and by_id[chat_id].kind in GROUP_CHATS:
+            continue
         members[chat_id].append(
             ParticipantOutput.model_validate(user, from_attributes=True)
         )
+    details = await listing_details(session, chats)
     last: list[ChatMessageHistory] = list(
         await session.scalars(
             select(ChatMessageHistory)
@@ -336,10 +389,23 @@ async def hydrate(session: AsyncSession, chats: list[Chat]) -> list[ChatOutput]:
             session, [message_output(message) for message in last]
         )
     }
-    return [
-        chat_output(chat, members.get(chat.id, []), latest.get(chat.id))
-        for chat in chats
-    ]
+    outputs: list[ChatOutput] = []
+    for chat in chats:
+        detail = details.get(chat.listing_id) if chat.listing_id is not None else None
+        outputs.append(
+            chat_output(
+                chat,
+                members.get(chat.id, []),
+                latest.get(chat.id),
+                listing_title=detail[0] if detail is not None else None,
+                organizer=(
+                    detail[1]
+                    if detail is not None and chat.kind in GROUP_CHATS
+                    else None
+                ),
+            )
+        )
+    return outputs
 
 
 def chat_file_output(file: File) -> ChatFileOutput:
@@ -416,7 +482,7 @@ async def create_chat(
 
 
 @router.get("")
-async def list_chats(
+async def list_chats(  # noqa: PLR0913, PLR0917 - query fields
     request: Request,
     session: DbSession,
     principal: CurrentUser,
@@ -424,8 +490,14 @@ async def list_chats(
     order_by: Literal[
         "-updated_at", "updated_at", "-created_at", "created_at"
     ] = "-updated_at",
+    kind: Literal["personal", "event", "purchase"] | None = None,
 ) -> Page[ChatOutput]:
-    """List the current user's dialogs, the most recently active first."""
+    """List the current user's chats, the most recently active first.
+
+    ``kind`` selects one chat kind, for example the group chats of events
+    only. Every returned chat has an active membership; a left group is not
+    listed after the participation ended.
+    """
     query = sort_by(
         select(Chat)
         .join(ChatMember, ChatMember.chat_id == Chat.id)
@@ -437,13 +509,15 @@ async def list_chats(
         {"updated_at": Chat.updated_at, "created_at": Chat.created_at},
         Chat.id,
     )
+    if kind is not None:
+        query = query.where(Chat.kind == kind)
     result = await paginate(
         session,
         query,
         page,
         ChatItem,
         settings=request.app.state.settings,
-        context=f"chats:{principal.user_id}",
+        context=f"chats:{principal.user_id}:{kind}",
     )
     return Page[ChatOutput](
         items=await hydrate(
@@ -495,6 +569,7 @@ async def search_chats(
         .join(ChatMember, ChatMember.chat_id == ChatMessageHistory.chat_id)
         .where(
             ChatMember.user_id == principal.user_id,
+            ChatMember.left_at.is_(None),
             ChatMessageHistory.deleted_at.is_(None),
             ChatMessageHistory.search_vector.op("@@")(terms),
         )
@@ -527,9 +602,42 @@ async def search_chats(
 async def read_chat(
     chat_id: UUID, session: DbSession, principal: CurrentUser
 ) -> ChatOutput:
-    """One dialog of the current user; somebody else's chat is ``404``."""
+    """One chat of the current user; somebody else's chat is ``404``."""
     chat = await require_membership(session, chat_id, principal.user_id)
     return (await hydrate(session, [chat]))[0]
+
+
+@router.get("/{chat_id}/members")
+async def list_chat_members(
+    chat_id: UUID, session: DbSession, principal: CurrentUser
+) -> list[MemberOutput]:
+    """Composition of a chat: active members and the organiser of a group.
+
+    A removed participant is not a member any more and cannot read the
+    composition: the membership check runs before the query.
+    """
+    chat = await require_membership(session, chat_id, principal.user_id)
+    organizer = await organizer_id(session, chat)
+    rows = await session.execute(
+        select(ChatMember.joined_at, User)
+        .join(User, User.id == ChatMember.user_id)
+        .where(
+            ChatMember.chat_id == chat.id,
+            ChatMember.left_at.is_(None),
+        )
+        .order_by(ChatMember.joined_at, ChatMember.user_id)
+    )
+    return [
+        MemberOutput(
+            id=user.id,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            account_type=user.account_type,
+            joined_at=joined_at,
+            is_organizer=user.id == organizer,
+        )
+        for joined_at, user in rows
+    ]
 
 
 @router.get("/{chat_id}/messages")
@@ -576,14 +684,18 @@ async def list_messages(  # noqa: PLR0913, PLR0917
 @router.delete(
     "/{chat_id}/membership",
     status_code=204,
-    responses={404: {"model": Problem}},
+    responses={404: {"model": Problem}, 409: {"model": Problem}},
 )
 async def leave(chat_id: UUID, session: DbSession, principal: CurrentUser) -> Response:
-    """Leave a dialog; the last member starts the one-year retention clock.
+    """Leave a personal dialog; its history starts the retention clock.
 
     The membership row and the history stay, so creating the same dialog
     again restores them and cancels a pending cleanup. Repeating the request
     is a no-op and also returns ``204``.
+
+    A group chat is not left here: its membership follows the accepted
+    participation, so cancelling the participation is the only way out and
+    an active member gets ``409``.
     """
     await leave_chat(session, chat_id, principal.user_id)
     return Response(status_code=204)

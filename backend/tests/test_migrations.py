@@ -2,7 +2,7 @@
 
 import asyncio
 from collections.abc import Iterator
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 import asyncpg
@@ -579,3 +579,115 @@ def test_offline_qr_schema_migrates(empty_database: str) -> None:
     assert not {"mode", "confirmation_id", "payload_hash", "received_at"} & names
     assert asyncio.run(fetch(empty_database, constraints)) == []
     assert asyncio.run(fetch(empty_database, indexes)) == []
+
+
+def test_group_chats_are_backfilled_for_accepted_events(
+    empty_database: str,
+) -> None:
+    """An event accepted before #83 gets its chat and realtime grants."""
+    run_alembic(empty_database, "upgrade", "63a000000001")
+    owner, participant = uuid4(), uuid4()
+    for user_id, email in (
+        (owner, "group-owner@university.example"),
+        (participant, "group-participant@university.example"),
+    ):
+        asyncio.run(
+            fetch(
+                empty_database,
+                """
+            INSERT INTO identity_user (id, email, first_name, last_name,
+                                       account_type, created_at, updated_at)
+            VALUES ($1, $2, 'Group', 'User', 'student', now(), now())
+        """,
+                user_id,
+                email,
+            )
+        )
+    city = uuid4()
+    asyncio.run(
+        fetch(
+            empty_database,
+            """
+        INSERT INTO university_city (id, code, timezone, name_ru, name_en,
+                                     created_at, updated_at)
+        VALUES ($1, 'moscow', 'Europe/Moscow', 'Москва', 'Moscow', now(), now())
+    """,
+            city,
+        )
+    )
+    listing = uuid4()
+    starts = datetime(2026, 12, 1, 12, tzinfo=UTC)
+    asyncio.run(
+        fetch(
+            empty_database,
+            """
+        INSERT INTO listing
+            (id, author_id, kind, title, description, status, visibility,
+             audience, city_id, version, expires_at, event_starts_at,
+             event_ends_at, event_location, event_capacity, event_registered,
+             event_attendance_mode, created_at, updated_at)
+        VALUES ($1, $2, 'event', 'Concert', 'Hall A', 'active', 'city',
+                'community', $3, 1, $4, $4, $5, 'Hall A', 10, 1, 'self',
+                now(), now())
+    """,
+            listing,
+            owner,
+            city,
+            starts,
+            starts + timedelta(hours=2),
+        )
+    )
+    asyncio.run(
+        fetch(
+            empty_database,
+            """
+        INSERT INTO listing_interaction
+            (listing_id, slot, participant_id, status, executor,
+             late_cancelled, created_at, updated_at)
+        VALUES ($1, NULL, $2, 'accepted', false, false, now(), now())
+    """,
+            listing,
+            participant,
+        )
+    )
+
+    run_alembic(empty_database, "upgrade", "head")
+    chats = asyncio.run(
+        fetch(
+            empty_database,
+            """
+        SELECT c.id, c.kind, c.listing_id,
+               (SELECT count(*) FROM chat_member m
+                 WHERE m.chat_id = c.id AND m.left_at IS NULL) AS members,
+               (SELECT count(*) FROM realtime_channel_grant g
+                 WHERE g.channel = 'chat:' || c.id::text
+                   AND g.revoked_at IS NULL) AS grants
+        FROM chat c WHERE c.kind IN ('event', 'purchase')
+    """,
+        )
+    )
+    assert len(chats) == 1
+    assert chats[0]["kind"] == "event"
+    assert chats[0]["listing_id"] == listing
+    assert chats[0]["members"] == 2
+    assert chats[0]["grants"] == 2
+
+    run_alembic(empty_database, "downgrade", "63a000000001")
+    assert (
+        asyncio.run(
+            fetch(empty_database, "SELECT id FROM chat WHERE kind <> 'personal'")
+        )
+        == []
+    )
+    assert (
+        asyncio.run(
+            fetch(
+                empty_database,
+                """
+        SELECT indexname FROM pg_indexes
+        WHERE indexname = 'uq_chat_listing_group'
+    """,
+            )
+        )
+        == []
+    )

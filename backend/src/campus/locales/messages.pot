@@ -10,6 +10,11 @@ msgstr ""
 msgid "A graduate or a former employee has no roles."
 msgstr ""
 
+msgid ""
+"A group chat member leaves by cancelling participation in the event or "
+"the purchase."
+msgstr ""
+
 msgid "A headman has a single scope; both cannot be given."
 msgstr ""
 
@@ -224,6 +229,9 @@ msgid "First and last names are required"
 msgstr ""
 
 msgid "Forbidden"
+msgstr ""
+
+msgid "Group membership is managed by the listing."
 msgstr ""
 
 msgid "Has an invalid format."

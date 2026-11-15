@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 01:32+0300\n"
+"POT-Creation-Date: 2026-11-16 02:22+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -28,6 +28,13 @@ msgstr "Удалённое сообщение нельзя изменить."
 
 msgid "A graduate or a former employee has no roles."
 msgstr "У выпускника и бывшего сотрудника ролей нет."
+
+msgid ""
+"A group chat member leaves by cancelling participation in the event or "
+"the purchase."
+msgstr ""
+"Участник выходит из группового чата, отменяя участие в мероприятии или "
+"закупке."
 
 msgid "A headman has a single scope; both cannot be given."
 msgstr "У старосты одна область: общежитие или факультет, но не обе."
@@ -266,6 +273,9 @@ msgstr "Укажите имя и фамилию"
 
 msgid "Forbidden"
 msgstr "Доступ запрещён"
+
+msgid "Group membership is managed by the listing."
+msgstr "Состав группового чата определяется объявлением."
 
 msgid "Has an invalid format."
 msgstr "Неверный формат."
