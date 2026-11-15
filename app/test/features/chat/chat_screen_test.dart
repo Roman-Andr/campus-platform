@@ -2,12 +2,16 @@ import 'dart:async';
 
 import 'package:campus/src/core/api/api_client.dart';
 import 'package:campus/src/core/database/app_database.dart';
+import 'package:campus/src/core/photos/photo_image.dart';
+import 'package:campus/src/core/photos/photo_upload.dart';
 import 'package:campus/src/features/chat/application/chat_config.dart';
 import 'package:campus/src/features/chat/application/chat_history.dart';
 import 'package:campus/src/features/chat/data/chat_api.dart';
+import 'package:campus/src/features/chat/data/chat_photo_uploader.dart';
 import 'package:campus/src/features/chat/data/chat_store.dart';
 import 'package:campus/src/features/privacy/data/privacy_api.dart';
 import 'package:campus/src/features/settings/domain/app_settings.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -29,6 +33,7 @@ void main() {
     FakeHttpAdapter? server,
     Stream<bool>? network,
     FakePrivacyApi? privacyApi,
+    List<Override> extraOverrides = const [],
   }) async {
     final chatApi = api ?? FakeChatApi();
     final chatRealtime = realtime ?? FakeChatRealtime();
@@ -47,6 +52,7 @@ void main() {
         ),
         if (privacyApi != null)
           privacyApiProvider.overrideWithValue(privacyApi),
+        ...extraOverrides,
       ],
     );
     return (api: chatApi, realtime: chatRealtime);
@@ -644,5 +650,331 @@ void main() {
     await tester.tap(find.byKey(const Key('profile-chats')));
     await tester.pumpAndSettle();
     expect(find.text('Chats'), findsOneWidget);
+  });
+
+  testWidgets('replies with a visible quote and clears it after sending', (
+    tester,
+  ) async {
+    final quoted = messageJson(
+      chatId: testChatId,
+      sequence: 1,
+      text: 'Original',
+      senderId: otherId,
+    );
+    final mine = messageJson(chatId: testChatId, sequence: 2, text: 'Mine');
+    final api = FakeChatApi(
+      chats: [chatJson(id: testChatId)],
+      messages: {
+        testChatId: [quoted, mine],
+      },
+    );
+    await pumpChats(tester, api: api);
+    await openChat(tester);
+
+    await tester.tap(
+      find.byKey(ValueKey('chat-message-menu-${quoted.clientId}')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('chat-action-reply')), findsOneWidget);
+    expect(find.byKey(const Key('chat-action-edit')), findsNothing);
+    expect(find.byKey(const Key('chat-action-delete')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('chat-action-reply')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('chat-quote')), findsOneWidget);
+
+    await tester.enterText(find.byKey(const Key('chat-input')), 'Answer');
+    await tester.tap(find.byKey(const Key('chat-send')));
+    await tester.pumpAndSettle();
+
+    expect(api.sendCalls, hasLength(1));
+    expect(api.sendCalls.single.replyToId, quoted.id);
+    expect(api.sendCalls.single.text, 'Answer');
+    expect(find.byKey(const Key('chat-quote')), findsNothing);
+  });
+
+  testWidgets('edits an own message and marks it as edited', (tester) async {
+    final message = messageJson(
+      chatId: testChatId,
+      sequence: 1,
+      text: 'Before',
+    );
+    final api = FakeChatApi(
+      chats: [chatJson(id: testChatId)],
+      messages: {
+        testChatId: [message],
+      },
+    );
+    await pumpChats(tester, api: api);
+    await openChat(tester);
+
+    await tester.tap(
+      find.byKey(ValueKey('chat-message-menu-${message.clientId}')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('chat-action-edit')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('chat-edit-input')), 'After');
+    await tester.tap(find.byKey(const Key('chat-edit-save')));
+    await tester.pumpAndSettle();
+
+    expect(api.editCalls, hasLength(1));
+    expect(api.editCalls.single.text, 'After');
+    expect(api.editCalls.single.key, isNotEmpty);
+    expect(find.text('After'), findsOneWidget);
+    expect(find.text('Before'), findsNothing);
+    expect(
+      find.byKey(ValueKey('chat-edited-${message.clientId}')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('retries a failed edit with the same Idempotency-Key', (
+    tester,
+  ) async {
+    final api = FakeChatApi(
+      chats: [chatJson(id: testChatId)],
+      messages: {
+        testChatId: [
+          messageJson(chatId: testChatId, sequence: 1, text: 'Before'),
+        ],
+      },
+    );
+    await pumpChats(tester, api: api);
+    await openChat(tester);
+    await tester.tap(
+      find.byKey(
+        const ValueKey('chat-message-menu-01890a5d-ac96-774b-bcce-b302099a801'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('chat-action-edit')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('chat-edit-input')), 'After');
+
+    api.editError = const NetworkFailure();
+    await tester.tap(find.byKey(const Key('chat-edit-save')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('chat-edit-error')), findsOneWidget);
+    expect(api.editCalls, hasLength(1));
+
+    await tester.tap(find.byKey(const Key('chat-edit-save')));
+    await tester.pumpAndSettle();
+
+    expect(api.editCalls, hasLength(2));
+    expect(api.editCalls[1].key, api.editCalls[0].key);
+    expect(find.text('After'), findsOneWidget);
+  });
+
+  testWidgets('shows a server refusal of an edit and keeps the message', (
+    tester,
+  ) async {
+    final api = FakeChatApi(
+      chats: [chatJson(id: testChatId)],
+      messages: {
+        testChatId: [
+          messageJson(chatId: testChatId, sequence: 1, text: 'Before'),
+        ],
+      },
+    );
+    await pumpChats(tester, api: api);
+    await openChat(tester);
+    await tester.tap(
+      find.byKey(
+        const ValueKey('chat-message-menu-01890a5d-ac96-774b-bcce-b302099a801'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('chat-action-edit')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('chat-edit-input')), 'After');
+
+    api.editError = const ProblemFailure(
+      Problem(
+        type: 'urn:problem:campus:chat_forbidden',
+        title: 'Forbidden',
+        status: 403,
+        code: ProblemCode.chatForbidden,
+      ),
+    );
+    await tester.tap(find.byKey(const Key('chat-edit-save')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('chat-edit-error')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('chat-edit-cancel')));
+    await tester.pumpAndSettle();
+    expect(find.text('Before'), findsOneWidget);
+    expect(find.text('After'), findsNothing);
+  });
+
+  testWidgets('deletes an own message after confirmation', (tester) async {
+    final api = FakeChatApi(
+      chats: [chatJson(id: testChatId)],
+      messages: {
+        testChatId: [
+          messageJson(chatId: testChatId, sequence: 1, text: 'Remove me'),
+        ],
+      },
+    );
+    await pumpChats(tester, api: api);
+    await openChat(tester);
+
+    await tester.tap(
+      find.byKey(
+        const ValueKey('chat-message-menu-01890a5d-ac96-774b-bcce-b302099a801'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('chat-action-delete')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('chat-delete-confirm')));
+    await tester.pumpAndSettle();
+
+    expect(api.deleteCalls, hasLength(1));
+    expect(find.text('Remove me'), findsNothing);
+  });
+
+  testWidgets('sends a ready photo and clears the attachment', (tester) async {
+    final uploader = FakeChatPhotoUploader();
+    final picker = FakePhotoPicker(galleryFiles: [testImage('one.png')]);
+    final api = FakeChatApi(chats: [chatJson(id: testChatId)]);
+    await pumpChats(
+      tester,
+      api: api,
+      extraOverrides: [
+        chatPhotoUploaderProvider.overrideWithValue(uploader),
+        photoPickerProvider.overrideWithValue(picker),
+        photoConfigProvider.overrideWithValue(
+          const PhotoConfig(
+            maxBytes: 1024 * 1024,
+            listingLimit: 10,
+            pollInterval: Duration.zero,
+            processingTimeout: Duration(seconds: 1),
+          ),
+        ),
+      ],
+    );
+    await openChat(tester);
+
+    await tester.tap(find.byKey(const Key('chat-attach')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('chat-attach-gallery')));
+    await tester.pumpAndSettle();
+
+    expect(uploader.calls, hasLength(1));
+    expect(find.byKey(const Key('chat-photo-strip')), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('chat-input')), 'With photo');
+    await tester.tap(find.byKey(const Key('chat-send')));
+    await tester.pumpAndSettle();
+
+    expect(api.sendCalls, hasLength(1));
+    expect(api.sendCalls.single.photoIds, ['upload-1']);
+    expect(find.byKey(const Key('chat-photo-strip')), findsNothing);
+  });
+
+  testWidgets('a rejected photo blocks the send and asks to fix it', (
+    tester,
+  ) async {
+    final uploader = FakeChatPhotoUploader()..statuses.add('rejected');
+    final picker = FakePhotoPicker(galleryFiles: [testImage('bad.png')]);
+    final api = FakeChatApi(chats: [chatJson(id: testChatId)]);
+    await pumpChats(
+      tester,
+      api: api,
+      extraOverrides: [
+        chatPhotoUploaderProvider.overrideWithValue(uploader),
+        photoPickerProvider.overrideWithValue(picker),
+        photoConfigProvider.overrideWithValue(
+          const PhotoConfig(
+            maxBytes: 1024 * 1024,
+            listingLimit: 10,
+            pollInterval: Duration.zero,
+            processingTimeout: Duration(seconds: 1),
+          ),
+        ),
+      ],
+    );
+    await openChat(tester);
+
+    await tester.tap(find.byKey(const Key('chat-attach')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('chat-attach-gallery')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('chat-photo-status-0')), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('chat-input')), 'With photo');
+    await tester.tap(find.byKey(const Key('chat-send')));
+    await tester.pumpAndSettle();
+
+    expect(api.sendCalls, isEmpty);
+    expect(find.byKey(const Key('chat-form-error')), findsOneWidget);
+  });
+
+  testWidgets('shows signed photos of a delivered message', (tester) async {
+    final api = FakeChatApi(
+      chats: [chatJson(id: testChatId)],
+      messages: {
+        testChatId: [
+          messageJson(
+            chatId: testChatId,
+            sequence: 1,
+            text: 'Look',
+            photoIds: const ['photo-1'],
+          ),
+        ],
+      },
+    );
+    api.messagePhotos['server-1'] = [
+      ChatPhotoOutput(
+        id: 'photo-1',
+        url: 'https://storage.test/photo-1',
+        previewUrl: 'https://storage.test/photo-1-preview',
+        expiresAt: DateTime.now().add(const Duration(minutes: 4)),
+      ),
+    ];
+    await pumpChats(tester, api: api);
+    await openChat(tester);
+
+    expect(api.messagePhotoCalls, hasLength(1));
+    expect(find.byType(CampusPhoto), findsOneWidget);
+  });
+
+  testWidgets('removes a message the server reports as already deleted', (
+    tester,
+  ) async {
+    final message = messageJson(
+      chatId: testChatId,
+      sequence: 1,
+      text: 'Gone already',
+    );
+    final api = FakeChatApi(
+      chats: [chatJson(id: testChatId)],
+      messages: {
+        testChatId: [message],
+      },
+    );
+    await pumpChats(tester, api: api);
+    await openChat(tester);
+    await tester.tap(
+      find.byKey(ValueKey('chat-message-menu-${message.clientId}')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('chat-action-edit')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('chat-edit-input')), 'Never');
+
+    api.editError = const ProblemFailure(
+      Problem(
+        type: 'urn:problem:campus:chat_message_deleted',
+        title: 'Deleted',
+        status: 404,
+        code: ProblemCode.chatMessageDeleted,
+      ),
+    );
+    await tester.tap(find.byKey(const Key('chat-edit-save')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Gone already'), findsNothing);
+    expect(find.byKey(const Key('chat-action-error')), findsOneWidget);
   });
 }

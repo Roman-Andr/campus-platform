@@ -31,6 +31,14 @@ String chatFailureMessage(
         l10n.chatFailureInvalid,
       ProblemCodeKnown(value: ProblemCodeValue.chatSelf) =>
         l10n.chatFailureInvalid,
+      ProblemCodeKnown(value: ProblemCodeValue.chatMessageDeleted) =>
+        l10n.chatMessageDeleted,
+      ProblemCodeKnown(value: ProblemCodeValue.chatPhotoInvalid) =>
+        l10n.chatPhotoInvalid,
+      ProblemCodeKnown(value: ProblemCodeValue.chatPhotoExpired) =>
+        l10n.chatPhotoExpired,
+      _ when failure.status == 403 => l10n.chatActionForbidden,
+      _ when failure.status == 404 => l10n.chatMessageUnavailable,
       _ => apiFailureMessage(l10n, error),
     };
   }
@@ -62,5 +70,6 @@ String outgoingFailureMessage(
   OutgoingChatFailure.invalid => l10n.chatFailureInvalid,
   OutgoingChatFailure.unauthorized => l10n.chatFailureUnauthorized,
   OutgoingChatFailure.server => l10n.chatFailureServer,
+  OutgoingChatFailure.photo => l10n.chatPhotoInvalid,
   OutgoingChatFailure.unexpected => l10n.chatFailureUnexpected,
 };

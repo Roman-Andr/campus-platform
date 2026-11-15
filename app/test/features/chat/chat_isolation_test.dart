@@ -255,4 +255,43 @@ void main() {
     expect(state.items.single.id, otherChatId);
     expect((await store().loadDialogs(ownerB)).single.id, otherChatId);
   });
+
+  test('an old full reconcile cannot publish into account B', () async {
+    await create(
+      messages: [
+        messageJson(chatId: chatId, sequence: 1, text: 'A first'),
+        messageJson(chatId: chatId, sequence: 2, text: 'A second'),
+      ],
+    );
+    final provider = chatHistoryProvider(chatId);
+    final listener = container.listen(provider, (_, _) {});
+    addTearDown(listener.close);
+    await container.read(provider.future);
+    final history = container.read(provider.notifier);
+
+    final gate = Completer<void>();
+    api.listGate = gate;
+    final oldReconcile = history.retrySync();
+    await pumpEventQueue();
+
+    api.listGate = null;
+    api.messages[chatId] = [
+      messageJson(chatId: chatId, sequence: 1, text: 'account B'),
+    ];
+    await signInAsB();
+    final ownerB = await owner();
+    final current = await container.read(provider.future);
+    expect(current.messages.single.text, 'account B');
+
+    gate.complete();
+    await oldReconcile;
+    await pumpEventQueue(times: 40);
+
+    final state = container.read(provider).value!;
+    expect(state.messages.single.text, 'account B');
+    expect(
+      (await store().loadMessages(ownerB, chatId)).single.text,
+      'account B',
+    );
+  });
 }

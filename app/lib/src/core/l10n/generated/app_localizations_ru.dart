@@ -2144,4 +2144,81 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get chatUnavailable =>
       'Личные сообщения с этим пользователем недоступны.';
+
+  @override
+  String get chatMessageEdited => 'изменено';
+
+  @override
+  String get chatReply => 'Ответить';
+
+  @override
+  String get chatReplyCancel => 'Отменить ответ';
+
+  @override
+  String get chatQuoteDeleted => 'Сообщение удалено';
+
+  @override
+  String get chatEdit => 'Редактировать';
+
+  @override
+  String get chatDelete => 'Удалить сообщение';
+
+  @override
+  String get chatEditTitle => 'Редактировать сообщение';
+
+  @override
+  String get chatDeleteTitle => 'Удалить сообщение?';
+
+  @override
+  String get chatDeleteExplanation =>
+      'Текст исчезнет у собеседника. Скрытая копия хранится 30 дней только для жалоб.';
+
+  @override
+  String get chatCancel => 'Отмена';
+
+  @override
+  String get chatSave => 'Сохранить';
+
+  @override
+  String get chatEditFailed =>
+      'Не удалось изменить сообщение. Попробуйте ещё раз.';
+
+  @override
+  String get chatDeleteFailed =>
+      'Не удалось удалить сообщение. Попробуйте ещё раз.';
+
+  @override
+  String get chatMessageDeleted => 'Сообщение уже удалено.';
+
+  @override
+  String get chatMessageUnavailable => 'Сообщение больше недоступно.';
+
+  @override
+  String get chatActionForbidden => 'Действие недоступно: изменились права.';
+
+  @override
+  String get chatPhotoInvalid =>
+      'Фото не обработано или устарело. Добавьте его заново.';
+
+  @override
+  String get chatPhotoExpired =>
+      'Срок загрузки фото истёк. Добавьте его заново.';
+
+  @override
+  String get chatPhotoAdd => 'Прикрепить фото';
+
+  @override
+  String get chatPhotoFailed => 'Не удалось загрузить фото';
+
+  @override
+  String get chatPhotoWait => 'Дождитесь обработки фото.';
+
+  @override
+  String get chatPhotoFix => 'Уберите или повторите неудачные фото.';
+
+  @override
+  String get chatPhotosUnavailable => 'Фото недоступны.';
+
+  @override
+  String get chatYou => 'Вы';
 }

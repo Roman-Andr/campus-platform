@@ -11,11 +11,15 @@ part of 'chat_history.dart';
 /// Loads and reconciles the history of one personal dialog.
 ///
 /// The stored messages open the screen offline. Realtime is only a wakeup:
-/// every publication is followed by an API request for messages after the
-/// newest loaded sequence, so a lost or duplicated publication cannot change
-/// the order — the server sequence does. On the first subscription, after
-/// the app returns and after an exhausted realtime history the service calls
-/// [sync] again.
+/// a publication carries the action, the server sequence and the version,
+/// never the text. A `created` or `edited` publication is resolved by one
+/// history request at that sequence, so an edit of an old message is found
+/// even though it keeps its sequence. A `deleted` publication removes the
+/// row and the stored quote snapshots of it. When publications were missed
+/// (a reconnect, a return from the background, an exhausted Centrifugo
+/// history, an offline period), every stored message of the loaded window
+/// is refetched and compared, so a deleted or edited old message cannot
+/// stay in Drift, a quote or the UI.
 
 @ProviderFor(ChatHistory)
 final chatHistoryProvider = ChatHistoryFamily._();
@@ -23,21 +27,29 @@ final chatHistoryProvider = ChatHistoryFamily._();
 /// Loads and reconciles the history of one personal dialog.
 ///
 /// The stored messages open the screen offline. Realtime is only a wakeup:
-/// every publication is followed by an API request for messages after the
-/// newest loaded sequence, so a lost or duplicated publication cannot change
-/// the order — the server sequence does. On the first subscription, after
-/// the app returns and after an exhausted realtime history the service calls
-/// [sync] again.
+/// a publication carries the action, the server sequence and the version,
+/// never the text. A `created` or `edited` publication is resolved by one
+/// history request at that sequence, so an edit of an old message is found
+/// even though it keeps its sequence. A `deleted` publication removes the
+/// row and the stored quote snapshots of it. When publications were missed
+/// (a reconnect, a return from the background, an exhausted Centrifugo
+/// history, an offline period), every stored message of the loaded window
+/// is refetched and compared, so a deleted or edited old message cannot
+/// stay in Drift, a quote or the UI.
 final class ChatHistoryProvider
     extends $AsyncNotifierProvider<ChatHistory, ChatHistoryState> {
   /// Loads and reconciles the history of one personal dialog.
   ///
   /// The stored messages open the screen offline. Realtime is only a wakeup:
-  /// every publication is followed by an API request for messages after the
-  /// newest loaded sequence, so a lost or duplicated publication cannot change
-  /// the order — the server sequence does. On the first subscription, after
-  /// the app returns and after an exhausted realtime history the service calls
-  /// [sync] again.
+  /// a publication carries the action, the server sequence and the version,
+  /// never the text. A `created` or `edited` publication is resolved by one
+  /// history request at that sequence, so an edit of an old message is found
+  /// even though it keeps its sequence. A `deleted` publication removes the
+  /// row and the stored quote snapshots of it. When publications were missed
+  /// (a reconnect, a return from the background, an exhausted Centrifugo
+  /// history, an offline period), every stored message of the loaded window
+  /// is refetched and compared, so a deleted or edited old message cannot
+  /// stay in Drift, a quote or the UI.
   ChatHistoryProvider._({
     required ChatHistoryFamily super.from,
     required String super.argument,
@@ -74,16 +86,20 @@ final class ChatHistoryProvider
   }
 }
 
-String _$chatHistoryHash() => r'ddf05ae4820698a20e7937468945bbde16d4d8f3';
+String _$chatHistoryHash() => r'8e40eda9cac75cc19a711ee658f59532b3d45ec9';
 
 /// Loads and reconciles the history of one personal dialog.
 ///
 /// The stored messages open the screen offline. Realtime is only a wakeup:
-/// every publication is followed by an API request for messages after the
-/// newest loaded sequence, so a lost or duplicated publication cannot change
-/// the order — the server sequence does. On the first subscription, after
-/// the app returns and after an exhausted realtime history the service calls
-/// [sync] again.
+/// a publication carries the action, the server sequence and the version,
+/// never the text. A `created` or `edited` publication is resolved by one
+/// history request at that sequence, so an edit of an old message is found
+/// even though it keeps its sequence. A `deleted` publication removes the
+/// row and the stored quote snapshots of it. When publications were missed
+/// (a reconnect, a return from the background, an exhausted Centrifugo
+/// history, an offline period), every stored message of the loaded window
+/// is refetched and compared, so a deleted or edited old message cannot
+/// stay in Drift, a quote or the UI.
 
 final class ChatHistoryFamily extends $Family
     with
@@ -106,11 +122,15 @@ final class ChatHistoryFamily extends $Family
   /// Loads and reconciles the history of one personal dialog.
   ///
   /// The stored messages open the screen offline. Realtime is only a wakeup:
-  /// every publication is followed by an API request for messages after the
-  /// newest loaded sequence, so a lost or duplicated publication cannot change
-  /// the order — the server sequence does. On the first subscription, after
-  /// the app returns and after an exhausted realtime history the service calls
-  /// [sync] again.
+  /// a publication carries the action, the server sequence and the version,
+  /// never the text. A `created` or `edited` publication is resolved by one
+  /// history request at that sequence, so an edit of an old message is found
+  /// even though it keeps its sequence. A `deleted` publication removes the
+  /// row and the stored quote snapshots of it. When publications were missed
+  /// (a reconnect, a return from the background, an exhausted Centrifugo
+  /// history, an offline period), every stored message of the loaded window
+  /// is refetched and compared, so a deleted or edited old message cannot
+  /// stay in Drift, a quote or the UI.
 
   ChatHistoryProvider call(String chatId) =>
       ChatHistoryProvider._(argument: chatId, from: this);
@@ -122,11 +142,15 @@ final class ChatHistoryFamily extends $Family
 /// Loads and reconciles the history of one personal dialog.
 ///
 /// The stored messages open the screen offline. Realtime is only a wakeup:
-/// every publication is followed by an API request for messages after the
-/// newest loaded sequence, so a lost or duplicated publication cannot change
-/// the order — the server sequence does. On the first subscription, after
-/// the app returns and after an exhausted realtime history the service calls
-/// [sync] again.
+/// a publication carries the action, the server sequence and the version,
+/// never the text. A `created` or `edited` publication is resolved by one
+/// history request at that sequence, so an edit of an old message is found
+/// even though it keeps its sequence. A `deleted` publication removes the
+/// row and the stored quote snapshots of it. When publications were missed
+/// (a reconnect, a return from the background, an exhausted Centrifugo
+/// history, an offline period), every stored message of the loaded window
+/// is refetched and compared, so a deleted or edited old message cannot
+/// stay in Drift, a quote or the UI.
 
 abstract class _$ChatHistory extends $AsyncNotifier<ChatHistoryState> {
   late final _$args = ref.$arg as String;

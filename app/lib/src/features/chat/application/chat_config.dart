@@ -9,6 +9,7 @@ part 'chat_config.g.dart';
 class ChatConfig {
   const ChatConfig({
     required this.maxMessageLength,
+    this.maxPhotos = 10,
     this.retryDelays = const [
       Duration(seconds: 1),
       Duration(seconds: 2),
@@ -24,9 +25,15 @@ class ChatConfig {
       'CAMPUS_CHAT_MESSAGE_MAX_LENGTH',
       defaultValue: 4000,
     ),
+    // ignore: avoid_redundant_argument_values
+    maxPhotos: int.fromEnvironment('CAMPUS_CHAT_PHOTO_LIMIT', defaultValue: 10),
   );
 
   final int maxMessageLength;
+
+  /// Photos in one message; the server's `CAMPUS_CHAT_PHOTO_LIMIT`
+  /// (ТЗ, Приложение 4).
+  final int maxPhotos;
 
   /// Pauses of the outgoing queue after a retryable failure; the last one
   /// repeats until the message is delivered or the user retries by hand.

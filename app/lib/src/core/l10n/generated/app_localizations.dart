@@ -3841,6 +3841,150 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Личные сообщения с этим пользователем недоступны.'**
   String get chatUnavailable;
+
+  /// Метка изменённого сообщения рядом со временем.
+  ///
+  /// In ru, this message translates to:
+  /// **'изменено'**
+  String get chatMessageEdited;
+
+  /// Пункт меню: ответить с цитатой.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ответить'**
+  String get chatReply;
+
+  /// Убрать выбранную цитату.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отменить ответ'**
+  String get chatReplyCancel;
+
+  /// Цитата удалённого сообщения: текст скрыт.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сообщение удалено'**
+  String get chatQuoteDeleted;
+
+  /// Пункт меню: редактировать своё сообщение.
+  ///
+  /// In ru, this message translates to:
+  /// **'Редактировать'**
+  String get chatEdit;
+
+  /// Пункт меню и кнопка подтверждения: удалить своё сообщение.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить сообщение'**
+  String get chatDelete;
+
+  /// Заголовок диалога редактирования.
+  ///
+  /// In ru, this message translates to:
+  /// **'Редактировать сообщение'**
+  String get chatEditTitle;
+
+  /// Заголовок подтверждения удаления.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить сообщение?'**
+  String get chatDeleteTitle;
+
+  /// Поясняет, что текст исчезает, а скрытая копия остаётся для жалоб.
+  ///
+  /// In ru, this message translates to:
+  /// **'Текст исчезнет у собеседника. Скрытая копия хранится 30 дней только для жалоб.'**
+  String get chatDeleteExplanation;
+
+  /// Отмена диалога.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отмена'**
+  String get chatCancel;
+
+  /// Сохранить изменения сообщения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сохранить'**
+  String get chatSave;
+
+  /// Не удалось изменить сообщение.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось изменить сообщение. Попробуйте ещё раз.'**
+  String get chatEditFailed;
+
+  /// Не удалось удалить сообщение.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось удалить сообщение. Попробуйте ещё раз.'**
+  String get chatDeleteFailed;
+
+  /// Сервер сообщил, что сообщение уже удалено.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сообщение уже удалено.'**
+  String get chatMessageDeleted;
+
+  /// Сообщение больше не видно (404).
+  ///
+  /// In ru, this message translates to:
+  /// **'Сообщение больше недоступно.'**
+  String get chatMessageUnavailable;
+
+  /// Серверный отказ из-за изменившихся прав (403).
+  ///
+  /// In ru, this message translates to:
+  /// **'Действие недоступно: изменились права.'**
+  String get chatActionForbidden;
+
+  /// Фото не обработано, отклонено или принадлежит другому чату.
+  ///
+  /// In ru, this message translates to:
+  /// **'Фото не обработано или устарело. Добавьте его заново.'**
+  String get chatPhotoInvalid;
+
+  /// Срок загрузки фото истёк.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок загрузки фото истёк. Добавьте его заново.'**
+  String get chatPhotoExpired;
+
+  /// Кнопка прикрепления фото к сообщению.
+  ///
+  /// In ru, this message translates to:
+  /// **'Прикрепить фото'**
+  String get chatPhotoAdd;
+
+  /// Ошибка загрузки фото.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось загрузить фото'**
+  String get chatPhotoFailed;
+
+  /// Отправка ждёт завершения обработки фото.
+  ///
+  /// In ru, this message translates to:
+  /// **'Дождитесь обработки фото.'**
+  String get chatPhotoWait;
+
+  /// Просит убрать или повторить неудачные фото.
+  ///
+  /// In ru, this message translates to:
+  /// **'Уберите или повторите неудачные фото.'**
+  String get chatPhotoFix;
+
+  /// Подписанные ссылки на фото не получены.
+  ///
+  /// In ru, this message translates to:
+  /// **'Фото недоступны.'**
+  String get chatPhotosUnavailable;
+
+  /// Подпись автора своей цитаты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы'**
+  String get chatYou;
 }
 
 class _AppLocalizationsDelegate

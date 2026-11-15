@@ -130,11 +130,18 @@ class ChatQueue extends _$ChatQueue {
     return state;
   }
 
-  /// Adds [text] to the durable queue and starts sending.
+  /// Adds [text] and the chosen attachments to the durable queue.
   ///
   /// Throws [ChatMessageEmpty] or [ChatMessageTooLong] before writing a row,
-  /// so the form can explain the problem without a failed request.
-  Future<OutgoingChatMessage> send(String chatId, String text) async {
+  /// so the form can explain the problem without a failed request. The
+  /// quote and the ready photo ids are stored once; every later attempt
+  /// sends the same client UUID, idempotency key and content.
+  Future<OutgoingChatMessage> send(
+    String chatId,
+    String text, {
+    ChatQuote? replyTo,
+    List<String> photoIds = const [],
+  }) async {
     await future;
     final config = _config!;
     if (text.trim().isEmpty) throw const ChatMessageEmpty();
@@ -151,6 +158,8 @@ class ChatQueue extends _$ChatQueue {
       idempotencyKey: const Uuid().v7(),
       text: text,
       createdAt: now,
+      replyTo: replyTo,
+      photoIds: photoIds,
     );
     await _reload();
     unawaited(_drain());
@@ -193,6 +202,16 @@ class ChatQueue extends _$ChatQueue {
   /// Runs the queue now; safe to call while another run is active.
   Future<void> drain() => _drain();
 
+  /// Republishes the outbox after the visible quote of a pending message
+  /// changed, without sending anything.
+  Future<void> reloadQuotes() async {
+    await future;
+    final owner = _owner;
+    final store = _store;
+    if (owner == null || store == null) return;
+    await _publish(owner, _generation, await store.loadOutbox(owner));
+  }
+
   Future<void> _drain() async {
     if (_draining || _disposed) return;
     final generation = _generation;
@@ -214,18 +233,22 @@ class ChatQueue extends _$ChatQueue {
         _sending.add(localId);
         await _publish(owner, generation, await store.loadOutbox(owner));
         if (!_isCurrent(owner, generation)) break;
+        final quoteRevision = store.beginQuoteRequest();
         try {
           final delivered = await api.sendMessage(
             next.chatId,
             clientId: next.clientId,
             text: next.text,
             idempotencyKey: next.idempotencyKey,
+            replyToId: next.replyToId,
+            photoIds: next.photoIds,
           );
           if (!_isCurrent(owner, generation)) return;
           await store.complete(
             owner: owner,
             message: next,
             delivered: delivered,
+            requestQuoteRevision: quoteRevision,
           );
           if (!_isCurrent(owner, generation)) return;
           _retryStep = 0;
@@ -363,6 +386,15 @@ class ChatQueue extends _$ChatQueue {
           ) =>
             (
               failure: OutgoingChatFailure.invalid,
+              retryable: false,
+              retryAfter: null,
+            ),
+          ProblemCodeKnown(
+            value: ProblemCodeValue.chatPhotoInvalid ||
+                ProblemCodeValue.chatPhotoExpired,
+          ) =>
+            (
+              failure: OutgoingChatFailure.photo,
               retryable: false,
               retryAfter: null,
             ),

@@ -42,6 +42,11 @@ class ChatDialogs extends Table {
 /// The server sequence is the authoritative order; the client UUID links a
 /// stored message to its outgoing queue row, so a response lost after the
 /// server committed the message does not show it twice.
+///
+/// [version] and [replyToPayload] are the server snapshots. An edit does not
+/// take a new sequence, so a version is what tells a stale copy from the
+/// current one; the quote snapshot is stored per message because the server
+/// never exposes a hidden revision of a deleted message.
 @DataClassName('ChatMessageRow')
 class ChatMessages extends Table {
   TextColumn get owner => text()();
@@ -51,6 +56,23 @@ class ChatMessages extends Table {
   IntColumn get sequence => integer()();
   TextColumn get senderId => text()();
   TextColumn get body => text()();
+  IntColumn get version => integer().withDefault(const Constant(1))();
+  TextColumn get replyToId => text().nullable()();
+
+  /// `QuoteOutput` of the quoted message, as returned with this message.
+  TextColumn get replyToPayload => text().nullable()();
+
+  /// Ready photo ids of the message, in display order, as a JSON array.
+  TextColumn get photoIds => text().nullable()();
+
+  /// Local revision of [replyToPayload].
+  ///
+  /// A reply keeps its own server version when the quoted message is edited
+  /// or deleted, so a delayed page with the same version could otherwise
+  /// restore the old quote text. Every authoritative quote update gets a
+  /// newer local revision; a page response only replaces the snapshot when
+  /// its request started after that revision.
+  IntColumn get quoteRevision => integer().withDefault(const Constant(0))();
   DateTimeColumn get createdAt => dateTime()();
 
   @override
@@ -60,6 +82,25 @@ class ChatMessages extends Table {
   List<Set<Column<Object>>> get uniqueKeys => [
     {owner, chatId, sequence},
   ];
+}
+
+/// Deleted messages that must never be written back by a delayed response.
+///
+/// A page request that started before an edit or a deletion can finish
+/// later with an older snapshot. The version guard of [ChatMessages] drops
+/// an older edit; this row is what stops a deleted message from reappearing,
+/// because a deletion changes no sequence and leaves no message row.
+@DataClassName('ChatMessageTombstoneRow')
+class ChatMessageTombstones extends Table {
+  TextColumn get owner => text()();
+  TextColumn get chatId => text()();
+  TextColumn get messageId => text()();
+  IntColumn get sequence => integer()();
+  IntColumn get version => integer().withDefault(const Constant(0))();
+  DateTimeColumn get deletedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {owner, chatId, messageId};
 }
 
 /// Durable outgoing queue of chat messages.
@@ -76,6 +117,17 @@ class ChatOutbox extends Table {
   TextColumn get clientId => text()();
   TextColumn get idempotencyKey => text()();
   TextColumn get body => text()();
+  TextColumn get replyToId => text().nullable()();
+
+  /// Quote shown above the pending text; the server validates only the id.
+  TextColumn get replyToPayload => text().nullable()();
+
+  /// Local revision of [replyToPayload]; a delivery compares it with the
+  /// revision captured when the send request started.
+  IntColumn get quoteRevision => integer().withDefault(const Constant(0))();
+
+  /// Ready photo ids chosen before the first attempt, as a JSON array.
+  TextColumn get photoIds => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   IntColumn get attempts => integer().withDefault(const Constant(0))();
   TextColumn get status => text().withDefault(const Constant('pending'))();

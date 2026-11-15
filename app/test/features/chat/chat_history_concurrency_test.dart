@@ -43,8 +43,9 @@ class _GatedChatStore extends ChatStore {
   Future<void> saveMessages(
     String owner,
     String chatId,
-    Iterable<MessageOutput> messages,
-  ) async {
+    Iterable<MessageOutput> messages, {
+    int? quoteRevision,
+  }) async {
     final text = _text;
     final gate = _gate;
     if (text != null &&
@@ -54,7 +55,12 @@ class _GatedChatStore extends ChatStore {
       if (entered != null && !entered.isCompleted) entered.complete();
       await gate.future;
     }
-    await super.saveMessages(owner, chatId, messages);
+    await super.saveMessages(
+      owner,
+      chatId,
+      messages,
+      quoteRevision: quoteRevision,
+    );
   }
 }
 

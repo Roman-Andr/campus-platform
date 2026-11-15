@@ -397,4 +397,71 @@ void main() {
     );
     expect(await store.loadMessages('another-session', 'chat-1'), isEmpty);
   });
+
+  test('keeps the quote and the photos across an offline restart and repeats '
+      'the same send', () async {
+    final directory = await Directory.systemTemp.createTemp('campus-chat-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/chat.sqlite');
+    final quote = ChatQuote(
+      messageId: 'server-1',
+      senderId: '01890a5d-ac96-774b-bcce-b302099a8059',
+      text: 'quoted text',
+      createdAt: DateTime.utc(2026, 11, 14, 12),
+    );
+
+    var db = AppDatabase(NativeDatabase(file));
+    await create(db: db);
+    container.read(networkStatusProvider.notifier).unreachable();
+    final sent = await container
+        .read(chatQueueProvider.notifier)
+        .send(
+          'chat-1',
+          'with attachments',
+          replyTo: quote,
+          photoIds: const ['photo-1', 'photo-2'],
+        );
+    await pumpEventQueue();
+    expect(api.sendCalls, isEmpty);
+    container.dispose();
+    await db.close();
+
+    db = AppDatabase(NativeDatabase(file));
+    await create(db: db, chatApi: api);
+    addTearDown(db.close);
+    container.read(networkStatusProvider.notifier).unreachable();
+    final restored = await container.read(chatQueueProvider.future);
+    expect(restored.messages.single.replyTo?.messageId, 'server-1');
+    expect(restored.messages.single.photoIds, ['photo-1', 'photo-2']);
+
+    container.read(networkStatusProvider.notifier).reachable();
+    await pumpEventQueue(times: 80);
+
+    expect(api.sendCalls, hasLength(1));
+    expect(api.sendCalls.single.key, sent.idempotencyKey);
+    expect(api.sendCalls.single.clientId, sent.clientId);
+    expect(api.sendCalls.single.replyToId, 'server-1');
+    expect(api.sendCalls.single.photoIds, ['photo-1', 'photo-2']);
+  });
+
+  test('a photo rejected by the server is a terminal refusal', () async {
+    await create();
+    api.sendError = const ProblemFailure(
+      Problem(
+        type: 'urn:problem:campus:chat_photo_expired',
+        title: 'Expired',
+        status: 409,
+        code: ProblemCode.chatPhotoExpired,
+      ),
+    );
+    final queued = await container
+        .read(chatQueueProvider.notifier)
+        .send('chat-1', 'photo message', photoIds: const ['photo-1']);
+    await pumpEventQueue(times: 60);
+
+    final stored = container.read(chatQueueProvider).value!.messages.single;
+    expect(stored.state, OutgoingChatState.failed);
+    expect(stored.failure, OutgoingChatFailure.photo);
+    expect(queued.clientId, stored.clientId);
+  });
 }
