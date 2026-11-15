@@ -24,6 +24,12 @@ class InteractionOutput implements SignupOutputInteraction {
     /// When an accepted item reservation ends; extended to the meeting time once a meeting is scheduled.
     this.reservationDueAt,
 
+    /// When a lent item is due back: the confirmed handover plus the author's loan period; null until the handover and after the return or cancellation.
+    this.returnDueAt,
+
+    /// Whether a loan is past its return deadline. A flag, not a status: an overdue loan stays accepted until it is returned or marked 'not returned'.
+    this.overdue = false,
+
     /// The item a participant offers for an exchange; null otherwise.
     this.offerDescription,
 
@@ -86,6 +92,12 @@ class InteractionOutput implements SignupOutputInteraction {
                 ? null
                 : DateTime.parse(json["reservation_due_at"] as String).toUtc()
           : null,
+      returnDueAt: json.containsKey("return_due_at")
+          ? json["return_due_at"] == null
+                ? null
+                : DateTime.parse(json["return_due_at"] as String).toUtc()
+          : null,
+      overdue: json.containsKey("overdue") ? json["overdue"] as bool : false,
       offerDescription: json.containsKey("offer_description")
           ? json["offer_description"] as String?
           : null,
@@ -165,6 +177,12 @@ class InteractionOutput implements SignupOutputInteraction {
   /// When an accepted item reservation ends; extended to the meeting time once a meeting is scheduled.
   final DateTime? reservationDueAt;
 
+  /// When a lent item is due back: the confirmed handover plus the author's loan period; null until the handover and after the return or cancellation.
+  final DateTime? returnDueAt;
+
+  /// Whether a loan is past its return deadline. A flag, not a status: an overdue loan stays accepted until it is returned or marked 'not returned'.
+  final bool overdue;
+
   /// The item a participant offers for an exchange; null otherwise.
   final String? offerDescription;
 
@@ -210,6 +228,8 @@ class InteractionOutput implements SignupOutputInteraction {
     "response_due_at",
     "executor",
     "reservation_due_at",
+    "return_due_at",
+    "overdue",
     "offer_description",
     "units",
     "leave_requested_at",
@@ -239,6 +259,9 @@ class InteractionOutput implements SignupOutputInteraction {
     "executor": this.executor,
     if (this.reservationDueAt != null)
       "reservation_due_at": this.reservationDueAt?.toUtc().toIso8601String(),
+    if (this.returnDueAt != null)
+      "return_due_at": this.returnDueAt?.toUtc().toIso8601String(),
+    "overdue": this.overdue,
     if (this.offerDescription != null)
       "offer_description": this.offerDescription,
     if (this.units != null) "units": this.units,
@@ -265,7 +288,7 @@ sealed class SignupOutputInteraction {
   factory SignupOutputInteraction.fromJson(Object? json) {
     final matches = <String>[
       if (_matches113(json)) "InteractionOutput",
-      if (_matches147(json)) "Null",
+      if (_matches149(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -329,48 +352,54 @@ bool _matches114(Object? value) =>
         !value.containsKey("reservation_due_at") ||
         _matches123(value["reservation_due_at"])) &&
     (value is! Map<String, Object?> ||
+        !value.containsKey("return_due_at") ||
+        _matches124(value["return_due_at"])) &&
+    (value is! Map<String, Object?> ||
+        !value.containsKey("overdue") ||
+        _matches125(value["overdue"])) &&
+    (value is! Map<String, Object?> ||
         !value.containsKey("offer_description") ||
-        _matches124(value["offer_description"])) &&
+        _matches126(value["offer_description"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("units") ||
-        _matches125(value["units"])) &&
+        _matches127(value["units"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("leave_requested_at") ||
-        _matches126(value["leave_requested_at"])) &&
+        _matches128(value["leave_requested_at"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("cancelled_by") ||
-        _matches127(value["cancelled_by"])) &&
+        _matches129(value["cancelled_by"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("cancellation_reason") ||
-        _matches128(value["cancellation_reason"])) &&
+        _matches130(value["cancellation_reason"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("late_cancelled") ||
-        _matches129(value["late_cancelled"])) &&
+        _matches131(value["late_cancelled"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("meeting") ||
-        _matches130(value["meeting"])) &&
+        _matches132(value["meeting"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("options") ||
-        _matches131(value["options"])) &&
+        _matches133(value["options"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("completion_method") ||
-        _matches132(value["completion_method"])) &&
+        _matches134(value["completion_method"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("completed_at") ||
-        _matches133(value["completed_at"])) &&
+        _matches135(value["completed_at"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("completion_weight") ||
-        _matches134(value["completion_weight"])) &&
+        _matches136(value["completion_weight"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("without_meeting") ||
-        _matches135(value["without_meeting"])) &&
+        _matches137(value["without_meeting"])) &&
     ((value is Map<String, Object?>));
 bool _matches115(Object? value) => ((value is String));
 bool _matches116(Object? value) => ((value is String));
 bool _matches117(Object? value) => ((value is String));
 bool _matches118(Object? value) => ((value is String));
-bool _matches119(Object? value) => (_matches136(value));
-bool _matches136(Object? value) =>
+bool _matches119(Object? value) => (_matches138(value));
+bool _matches138(Object? value) =>
     (const <Object?>[
       "completed",
       "no_show",
@@ -385,22 +414,24 @@ bool _matches121(Object? value) => ((value is String) || (value == null));
 bool _matches122(Object? value) => ((value is bool));
 bool _matches123(Object? value) => ((value is String) || (value == null));
 bool _matches124(Object? value) => ((value is String) || (value == null));
-bool _matches125(Object? value) =>
+bool _matches125(Object? value) => ((value is bool));
+bool _matches126(Object? value) => ((value is String) || (value == null));
+bool _matches127(Object? value) =>
     ((value is num &&
         (value is int ||
             (value.isFinite && value == value.truncateToDouble()))) ||
     (value == null));
-bool _matches126(Object? value) => ((value is String) || (value == null));
-bool _matches127(Object? value) =>
+bool _matches128(Object? value) => ((value is String) || (value == null));
+bool _matches129(Object? value) =>
     ([if (_matches49(value)) 1, if (_matches51(value)) 1].length == 1);
 bool _matches49(Object? value) => (_matches50(value));
 bool _matches50(Object? value) =>
     (const <Object?>["author", "participant", "system"].contains(value)) &&
     ((value is String));
 bool _matches51(Object? value) => ((value == null));
-bool _matches128(Object? value) => ((value is String) || (value == null));
-bool _matches129(Object? value) => ((value is bool));
-bool _matches130(Object? value) =>
+bool _matches130(Object? value) => ((value is String) || (value == null));
+bool _matches131(Object? value) => ((value is bool));
+bool _matches132(Object? value) =>
     ([if (_matches52(value)) 1, if (_matches65(value)) 1].length == 1);
 bool _matches52(Object? value) => (_matches53(value));
 bool _matches53(Object? value) =>
@@ -462,11 +493,11 @@ bool _matches61(Object? value) => ((value is String) || (value == null));
 bool _matches62(Object? value) => ((value is String) || (value == null));
 bool _matches63(Object? value) => ((value is String) || (value == null));
 bool _matches65(Object? value) => ((value == null));
-bool _matches131(Object? value) =>
-    (value is! List<Object?> || value.skip(0).every(_matches137)) &&
+bool _matches133(Object? value) =>
+    (value is! List<Object?> || value.skip(0).every(_matches139)) &&
     ((value is List<Object?>));
-bool _matches137(Object? value) => (_matches138(value));
-bool _matches138(Object? value) =>
+bool _matches139(Object? value) => (_matches140(value));
+bool _matches140(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("id")) &&
     (value is! Map<String, Object?> || value.containsKey("position")) &&
     (value is! Map<String, Object?> || value.containsKey("time")) &&
@@ -476,50 +507,50 @@ bool _matches138(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("status")) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("id") ||
-        _matches139(value["id"])) &&
+        _matches141(value["id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("position") ||
-        _matches140(value["position"])) &&
+        _matches142(value["position"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("time") ||
-        _matches141(value["time"])) &&
+        _matches143(value["time"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("location") ||
-        _matches142(value["location"])) &&
+        _matches144(value["location"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("online") ||
-        _matches143(value["online"])) &&
+        _matches145(value["online"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("proposed_by_id") ||
-        _matches144(value["proposed_by_id"])) &&
+        _matches146(value["proposed_by_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("status") ||
-        _matches145(value["status"])) &&
+        _matches147(value["status"])) &&
     ((value is Map<String, Object?>));
-bool _matches139(Object? value) => ((value is String));
-bool _matches140(Object? value) =>
+bool _matches141(Object? value) => ((value is String));
+bool _matches142(Object? value) =>
     ((value is num &&
     (value is int || (value.isFinite && value == value.truncateToDouble()))));
-bool _matches141(Object? value) => ((value is String));
-bool _matches142(Object? value) => ((value is String) || (value == null));
-bool _matches143(Object? value) => ((value is bool));
-bool _matches144(Object? value) => ((value is String));
-bool _matches145(Object? value) => (_matches146(value));
-bool _matches146(Object? value) =>
+bool _matches143(Object? value) => ((value is String));
+bool _matches144(Object? value) => ((value is String) || (value == null));
+bool _matches145(Object? value) => ((value is bool));
+bool _matches146(Object? value) => ((value is String));
+bool _matches147(Object? value) => (_matches148(value));
+bool _matches148(Object? value) =>
     (const <Object?>["proposed", "selected", "declined"].contains(value)) &&
     ((value is String));
-bool _matches132(Object? value) =>
+bool _matches134(Object? value) =>
     ([if (_matches66(value)) 1, if (_matches67(value)) 1].length == 1);
 bool _matches66(Object? value) => (_matches24(value));
 bool _matches24(Object? value) =>
     (const <Object?>["qr", "no_meeting"].contains(value)) &&
     ((value is String));
 bool _matches67(Object? value) => ((value == null));
-bool _matches133(Object? value) => ((value is String) || (value == null));
-bool _matches134(Object? value) =>
+bool _matches135(Object? value) => ((value is String) || (value == null));
+bool _matches136(Object? value) =>
     (((value is num && value.isFinite)) || (value == null));
-bool _matches135(Object? value) => ((value is bool));
-bool _matches147(Object? value) => ((value == null));
+bool _matches137(Object? value) => ((value is bool));
+bool _matches149(Object? value) => ((value == null));
 int _readJsonInteger(Object? value) {
   if (value is int) {
     return value;

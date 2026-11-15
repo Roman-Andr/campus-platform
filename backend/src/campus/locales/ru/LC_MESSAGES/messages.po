@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 22:49+0300\n"
+"POT-Creation-Date: 2026-11-15 23:36+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -30,6 +30,11 @@ msgstr "Удалённое сообщение нельзя изменить."
 msgid "A lesson has from {min} to {max} time options."
 msgstr "В занятии должно быть от {min} до {max} вариантов времени."
 
+msgid ""
+"A loan is confirmed by its handover or return action; a plain code does "
+"not complete it."
+msgstr "Займ подтверждается действием выдачи или возврата; обычный код его не завершает."
+
 msgid "A meeting time and place were proposed."
 msgstr "Второй участник предложил время и место встречи."
 
@@ -42,11 +47,9 @@ msgid "A no-show cannot be marked here"
 msgstr "Здесь нельзя отметить неявку."
 
 msgid ""
-"A no-show is marked for a personal meeting of a giveaway, exchange, skill"
-" or help interaction, or for an event."
-msgstr ""
-"Неявка отмечается для личной встречи по объявлению об отдаче, обмене, "
-"навыке или помощи, а также для мероприятия."
+"A no-show is marked for a personal meeting of a giveaway, exchange, "
+"skill, loan or help interaction, or for an event."
+msgstr "Неявка отмечается для личной встречи по отдаче, обмену, навыку, займу или помощи, а также для мероприятия."
 
 msgid "A participant asks to leave the purchase."
 msgstr "Участник просит выйти из закупки."
@@ -62,6 +65,9 @@ msgid ""
 msgstr ""
 "Для вас освободилось место в очереди. Подтвердите его до истечения "
 "таймера."
+
+msgid "A return can be confirmed only after the handover of the item."
+msgstr "Возврат можно подтвердить только после выдачи вещи."
 
 msgid "Accepted interactions can only be cancelled with a reason."
 msgstr "Принятые взаимодействия можно отменить только с указанием причины."
@@ -152,6 +158,12 @@ msgid ""
 msgstr ""
 "Подтвердите текущий этап сценария отдельным действием; онлайн-QR-код "
 "завершает только финальную встречу."
+
+msgid "Confirm the loan by its own action"
+msgstr "Подтвердите займ отдельным действием"
+
+msgid "Confirm the return of the item instead of handing it over again."
+msgstr "Подтвердите возврат вещи, а не повторную выдачу."
 
 #, python-brace-format
 msgid ""
@@ -254,6 +266,9 @@ msgstr "Неверный ключ идемпотентности"
 
 msgid "Invalid lesson time options"
 msgstr "Неверные варианты времени занятия"
+
+msgid "Invalid loan period"
+msgstr "Неверный срок займа"
 
 msgid "Invalid meeting place"
 msgstr "Неверное место встречи"
@@ -397,6 +412,11 @@ msgstr "Вы не записаны"
 msgid "Nothing to dispute"
 msgstr "Нечего оспаривать."
 
+msgid ""
+"Only a loan whose item was handed over and is not returned yet can be "
+"marked 'not returned'."
+msgstr "Отметить «не возвращено» можно только для займа, вещь которого выдана и ещё не возвращена."
+
 msgid "Only a participant registered for the event can vote."
 msgstr "Голосовать может только записавшийся на мероприятие участник."
 
@@ -434,6 +454,9 @@ msgstr "Оспорить неявку может только организат
 
 msgid "Only the organiser of this event can do this."
 msgstr "Это может сделать только организатор мероприятия."
+
+msgid "Only the owner of the lent item can mark it 'not returned'."
+msgstr "Только владелец одолженной вещи может отметить её как «не возвращено»."
 
 msgid "Only the two participants of the interaction can confirm it."
 msgstr "Подтвердить взаимодействие могут только два его участника."
@@ -663,6 +686,17 @@ msgstr ""
 "Взаимодействие было отмечено как «не состоялось» до формирования этого "
 "QR-кода; снять отметку может только код, сформированный раньше."
 
+msgid "The item was already handed over"
+msgstr "Вещь уже выдана"
+
+msgid ""
+"The item was handed over; the loan ends with its return or a not-returned"
+" mark."
+msgstr "Вещь выдана: займ завершается возвратом или отметкой «не возвращено»."
+
+msgid "The item was not handed over yet"
+msgstr "Вещь ещё не выдана"
+
 msgid "The listing and the interaction do not belong together."
 msgstr "Объявление и взаимодействие не относятся друг к другу."
 
@@ -685,6 +719,19 @@ msgstr ""
 
 msgid "The listing was edited."
 msgstr "Объявление было изменено."
+
+msgid "The loan cannot be marked"
+msgstr "Нельзя отметить займ"
+
+msgid "The loan is in progress"
+msgstr "Займ в процессе"
+
+#, python-brace-format
+msgid "The loan period must be from 1 to {max} days."
+msgstr "Срок займа должен быть от 1 до {max} дней."
+
+msgid "The loan was marked 'not returned'"
+msgstr "Займ отмечен как «не возвращено»"
 
 msgid "The maximum is below the taken volume."
 msgstr "Максимальный объём меньше уже занятого."
@@ -767,6 +814,16 @@ msgstr "Организатор принял решение по вашему з�
 msgid "The organiser has no charged no-show at this event yet."
 msgstr "У организатора пока нет начисленной неявки на мероприятии."
 
+msgid ""
+"The owner can mark the item 'not returned' only after the configured wait"
+" after the return deadline."
+msgstr "Владелец может отметить вещь как «не возвращено» только после настроенной задержки после срока возврата."
+
+msgid ""
+"The owner marked the item as not returned; the returned item is confirmed"
+" through the dispute decision."
+msgstr "Владелец отметил вещь как не возвращённую; возврат вещи подтверждается решением по спору."
+
 msgid "The page cursor is invalid or belongs to another list; start over."
 msgstr "Курсор страницы неверен или относится к другому списку; начните сначала."
 
@@ -810,6 +867,12 @@ msgstr "Запрошенный ресурс не существует."
 
 msgid "The resource does not support this method."
 msgstr "Ресурс не поддерживает этот метод."
+
+msgid "The return deadline is still recent"
+msgstr "Срок возврата наступил недавно"
+
+msgid "The return deadline of your loan is approaching."
+msgstr "Срок возврата по вашему займу приближается."
 
 msgid "The same client message identifier carries different content."
 msgstr "Один и тот же идентификатор сообщения клиента передан с другим содержимым."

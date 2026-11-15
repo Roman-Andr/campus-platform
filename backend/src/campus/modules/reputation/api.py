@@ -32,9 +32,11 @@ from campus.modules.reputation.service import (
     confirm_with_code,
     confirm_with_offline_qr,
     confirm_with_qr,
+    hand_over_loan_with_qr,
     issue_confirmation_code,
     public_key_bytes,
     register_device_key,
+    return_loan_with_qr,
     revoke_device_key,
 )
 
@@ -166,6 +168,17 @@ class QrScanOutput(BaseModel):
     completed_at: Instant | None
     completion_method: CompletionMethod | None
     rating_weight: float | None
+    stage: str | None = Field(
+        default=None,
+        description=(
+            "The scenario stage after the scan; 'issued' after a loan"
+            " handover, null for a final completion."
+        ),
+    )
+    return_due_at: Instant | None = Field(
+        default=None,
+        description="When a handed-over loan item is due back; null otherwise.",
+    )
     nonce: UUID
     issued_at: Instant
     received_at: Instant
@@ -349,6 +362,8 @@ def qr_scan_output(result: QrResult, now: Instant) -> QrScanOutput:
         completed_at=interaction.completed_at,
         completion_method=method,
         rating_weight=interaction.completion_weight,
+        stage=interaction.stage,
+        return_due_at=interaction.return_due_at,
         nonce=result.nonce,
         issued_at=result.issued_at,
         received_at=result.received_at,
@@ -431,6 +446,66 @@ async def scan_qr(  # noqa: PLR0913, PLR0917 - request parts
     """
     now = clock.now()
     result = await confirm_with_qr(
+        session,
+        listing_id,
+        interaction_id,
+        principal.user_id,
+        data.payload,
+        data.signature,
+        request.app.state.settings,
+    )
+    return qr_scan_output(result, now)
+
+
+@qr_router.post("/handover")
+async def hand_over_loan(  # noqa: PLR0913, PLR0917 - request parts
+    listing_id: UUID,
+    interaction_id: UUID,
+    data: QrScanInput,
+    request: Request,
+    session: DbSession,
+    principal: ActiveSession,
+) -> QrScanOutput:
+    """Confirm the handover of a lent item with a scanned online QR code.
+
+    The interaction stays accepted and moves to the "issued" stage; the
+    return deadline becomes the handover plus the author's loan period. The
+    code is validated exactly like a final confirmation: its signed payload,
+    the time window, the device key and the one-time nonce. A repeated
+    handover and a non-loan interaction are refused.
+    """
+    now = clock.now()
+    result = await hand_over_loan_with_qr(
+        session,
+        listing_id,
+        interaction_id,
+        principal.user_id,
+        data.payload,
+        data.signature,
+        request.app.state.settings,
+    )
+    return qr_scan_output(result, now)
+
+
+@qr_router.post("/return")
+async def return_loan(  # noqa: PLR0913, PLR0917 - request parts
+    listing_id: UUID,
+    interaction_id: UUID,
+    data: QrScanInput,
+    request: Request,
+    session: DbSession,
+    principal: ActiveSession,
+) -> QrScanOutput:
+    """Confirm the return of a lent item and complete the interaction.
+
+    The action is possible only after the confirmed handover: a code
+    presented before the "issued" stage is refused, so a return never
+    replaces the handover. The same signed payload, time window, device key
+    and single-use nonce checks apply. A loan already marked "not returned"
+    is closed for QR returns; the disputed item is decided by the moderator.
+    """
+    now = clock.now()
+    result = await return_loan_with_qr(
         session,
         listing_id,
         interaction_id,

@@ -69,6 +69,118 @@ class QrClient {
     return models.QrScanOutput.fromJson(response.data as Map<String, Object?>);
   }
 
+  /// Hand Over Loan
+  ///
+  /// Confirm the handover of a lent item with a scanned online QR code.
+  ///
+  /// The interaction stays accepted and moves to the "issued" stage; the
+  /// return deadline becomes the handover plus the author's loan period. The
+  /// code is validated exactly like a final confirmation: its signed payload,
+  /// the time window, the device key and the one-time nonce. A repeated
+  /// handover and a non-loan interaction are refused.
+  Future<models.QrScanOutput> handOverLoan({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required String interactionId,
+    required models.QrScanInput body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(interactionId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/interactions/" +
+          Uri.encodeComponent(interactionId) +
+          "/qr/handover",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.QrScanOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Return Loan
+  ///
+  /// Confirm the return of a lent item and complete the interaction.
+  ///
+  /// The action is possible only after the confirmed handover: a code
+  /// presented before the "issued" stage is refused, so a return never
+  /// replaces the handover. The same signed payload, time window, device key
+  /// and single-use nonce checks apply. A loan already marked "not returned"
+  /// is closed for QR returns; the disputed item is decided by the moderator.
+  Future<models.QrScanOutput> returnLoan({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required String interactionId,
+    required models.QrScanInput body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(interactionId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/interactions/" +
+          Uri.encodeComponent(interactionId) +
+          "/qr/return",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.QrScanOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
   /// Scan Offline Qr
   ///
   /// Confirm an accepted interaction with a code stored while offline.

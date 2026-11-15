@@ -112,6 +112,16 @@ class PurchaseStage(StrEnum):
     CANCELLED = "cancelled"
 
 
+class LoanStage(StrEnum):
+    """Accepted stages of a loan: the item is handed over, then returned.
+
+    The handover is the only stage inside "accepted"; the return completes
+    the interaction, so it has no stage row of its own.
+    """
+
+    ISSUED = "issued"
+
+
 class Category(LocalizedName, Entity):
     """Stable localized listing categories, managed by the reference API."""
 
@@ -273,6 +283,9 @@ class Listing(Entity):
     skill: Mapped[Skill | None] = relationship(
         lazy="joined", uselist=False, cascade="all, delete-orphan"
     )
+    item: Mapped[Item | None] = relationship(
+        lazy="joined", uselist=False, cascade="all, delete-orphan"
+    )
 
     @property
     def direction(self) -> str | None:
@@ -282,6 +295,13 @@ class Listing(Entity):
         if "skill" in inspect(self).unloaded:
             return None
         return self.skill.direction if self.skill is not None else None
+
+    @property
+    def loan_days(self) -> int | None:
+        """The author's loan period; ``None`` for every other kind."""
+        if "item" in inspect(self).unloaded:
+            return None
+        return self.item.loan_days if self.item is not None else None
 
     pinned_until: Mapped[datetime | None]
     hidden_reason: Mapped[str | None] = mapped_column(Text)
@@ -305,11 +325,27 @@ class Skill(Base):
 
 
 class Item(Base):
-    """Details shared by giveaway, exchange and loan scenarios."""
+    """Details shared by giveaway, exchange and loan scenarios.
+
+    A loan also carries the author's loan period: the return deadline is
+    counted from the confirmed handover, so one stored period serves every
+    borrower instead of a copy of the deadline in the listing and in each
+    interaction.
+    """
 
     __tablename__ = "listing_item"
+    __table_args__ = (
+        CheckConstraint("mode IN ('giveaway','exchange','loan')", name="item_mode"),
+        CheckConstraint(
+            "(mode = 'loan' AND loan_days IS NOT NULL AND loan_days >= 1) OR "
+            "(mode <> 'loan' AND loan_days IS NULL)",
+            name="item_loan_days",
+        ),
+    )
     listing_id: Mapped[UUID] = mapped_column(ForeignKey("listing.id"), primary_key=True)
     mode: Mapped[str] = mapped_column(String(16))
+    # The author's loan period in days; counted from the confirmed handover.
+    loan_days: Mapped[int | None]
 
 
 class Interaction(Entity):
@@ -394,6 +430,10 @@ class Interaction(Entity):
     # An accepted item reservation lasts until this moment: the configured
     # reservation window, extended by a scheduled meeting to its time.
     reservation_due_at: Mapped[datetime | None]
+    # When the borrowed item is due back: the confirmed handover plus the
+    # author's loan period. NULL for every other scenario and until the
+    # handover; kept after a "not returned" mark, where it stays overdue.
+    return_due_at: Mapped[datetime | None]
     # What a participant offers in exchange; NULL for other scenarios.
     offer_description: Mapped[str | None] = mapped_column(Text)
     # A purchase share: the number of units this participant took.
@@ -423,6 +463,16 @@ class Interaction(Entity):
     def without_meeting(self) -> bool:
         """Whether the interaction was completed by mutual confirmation."""
         return self.completion_method == CompletionMethod.NO_MEETING
+
+    @property
+    def overdue(self) -> bool:
+        """Whether a loan is past its return deadline.
+
+        A flag, never a status: an overdue loan stays accepted until it is
+        returned or marked "not returned", and the flag is derived from the
+        stored deadline instead of a column that could drift from it.
+        """
+        return self.return_due_at is not None and self.return_due_at < clock.now()
 
     meeting: Mapped[Meeting | None] = relationship(
         lazy="joined", uselist=False, cascade="all, delete-orphan"

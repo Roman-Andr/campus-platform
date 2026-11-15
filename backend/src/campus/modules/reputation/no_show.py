@@ -46,7 +46,9 @@ from campus.modules.listings import (
     InteractionStatus,
     Listing,
     ListingStatus,
+    LoanStage,
     Meeting,
+    cancel_return_reminder,
     locked,
     no_showed_at,
     record,
@@ -91,7 +93,7 @@ NO_SHOW_UNAVAILABLE = ProblemType(
     N_("A no-show cannot be marked here"),
     N_(
         "A no-show is marked for a personal meeting of a giveaway, exchange,"
-        " skill or help interaction, or for an event."
+        " skill, loan or help interaction, or for an event."
     ),
 )
 NO_SHOW_TOO_EARLY = ProblemType(
@@ -120,6 +122,30 @@ NO_SHOW_STATE = ProblemType(
     409,
     N_("The interaction cannot be marked"),
     N_("Only an accepted or a marked 'did not take place' interaction replies."),
+)
+NOT_RETURNED_FORBIDDEN = ProblemType(
+    "loan_not_returned_forbidden",
+    403,
+    N_("Forbidden"),
+    N_("Only the owner of the lent item can mark it 'not returned'."),
+)
+NOT_RETURNED_UNAVAILABLE = ProblemType(
+    "loan_not_returned_unavailable",
+    409,
+    N_("The loan cannot be marked"),
+    N_(
+        "Only a loan whose item was handed over and is not returned yet can be"
+        " marked 'not returned'."
+    ),
+)
+NOT_RETURNED_TOO_EARLY = ProblemType(
+    "loan_not_returned_too_early",
+    409,
+    N_("The return deadline is still recent"),
+    N_(
+        "The owner can mark the item 'not returned' only after the configured"
+        " wait after the return deadline."
+    ),
 )
 EVENT_NO_SHOW_UNAVAILABLE = ProblemType(
     "event_no_show_unavailable",
@@ -632,6 +658,107 @@ async def mark_no_show(  # noqa: PLR0913, PLR0917 - request context
         )
     else:
         raise ProblemError(NO_SHOW_STATE)
+    await session.flush()
+    return await no_show_state(session, listing, interaction, actor_id, settings)
+
+
+LOAN_NOT_RETURNED_REASON = "loan_not_returned"
+
+
+async def mark_loan_not_returned(
+    session: AsyncSession,
+    listing_id: UUID,
+    interaction_id: UUID,
+    actor_id: UUID,
+    settings: Settings,
+) -> NoShowState:
+    """The owner's claim that a lent item was not returned in time.
+
+    Only the owner may use it, and only after the configured wait following
+    the return deadline (appendix 4: not earlier than 3 days). It moves the
+    interaction to "did not take place" and charges the borrower with the
+    no-show of #66; the borrower may answer it within the dispute window,
+    which suspends both marks until the moderator decides (#94). The item is
+    not back, so the listing keeps its occupied place and the overdue flag
+    stays visible. A repeat with a fresh idempotency key changes nothing.
+    """
+    listing = await locked(session, listing_id)
+    interaction = await _load_interaction(session, listing, interaction_id)
+    participant_ids(listing, interaction)
+    if actor_id != listing.author_id:
+        raise ProblemError(NOT_RETURNED_FORBIDDEN)
+    if listing.kind != "loan":
+        raise ProblemError(NOT_RETURNED_UNAVAILABLE)
+    now = clock.now()
+    status = InteractionStatus(interaction.status)
+    if status == InteractionStatus.NO_SHOW:
+        marks = await interaction_no_show_marks(session, interaction.id)
+        if any(
+            mark.kind == NoShowKind.PERSONAL
+            and mark.reporter_id == actor_id
+            and mark.status != NoShowStatus.REMOVED
+            for mark in marks
+        ):
+            return await no_show_state(
+                session, listing, interaction, actor_id, settings
+            )
+        raise ProblemError(NOT_RETURNED_UNAVAILABLE)
+    if (
+        status != InteractionStatus.ACCEPTED
+        or interaction.stage != LoanStage.ISSUED.value
+        or interaction.return_due_at is None
+    ):
+        raise ProblemError(NOT_RETURNED_UNAVAILABLE)
+    available_at = interaction.return_due_at + settings.loan_not_returned_after
+    if now < available_at:
+        raise ProblemError(NOT_RETURNED_TOO_EARLY, available_at=available_at)
+    return_due_at = interaction.return_due_at
+    mark = NoShowMark(
+        listing_id=listing.id,
+        interaction_id=interaction.id,
+        reporter_id=actor_id,
+        subject_id=interaction.participant_id,
+        kind=NoShowKind.PERSONAL.value,
+        status=NoShowStatus.COUNTED.value,
+        reason=LOAN_NOT_RETURNED_REASON,
+        disputed_at=None,
+        removed_at=None,
+        removed_by_id=None,
+        created_at=now,
+        updated_at=now,
+    )
+    session.add(mark)
+    await session.flush()
+    await _transition_no_show(
+        session,
+        listing,
+        interaction,
+        actor_id,
+        settings,
+        action="loan_not_returned",
+        reason=LOAN_NOT_RETURNED_REASON,
+        details={
+            "rule": "loan_return",
+            "mark_id": str(mark.id),
+            "subject_id": str(mark.subject_id),
+            "return_due_at": return_due_at.isoformat(),
+        },
+    )
+    await cancel_deadline(session, no_show_key(interaction.id))
+    await cancel_return_reminder(session, interaction)
+    queue_no_show(
+        session,
+        listing,
+        {
+            "interaction_id": str(interaction.id),
+            "mark_id": str(mark.id),
+            "subject_id": str(mark.subject_id),
+            "kind": NoShowKind.PERSONAL.value,
+            "status": "not_returned",
+            "rule": "loan_return",
+        },
+        {listing.author_id, interaction.participant_id},
+    )
     await session.flush()
     return await no_show_state(session, listing, interaction, actor_id, settings)
 

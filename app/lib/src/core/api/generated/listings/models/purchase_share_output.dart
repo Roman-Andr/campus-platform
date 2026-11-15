@@ -25,6 +25,12 @@ class PurchaseShareOutput {
     /// When an accepted item reservation ends; extended to the meeting time once a meeting is scheduled.
     this.reservationDueAt,
 
+    /// When a lent item is due back: the confirmed handover plus the author's loan period; null until the handover and after the return or cancellation.
+    this.returnDueAt,
+
+    /// Whether a loan is past its return deadline. A flag, not a status: an overdue loan stays accepted until it is returned or marked 'not returned'.
+    this.overdue = false,
+
     /// The item a participant offers for an exchange; null otherwise.
     this.offerDescription,
 
@@ -89,6 +95,12 @@ class PurchaseShareOutput {
                 ? null
                 : DateTime.parse(json["reservation_due_at"] as String).toUtc()
           : null,
+      returnDueAt: json.containsKey("return_due_at")
+          ? json["return_due_at"] == null
+                ? null
+                : DateTime.parse(json["return_due_at"] as String).toUtc()
+          : null,
+      overdue: json.containsKey("overdue") ? json["overdue"] as bool : false,
       offerDescription: json.containsKey("offer_description")
           ? json["offer_description"] as String?
           : null,
@@ -170,6 +182,12 @@ class PurchaseShareOutput {
   /// When an accepted item reservation ends; extended to the meeting time once a meeting is scheduled.
   final DateTime? reservationDueAt;
 
+  /// When a lent item is due back: the confirmed handover plus the author's loan period; null until the handover and after the return or cancellation.
+  final DateTime? returnDueAt;
+
+  /// Whether a loan is past its return deadline. A flag, not a status: an overdue loan stays accepted until it is returned or marked 'not returned'.
+  final bool overdue;
+
   /// The item a participant offers for an exchange; null otherwise.
   final String? offerDescription;
 
@@ -219,6 +237,8 @@ class PurchaseShareOutput {
     "response_due_at",
     "executor",
     "reservation_due_at",
+    "return_due_at",
+    "overdue",
     "offer_description",
     "units",
     "leave_requested_at",
@@ -250,6 +270,9 @@ class PurchaseShareOutput {
     "executor": this.executor,
     if (this.reservationDueAt != null)
       "reservation_due_at": this.reservationDueAt?.toUtc().toIso8601String(),
+    if (this.returnDueAt != null)
+      "return_due_at": this.returnDueAt?.toUtc().toIso8601String(),
+    "overdue": this.overdue,
     if (this.offerDescription != null)
       "offer_description": this.offerDescription,
     if (this.units != null) "units": this.units,

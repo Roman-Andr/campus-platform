@@ -17,6 +17,12 @@ class QrScanOutput {
     required this.completedAt,
     required this.completionMethod,
     required this.ratingWeight,
+
+    /// The scenario stage after the scan; 'issued' after a loan handover, null for a final completion.
+    this.stage,
+
+    /// When a handed-over loan item is due back; null otherwise.
+    this.returnDueAt,
     required this.nonce,
 
     /// RFC 3339 instant with an explicit offset; returned in UTC.
@@ -54,6 +60,12 @@ class QrScanOutput {
         json["completion_method"],
       ),
       ratingWeight: json["rating_weight"] as num?,
+      stage: json.containsKey("stage") ? json["stage"] as String? : null,
+      returnDueAt: json.containsKey("return_due_at")
+          ? json["return_due_at"] == null
+                ? null
+                : DateTime.parse(json["return_due_at"] as String).toUtc()
+          : null,
       nonce: json["nonce"] as String,
       issuedAt: DateTime.parse(json["issued_at"] as String).toUtc(),
       receivedAt: DateTime.parse(json["received_at"] as String).toUtc(),
@@ -84,6 +96,12 @@ class QrScanOutput {
 
   final num? ratingWeight;
 
+  /// The scenario stage after the scan; 'issued' after a loan handover, null for a final completion.
+  final String? stage;
+
+  /// When a handed-over loan item is due back; null otherwise.
+  final DateTime? returnDueAt;
+
   final String nonce;
 
   /// RFC 3339 instant with an explicit offset; returned in UTC.
@@ -105,6 +123,8 @@ class QrScanOutput {
     "completed_at",
     "completion_method",
     "rating_weight",
+    "stage",
+    "return_due_at",
     "nonce",
     "issued_at",
     "received_at",
@@ -125,6 +145,9 @@ class QrScanOutput {
     "completed_at": this.completedAt?.toUtc().toIso8601String(),
     "completion_method": this.completionMethod.toJson(),
     "rating_weight": this.ratingWeight,
+    if (this.stage != null) "stage": this.stage,
+    if (this.returnDueAt != null)
+      "return_due_at": this.returnDueAt?.toUtc().toIso8601String(),
     "nonce": this.nonce,
     "issued_at": this.issuedAt.toUtc().toIso8601String(),
     "received_at": this.receivedAt.toUtc().toIso8601String(),
