@@ -17,6 +17,7 @@ from campus.core.outbox import add_message
 from campus.modules.notifications.models import Reminder
 
 REMINDER_TEXT = N_("An event or return deadline is approaching.")
+RETURN_REMINDER_TEXT = N_("The return deadline of your loan is approaching.")
 
 
 async def cancel_reminders(session: AsyncSession, key: str) -> None:
@@ -37,17 +38,21 @@ async def schedule_reminders(  # noqa: PLR0913 - domain schedule contract
     object_id: UUID,
     recipients: set[UUID],
     starts_at: datetime,
+    message: str | None = None,
 ) -> None:
     """Call in the source transaction on creation or rescheduling.
 
     The owning domain authorizes recipients and calls cancel_reminders on
     cancellation. Repeating the unchanged schedule keeps the same revision.
+    ``message`` overrides the default text of the category; it is an English
+    message ID marked with ``N_``, translated for every supported locale here.
     """
+    text = message or (RETURN_REMINDER_TEXT if category == "return" else REMINDER_TEXT)
     payload = {
         "type": f"{category}.reminder",
         "recipients": sorted(str(value) for value in recipients),
         "params": {"object_id": str(object_id), "time": starts_at.isoformat()},
-        "text": {locale: translate(REMINDER_TEXT, locale) for locale in ("ru", "en")},
+        "text": {locale: translate(text, locale) for locale in ("ru", "en")},
     }
     await session.execute(
         insert(Reminder)

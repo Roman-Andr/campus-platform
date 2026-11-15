@@ -31,7 +31,9 @@ from campus.modules.listings import (
     Interaction,
     InteractionStatus,
     Listing,
+    LoanStage,
     accepted_at,
+    hand_over_loan,
     locked,
     no_showed_at,
     transition,
@@ -47,9 +49,10 @@ from campus.modules.reputation.models import (
 )
 
 # These are the scenarios that are completed by meeting a person. Events,
-# group purchases and publications use other workflows, and a loan needs a
-# separate return stage rather than the final completion.
-QR_COMPLETION_KINDS = frozenset({"giveaway", "exchange", "skill", "help"})
+# group purchases and publications use other workflows. A loan is completed
+# by the return action; its handover and return reuse the same signed code
+# but are separate endpoints, so a loan is never completed by a plain scan.
+QR_COMPLETION_KINDS = frozenset({"giveaway", "exchange", "skill", "help", "loan"})
 QR_ALGORITHM = "ed25519"
 PUBLIC_KEY_SIZE = 32
 SIGNATURE_SIZE = 64
@@ -173,6 +176,36 @@ QR_STAGE_UNAVAILABLE = ProblemType(
     N_(
         "Confirm the current scenario stage by its own action; an online QR"
         " code completes only the final meeting."
+    ),
+)
+QR_LOAN_ACTION_REQUIRED = ProblemType(
+    "qr_loan_action_required",
+    409,
+    N_("Confirm the loan by its own action"),
+    N_(
+        "A loan is confirmed by its handover or return action; a plain code"
+        " does not complete it."
+    ),
+)
+QR_LOAN_ALREADY_ISSUED = ProblemType(
+    "qr_loan_already_issued",
+    409,
+    N_("The item was already handed over"),
+    N_("Confirm the return of the item instead of handing it over again."),
+)
+QR_LOAN_NOT_HANDED_OVER = ProblemType(
+    "qr_loan_not_handed_over",
+    409,
+    N_("The item was not handed over yet"),
+    N_("A return can be confirmed only after the handover of the item."),
+)
+QR_LOAN_RETURN_MARKED = ProblemType(
+    "qr_loan_return_marked",
+    409,
+    N_("The loan was marked 'not returned'"),
+    N_(
+        "The owner marked the item as not returned; the returned item is"
+        " confirmed through the dispute decision."
     ),
 )
 DEVICE_KEY_CONFLICT = ProblemType(
@@ -677,6 +710,10 @@ async def issue_confirmation_code(
         raise ProblemError(CODE_NOT_PARTICIPANT)
     if listing.kind not in QR_COMPLETION_KINDS:
         raise ProblemError(CODE_UNAVAILABLE)
+    if listing.kind == "loan":
+        # A loan is confirmed by its handover or return action; a six-digit
+        # code cannot name the action, so it is refused rather than guessed.
+        raise ProblemError(CODE_STAGE_UNAVAILABLE)
     if interaction.stage is not None:
         raise ProblemError(CODE_STAGE_UNAVAILABLE)
     status = InteractionStatus(interaction.status)
@@ -809,6 +846,10 @@ async def confirm_with_code(  # noqa: PLR0913, PLR0917 - request parts
         raise ProblemError(CODE_NOT_PARTICIPANT)
     if listing.kind not in QR_COMPLETION_KINDS:
         raise ProblemError(CODE_UNAVAILABLE)
+    if listing.kind == "loan":
+        # A loan is confirmed by its handover or return action; a six-digit
+        # code cannot name the action, so it is refused rather than guessed.
+        raise ProblemError(CODE_STAGE_UNAVAILABLE)
     if interaction.stage is not None:
         raise ProblemError(CODE_STAGE_UNAVAILABLE)
     status = InteractionStatus(interaction.status)
@@ -891,7 +932,102 @@ def qr_result(
     )
 
 
-async def confirm_with_qr(  # noqa: PLR0912, PLR0913, PLR0917 - request parts
+@dataclass(frozen=True)
+class VerifiedOnlineCode:
+    """An online code that passed the shared payload, time and key checks."""
+
+    listing: Listing
+    interaction: Interaction
+    payload: QrPayload
+    key: DeviceKey
+    now: datetime
+
+
+async def verify_online_code(  # noqa: PLR0913, PLR0917 - request parts
+    session: AsyncSession,
+    settings: Settings,
+    listing_id: UUID,
+    interaction_id: UUID,
+    scanner_id: UUID,
+    payload_encoded: str,
+    signature_encoded: str,
+) -> VerifiedOnlineCode:
+    """Run the shared checks of every signed online confirmation.
+
+    The payload names the interaction, the showing participant, the device
+    key, the issue time and a one-time nonce; the signature covers its exact
+    bytes and the scanner must be the other participant. Scenarios differ
+    only in what they do with a verified code, never in how they trust it.
+    """
+    raw, payload = decode_payload(payload_encoded)
+    if payload.listing_id != listing_id or payload.interaction_id != interaction_id:
+        raise ProblemError(QR_PAYLOAD_INVALID)
+    now = _check_time(payload, settings)
+    listing, interaction = await _load_interaction(session, listing_id, interaction_id)
+    _two_participants(listing, interaction, payload.presenter_id, scanner_id)
+    key = await active_signing_key(session, payload)
+    verify_signature(key, raw, signature_encoded)
+    # A one-time nonce is never accepted twice, even for the same payload.
+    # A genuine retry carries the same Idempotency-Key and is answered by the
+    # stored idempotent response before this handler runs.
+    if await _existing_scan(session, payload.nonce) is not None:
+        raise ProblemError(QR_NONCE_REUSED)
+    return VerifiedOnlineCode(listing, interaction, payload, key, now)
+
+
+async def store_online_scan(
+    session: AsyncSession,
+    code: VerifiedOnlineCode,
+    scanner_id: UUID,
+    *,
+    result: str,
+) -> QrScan:
+    """Persist the single-use scan row in the caller's transaction."""
+    payload = code.payload
+    now = code.now
+    scan_id = await session.scalar(
+        insert(QrScan)
+        .values(
+            listing_id=code.listing.id,
+            interaction_id=code.interaction.id,
+            device_key_id=code.key.id,
+            presenter_id=payload.presenter_id,
+            scanner_id=scanner_id,
+            nonce=payload.nonce,
+            issued_at=payload.issued_at,
+            received_at=now,
+            mode=QrMode.ONLINE.value,
+            result=result,
+            created_at=now,
+            updated_at=now,
+        )
+        .on_conflict_do_nothing(index_elements=["nonce"])
+        .returning(QrScan.id)
+    )
+    if scan_id is None:
+        # Another interaction raced for the same one-time nonce.
+        raise ProblemError(QR_NONCE_REUSED)
+    scan = await session.get(QrScan, scan_id)
+    if scan is None:  # pragma: no cover - the insert just returned this id
+        raise RuntimeError("QR scan disappeared")
+    return scan
+
+
+def scan_details(code: VerifiedOnlineCode, scanner_id: UUID) -> dict[str, Any]:
+    """Journal details of a scan; they never contain user-written text."""
+    payload = code.payload
+    return {
+        "method": CompletionMethod.QR.value,
+        "presenter_id": str(payload.presenter_id),
+        "scanner_id": str(scanner_id),
+        "device_key_id": str(code.key.id),
+        "nonce": str(payload.nonce),
+        "issued_at": payload.issued_at.isoformat(),
+        "received_at": code.now.isoformat(),
+    }
+
+
+async def confirm_with_qr(  # noqa: PLR0913, PLR0917 - request parts
     session: AsyncSession,
     listing_id: UUID,
     interaction_id: UUID,
@@ -906,26 +1042,28 @@ async def confirm_with_qr(  # noqa: PLR0912, PLR0913, PLR0917 - request parts
     completion and each other. The scan row, the interaction update, its
     journal event and the outbox message commit or roll back together.
     """
-    raw, payload = decode_payload(payload_encoded)
-    if payload.listing_id != listing_id or payload.interaction_id != interaction_id:
-        raise ProblemError(QR_PAYLOAD_INVALID)
-    now = _check_time(payload, settings)
-    listing, interaction = await _load_interaction(session, listing_id, interaction_id)
-    _two_participants(listing, interaction, payload.presenter_id, scanner_id)
+    code = await verify_online_code(
+        session,
+        settings,
+        listing_id,
+        interaction_id,
+        scanner_id,
+        payload_encoded,
+        signature_encoded,
+    )
+    listing = code.listing
+    interaction = code.interaction
+    payload = code.payload
+    now = code.now
     if listing.kind not in QR_COMPLETION_KINDS:
         raise ProblemError(QR_UNAVAILABLE)
-    # A loan has a handover stage before the final return; a stage action must
-    # never be replaced by the final QR completion.
+    if listing.kind == "loan":
+        # The handover and the return are separate signed actions; a plain
+        # scan must never finish a loan as if it were a flat giveaway.
+        raise ProblemError(QR_LOAN_ACTION_REQUIRED)
+    # A manual stage action must never be replaced by the final completion.
     if interaction.stage is not None:
         raise ProblemError(QR_STAGE_UNAVAILABLE)
-    key = await active_signing_key(session, payload)
-    verify_signature(key, raw, signature_encoded)
-
-    # A one-time nonce is never accepted twice, even for the same payload.
-    # A genuine retry carries the same Idempotency-Key and is answered by the
-    # stored idempotent response before this handler runs.
-    if await _existing_scan(session, payload.nonce) is not None:
-        raise ProblemError(QR_NONCE_REUSED)
     status = InteractionStatus(interaction.status)
     late_mark: datetime | None = None
     if status == InteractionStatus.COMPLETED:
@@ -943,41 +1081,8 @@ async def confirm_with_qr(  # noqa: PLR0912, PLR0913, PLR0917 - request parts
     elif status != InteractionStatus.ACCEPTED:
         raise ProblemError(QR_NOT_ACCEPTED)
 
-    scan_id = await session.scalar(
-        insert(QrScan)
-        .values(
-            listing_id=listing.id,
-            interaction_id=interaction.id,
-            device_key_id=key.id,
-            presenter_id=payload.presenter_id,
-            scanner_id=scanner_id,
-            nonce=payload.nonce,
-            issued_at=payload.issued_at,
-            received_at=now,
-            mode=QrMode.ONLINE.value,
-            result="completed",
-            created_at=now,
-            updated_at=now,
-        )
-        .on_conflict_do_nothing(index_elements=["nonce"])
-        .returning(QrScan.id)
-    )
-    if scan_id is None:
-        # Another interaction raced for the same one-time nonce.
-        raise ProblemError(QR_NONCE_REUSED)
-    scan = await session.get(QrScan, scan_id)
-    if scan is None:  # pragma: no cover - the insert just returned this id
-        raise RuntimeError("QR scan disappeared")
-
-    details: dict[str, Any] = {
-        "method": CompletionMethod.QR.value,
-        "presenter_id": str(payload.presenter_id),
-        "scanner_id": str(scanner_id),
-        "device_key_id": str(key.id),
-        "nonce": str(payload.nonce),
-        "issued_at": payload.issued_at.isoformat(),
-        "received_at": now.isoformat(),
-    }
+    scan = await store_online_scan(session, code, scanner_id, result="completed")
+    details = scan_details(code, scanner_id)
     action = "qr_completed"
     if late_mark is not None:
         details["no_show_at"] = late_mark.isoformat()
@@ -997,6 +1102,124 @@ async def confirm_with_qr(  # noqa: PLR0912, PLR0913, PLR0917 - request parts
         details=details,
     )
     return qr_result(interaction, scan, payload, scanner_id, now)
+
+
+async def hand_over_loan_with_qr(  # noqa: PLR0913, PLR0917 - request parts
+    session: AsyncSession,
+    listing_id: UUID,
+    interaction_id: UUID,
+    scanner_id: UUID,
+    payload_encoded: str,
+    signature_encoded: str,
+    settings: Settings,
+) -> QrResult:
+    """Confirm the handover of a lent item with the other participant's code.
+
+    The interaction stays accepted and moves to the ``issued`` stage; the
+    return deadline is the handover moment plus the author's loan period.
+    The same signed payload, time window, device key and single-use nonce
+    checks as a final completion apply, so a handover scan is as trustworthy
+    as any other confirmation. A repeated handover is refused, and a
+    non-loan interaction cannot use this action.
+    """
+    code = await verify_online_code(
+        session,
+        settings,
+        listing_id,
+        interaction_id,
+        scanner_id,
+        payload_encoded,
+        signature_encoded,
+    )
+    listing = code.listing
+    interaction = code.interaction
+    if listing.kind != "loan":
+        raise ProblemError(QR_UNAVAILABLE)
+    status = InteractionStatus(interaction.status)
+    if status == InteractionStatus.COMPLETED:
+        raise ProblemError(QR_ALREADY_COMPLETED)
+    if status != InteractionStatus.ACCEPTED:
+        raise ProblemError(QR_NOT_ACCEPTED)
+    if interaction.stage == LoanStage.ISSUED.value:
+        raise ProblemError(QR_LOAN_ALREADY_ISSUED)
+    if interaction.stage is not None:
+        raise ProblemError(QR_STAGE_UNAVAILABLE)
+
+    scan = await store_online_scan(session, code, scanner_id, result="stage_advanced")
+    details = scan_details(code, scanner_id)
+    details["result"] = "stage_advanced"
+    await hand_over_loan(
+        session,
+        listing,
+        interaction,
+        scanner_id,
+        settings=settings,
+        details=details,
+    )
+    return qr_result(interaction, scan, code.payload, scanner_id, code.now)
+
+
+async def return_loan_with_qr(  # noqa: PLR0913, PLR0917 - request parts
+    session: AsyncSession,
+    listing_id: UUID,
+    interaction_id: UUID,
+    scanner_id: UUID,
+    payload_encoded: str,
+    signature_encoded: str,
+    settings: Settings,
+) -> QrResult:
+    """Confirm the return of a lent item and complete the interaction.
+
+    A return is possible only after the confirmed handover: a code presented
+    before the ``issued`` stage is refused, so the two actions cannot be
+    collapsed into one. The same validation as every other signed code
+    applies. A loan already marked "not returned" is closed for QR returns;
+    the returned item is then decided through the dispute.
+    """
+    code = await verify_online_code(
+        session,
+        settings,
+        listing_id,
+        interaction_id,
+        scanner_id,
+        payload_encoded,
+        signature_encoded,
+    )
+    listing = code.listing
+    interaction = code.interaction
+    if listing.kind != "loan":
+        raise ProblemError(QR_UNAVAILABLE)
+    status = InteractionStatus(interaction.status)
+    if status == InteractionStatus.COMPLETED:
+        if interaction.completion_method == CompletionMethod.QR.value:
+            return qr_result(interaction, None, code.payload, scanner_id, code.now)
+        raise ProblemError(QR_ALREADY_COMPLETED)
+    if status == InteractionStatus.NO_SHOW:
+        raise ProblemError(QR_LOAN_RETURN_MARKED)
+    if status != InteractionStatus.ACCEPTED:
+        raise ProblemError(QR_NOT_ACCEPTED)
+    if interaction.stage is None:
+        raise ProblemError(QR_LOAN_NOT_HANDED_OVER)
+    if interaction.stage != LoanStage.ISSUED.value:
+        raise ProblemError(QR_STAGE_UNAVAILABLE)
+
+    scan = await store_online_scan(session, code, scanner_id, result="completed")
+    details = scan_details(code, scanner_id)
+    if interaction.return_due_at is not None:
+        details["return_due_at"] = interaction.return_due_at.isoformat()
+        details["overdue"] = interaction.overdue
+    await transition(
+        session,
+        listing,
+        interaction,
+        InteractionStatus.COMPLETED,
+        scanner_id,
+        settings=settings,
+        completion_method=CompletionMethod.QR,
+        action="loan_returned",
+        details=details,
+    )
+    return qr_result(interaction, scan, code.payload, scanner_id, code.now)
 
 
 def _check_offline_time(
@@ -1205,8 +1428,10 @@ async def confirm_with_offline_qr(  # noqa: PLR0912, PLR0913, PLR0917 - request
     A non-accepted state is not bypassed by a valid signature, with one
     exception: a code formed before a no-show mark completes the interaction
     and lifts the marks through :func:`complete_offline_qr`; a code formed
-    after the mark must not. Intermediate scenario stages (#214 for a loan)
-    are refused here; only the final meeting completes.
+    after the mark must not. Intermediate scenario stages are refused here;
+    only the final meeting completes. A loan is refused entirely: its
+    handover and return are separate actions, and an offline submission
+    cannot name the action it was signed for.
     """
     raw, payload = decode_offline_payload(payload_encoded)
     if payload.listing_id != listing_id or payload.interaction_id != interaction_id:
@@ -1236,6 +1461,11 @@ async def confirm_with_offline_qr(  # noqa: PLR0912, PLR0913, PLR0917 - request
         )
     if await _existing_scan(session, payload.nonce) is not None:
         raise ProblemError(QR_NONCE_REUSED)
+    if listing.kind == "loan":
+        # An offline code is signed before delivery and cannot name the loan
+        # action; guessing between the handover and the return could finish a
+        # loan nobody returned. The loan actions are online only for now.
+        raise ProblemError(QR_LOAN_ACTION_REQUIRED)
 
     status = InteractionStatus(interaction.status)
     if status == InteractionStatus.COMPLETED:

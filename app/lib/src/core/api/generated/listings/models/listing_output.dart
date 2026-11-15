@@ -34,6 +34,9 @@ class ListingOutput {
     /// Direction of a skill listing; null otherwise.
     this.direction,
 
+    /// The author's loan period in days; null for every other kind. The return deadline is the confirmed handover plus this period.
+    this.loanDays,
+
     /// RFC 3339 instant with an explicit offset; returned in UTC.
     this.pinnedUntil,
     required this.hiddenReason,
@@ -127,6 +130,11 @@ class ListingOutput {
           ? json["direction"] == null
                 ? null
                 : ListingOutputDirection.fromJson(json["direction"])
+          : null,
+      loanDays: json.containsKey("loan_days")
+          ? json["loan_days"] == null
+                ? null
+                : _readJsonInteger(json["loan_days"])
           : null,
       pinnedUntil: json.containsKey("pinned_until")
           ? json["pinned_until"] == null
@@ -261,6 +269,9 @@ class ListingOutput {
   /// Direction of a skill listing; null otherwise.
   final ListingOutputDirection? direction;
 
+  /// The author's loan period in days; null for every other kind. The return deadline is the confirmed handover plus this period.
+  final int? loanDays;
+
   /// RFC 3339 instant with an explicit offset; returned in UTC.
   final DateTime? pinnedUntil;
 
@@ -334,6 +345,7 @@ class ListingOutput {
     "expires_at",
     "category_id",
     "direction",
+    "loan_days",
     "pinned_until",
     "hidden_reason",
     "event_starts_at",
@@ -380,6 +392,7 @@ class ListingOutput {
     "expires_at": this.expiresAt?.toUtc().toIso8601String(),
     "category_id": this.categoryId,
     if (this.direction != null) "direction": this.direction?.toJson(),
+    if (this.loanDays != null) "loan_days": this.loanDays,
     if (this.pinnedUntil != null)
       "pinned_until": this.pinnedUntil?.toUtc().toIso8601String(),
     "hidden_reason": this.hiddenReason,

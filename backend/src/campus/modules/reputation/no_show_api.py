@@ -18,6 +18,7 @@ from campus.modules.reputation.no_show import (
     EventNoShowState,
     NoShowState,
     dispute_event_no_show,
+    mark_loan_not_returned,
     mark_no_show,
     no_show_state,
     vote_event_not_held,
@@ -40,6 +41,17 @@ no_show_router = api_router(
 event_no_show_router = api_router(
     prefix="/listings/{listing_id}/event/no-show",
     tags=["Event no-shows"],
+    responses={
+        401: {"model": Problem},
+        403: {"model": Problem},
+        404: {"model": Problem},
+        409: {"model": Problem},
+        422: {"model": Problem},
+    },
+)
+loan_router = api_router(
+    prefix="/listings/{listing_id}/interactions/{interaction_id}/not-returned",
+    tags=["Loans"],
     responses={
         401: {"model": Problem},
         403: {"model": Problem},
@@ -249,7 +261,8 @@ async def mark_interaction_no_show(  # noqa: PLR0913, PLR0917 - request context
     agreed meeting and no later than 7 days, always with a reason. If both
     participants mark each other, one dispute is opened and neither no-show
     counts until the moderator decides. A repeat by the same participant is a
-    no-op.
+    no-op. A handed-over loan is refused: its item is an obligation, and the
+    loan ends with the return or with the owner's "not returned" mark.
     """
     state = await mark_no_show(
         session,
@@ -341,3 +354,31 @@ async def event_no_show(
         request.app.state.settings,
     )
     return event_output(state, principal.user_id)
+
+
+@loan_router.post("")
+async def mark_not_returned(
+    listing_id: UUID,
+    interaction_id: UUID,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> NoShowOutput:
+    """The owner marks a lent item as not returned after the configured wait.
+
+    The interaction moves to "did not take place" and the borrower gets the
+    no-show of #66. The owner may use it only after the return deadline plus
+    the configured wait (appendix 4: 3 days); earlier requests are refused
+    with the earliest allowed moment. The borrower may answer within the
+    dispute window, which suspends the marks until the moderator decides
+    (#94). The item is not back, so the listing keeps its occupied place and
+    the return deadline stays visible.
+    """
+    state = await mark_loan_not_returned(
+        session,
+        listing_id,
+        interaction_id,
+        principal.user_id,
+        request.app.state.settings,
+    )
+    return no_show_output(state)

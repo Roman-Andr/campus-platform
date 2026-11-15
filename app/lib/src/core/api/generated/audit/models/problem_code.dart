@@ -70,6 +70,8 @@ enum ProblemCodeValue {
   listingConflict("listing_conflict"),
   listingContentInvalid("listing_content_invalid"),
   listingForbidden("listing_forbidden"),
+  listingLoanInProgress("listing_loan_in_progress"),
+  listingLoanPeriodInvalid("listing_loan_period_invalid"),
   listingNoMeetingUnavailable("listing_no_meeting_unavailable"),
   listingOfferExpired("listing_offer_expired"),
   listingOfferMissing("listing_offer_missing"),
@@ -92,6 +94,10 @@ enum ProblemCodeValue {
   listingWaitlistFree("listing_waitlist_free"),
   listingWaitlistParticipating("listing_waitlist_participating"),
   listingWaitlistUnavailable("listing_waitlist_unavailable"),
+  loanNoShowUnavailable("loan_no_show_unavailable"),
+  loanNotReturnedForbidden("loan_not_returned_forbidden"),
+  loanNotReturnedTooEarly("loan_not_returned_too_early"),
+  loanNotReturnedUnavailable("loan_not_returned_unavailable"),
   meetingPlaceInvalid("meeting_place_invalid"),
   meetingStale("meeting_stale"),
   meetingStateConflict("meeting_state_conflict"),
@@ -120,6 +126,10 @@ enum ProblemCodeValue {
   qrExpired("qr_expired"),
   qrIssuedInFuture("qr_issued_in_future"),
   qrKeyInvalid("qr_key_invalid"),
+  qrLoanActionRequired("qr_loan_action_required"),
+  qrLoanAlreadyIssued("qr_loan_already_issued"),
+  qrLoanNotHandedOver("qr_loan_not_handed_over"),
+  qrLoanReturnMarked("qr_loan_return_marked"),
   qrNonceReused("qr_nonce_reused"),
   qrNotAccepted("qr_not_accepted"),
   qrNotParticipant("qr_not_participant"),
@@ -334,6 +344,12 @@ sealed class ProblemCode {
   static const listingForbidden = ProblemCodeKnown(
     ProblemCodeValue.listingForbidden,
   );
+  static const listingLoanInProgress = ProblemCodeKnown(
+    ProblemCodeValue.listingLoanInProgress,
+  );
+  static const listingLoanPeriodInvalid = ProblemCodeKnown(
+    ProblemCodeValue.listingLoanPeriodInvalid,
+  );
   static const listingNoMeetingUnavailable = ProblemCodeKnown(
     ProblemCodeValue.listingNoMeetingUnavailable,
   );
@@ -393,6 +409,18 @@ sealed class ProblemCode {
   );
   static const listingWaitlistUnavailable = ProblemCodeKnown(
     ProblemCodeValue.listingWaitlistUnavailable,
+  );
+  static const loanNoShowUnavailable = ProblemCodeKnown(
+    ProblemCodeValue.loanNoShowUnavailable,
+  );
+  static const loanNotReturnedForbidden = ProblemCodeKnown(
+    ProblemCodeValue.loanNotReturnedForbidden,
+  );
+  static const loanNotReturnedTooEarly = ProblemCodeKnown(
+    ProblemCodeValue.loanNotReturnedTooEarly,
+  );
+  static const loanNotReturnedUnavailable = ProblemCodeKnown(
+    ProblemCodeValue.loanNotReturnedUnavailable,
   );
   static const meetingPlaceInvalid = ProblemCodeKnown(
     ProblemCodeValue.meetingPlaceInvalid,
@@ -466,6 +494,18 @@ sealed class ProblemCode {
     ProblemCodeValue.qrIssuedInFuture,
   );
   static const qrKeyInvalid = ProblemCodeKnown(ProblemCodeValue.qrKeyInvalid);
+  static const qrLoanActionRequired = ProblemCodeKnown(
+    ProblemCodeValue.qrLoanActionRequired,
+  );
+  static const qrLoanAlreadyIssued = ProblemCodeKnown(
+    ProblemCodeValue.qrLoanAlreadyIssued,
+  );
+  static const qrLoanNotHandedOver = ProblemCodeKnown(
+    ProblemCodeValue.qrLoanNotHandedOver,
+  );
+  static const qrLoanReturnMarked = ProblemCodeKnown(
+    ProblemCodeValue.qrLoanReturnMarked,
+  );
   static const qrNonceReused = ProblemCodeKnown(ProblemCodeValue.qrNonceReused);
   static const qrNotAccepted = ProblemCodeKnown(ProblemCodeValue.qrNotAccepted);
   static const qrNotParticipant = ProblemCodeKnown(

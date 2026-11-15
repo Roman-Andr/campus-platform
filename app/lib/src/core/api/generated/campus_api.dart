@@ -14,6 +14,7 @@ import 'exports.dart'
         EventAttendanceClient,
         EventNoShowsClient,
         ListingsClient,
+        LoansClient,
         NoShowsClient,
         NotificationsClient,
         PhotosClient,
@@ -60,6 +61,7 @@ final class CampusApi {
   late final clients.EventNoShowsClient eventNoShows =
       clients.EventNoShowsClient(_client);
   late final clients.ListingsClient listings = clients.ListingsClient(_client);
+  late final clients.LoansClient loans = clients.LoansClient(_client);
   late final clients.NoShowsClient noShows = clients.NoShowsClient(_client);
   late final clients.NotificationsClient notifications =
       clients.NotificationsClient(_client);

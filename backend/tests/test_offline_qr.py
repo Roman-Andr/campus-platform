@@ -1005,7 +1005,7 @@ async def test_alumni_can_finish_a_previously_accepted_interaction(
     assert response.json()["status"] == "completed"
 
 
-async def test_intermediate_loan_stage_is_refused_and_final_stage_completes(
+async def test_intermediate_stage_is_refused_and_the_final_stage_completes(
     owner: Account, borrower: Account
 ) -> None:
     fixed = FIXED
@@ -1049,9 +1049,11 @@ async def test_intermediate_loan_stage_is_refused_and_final_stage_completes(
     assert final.json()["status"] == "completed"
 
 
-async def test_unsupported_loan_kind_is_not_completed_like_a_giveaway(
+async def test_a_loan_is_not_completed_by_a_stored_offline_code(
     owner: Account, borrower: Account
 ) -> None:
+    """#214: a stored code cannot name the handover or the return, so a loan
+    fails closed here and stays accepted."""
     fixed = FIXED
     signer = Signer.generate()
     await register_at(owner, signer, fixed - timedelta(hours=1))
@@ -1073,7 +1075,7 @@ async def test_unsupported_loan_kind_is_not_completed_like_a_giveaway(
         response = await offline_scan(borrower, listing, interaction, body)
 
     assert response.status_code == 409
-    assert response.json()["code"] == "qr_unavailable"
+    assert response.json()["code"] == "qr_loan_action_required"
     await db.rollback()
     row = await db.get(Interaction, UUID(interaction["id"]))
     assert row is not None

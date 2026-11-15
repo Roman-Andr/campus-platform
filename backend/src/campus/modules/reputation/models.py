@@ -78,7 +78,9 @@ class QrScan(Entity):
     __tablename__ = "reputation_qr_scan"
     __table_args__ = (
         CheckConstraint("presenter_id <> scanner_id", name="distinct_participants"),
-        CheckConstraint("result = 'completed'", name="result"),
+        # ``completed`` finishes the interaction; ``stage_advanced`` records a
+        # loan handover, which keeps the interaction accepted for its return.
+        CheckConstraint("result IN ('completed','stage_advanced')", name="result"),
         CheckConstraint("mode IN ('online','offline')", name="mode"),
         CheckConstraint(
             "(mode = 'offline') = (confirmation_id IS NOT NULL)"

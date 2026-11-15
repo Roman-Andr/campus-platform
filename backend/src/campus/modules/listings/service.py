@@ -29,11 +29,13 @@ from campus.modules.listings.models import (
     CompletionMethod,
     Interaction,
     InteractionStatus,
+    Item,
     LessonOption,
     LessonOptionStatus,
     Listing,
     ListingEvent,
     ListingStatus,
+    LoanStage,
     Meeting,
     NoMeetingConfirmation,
     PurchaseStage,
@@ -56,8 +58,10 @@ from campus.modules.notifications import (
     PURCHASE_WITHDRAWAL_DECIDED,
     PURCHASE_WITHDRAWAL_REQUESTED,
     NotificationEvent,
+    cancel_reminders,
     notify,
     register_validator,
+    schedule_reminders,
 )
 from campus.modules.university import AccountType
 
@@ -255,6 +259,23 @@ OFFER_EXPIRED = ProblemType(
     409,
     N_("The offer of a place has expired."),
 )
+LOAN_PERIOD_INVALID = ProblemType(
+    "listing_loan_period_invalid",
+    422,
+    N_("Invalid loan period"),
+    N_("The loan period must be from 1 to {max} days."),
+)
+# An issued loan is an obligation: the item is with the borrower, so the
+# interaction ends by its return or by the owner's "not returned" mark only.
+LOAN_IN_PROGRESS = ProblemType(
+    "listing_loan_in_progress",
+    409,
+    N_("The loan is in progress"),
+    N_(
+        "The item was handed over; the loan ends with its return or a"
+        " not-returned mark."
+    ),
+)
 
 # Completion and no-show are service-only transitions, called by the QR module.
 TRANSITIONS = {
@@ -312,7 +333,7 @@ class TypePolicy:
 
     author_response_deadline: bool
     initial_stage: str | None = None
-    stage_transitions: frozenset[tuple[str, str]] = frozenset()
+    stage_transitions: frozenset[tuple[str | None, str]] = frozenset()
     capacity: int | None = None
     start_time: Callable[[Listing], datetime | None] | None = None
 
@@ -322,6 +343,13 @@ TYPE_POLICIES = {
         False, capacity=1, start_time=lambda listing: listing.event_starts_at
     ),
     "giveaway": TypePolicy(author_response_deadline=True, capacity=1),
+    # A loan is booked like a giveaway but has a handover stage inside
+    # "accepted"; the return itself completes the interaction.
+    "loan": TypePolicy(
+        author_response_deadline=True,
+        capacity=1,
+        stage_transitions=frozenset({(None, LoanStage.ISSUED.value)}),
+    ),
     # An exchange takes several offers; the author chooses one, no queue.
     "exchange": TypePolicy(author_response_deadline=False, capacity=None),
     # A skill listing is permanent and takes lessons from many participants.
@@ -336,8 +364,10 @@ TYPE_POLICIES = {
     ),
 }
 
+# Item kinds booked by one participant at a time and completed by a meeting.
+ITEM_KINDS = frozenset({"giveaway", "loan"})
 # Item kinds whose accepted reservation expires unless a meeting is scheduled.
-RESERVATION_KINDS = frozenset({"giveaway", "exchange"})
+RESERVATION_KINDS = frozenset({"giveaway", "exchange", "loan"})
 RESERVATION_EXPIRED = "reservation_expired"
 EXCHANGE_OFFER_DECLINED = "another_offer_accepted"
 # A started interaction keeps its completion path after a block. Rejected and
@@ -1725,16 +1755,28 @@ async def cancel_listing_by_author(
         reason=reason,
     )
     for interaction in accepted:
+        # The stage and the return deadline are cleared from the row, so the
+        # journal keeps the fact that a lent item was still with the borrower.
+        stage = interaction.stage
+        return_due_at = interaction.return_due_at
         await cancel_meeting_reminders(session, interaction.id)
         await cancel_deadline(session, reservation_key(interaction.id))
+        if listing.kind == "loan":
+            await cancel_return_reminder(session, interaction)
         interaction.status = InteractionStatus.CANCELLED
         interaction.stage = None
         interaction.reservation_due_at = None
+        interaction.return_due_at = None
         interaction.cancelled_by = CancellationActor.AUTHOR.value
         interaction.cancellation_reason = reason
         interaction.late_cancelled = False
         if listing.kind == "event":
             listing.event_registered = max(0, listing.event_registered - 1)
+        details: dict[str, Any] = {"after_acceptance": True, "late": False}
+        if stage is not None:
+            details["stage"] = stage
+        if return_due_at is not None:
+            details["return_due_at"] = return_due_at.isoformat()
         append_event(
             session,
             listing,
@@ -1743,7 +1785,7 @@ async def cancel_listing_by_author(
             InteractionStatus.ACCEPTED,
             interaction,
             reason=reason,
-            details={"after_acceptance": True, "late": False},
+            details=details,
         )
         notify(
             session,
@@ -2040,6 +2082,108 @@ def reservation_key(interaction_id: UUID) -> str:
     return f"interaction:{interaction_id}"
 
 
+def return_reminder_key(interaction_id: UUID) -> str:
+    return f"return:{interaction_id}"
+
+
+async def schedule_return_reminder(
+    session: AsyncSession,
+    settings: Settings,
+    listing: Listing,
+    interaction: Interaction,
+) -> None:
+    """Remind the borrower a day before the return deadline of a loan.
+
+    The reminder is the shared versioned one: the delivery stage rechecks
+    that it still belongs to the interaction, and returning or cancelling the
+    loan cancels it.
+    """
+    if listing.kind != "loan" or interaction.return_due_at is None:
+        return
+    await schedule_reminders(
+        session,
+        settings,
+        key=return_reminder_key(interaction.id),
+        category="return",
+        object_id=interaction.id,
+        recipients={interaction.participant_id},
+        starts_at=interaction.return_due_at,
+    )
+
+
+async def cancel_return_reminder(
+    session: AsyncSession, interaction: Interaction
+) -> None:
+    """Drop the pending return reminder of an interaction that ended."""
+    await cancel_reminders(session, return_reminder_key(interaction.id))
+
+
+async def loan_period_days(session: AsyncSession, listing: Listing) -> int:
+    """The author's loan period in days; fail closed without one."""
+    days = await session.scalar(
+        select(Item.loan_days).where(Item.listing_id == listing.id)
+    )
+    if days is None:
+        raise ProblemError(CONFLICT)
+    return int(days)
+
+
+async def hand_over_loan(  # noqa: PLR0913 - the parts of a trusted action
+    session: AsyncSession,
+    listing: Listing,
+    interaction: Interaction,
+    actor_id: UUID,
+    *,
+    settings: Settings,
+    details: dict[str, Any] | None = None,
+) -> None:
+    """Trusted handover: the item is with the borrower and the loan continues.
+
+    The interaction stays accepted, moves to the ``issued`` stage and gets
+    the return deadline: the confirmed handover plus the author's period.
+    The meeting and reservation timers no longer apply, and the flat 7-day
+    no-show rule is disarmed: from now on the loan's own rules decide.
+    """
+    if (
+        listing.kind != "loan"
+        or interaction.status != InteractionStatus.ACCEPTED
+        or interaction.stage is not None
+    ):
+        raise ProblemError(CONFLICT)
+    period = await loan_period_days(session, listing)
+    now = clock.now()
+    interaction.stage = LoanStage.ISSUED.value
+    interaction.return_due_at = now + timedelta(days=period)
+    interaction.reservation_due_at = None
+    await cancel_deadline(session, reservation_key(interaction.id))
+    await cancel_meeting_reminders(session, interaction.id)
+    from campus.modules.reputation import (  # noqa: PLC0415
+        disarm_no_show_timer,
+    )
+
+    await disarm_no_show_timer(session, listing, interaction)
+    listing.version += 1
+    event_details = dict(details or {})
+    event_details.update(
+        {
+            "stage": LoanStage.ISSUED.value,
+            "loan_days": period,
+            "return_due_at": interaction.return_due_at.isoformat(),
+        }
+    )
+    record(
+        session,
+        listing,
+        actor_id,
+        "loan_handed_over",
+        InteractionStatus.ACCEPTED.value,
+        interaction,
+        details=event_details,
+    )
+    await schedule_return_reminder(session, settings, listing, interaction)
+    await session.flush()
+
+
 async def schedule_reservation(
     session: AsyncSession,
     listing: Listing,
@@ -2124,7 +2268,7 @@ async def release_reservation(
         reason=RESERVATION_EXPIRED,
         details={"late": False},
     )
-    if released and listing.kind == "giveaway":
+    if released and listing.kind in ITEM_KINDS:
         await offer_next(
             session,
             listing,
@@ -2143,6 +2287,7 @@ async def expire_reservation(session: AsyncSession, job: JobInfo) -> None:
         return
     if (
         interaction.status != InteractionStatus.ACCEPTED
+        or interaction.stage is not None
         or interaction.reservation_due_at is None
         or interaction.reservation_due_at > clock.now()
     ):
@@ -2400,7 +2545,16 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
             and interaction.response_due_at <= clock.now()
         ):
             raise ProblemError(CONFLICT)
+    # An issued loan is an obligation: the item is with the borrower, so the
+    # participant cannot make the interaction disappear by cancelling it.
+    if (
+        target == InteractionStatus.CANCELLED
+        and listing.kind == "loan"
+        and interaction.stage == LoanStage.ISSUED.value
+    ):
+        raise ProblemError(LOAN_IN_PROGRESS)
     previous = interaction.status
+    previous_stage = interaction.stage
     late = False
     if target == InteractionStatus.CANCELLED:
         late = previous == InteractionStatus.ACCEPTED and is_late_cancellation(
@@ -2434,7 +2588,20 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
         await cancel_meeting_reminders(session, interaction.id)
         await cancel_deadline(session, reservation_key(interaction.id))
         await disarm_no_show_timer(session, listing, interaction)
+        if listing.kind == "loan":
+            await cancel_return_reminder(session, interaction)
         interaction.reservation_due_at = None
+        # A "not returned" loan keeps its deadline: the item is still with
+        # the borrower and the warning flag must stay visible.
+        if target != InteractionStatus.NO_SHOW:
+            interaction.return_due_at = None
+    # A loan whose item is still with the borrower does not free its place:
+    # the listing must not offer an item that never came back.
+    outstanding_loan = (
+        listing.kind == "loan"
+        and previous_stage == LoanStage.ISSUED.value
+        and target in (InteractionStatus.NO_SHOW, InteractionStatus.CANCELLED)
+    )
     claimed = await claim_listing(
         session, listing, interaction, target, actor_id, previous
     )
@@ -2458,6 +2625,7 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
         )
         and listing.status == ListingStatus.BUSY
         and releases_slot
+        and not outstanding_loan
     ):
         # A deadline that has elapsed must not reintroduce a listing to the feed.
         if listing.expires_at is not None and listing.expires_at <= clock.now():

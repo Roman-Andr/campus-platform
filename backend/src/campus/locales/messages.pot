@@ -11,6 +11,11 @@ msgstr ""
 msgid "A lesson has from {min} to {max} time options."
 msgstr ""
 
+msgid ""
+"A loan is confirmed by its handover or return action; a plain code does "
+"not complete it."
+msgstr ""
+
 msgid "A meeting time and place were proposed."
 msgstr ""
 
@@ -21,8 +26,8 @@ msgid "A no-show cannot be marked here"
 msgstr ""
 
 msgid ""
-"A no-show is marked for a personal meeting of a giveaway, exchange, skill"
-" or help interaction, or for an event."
+"A no-show is marked for a personal meeting of a giveaway, exchange, "
+"skill, loan or help interaction, or for an event."
 msgstr ""
 
 msgid "A participant asks to leave the purchase."
@@ -34,6 +39,9 @@ msgstr ""
 msgid ""
 "A place in the queue is available for you. Confirm it before the timer "
 "ends."
+msgstr ""
+
+msgid "A return can be confirmed only after the handover of the item."
 msgstr ""
 
 msgid "Accepted interactions can only be cancelled with a reason."
@@ -118,6 +126,12 @@ msgstr ""
 msgid ""
 "Confirm the current scenario stage by its own action; an online QR code "
 "completes only the final meeting."
+msgstr ""
+
+msgid "Confirm the loan by its own action"
+msgstr ""
+
+msgid "Confirm the return of the item instead of handing it over again."
 msgstr ""
 
 #, python-brace-format
@@ -218,6 +232,9 @@ msgid "Invalid idempotency key"
 msgstr ""
 
 msgid "Invalid lesson time options"
+msgstr ""
+
+msgid "Invalid loan period"
 msgstr ""
 
 msgid "Invalid meeting place"
@@ -362,6 +379,11 @@ msgstr ""
 msgid "Nothing to dispute"
 msgstr ""
 
+msgid ""
+"Only a loan whose item was handed over and is not returned yet can be "
+"marked 'not returned'."
+msgstr ""
+
 msgid "Only a participant registered for the event can vote."
 msgstr ""
 
@@ -392,6 +414,9 @@ msgid "Only the organiser can dispute the no-show of their event."
 msgstr ""
 
 msgid "Only the organiser of this event can do this."
+msgstr ""
+
+msgid "Only the owner of the lent item can mark it 'not returned'."
 msgstr ""
 
 msgid "Only the two participants of the interaction can confirm it."
@@ -616,6 +641,22 @@ msgid ""
 "formed; only a code formed earlier lifts the mark."
 msgstr ""
 
+msgid "The item was already handed over"
+msgstr ""
+
+msgid ""
+"The item was handed over; the loan ends with its return or a not-returned"
+" mark."
+msgstr ""
+
+msgid ""
+"The item was handed over; the loan ends with its return or the owner's "
+"'not returned' mark."
+msgstr ""
+
+msgid "The item was not handed over yet"
+msgstr ""
+
 msgid "The listing and the interaction do not belong together."
 msgstr ""
 
@@ -635,6 +676,19 @@ msgid "The listing type has no limited places to wait for."
 msgstr ""
 
 msgid "The listing was edited."
+msgstr ""
+
+msgid "The loan cannot be marked"
+msgstr ""
+
+msgid "The loan is in progress"
+msgstr ""
+
+#, python-brace-format
+msgid "The loan period must be from 1 to {max} days."
+msgstr ""
+
+msgid "The loan was marked 'not returned'"
 msgstr ""
 
 msgid "The maximum is below the taken volume."
@@ -714,6 +768,16 @@ msgstr ""
 msgid "The organiser has no charged no-show at this event yet."
 msgstr ""
 
+msgid ""
+"The owner can mark the item 'not returned' only after the configured wait"
+" after the return deadline."
+msgstr ""
+
+msgid ""
+"The owner marked the item as not returned; the returned item is confirmed"
+" through the dispute decision."
+msgstr ""
+
 msgid "The page cursor is invalid or belongs to another list; start over."
 msgstr ""
 
@@ -754,6 +818,12 @@ msgid "The requested resource does not exist."
 msgstr ""
 
 msgid "The resource does not support this method."
+msgstr ""
+
+msgid "The return deadline is still recent"
+msgstr ""
+
+msgid "The return deadline of your loan is approaching."
 msgstr ""
 
 msgid "The same client message identifier carries different content."

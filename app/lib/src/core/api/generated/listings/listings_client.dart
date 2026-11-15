@@ -28,6 +28,7 @@ import 'models/listing_cancellation_preview.dart'
 import 'models/listing_edit.dart' as models show ListingEdit;
 import 'models/listing_output.dart' as models show ListingOutput;
 import 'models/listing_status.dart' as models show ListingStatus;
+import 'models/loan_input.dart' as models show LoanInput;
 import 'models/meeting_accept_input.dart' as models show MeetingAcceptInput;
 import 'models/meeting_proposal_input.dart' as models show MeetingProposalInput;
 import 'models/no_meeting_output.dart' as models show NoMeetingOutput;
@@ -95,6 +96,48 @@ class ListingsClient {
     );
     final response = await _transport.request<dynamic>(
       "/api/v1/listings/giveaways",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.ListingOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Publish Loan
+  ///
+  /// Publish an item to lend with the author's return period.
+  ///
+  /// The period is stored once, on the item details, and turned into a return
+  /// deadline when the handover is confirmed: a listing published long before
+  /// the meeting does not carry a stale absolute date.
+  Future<models.ListingOutput> publishLoan({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required models.LoanInput body,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 201),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/loans",
       options: _options,
       data: convert.jsonEncode(body),
       cancelToken: cancelToken,
@@ -813,6 +856,8 @@ class ListingsClient {
   }
 
   /// Reserve Giveaway
+  ///
+  /// Book a single-item listing: a giveaway or a loan.
   Future<models.InteractionOutput> reserveGiveaway({
     Map<String, Object?> extra = const {
       "openapi.security": [

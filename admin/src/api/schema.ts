@@ -655,6 +655,30 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/listings/loans': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Publish Loan
+     * @description Publish an item to lend with the author's return period.
+     *
+     *     The period is stored once, on the item details, and turned into a return
+     *     deadline when the handover is confirmed: a listing published long before
+     *     the meeting does not carry a stale absolute date.
+     */
+    post: operations['publish_loan'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/listings/help-requests': {
     parameters: {
       query?: never;
@@ -991,7 +1015,10 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** Reserve Giveaway */
+    /**
+     * Reserve Giveaway
+     * @description Book a single-item listing: a giveaway or a loan.
+     */
     post: operations['reserve_giveaway'];
     delete?: never;
     options?: never;
@@ -2125,6 +2152,58 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/listings/{listing_id}/interactions/{interaction_id}/qr/handover': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Hand Over Loan
+     * @description Confirm the handover of a lent item with a scanned online QR code.
+     *
+     *     The interaction stays accepted and moves to the "issued" stage; the
+     *     return deadline becomes the handover plus the author's loan period. The
+     *     code is validated exactly like a final confirmation: its signed payload,
+     *     the time window, the device key and the one-time nonce. A repeated
+     *     handover and a non-loan interaction are refused.
+     */
+    post: operations['hand_over_loan'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{listing_id}/interactions/{interaction_id}/qr/return': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Return Loan
+     * @description Confirm the return of a lent item and complete the interaction.
+     *
+     *     The action is possible only after the confirmed handover: a code
+     *     presented before the "issued" stage is refused, so a return never
+     *     replaces the handover. The same signed payload, time window, device key
+     *     and single-use nonce checks apply. A loan already marked "not returned"
+     *     is closed for QR returns; the disputed item is decided by the moderator.
+     */
+    post: operations['return_loan'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/listings/{listing_id}/interactions/{interaction_id}/qr/offline': {
     parameters: {
       query?: never;
@@ -2402,7 +2481,8 @@ export interface paths {
      *     agreed meeting and no later than 7 days, always with a reason. If both
      *     participants mark each other, one dispute is opened and neither no-show
      *     counts until the moderator decides. A repeat by the same participant is a
-     *     no-op.
+     *     no-op. A handed-over loan is refused: its item is an obligation, and the
+     *     loan ends with the return or with the owner's "not returned" mark.
      */
     post: operations['mark_interaction_no_show'];
     delete?: never;
@@ -2474,6 +2554,34 @@ export interface paths {
     get: operations['event_no_show'];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{listing_id}/interactions/{interaction_id}/not-returned': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Mark Not Returned
+     * @description The owner marks a lent item as not returned after the configured wait.
+     *
+     *     The interaction moves to "did not take place" and the borrower gets the
+     *     no-show of #66. The owner may use it only after the return deadline plus
+     *     the configured wait (appendix 4: 3 days); earlier requests are refused
+     *     with the earliest allowed moment. The borrower may answer within the
+     *     dispute window, which suspends the marks until the moderator decides
+     *     (#94). The item is not back, so the listing keeps its occupied place and
+     *     the return deadline stays visible.
+     */
+    post: operations['mark_not_returned'];
     delete?: never;
     options?: never;
     head?: never;
@@ -3765,6 +3873,17 @@ export interface components {
        */
       reservation_due_at?: string | null;
       /**
+       * Return Due At
+       * @description When a lent item is due back: the confirmed handover plus the author's loan period; null until the handover and after the return or cancellation.
+       */
+      return_due_at?: string | null;
+      /**
+       * Overdue
+       * @description Whether a loan is past its return deadline. A flag, not a status: an overdue loan stays accepted until it is returned or marked 'not returned'.
+       * @default false
+       */
+      overdue: boolean;
+      /**
        * Offer Description
        * @description The item a participant offers for an exchange; null otherwise.
        */
@@ -3954,6 +4073,11 @@ export interface components {
       category_id: string | null;
       /** @description Direction of a skill listing; null otherwise. */
       direction?: components['schemas']['SkillDirection'] | null;
+      /**
+       * Loan Days
+       * @description The author's loan period in days; null for every other kind. The return deadline is the confirmed handover plus this period.
+       */
+      loan_days?: number | null;
       /** Pinned Until */
       pinned_until?: string | null;
       /** Hidden Reason */
@@ -4026,6 +4150,32 @@ export interface components {
      * @enum {string}
      */
     ListingStatus: 'draft' | 'completed' | 'hidden' | 'active' | 'busy' | 'cancelled' | 'expired';
+    /**
+     * LoanInput
+     * @description An item lent for an author-set period, counted from the handover.
+     */
+    LoanInput: {
+      /** Title */
+      title: string;
+      /** Description */
+      description: string;
+      /** @default city */
+      visibility: components['schemas']['Visibility'];
+      /** @default students */
+      audience: components['schemas']['Audience'];
+      /** Category Id */
+      category_id?: string | null;
+      /**
+       * Draft
+       * @default false
+       */
+      draft: boolean;
+      /**
+       * Loan Days
+       * @description The author's loan period in days; the return deadline is the confirmed handover plus this period.
+       */
+      loan_days: number;
+    };
     /** MeetingAcceptInput */
     MeetingAcceptInput: {
       /** Version */
@@ -4799,6 +4949,17 @@ export interface components {
        */
       reservation_due_at?: string | null;
       /**
+       * Return Due At
+       * @description When a lent item is due back: the confirmed handover plus the author's loan period; null until the handover and after the return or cancellation.
+       */
+      return_due_at?: string | null;
+      /**
+       * Overdue
+       * @description Whether a loan is past its return deadline. A flag, not a status: an overdue loan stays accepted until it is returned or marked 'not returned'.
+       * @default false
+       */
+      overdue: boolean;
+      /**
        * Offer Description
        * @description The item a participant offers for an exchange; null otherwise.
        */
@@ -4987,6 +5148,8 @@ export interface components {
         | 'listing_conflict'
         | 'listing_content_invalid'
         | 'listing_forbidden'
+        | 'listing_loan_in_progress'
+        | 'listing_loan_period_invalid'
         | 'listing_no_meeting_unavailable'
         | 'listing_offer_expired'
         | 'listing_offer_missing'
@@ -5007,6 +5170,10 @@ export interface components {
         | 'listing_waitlist_free'
         | 'listing_waitlist_participating'
         | 'listing_waitlist_unavailable'
+        | 'loan_no_show_unavailable'
+        | 'loan_not_returned_forbidden'
+        | 'loan_not_returned_too_early'
+        | 'loan_not_returned_unavailable'
         | 'meeting_place_invalid'
         | 'meeting_stale'
         | 'meeting_state_conflict'
@@ -5035,6 +5202,10 @@ export interface components {
         | 'qr_expired'
         | 'qr_issued_in_future'
         | 'qr_key_invalid'
+        | 'qr_loan_action_required'
+        | 'qr_loan_already_issued'
+        | 'qr_loan_not_handed_over'
+        | 'qr_loan_return_marked'
         | 'qr_nonce_reused'
         | 'qr_not_accepted'
         | 'qr_not_participant'
@@ -5303,6 +5474,17 @@ export interface components {
        */
       reservation_due_at?: string | null;
       /**
+       * Return Due At
+       * @description When a lent item is due back: the confirmed handover plus the author's loan period; null until the handover and after the return or cancellation.
+       */
+      return_due_at?: string | null;
+      /**
+       * Overdue
+       * @description Whether a loan is past its return deadline. A flag, not a status: an overdue loan stays accepted until it is returned or marked 'not returned'.
+       * @default false
+       */
+      overdue: boolean;
+      /**
        * Offer Description
        * @description The item a participant offers for an exchange; null otherwise.
        */
@@ -5422,6 +5604,16 @@ export interface components {
       completion_method: components['schemas']['CompletionMethod'] | null;
       /** Rating Weight */
       rating_weight: number | null;
+      /**
+       * Stage
+       * @description The scenario stage after the scan; 'issued' after a loan handover, null for a final completion.
+       */
+      stage?: string | null;
+      /**
+       * Return Due At
+       * @description When a handed-over loan item is due back; null otherwise.
+       */
+      return_due_at?: string | null;
       /**
        * Nonce
        * Format: uuid
@@ -9391,6 +9583,118 @@ export interface operations {
     requestBody: {
       content: {
         'application/json': components['schemas']['GiveawayInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ListingOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  publish_loan: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LoanInput'];
       };
     };
     responses: {
@@ -19008,6 +19312,218 @@ export interface operations {
       };
     };
   };
+  hand_over_loan: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+        interaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['QrScanInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['QrScanOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  return_loan: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+        interaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['QrScanInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['QrScanOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
   scan_offline_qr: {
     parameters: {
       query?: never;
@@ -20568,6 +21084,108 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['EventNoShowOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  mark_not_returned: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+        interaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['NoShowOutput'];
         };
       };
       /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */

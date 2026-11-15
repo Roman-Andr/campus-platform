@@ -91,6 +91,8 @@ from campus.modules.listings.service import (
     INVALID_CONTENT,
     INVALID_EXCHANGE_OFFER,
     INVALID_LESSON_OPTIONS,
+    ITEM_KINDS,
+    LOAN_PERIOD_INVALID,
     MEETING_PROPOSED,
     MEETING_RESCHEDULED,
     MEETING_SCHEDULED,
@@ -161,6 +163,18 @@ class GiveawayInput(BaseModel):
     audience: Audience = Audience.STUDENTS
     category_id: UUID | None = None
     draft: bool = False
+
+
+class LoanInput(GiveawayInput):
+    """An item lent for an author-set period, counted from the handover."""
+
+    loan_days: int = Field(
+        ge=1,
+        description=(
+            "The author's loan period in days; the return deadline is the"
+            " confirmed handover plus this period."
+        ),
+    )
 
 
 class SkillInput(BaseModel):
@@ -249,6 +263,13 @@ class ListingOutput(BaseModel):
     category_id: UUID | None
     direction: SkillDirection | None = Field(
         default=None, description="Direction of a skill listing; null otherwise."
+    )
+    loan_days: int | None = Field(
+        default=None,
+        description=(
+            "The author's loan period in days; null for every other kind."
+            " The return deadline is the confirmed handover plus this period."
+        ),
     )
     pinned_until: Instant | None = None
     hidden_reason: str | None
@@ -394,6 +415,22 @@ class InteractionOutput(BaseModel):
         description=(
             "When an accepted item reservation ends; extended to the meeting"
             " time once a meeting is scheduled."
+        ),
+    )
+    return_due_at: Instant | None = Field(
+        default=None,
+        description=(
+            "When a lent item is due back: the confirmed handover plus the"
+            " author's loan period; null until the handover and after the"
+            " return or cancellation."
+        ),
+    )
+    overdue: bool = Field(
+        default=False,
+        description=(
+            "Whether a loan is past its return deadline. A flag, not a status:"
+            " an overdue loan stays accepted until it is returned or marked"
+            " 'not returned'."
         ),
     )
     offer_description: str | None = Field(
@@ -816,6 +853,60 @@ async def publish_giveaway(
     session.add(listing)
     await session.flush()
     session.add(Item(listing_id=listing.id, mode="giveaway"))
+    record(
+        session, listing, user.id, "draft_created" if data.draft else "published", None
+    )
+    if not data.draft:
+        await expiry_deadline(session, listing)
+    return ListingOutput.model_validate(listing)
+
+
+@router.post("/loans", status_code=201)
+async def publish_loan(
+    data: LoanInput,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> ListingOutput:
+    """Publish an item to lend with the author's return period.
+
+    The period is stored once, on the item details, and turned into a return
+    deadline when the handover is confirmed: a listing published long before
+    the meeting does not carry a stale absolute date.
+    """
+    user = await user_for(session, principal)
+    settings: Settings = request.app.state.settings
+    check_text(data.title, data.description, settings)
+    check_publish_access(user, data.visibility, data.audience)
+    if data.category_id is not None or not data.draft:
+        await check_category(session, data.category_id)
+    if not data.draft:
+        await publication_quota(session, user.id, settings)
+    if data.loan_days > settings.loan_period_max_days:
+        raise ProblemError(LOAN_PERIOD_INVALID, max=settings.loan_period_max_days)
+    assert user.city_id is not None  # noqa: S101 - ProfiledUser
+    listing = Listing(
+        author=user,
+        author_id=user.id,
+        author_dormitory_id=user.dormitory_id,
+        kind="loan",
+        title=data.title,
+        description=data.description,
+        visibility=data.visibility,
+        audience=data.audience,
+        city_id=user.city_id,
+        city=await session.get(City, user.city_id),
+        faculty_id=user.faculty_id if data.visibility == Visibility.FACULTY else None,
+        dormitory_id=user.dormitory_id
+        if data.visibility == Visibility.DORMITORY
+        else None,
+        status=ListingStatus.DRAFT if data.draft else ListingStatus.ACTIVE,
+        category_id=data.category_id,
+        expires_at=None if data.draft else clock.now() + settings.listing_lifetime,
+        item=Item(mode="loan", loan_days=data.loan_days),
+    )
+    session.add(listing)
+    await session.flush()
     record(
         session, listing, user.id, "draft_created" if data.draft else "published", None
     )
@@ -1623,6 +1714,7 @@ async def reserve_giveaway(
     session: DbSession,
     principal: ProfiledUser,
 ) -> InteractionOutput:
+    """Book a single-item listing: a giveaway or a loan."""
     listing = await locked(session, listing_id)
     user = await user_for(session, principal)
     if (
@@ -1639,7 +1731,7 @@ async def reserve_giveaway(
     if not visible(listing, user):
         raise ProblemError(NOT_FOUND)
     require_live(listing)
-    if listing.status != ListingStatus.ACTIVE or listing.kind != "giveaway":
+    if listing.status != ListingStatus.ACTIVE or listing.kind not in ITEM_KINDS:
         raise ProblemError(CONFLICT)
     # The queue's first member holds the released place until the timer ends.
     if await active_offer(session, listing.id) is not None:

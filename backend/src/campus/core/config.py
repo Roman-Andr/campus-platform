@@ -489,6 +489,23 @@ class Settings(BaseSettings):
         gt=timedelta(0),
         description="How long before a return deadline to notify its participants.",
     )
+    # A loan (specification, 5.1.1, module 4): the author sets the return
+    # period, counted from the confirmed handover. The owner may mark "not
+    # returned" no earlier than this after the deadline (appendix 4: 3 days);
+    # a longer period than the configured maximum is refused on publication.
+    loan_period_max_days: int = Field(
+        default=90,
+        ge=1,
+        description="Longest loan period an author may set, in days.",
+    )
+    loan_not_returned_after: timedelta = Field(
+        default=timedelta(days=3),
+        ge=timedelta(0),
+        description=(
+            "How long after a loan return deadline the owner may mark the item"
+            " 'not returned' (appendix 4: not earlier than 3 days after it)."
+        ),
+    )
     meeting_reminder_long: timedelta = Field(
         default=timedelta(hours=24),
         gt=timedelta(0),

@@ -344,9 +344,14 @@ async def test_seven_day_rule_closes_without_no_show_and_catches_up(
     assert events[-1].actor_id is None
 
 
-async def test_a_loan_is_not_closed_by_the_seven_day_rule(
+async def test_an_issued_loan_is_not_closed_by_the_seven_day_rule(
     owner: Account, borrower: Account
 ) -> None:
+    """#214: after the handover the loan's own rules decide, not the 7 days.
+
+    Before the handover a loan is a meeting like any other and the flat rule
+    still applies; the stage marks the item as handed over.
+    """
     now = clock.now()
     meeting_at = now + timedelta(hours=2)
     with time_machine.travel(now, tick=False):
@@ -354,6 +359,11 @@ async def test_a_loan_is_not_closed_by_the_seven_day_rule(
         await owner.auth.db.rollback()
         await owner.auth.db.execute(
             update(Listing).where(Listing.id == UUID(listing["id"])).values(kind="loan")
+        )
+        await owner.auth.db.execute(
+            update(Interaction)
+            .where(Interaction.id == UUID(interaction["id"]))
+            .values(stage="issued", return_due_at=meeting_at + timedelta(days=7))
         )
         await owner.auth.db.commit()
 

@@ -42,12 +42,14 @@ from campus.modules.reputation.no_show import (
     dispute_event_no_show,
     event_no_show_state,
     event_result,
+    mark_loan_not_returned,
     mark_no_show,
     no_show_state,
     vote_event_not_held,
 )
 from campus.modules.reputation.no_show_api import (
     event_no_show_router,
+    loan_router,
     no_show_router,
 )
 from campus.modules.reputation.service import (
@@ -122,9 +124,12 @@ __all__ = [
     "event_no_show_router",
     "event_no_show_state",
     "event_result",
+    "hand_over_loan_with_qr",
     "issue_confirmation_code",
     "issue_organizer_code",
     "issue_participant_code",
+    "loan_router",
+    "mark_loan_not_returned",
     "mark_no_show",
     "no_show_router",
     "no_show_state",
@@ -134,6 +139,7 @@ __all__ = [
     "qr_router",
     "register_device_key",
     "remove_attendance",
+    "return_loan_with_qr",
     "revoke_device_key",
     "scan_attendance",
     "set_attendance_mode",
