@@ -45,6 +45,8 @@ from tests.test_profile import Account
 
 __all__ = ["chat_auth"]
 
+SEARCH = f"{ROOT}/search"
+
 
 @pytest.fixture
 async def sessions(chat_auth: Auth) -> async_sessionmaker[AsyncSession]:
@@ -189,6 +191,14 @@ async def test_archive_keeps_id_sequence_history_and_replay(
     items = page.json()["items"]
     assert [item["id"] for item in items] == [str(old_id), str(fresh_id)]
     assert [item["sequence"] for item in items] == [1, 2]
+
+    found = await bob.auth.client.get(
+        SEARCH,
+        params={"q": "archived"},
+        headers=bearer(bob),
+    )
+    assert found.status_code == 200, found.text
+    assert [item["message"]["id"] for item in found.json()["items"]] == [str(old_id)]
 
     replay = await send_message(
         alice, chat_id, "archived hello", old_client, str(uuid4())

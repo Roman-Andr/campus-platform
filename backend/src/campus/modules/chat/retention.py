@@ -59,11 +59,13 @@ _ARCHIVE_SQL = text(
           AND message.created_at = due.created_at
         RETURNING message.id, message.chat_id, message.sender_id,
                   message.client_id, message.sequence, message.text,
-                  message.created_at
+                  message.deleted_at, message.created_at
     )
     INSERT INTO chat_message_archive
-        (id, chat_id, sender_id, client_id, sequence, text, created_at)
-    SELECT id, chat_id, sender_id, client_id, sequence, text, created_at
+        (id, chat_id, sender_id, client_id, sequence, text, deleted_at,
+         created_at)
+    SELECT id, chat_id, sender_id, client_id, sequence, text, deleted_at,
+           created_at
     FROM moved
     ON CONFLICT (id, created_at) DO NOTHING
     RETURNING id

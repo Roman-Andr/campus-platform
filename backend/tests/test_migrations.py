@@ -179,7 +179,10 @@ def test_chat_archive_and_retention_schema_migrates(empty_database: str) -> None
     index_names = {
         row["indexname"] for row in asyncio.run(fetch(empty_database, index))
     }
-    assert "ix_chat_message_archive_chat_id_sequence" in index_names
+    assert {
+        "ix_chat_message_archive_chat_id_sequence",
+        "ix_chat_message_archive_search",
+    } <= index_names
     definition = asyncio.run(fetch(empty_database, view))[0]["definition"]
     assert "chat_message" in definition
     assert "chat_message_archive" in definition

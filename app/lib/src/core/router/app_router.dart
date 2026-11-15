@@ -7,6 +7,8 @@ import '../../features/auth/application/sign_in_flow.dart';
 import '../../features/auth/presentation/sign_in_code_screen.dart';
 import '../../features/auth/presentation/sign_in_email_screen.dart';
 import '../../features/auth/presentation/sign_in_name_screen.dart';
+import '../../features/chat/presentation/chat_screen.dart';
+import '../../features/chat/presentation/chats_screen.dart';
 import '../../features/consents/presentation/consents_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/listings/presentation/event_screen.dart';
@@ -48,6 +50,12 @@ abstract final class AppRoutes {
   static const profileEmails = '/profile/emails';
   static const profileSkills = '/profile/skills';
   static const notifications = '/notifications';
+  static const chats = '/chats';
+  static const chatPath = '/chats/:chatId';
+
+  /// The dialog with [chatId].
+  static String chatOf(String chatId) =>
+      '/chats/${Uri.encodeComponent(chatId)}';
 
   /// The place offer opened by a notification; the path keeps the listing id.
   static const placeOfferPath = '/offers/:listingId';
@@ -204,6 +212,17 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.notifications,
         builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.chats,
+        builder: (context, state) => const ChatsScreen(),
+        routes: [
+          GoRoute(
+            path: ':chatId',
+            builder: (context, state) =>
+                ChatScreen(id: state.pathParameters['chatId']!),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.signIn,

@@ -9,6 +9,7 @@ import '../../../core/api/api_client.dart';
 import '../../../core/api/api_failure_message.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/time/city_time.dart';
+import '../../chat/presentation/chat_actions.dart';
 import '../../profile/application/my_profile.dart';
 import '../application/feed_filters.dart';
 import '../application/listing_photo_draft.dart';
@@ -565,7 +566,16 @@ class ListingScreen extends ConsumerWidget {
                       FavoriteButton(listing: item),
                     ],
                   ),
-                  Text(l.listingAuthor(item.authorName)),
+                  Row(
+                    children: [
+                      Expanded(child: Text(l.listingAuthor(item.authorName))),
+                      if (user != null && item.authorId != user.id)
+                        ListingChatButton(
+                          recipientId: item.authorId,
+                          listingId: id,
+                        ),
+                    ],
+                  ),
                   if (event) ...[
                     Text(listingKindName(l, item.kind)),
                     EventSummary(

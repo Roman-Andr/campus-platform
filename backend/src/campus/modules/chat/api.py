@@ -6,7 +6,7 @@ from uuid import UUID
 
 from fastapi import Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import distinct_on
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,6 +17,7 @@ from campus.core.web import (
     Page,
     PageQuery,
     Problem,
+    ProblemError,
     api_router,
     paginate,
     sort_by,
@@ -28,8 +29,10 @@ from campus.modules.chat.models import (
     ChatMessageHistory,
 )
 from campus.modules.chat.service import (
+    CHAT_SEARCH_INVALID,
     create_personal_chat,
     leave_chat,
+    message_snippet,
     post_message,
     require_membership,
 )
@@ -89,6 +92,16 @@ class ChatOutput(BaseModel):
     last_message: MessageOutput | None = None
 
 
+class ChatSearchResult(BaseModel):
+    """One matching message and enough context to open its dialog."""
+
+    chat: ChatOutput
+    message: MessageOutput
+    snippet: str = Field(
+        description="Bounded plain-text excerpt around the matched message text."
+    )
+
+
 class ChatInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     recipient_id: UUID = Field(description="The other member of the chat.")
@@ -136,6 +149,29 @@ def chat_output(
     )
 
 
+async def search_results(
+    session: AsyncSession,
+    messages: list[MessageOutput],
+    query: str,
+    snippet_length: int,
+) -> list[ChatSearchResult]:
+    """Attach the dialog of each hit and build a bounded excerpt."""
+    if not messages:
+        return []
+    chat_ids = list(dict.fromkeys(message.chat_id for message in messages))
+    chats = list(await session.scalars(select(Chat).where(Chat.id.in_(chat_ids))))
+    by_id = {chat.id: chat for chat in await hydrate(session, chats)}
+    return [
+        ChatSearchResult(
+            chat=by_id[message.chat_id],
+            message=message,
+            snippet=message_snippet(message.text, query, snippet_length),
+        )
+        for message in messages
+        if message.chat_id in by_id
+    ]
+
+
 async def hydrate(session: AsyncSession, chats: list[Chat]) -> list[ChatOutput]:
     """Attach participants and the last message to ``chats`` with two queries."""
     if not chats:
@@ -155,7 +191,10 @@ async def hydrate(session: AsyncSession, chats: list[Chat]) -> list[ChatOutput]:
     last: list[ChatMessageHistory] = list(
         await session.scalars(
             select(ChatMessageHistory)
-            .where(ChatMessageHistory.chat_id.in_(ids))
+            .where(
+                ChatMessageHistory.chat_id.in_(ids),
+                ChatMessageHistory.deleted_at.is_(None),
+            )
             .order_by(ChatMessageHistory.chat_id, ChatMessageHistory.sequence.desc())
             .ext(distinct_on(ChatMessageHistory.chat_id))
         )
@@ -238,6 +277,73 @@ async def list_chats(
     )
 
 
+@router.get("/search")
+async def search_chats(
+    request: Request,
+    session: DbSession,
+    principal: CurrentUser,
+    page: PageQuery,
+    q: Annotated[
+        str,
+        Query(
+            description=(
+                "Russian or English full-text query; blank returns no matches."
+            )
+        ),
+    ] = "",
+) -> Page[ChatSearchResult]:
+    """Search messages only in dialogs of the current user.
+
+    The GIN indexes on both partitioned parents supply the hits from active
+    and archived partitions; membership is checked in SQL before a row can
+    leave the database. Relevance is ordered by the combined
+    Russian and English vector, then by creation time and id, so equal
+    relevance still has a total, repeatable order. A cursor is bound to the
+    user and the normalized query and cannot be reused for another search.
+    """
+    settings = request.app.state.settings
+    if len(q) > settings.chat_search_query_max_length:
+        raise ProblemError(
+            CHAT_SEARCH_INVALID,
+            max_length=settings.chat_search_query_max_length,
+        )
+    query = q.strip()
+    if not query:
+        return Page(items=[], next_page=None)
+    terms = func.plainto_tsquery("russian", query).op("||")(
+        func.plainto_tsquery("english", query)
+    )
+    rank = func.ts_rank_cd(ChatMessageHistory.search_vector, terms)
+    search = (
+        select(ChatMessageHistory)
+        .join(ChatMember, ChatMember.chat_id == ChatMessageHistory.chat_id)
+        .where(
+            ChatMember.user_id == principal.user_id,
+            ChatMessageHistory.deleted_at.is_(None),
+            ChatMessageHistory.search_vector.op("@@")(terms),
+        )
+        .order_by(
+            rank.desc(),
+            ChatMessageHistory.created_at.desc(),
+            ChatMessageHistory.id.desc(),
+        )
+    )
+    result = await paginate(
+        session,
+        search,
+        page,
+        MessageOutput,
+        settings=settings,
+        context=f"chat-search:{principal.user_id}:{query}",
+    )
+    return Page[ChatSearchResult](
+        items=await search_results(
+            session, result.items, query, settings.chat_search_snippet_length
+        ),
+        next_page=result.next_page,
+    )
+
+
 @router.get("/{chat_id}")
 async def read_chat(
     chat_id: UUID, session: DbSession, principal: CurrentUser
@@ -266,6 +372,7 @@ async def list_messages(  # noqa: PLR0913, PLR0917
     query = select(ChatMessageHistory).where(
         ChatMessageHistory.chat_id == chat_id,
         ChatMessageHistory.sequence > after_sequence,
+        ChatMessageHistory.deleted_at.is_(None),
     )
     query = sort_by(
         query,

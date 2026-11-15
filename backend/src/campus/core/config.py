@@ -442,6 +442,16 @@ class Settings(BaseSettings):
         ge=1,
         description="Most empty chats cleaned in one cleanup run.",
     )
+    chat_search_query_max_length: int = Field(
+        default=500,
+        ge=1,
+        description="Longest chat search query, in characters.",
+    )
+    chat_search_snippet_length: int = Field(
+        default=240,
+        ge=1,
+        description="Longest excerpt around a matched chat message.",
+    )
 
     meeting_place_max_length: int = Field(default=200, ge=1)
     return_reminder_before: timedelta = Field(

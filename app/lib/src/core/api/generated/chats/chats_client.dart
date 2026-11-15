@@ -10,6 +10,9 @@ import 'models/chat_output_last_message.dart' as models show MessageOutput;
 import 'models/list_chats_order_by.dart' as models show ListChatsOrderBy;
 import 'models/message_input.dart' as models show MessageInput;
 import 'models/page_chat_output.dart' as models show PageChatOutput;
+import 'models/page_chat_search_result.dart'
+    as models
+    show PageChatSearchResult;
 import 'models/page_message_output.dart' as models show PageMessageOutput;
 
 class ChatsClient {
@@ -101,6 +104,59 @@ class ChatsClient {
       cancelToken: cancelToken,
     );
     return models.ChatOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Search Chats
+  ///
+  /// Search messages only in dialogs of the current user.
+  ///
+  /// The GIN indexes on both partitioned parents supply the hits from active
+  /// and archived partitions; membership is checked in SQL before a row can
+  /// leave the database. Relevance is ordered by the combined
+  /// Russian and English vector, then by creation time and id, so equal
+  /// relevance still has a total, repeatable order. A cursor is bound to the
+  /// user and the normalized query and cannot be reused for another search.
+  Future<models.PageChatSearchResult> searchChats({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+
+    /// Russian or English full-text query; blank returns no matches.
+    String? q,
+
+    /// Number of items; the default (20) and the maximum (100) are set in the server configuration.
+    int? size,
+
+    /// `next_page` of the previous page.
+    String? cursor,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/chats/search",
+      options: _options,
+      queryParameters: <String, Object?>{
+        if (q != null) "q": q,
+        if (size != null) "size": size,
+        if (cursor != null) "cursor": cursor,
+      },
+      cancelToken: cancelToken,
+    );
+    return models.PageChatSearchResult.fromJson(
+      response.data as Map<String, Object?>,
+    );
   }
 
   /// Read Chat

@@ -1,22 +1,23 @@
 """Add message archive partitions, snapshots and chat/file retention.
 
 Old messages move to yearly archive partitions; the ``chat_message_history``
-view keeps the history API and a future search reading one logical table.
+view keeps the history API and search reading one logical table.
 Chats get an empty-since marker, memberships record a leave and photos may
 belong to a chat. Complaint snapshots deliberately have no foreign keys so
 they survive the chat cleanup.
 
 Revision ID: 298a00000001
-Revises: 78c0a7000001
+Revises: 82search00001
 """
 
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 revision: str = "298a00000001"
-down_revision: str | Sequence[str] | None = "78c0a7000001"
+down_revision: str | Sequence[str] | None = "82search00001"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -88,6 +89,16 @@ def upgrade() -> None:
         sa.Column("client_id", sa.Uuid(), nullable=False),
         sa.Column("sequence", sa.BigInteger(), nullable=False),
         sa.Column("text", sa.Text(), nullable=False),
+        sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column(
+            "search_vector",
+            postgresql.TSVECTOR(),
+            sa.Computed(
+                "to_tsvector('russian', text) || to_tsvector('english', text)",
+                persisted=True,
+            ),
+            nullable=False,
+        ),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.CheckConstraint(
             "sequence > 0", name=op.f("ck_chat_message_archive_sequence_positive")
@@ -129,13 +140,22 @@ def upgrade() -> None:
         "chat_message_archive",
         ["chat_id", "sequence"],
     )
+    op.create_index(
+        "ix_chat_message_archive_search",
+        "chat_message_archive",
+        ["search_vector"],
+        postgresql_using="gin",
+        postgresql_where=sa.text("deleted_at IS NULL"),
+    )
     op.execute(
         """
         CREATE VIEW chat_message_history AS
-        SELECT id, chat_id, sender_id, client_id, sequence, text, created_at
+        SELECT id, chat_id, sender_id, client_id, sequence, text, deleted_at,
+               search_vector, created_at
         FROM chat_message
         UNION ALL
-        SELECT id, chat_id, sender_id, client_id, sequence, text, created_at
+        SELECT id, chat_id, sender_id, client_id, sequence, text, deleted_at,
+               search_vector, created_at
         FROM chat_message_archive
         """
     )
@@ -143,6 +163,10 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.execute("DROP VIEW chat_message_history")
+    op.drop_index(
+        "ix_chat_message_archive_search",
+        table_name="chat_message_archive",
+    )
     op.drop_index(
         "ix_chat_message_archive_chat_id_sequence",
         table_name="chat_message_archive",

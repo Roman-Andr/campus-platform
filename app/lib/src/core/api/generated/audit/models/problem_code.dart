@@ -8,6 +8,7 @@ enum ProblemCodeValue {
   chatMessageInvalid("chat_message_invalid"),
   chatNotFound("chat_not_found"),
   chatRateLimited("chat_rate_limited"),
+  chatSearchInvalid("chat_search_invalid"),
   chatSelf("chat_self"),
   clientUpdateRequired("client_update_required"),
   clientVersionInvalid("client_version_invalid"),
@@ -107,6 +108,9 @@ sealed class ProblemCode {
   static const chatNotFound = ProblemCodeKnown(ProblemCodeValue.chatNotFound);
   static const chatRateLimited = ProblemCodeKnown(
     ProblemCodeValue.chatRateLimited,
+  );
+  static const chatSearchInvalid = ProblemCodeKnown(
+    ProblemCodeValue.chatSearchInvalid,
   );
   static const chatSelf = ProblemCodeKnown(ProblemCodeValue.chatSelf);
   static const clientUpdateRequired = ProblemCodeKnown(
