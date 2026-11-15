@@ -184,8 +184,8 @@ class ParticipationOutputMeetingNull implements ParticipationOutputMeeting {
 sealed class PurchaseShareOutputMeeting {
   factory PurchaseShareOutputMeeting.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches97(json)) "MeetingOutput",
-      if (_matches98(json)) "Null",
+      if (_matches107(json)) "MeetingOutput",
+      if (_matches108(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -272,8 +272,8 @@ bool _matches63(Object? value) => ((value is String) || (value == null));
 bool _matches65(Object? value) => ((value == null));
 bool _matches91(Object? value) => (_matches53(value));
 bool _matches92(Object? value) => ((value == null));
-bool _matches97(Object? value) => (_matches53(value));
-bool _matches98(Object? value) => ((value == null));
+bool _matches107(Object? value) => (_matches53(value));
+bool _matches108(Object? value) => ((value == null));
 int _readJsonInteger(Object? value) {
   if (value is int) {
     return value;

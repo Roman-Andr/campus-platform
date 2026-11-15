@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 00:17+0300\n"
+"POT-Creation-Date: 2026-11-16 00:56+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -70,11 +70,37 @@ msgstr ""
 "Для вас освободилось место в очереди. Подтвердите его до истечения "
 "таймера."
 
+msgid "A rating is a whole number of stars from 1 to 5."
+msgstr "Оценка — целое число звёзд от 1 до 5."
+
 msgid "A return can be confirmed only after the handover of the item."
 msgstr "Возврат можно подтвердить только после выдачи вещи."
 
+msgid "A review cannot be changed after it is revealed."
+msgstr "Отзыв нельзя изменить после раскрытия."
+
+msgid "A review hidden by a moderator cannot be changed."
+msgstr "Отзыв, скрытый модератором, нельзя изменить."
+
+msgid ""
+"A review is written after the interaction is completed: by a meeting "
+"confirmation, without a meeting, by an event or by an issued purchase "
+"share."
+msgstr ""
+"Отзыв пишут после завершения взаимодействия: подтверждением встречи, без "
+"встречи, мероприятием или выдачей доли в закупке."
+
+#, python-brace-format
+msgid "A review is written within {days} days after the interaction is completed."
+msgstr ""
+"Отзыв можно оставить в течение {days} дней после завершения "
+"взаимодействия."
+
 msgid "Accepted interactions can only be cancelled with a reason."
 msgstr "Принятые взаимодействия можно отменить только с указанием причины."
+
+msgid "An event is reviewed by its participants; the organiser answers."
+msgstr "Мероприятие оценивают его участники, а организатор отвечает."
 
 msgid "An event or return deadline is approaching."
 msgstr "Приближается мероприятие или срок возврата."
@@ -295,14 +321,26 @@ msgstr "Неверный объём закупки"
 msgid "Invalid quiet hours"
 msgstr "Неверные параметры тихих часов"
 
+msgid "Invalid rating"
+msgstr "Неверная оценка"
+
 msgid "Invalid realtime channel"
 msgstr "Неверный канал реального времени"
 
 msgid "Invalid refresh token"
 msgstr "Недействительный токен обновления"
 
+msgid "Invalid reply"
+msgstr "Неверный ответ"
+
 msgid "Invalid request"
 msgstr "Неверные данные запроса"
+
+msgid "Invalid review tags"
+msgstr "Неверные теги отзыва"
+
+msgid "Invalid review text"
+msgstr "Неверный текст отзыва"
 
 msgid "Invalid rules clause"
 msgstr "Неверный пункт правил"
@@ -470,6 +508,9 @@ msgstr "Подтвердить взаимодействие могут толь�
 msgid "Only the two participants of the interaction can mark a no-show."
 msgstr "Отметить неявку могут только два участника взаимодействия."
 
+msgid "Only the two participants of the interaction can review it."
+msgstr "Оценить взаимодействие могут только два его участника."
+
 msgid "Only the two participants of the interaction can use its code."
 msgstr "Использовать код взаимодействия могут только два его участника."
 
@@ -598,6 +639,9 @@ msgstr "Время QR-кода слишком опережает серверн�
 msgid "The X-Client-Platform and X-Client-Version headers are required."
 msgstr "Нужны заголовки X-Client-Platform и X-Client-Version."
 
+msgid "The addressee answers a review once."
+msgstr "Адресат отвечает на отзыв один раз."
+
 #, python-brace-format
 msgid "The author cancelled the listing: {reason}"
 msgstr "Автор отменил объявление: {reason}"
@@ -668,6 +712,9 @@ msgstr ""
 
 msgid "The interaction cannot be marked"
 msgstr "Нельзя отметить неявку по этому взаимодействию."
+
+msgid "The interaction cannot be reviewed"
+msgstr "Взаимодействие нельзя оценить"
 
 msgid ""
 "The interaction is already completed by a stored QR confirmation; this "
@@ -867,6 +914,10 @@ msgstr "Сервер реального времени временно недо
 msgid "The reason must be at most {max} characters."
 msgstr "Причина должна быть не длиннее {max} символов."
 
+#, python-brace-format
+msgid "The reply text is from 1 to {max} characters."
+msgstr "Текст ответа должен быть от 1 до {max} символов."
+
 msgid "The request body is not valid JSON."
 msgstr "Тело запроса — некорректный JSON."
 
@@ -888,6 +939,25 @@ msgstr "Срок возврата наступил недавно"
 
 msgid "The return deadline of your loan is approaching."
 msgstr "Срок возврата по вашему займу приближается."
+
+msgid "The review already exists"
+msgstr "Отзыв уже существует"
+
+msgid "The review is already answered"
+msgstr "На отзыв уже ответили"
+
+msgid "The review is hidden"
+msgstr "Отзыв скрыт"
+
+msgid "The review is published"
+msgstr "Отзыв опубликован"
+
+#, python-brace-format
+msgid "The review text is at most {max} characters."
+msgstr "Текст отзыва должен быть не длиннее {max} символов."
+
+msgid "The review window has closed"
+msgstr "Окно отзыва закрыто"
 
 msgid "The same client message identifier carries different content."
 msgstr "Один и тот же идентификатор сообщения клиента передан с другим содержимым."
@@ -914,6 +984,14 @@ msgstr "Срок шестизначного кода подтверждения 
 
 msgid "The six-digit confirmation code is invalid."
 msgstr "Шестизначный код подтверждения неверен."
+
+#, python-brace-format
+msgid ""
+"The tags must belong to the scenario, be distinct and number at most "
+"{max}."
+msgstr ""
+"Теги должны относиться к сценарию, не повторяться и их должно быть не "
+"больше {max}."
 
 msgid "There is an update to your listing."
 msgstr "Появилось обновление вашего объявления."
@@ -1034,6 +1112,9 @@ msgstr "Нельзя заблокировать себя."
 
 msgid "You have a new notification."
 msgstr "У вас новое уведомление."
+
+msgid "You have already reviewed the other participant of this interaction."
+msgstr "Вы уже оставили отзыв о втором участнике этого взаимодействия."
 
 msgid "You have no offer of a place."
 msgstr "У вас нет предложения места."

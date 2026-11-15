@@ -623,6 +623,27 @@ class Settings(BaseSettings):
         le=1,
         description="Weight of a review of an interaction confirmed without a meeting.",
     )
+    # Reviews (specification, 5.1.1, module 5, item 6; appendix 4): one
+    # review per participant within the window after the completion; mutual
+    # reviews are revealed when both exist or when the window closes.
+    review_window: timedelta = Field(
+        default=timedelta(days=14),
+        gt=timedelta(0),
+        description=(
+            "How long after a completed interaction a review is accepted and"
+            " the mutual reviews stay hidden."
+        ),
+    )
+    review_text_max_length: int = Field(
+        default=2000,
+        ge=1,
+        description="Longest review text or answer, in characters.",
+    )
+    review_tags_max: int = Field(
+        default=10,
+        ge=1,
+        description="Most ready-made tags of the scenario in one review.",
+    )
 
     # Notification settings (specification, 5.1.1, module 7): the defaults
     # for a user who has not changed them. Quiet hours are wall-clock times

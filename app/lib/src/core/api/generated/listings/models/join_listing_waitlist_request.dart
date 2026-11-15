@@ -29,8 +29,8 @@ class WaitlistJoinInput implements JoinListingWaitlistRequest {
 sealed class JoinListingWaitlistRequest {
   factory JoinListingWaitlistRequest.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches154(json)) "WaitlistJoinInput",
-      if (_matches157(json)) "Null",
+      if (_matches186(json)) "WaitlistJoinInput",
+      if (_matches189(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -55,21 +55,21 @@ class JoinListingWaitlistRequestNull implements JoinListingWaitlistRequest {
   Object? toJson() => value;
 }
 
-bool _matches154(Object? value) => (_matches155(value));
-bool _matches155(Object? value) =>
+bool _matches186(Object? value) => (_matches187(value));
+bool _matches187(Object? value) =>
     (value is! Map<String, Object?> ||
         !value.containsKey("units") ||
-        _matches156(value["units"])) &&
+        _matches188(value["units"])) &&
     (value is! Map<String, Object?> ||
         value.keys.every(const <String>{"units"}.contains)) &&
     ((value is Map<String, Object?>));
-bool _matches156(Object? value) =>
+bool _matches188(Object? value) =>
     (value is! num || (value >= 1.0)) &&
     ((value is num &&
             (value is int ||
                 (value.isFinite && value == value.truncateToDouble()))) ||
         (value == null));
-bool _matches157(Object? value) => ((value == null));
+bool _matches189(Object? value) => ((value == null));
 int _readJsonInteger(Object? value) {
   if (value is int) {
     return value;

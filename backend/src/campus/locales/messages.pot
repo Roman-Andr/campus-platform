@@ -41,10 +41,32 @@ msgid ""
 "ends."
 msgstr ""
 
+msgid "A rating is a whole number of stars from 1 to 5."
+msgstr ""
+
 msgid "A return can be confirmed only after the handover of the item."
 msgstr ""
 
+msgid "A review cannot be changed after it is revealed."
+msgstr ""
+
+msgid "A review hidden by a moderator cannot be changed."
+msgstr ""
+
+msgid ""
+"A review is written after the interaction is completed: by a meeting "
+"confirmation, without a meeting, by an event or by an issued purchase "
+"share."
+msgstr ""
+
+#, python-brace-format
+msgid "A review is written within {days} days after the interaction is completed."
+msgstr ""
+
 msgid "Accepted interactions can only be cancelled with a reason."
+msgstr ""
+
+msgid "An event is reviewed by its participants; the organiser answers."
 msgstr ""
 
 msgid "An event or return deadline is approaching."
@@ -258,13 +280,25 @@ msgstr ""
 msgid "Invalid quiet hours"
 msgstr ""
 
+msgid "Invalid rating"
+msgstr ""
+
 msgid "Invalid realtime channel"
 msgstr ""
 
 msgid "Invalid refresh token"
 msgstr ""
 
+msgid "Invalid reply"
+msgstr ""
+
 msgid "Invalid request"
+msgstr ""
+
+msgid "Invalid review tags"
+msgstr ""
+
+msgid "Invalid review text"
 msgstr ""
 
 msgid "Invalid rules clause"
@@ -425,6 +459,9 @@ msgstr ""
 msgid "Only the two participants of the interaction can mark a no-show."
 msgstr ""
 
+msgid "Only the two participants of the interaction can review it."
+msgstr ""
+
 msgid "Only the two participants of the interaction can use its code."
 msgstr ""
 
@@ -553,6 +590,9 @@ msgstr ""
 msgid "The X-Client-Platform and X-Client-Version headers are required."
 msgstr ""
 
+msgid "The addressee answers a review once."
+msgstr ""
+
 #, python-brace-format
 msgid "The author cancelled the listing: {reason}"
 msgstr ""
@@ -620,6 +660,9 @@ msgid ""
 msgstr ""
 
 msgid "The interaction cannot be marked"
+msgstr ""
+
+msgid "The interaction cannot be reviewed"
 msgstr ""
 
 msgid ""
@@ -806,6 +849,10 @@ msgstr ""
 msgid "The reason must be at most {max} characters."
 msgstr ""
 
+#, python-brace-format
+msgid "The reply text is from 1 to {max} characters."
+msgstr ""
+
 msgid "The request body is not valid JSON."
 msgstr ""
 
@@ -824,6 +871,25 @@ msgid "The return deadline is still recent"
 msgstr ""
 
 msgid "The return deadline of your loan is approaching."
+msgstr ""
+
+msgid "The review already exists"
+msgstr ""
+
+msgid "The review is already answered"
+msgstr ""
+
+msgid "The review is hidden"
+msgstr ""
+
+msgid "The review is published"
+msgstr ""
+
+#, python-brace-format
+msgid "The review text is at most {max} characters."
+msgstr ""
+
+msgid "The review window has closed"
 msgstr ""
 
 msgid "The same client message identifier carries different content."
@@ -848,6 +914,12 @@ msgid "The six-digit confirmation code has expired; request a new one."
 msgstr ""
 
 msgid "The six-digit confirmation code is invalid."
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"The tags must belong to the scenario, be distinct and number at most "
+"{max}."
 msgstr ""
 
 msgid "There is an update to your listing."
@@ -962,6 +1034,9 @@ msgid "You cannot block yourself."
 msgstr ""
 
 msgid "You have a new notification."
+msgstr ""
+
+msgid "You have already reviewed the other participant of this interaction."
 msgstr ""
 
 msgid "You have no offer of a place."

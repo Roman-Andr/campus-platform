@@ -111,7 +111,7 @@ MATRIX = {
 # A row can span multiple features. Keep each unavailable operation visible,
 # even when another operation in the same cell already has an API probe.
 PENDING = {
-    "finish_review": {"complete": 59, "review": 63},
+    "finish_review": {"complete": 59},
     "complain_dispute_appeal": {"complain": 91, "dispute": 94, "appeal": 96},
     "create_club": {"create": 142},
     "forum_comment_react": {
@@ -147,7 +147,7 @@ LIVE = {
         "respond_community",
         "respond_students",
     ),
-    "finish_review": ("continue",),
+    "finish_review": ("continue", "review"),
     "message": ("existing_chat", "new_chat"),
     "audit_dashboard_export": ("audit",),
     "student_feed": (

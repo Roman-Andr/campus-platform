@@ -17,7 +17,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from campus.core import clock
-from campus.core.db import Entity
+from campus.core.db import Base, Entity
 from campus.modules.identity import User
 
 
@@ -306,3 +306,135 @@ class AttendanceRecord(Entity):
     @property
     def participant_name(self) -> str:
         return f"{self.participant.first_name} {self.participant.last_name}"
+
+
+# Scenarios whose participants review each other (specification 5.1.1,
+# module 5, item 6). A publication, a trip and a find have no reviews.
+REVIEW_KINDS = frozenset(
+    {"giveaway", "exchange", "loan", "skill", "help", "purchase", "event"}
+)
+
+
+class Review(Entity):
+    """One review of one side of a completed interaction.
+
+    An interaction gives at most one review per author and subject: a
+    partial unique index on ``(interaction_id, author_id)`` for every kind
+    but a purchase, whose pair is the organiser and one participant of the
+    whole listing, so its key is ``(listing_id, author_id, subject_id)``.
+
+    ``reveal_at`` is the end of the 14-day window counted from the
+    completion; ``published_at`` is set when the review becomes readable
+    (both reviews exist or the window closed) and stays empty until then.
+    An event review is one-way and is published at once. A review hidden by
+    a moderator keeps its rating, tags and text for the recalculations of
+    #64 and is filtered out of every public read by ``hidden_at``.
+    """
+
+    __tablename__ = "reputation_review"
+    __table_args__ = (
+        CheckConstraint(
+            "kind IN ('giveaway','exchange','loan','skill','help','purchase','event')",
+            name="kind",
+        ),
+        CheckConstraint("rating BETWEEN 1 AND 5", name="rating"),
+        CheckConstraint("author_id <> subject_id", name="distinct_people"),
+        CheckConstraint("text IS NULL OR char_length(text) > 0", name="text_not_empty"),
+        CheckConstraint(
+            "(hidden_at IS NULL) = (hidden_by_id IS NULL)", name="hidden_complete"
+        ),
+        Index(
+            "uq_reputation_review_interaction_author",
+            "interaction_id",
+            "author_id",
+            unique=True,
+            postgresql_where=text("kind <> 'purchase'"),
+        ),
+        Index(
+            "uq_reputation_review_purchase_pair",
+            "listing_id",
+            "author_id",
+            "subject_id",
+            unique=True,
+            postgresql_where=text("kind = 'purchase'"),
+        ),
+        Index("ix_reputation_review_subject", "subject_id", "created_at", "id"),
+        Index(
+            "ix_reputation_review_pending",
+            "interaction_id",
+            postgresql_where=text("published_at IS NULL"),
+        ),
+    )
+
+    listing_id: Mapped[UUID] = mapped_column(
+        ForeignKey("listing.id", ondelete="CASCADE")
+    )
+    interaction_id: Mapped[UUID] = mapped_column(
+        ForeignKey("listing_interaction.id", ondelete="CASCADE")
+    )
+    # The listing kind at the moment of the review: it selects the tag
+    # catalogue and tells whether the pair is the interaction or a purchase.
+    kind: Mapped[str] = mapped_column(String(32))
+    author_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
+    author: Mapped[User] = relationship(
+        lazy="joined", innerjoin=True, foreign_keys=[author_id]
+    )
+    subject_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
+    rating: Mapped[int]
+    text: Mapped[str | None] = mapped_column(Text)
+    # The end of the review window; the durable reveal deadline fires here.
+    reveal_at: Mapped[datetime]
+    # When the review became readable; empty until the reveal.
+    published_at: Mapped[datetime | None]
+    # Set by a moderator decision (#94); the primary fields stay untouched.
+    hidden_at: Mapped[datetime | None]
+    hidden_by_id: Mapped[UUID | None] = mapped_column(ForeignKey("identity_user.id"))
+    tags: Mapped[list[ReviewTag]] = relationship(
+        lazy="selectin",
+        cascade="all, delete-orphan",
+        order_by="ReviewTag.tag",
+    )
+    reply: Mapped[ReviewReply | None] = relationship(
+        lazy="joined", uselist=False, cascade="all, delete-orphan"
+    )
+
+    @property
+    def author_name(self) -> str:
+        return f"{self.author.first_name} {self.author.last_name}"
+
+
+class ReviewReply(Entity):
+    """The single public answer of the addressee to a review.
+
+    ``review_id`` is unique, so a second answer is refused by the database
+    as well as by the domain. The reply is public as soon as it is written;
+    hiding the review hides its reply with it.
+    """
+
+    __tablename__ = "reputation_review_reply"
+    __table_args__ = (
+        CheckConstraint("char_length(text) > 0", name="text_not_empty"),
+        UniqueConstraint("review_id"),
+    )
+
+    review_id: Mapped[UUID] = mapped_column(
+        ForeignKey("reputation_review.id", ondelete="CASCADE")
+    )
+    author_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
+    author: Mapped[User] = relationship(lazy="joined", innerjoin=True)
+    text: Mapped[str] = mapped_column(Text)
+
+    @property
+    def author_name(self) -> str:
+        return f"{self.author.first_name} {self.author.last_name}"
+
+
+class ReviewTag(Base):
+    """One ready-made tag of the scenario attached to a review."""
+
+    __tablename__ = "reputation_review_tag"
+
+    review_id: Mapped[UUID] = mapped_column(
+        ForeignKey("reputation_review.id", ondelete="CASCADE"), primary_key=True
+    )
+    tag: Mapped[str] = mapped_column(String(32), primary_key=True)
