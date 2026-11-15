@@ -80,3 +80,33 @@ class QrScan(Entity):
     nonce: Mapped[UUID]
     issued_at: Mapped[datetime]
     result: Mapped[str] = mapped_column(String(16), default="completed")
+
+
+class ConfirmationCode(Entity):
+    """The server-issued six-digit code of one interaction.
+
+    A single row per interaction keeps the lifetime and the cumulative
+    counter of incorrect attempts across reissues. Only a keyed hash of the
+    code is stored; the plaintext exists in the issuing response only.
+    """
+
+    __tablename__ = "reputation_confirmation_code"
+    __table_args__ = (
+        CheckConstraint("attempts >= 0", name="attempts"),
+        CheckConstraint("char_length(code_hash) = 64", name="code_hash"),
+        CheckConstraint("expires_at > issued_at", name="validity"),
+        UniqueConstraint("interaction_id"),
+    )
+
+    listing_id: Mapped[UUID] = mapped_column(
+        ForeignKey("listing.id", ondelete="CASCADE")
+    )
+    interaction_id: Mapped[UUID] = mapped_column(
+        ForeignKey("listing_interaction.id", ondelete="CASCADE")
+    )
+    presenter_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
+    code_hash: Mapped[str] = mapped_column(String(64))
+    issued_at: Mapped[datetime]
+    expires_at: Mapped[datetime]
+    attempts: Mapped[int] = mapped_column(default=0)
+    consumed_at: Mapped[datetime | None]

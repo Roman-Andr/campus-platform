@@ -6,8 +6,8 @@ import 'skill_direction.dart';
 sealed class ListingOutputDirection {
   factory ListingOutputDirection.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches31(json)) "SkillDirection",
-      if (_matches33(json)) "Null",
+      if (_matches33(json)) "SkillDirection",
+      if (_matches35(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -42,7 +42,7 @@ class ListingOutputDirectionNull implements ListingOutputDirection {
   Object? toJson() => value;
 }
 
-bool _matches31(Object? value) => (_matches32(value));
-bool _matches32(Object? value) =>
+bool _matches33(Object? value) => (_matches34(value));
+bool _matches34(Object? value) =>
     (const <Object?>["teach", "learn"].contains(value)) && ((value is String));
-bool _matches33(Object? value) => ((value == null));
+bool _matches35(Object? value) => ((value == null));

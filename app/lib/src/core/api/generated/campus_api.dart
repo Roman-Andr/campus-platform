@@ -8,6 +8,7 @@ import 'exports.dart'
         AccountEmailsClient,
         AuthenticationClient,
         ChatsClient,
+        ConfirmationCodeClient,
         ConsentsClient,
         DeviceKeysClient,
         ListingsClient,
@@ -45,6 +46,8 @@ final class CampusApi {
   late final clients.AuthenticationClient authentication =
       clients.AuthenticationClient(_client);
   late final clients.ChatsClient chats = clients.ChatsClient(_client);
+  late final clients.ConfirmationCodeClient confirmationCode =
+      clients.ConfirmationCodeClient(_client);
   late final clients.ConsentsClient consents = clients.ConsentsClient(_client);
   late final clients.DeviceKeysClient deviceKeys = clients.DeviceKeysClient(
     _client,

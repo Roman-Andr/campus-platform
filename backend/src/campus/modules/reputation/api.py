@@ -23,9 +23,13 @@ from campus.modules.listings import CompletionMethod, InteractionStatus
 from campus.modules.reputation.models import DeviceKey
 from campus.modules.reputation.service import (
     QR_ALGORITHM,
+    CodeIssue,
+    CodeResult,
     QrResult,
     base64url_encode,
+    confirm_with_code,
     confirm_with_qr,
+    issue_confirmation_code,
     public_key_bytes,
     register_device_key,
     revoke_device_key,
@@ -49,6 +53,18 @@ qr_router = api_router(
         404: {"model": Problem},
         409: {"model": Problem},
         422: {"model": Problem},
+    },
+)
+code_router = api_router(
+    prefix="/listings/{listing_id}/interactions/{interaction_id}/code",
+    tags=["Confirmation code"],
+    responses={
+        401: {"model": Problem},
+        403: {"model": Problem},
+        404: {"model": Problem},
+        409: {"model": Problem},
+        422: {"model": Problem},
+        429: {"model": Problem},
     },
 )
 time_router = api_router(prefix="/time", tags=["Server time"])
@@ -155,6 +171,54 @@ class QrScanOutput(BaseModel):
     )
 
 
+class CodeIssueOutput(BaseModel):
+    """A freshly issued code; only its requester receives the plaintext."""
+
+    listing_id: UUID
+    interaction_id: UUID
+    presenter_id: UUID
+    code: str = Field(
+        min_length=6,
+        max_length=6,
+        pattern=r"^[0-9]{6}$",
+        description="Exactly six digits, including leading zeroes.",
+    )
+    issued_at: Instant
+    expires_at: Instant
+    attempts_left: int = Field(
+        ge=0, description="Incorrect attempts remaining for this interaction."
+    )
+    server_time: Instant
+
+
+class CodeConfirmInput(BaseModel):
+    """The six-digit code entered by the second participant."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    code: str = Field(
+        min_length=6,
+        max_length=6,
+        pattern=r"^[0-9]{6}$",
+        description="Exactly six digits, including leading zeroes.",
+    )
+
+
+class CodeConfirmOutput(BaseModel):
+    """The interaction after a successful or replayed code confirmation."""
+
+    listing_id: UUID
+    interaction_id: UUID
+    presenter_id: UUID
+    scanner_id: UUID
+    status: InteractionStatus
+    completed: bool
+    completed_at: Instant | None
+    completion_method: CompletionMethod | None
+    rating_weight: float | None
+    server_time: Instant
+
+
 class ServerTimeOutput(BaseModel):
     """Server time and the online QR timing parameters."""
 
@@ -164,6 +228,41 @@ class ServerTimeOutput(BaseModel):
     )
     qr_clock_skew: int = Field(
         ge=0, description="Accepted clock skew into the future, in seconds."
+    )
+
+
+def code_issue_output(result: CodeIssue, now: Instant) -> CodeIssueOutput:
+    return CodeIssueOutput(
+        listing_id=result.interaction.listing_id,
+        interaction_id=result.interaction.id,
+        presenter_id=result.presenter_id,
+        code=result.code,
+        issued_at=result.issued_at,
+        expires_at=result.expires_at,
+        attempts_left=result.attempts_left,
+        server_time=now,
+    )
+
+
+def code_result_output(result: CodeResult, now: Instant) -> CodeConfirmOutput:
+    interaction = result.interaction
+    status = InteractionStatus(interaction.status)
+    method = (
+        CompletionMethod(interaction.completion_method)
+        if interaction.completion_method is not None
+        else None
+    )
+    return CodeConfirmOutput(
+        listing_id=interaction.listing_id,
+        interaction_id=interaction.id,
+        presenter_id=result.presenter_id,
+        scanner_id=result.scanner_id,
+        status=status,
+        completed=status == InteractionStatus.COMPLETED,
+        completed_at=interaction.completed_at,
+        completion_method=method,
+        rating_weight=interaction.completion_weight,
+        server_time=now,
     )
 
 
@@ -256,6 +355,67 @@ async def scan_qr(  # noqa: PLR0913, PLR0917 - request parts
         request.app.state.settings,
     )
     return qr_scan_output(result, now)
+
+
+@code_router.post("")
+async def issue_code(  # noqa: PLR0913, PLR0917 - request parts
+    listing_id: UUID,
+    interaction_id: UUID,
+    request: Request,
+    response: Response,
+    session: DbSession,
+    principal: ActiveSession,
+) -> CodeIssueOutput:
+    """Issue a six-digit code for this participant to show to the other one.
+
+    The code has six decimal digits (leading zeroes included), lives for the
+    configured 30 seconds and carries the cumulative limit of incorrect
+    entries. Reissuing replaces the code but never resets that limit.
+    """
+    now = clock.now()
+    result = await issue_confirmation_code(
+        session,
+        listing_id,
+        interaction_id,
+        principal.user_id,
+        request.app.state.settings,
+    )
+    response.headers["Cache-Control"] = "no-store"
+    return code_issue_output(result, now)
+
+
+@code_router.post("/confirm")
+async def confirm_code(  # noqa: PLR0913, PLR0917 - request parts
+    listing_id: UUID,
+    interaction_id: UUID,
+    data: CodeConfirmInput,
+    request: Request,
+    response: Response,
+    session: DbSession,
+    principal: ActiveSession,
+) -> CodeConfirmOutput:
+    """Complete an accepted interaction with the other participant's code.
+
+    The server checks the code against a keyed hash and counts an incorrect
+    entry in a separate committed transaction. The interaction, its journal
+    event and its outbox message are updated atomically; the code response
+    never contains the plaintext.
+    """
+    factory = request.app.state.session_factory
+    if factory is None:  # pragma: no cover - mutating routes require a database
+        raise RuntimeError("database is not configured")
+    now = clock.now()
+    result = await confirm_with_code(
+        session,
+        factory,
+        listing_id,
+        interaction_id,
+        principal.user_id,
+        data.code,
+        request.app.state.settings,
+    )
+    response.headers["Cache-Control"] = "no-store"
+    return code_result_output(result, now)
 
 
 @time_router.get("")

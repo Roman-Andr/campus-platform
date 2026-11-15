@@ -1947,6 +1947,55 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/listings/{listing_id}/interactions/{interaction_id}/code': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Issue Code
+     * @description Issue a six-digit code for this participant to show to the other one.
+     *
+     *     The code has six decimal digits (leading zeroes included), lives for the
+     *     configured 30 seconds and carries the cumulative limit of incorrect
+     *     entries. Reissuing replaces the code but never resets that limit.
+     */
+    post: operations['issue_code'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{listing_id}/interactions/{interaction_id}/code/confirm': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Confirm Code
+     * @description Complete an accepted interaction with the other participant's code.
+     *
+     *     The server checks the code against a keyed hash and counts an incorrect
+     *     entry in a separate committed transaction. The interaction, its journal
+     *     event and its outbox message are updated atomically; the code response
+     *     never contains the plaintext.
+     */
+    post: operations['confirm_code'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/time': {
     parameters: {
       query?: never;
@@ -2229,6 +2278,106 @@ export interface components {
      * @enum {string}
      */
     ClientPlatform: 'android' | 'web' | 'desktop' | 'telegram' | 'admin';
+    /**
+     * CodeConfirmInput
+     * @description The six-digit code entered by the second participant.
+     */
+    CodeConfirmInput: {
+      /**
+       * Code
+       * @description Exactly six digits, including leading zeroes.
+       */
+      code: string;
+    };
+    /**
+     * CodeConfirmOutput
+     * @description The interaction after a successful or replayed code confirmation.
+     */
+    CodeConfirmOutput: {
+      /**
+       * Listing Id
+       * Format: uuid
+       */
+      listing_id: string;
+      /**
+       * Interaction Id
+       * Format: uuid
+       */
+      interaction_id: string;
+      /**
+       * Presenter Id
+       * Format: uuid
+       */
+      presenter_id: string;
+      /**
+       * Scanner Id
+       * Format: uuid
+       */
+      scanner_id: string;
+      status: components['schemas']['InteractionStatus'];
+      /** Completed */
+      completed: boolean;
+      /** Completed At */
+      completed_at: string | null;
+      completion_method: components['schemas']['CompletionMethod'] | null;
+      /** Rating Weight */
+      rating_weight: number | null;
+      /**
+       * Server Time
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      server_time: string;
+    };
+    /**
+     * CodeIssueOutput
+     * @description A freshly issued code; only its requester receives the plaintext.
+     */
+    CodeIssueOutput: {
+      /**
+       * Listing Id
+       * Format: uuid
+       */
+      listing_id: string;
+      /**
+       * Interaction Id
+       * Format: uuid
+       */
+      interaction_id: string;
+      /**
+       * Presenter Id
+       * Format: uuid
+       */
+      presenter_id: string;
+      /**
+       * Code
+       * @description Exactly six digits, including leading zeroes.
+       */
+      code: string;
+      /**
+       * Issued At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      issued_at: string;
+      /**
+       * Expires At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      expires_at: string;
+      /**
+       * Attempts Left
+       * @description Incorrect attempts remaining for this interaction.
+       */
+      attempts_left: number;
+      /**
+       * Server Time
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      server_time: string;
+    };
     /** ComplaintReasonEdit */
     ComplaintReasonEdit: {
       /** Version */
@@ -3638,6 +3787,15 @@ export interface components {
         | 'complaint_reason_code_conflict'
         | 'complaint_reason_rules_invalid'
         | 'complaint_reason_version_conflict'
+        | 'confirmation_code_already_completed'
+        | 'confirmation_code_attempts_exceeded'
+        | 'confirmation_code_expired'
+        | 'confirmation_code_invalid'
+        | 'confirmation_code_not_accepted'
+        | 'confirmation_code_not_participant'
+        | 'confirmation_code_same_participant'
+        | 'confirmation_code_stage_unavailable'
+        | 'confirmation_code_unavailable'
         | 'consent_invalid'
         | 'consent_required'
         | 'device_key_conflict'
@@ -16533,6 +16691,232 @@ export interface operations {
       };
       /** @description The client version is too old (client_update_required). */
       426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  issue_code: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+        interaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CodeIssueOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  confirm_code: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+        interaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CodeConfirmInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CodeConfirmOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
         headers: {
           [name: string]: unknown;
         };

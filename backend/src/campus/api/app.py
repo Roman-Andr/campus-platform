@@ -110,6 +110,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(chat.router, prefix=API_PREFIX)
     app.include_router(reputation.device_router, prefix=API_PREFIX)
     app.include_router(reputation.qr_router, prefix=API_PREFIX)
+    app.include_router(reputation.code_router, prefix=API_PREFIX)
     app.include_router(reputation.time_router, prefix=API_PREFIX)
 
     # The last added middleware is the outermost: the request ID is set
