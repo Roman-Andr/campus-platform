@@ -1283,4 +1283,87 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get moreActions => 'Ещё';
+
+  @override
+  String get listingKindExchange => 'Обменяю';
+
+  @override
+  String get feedCreateExchange => 'Создать «Обменяю»';
+
+  @override
+  String get exchangeOfferTitle => 'Предложения';
+
+  @override
+  String get exchangeOfferFormTitle => 'Предложите свою вещь';
+
+  @override
+  String get exchangeOfferDescriptionLabel => 'Что вы предлагаете';
+
+  @override
+  String get exchangeOfferRequired => 'Опишите, что вы предлагаете.';
+
+  @override
+  String get exchangeOfferSend => 'Отправить предложение';
+
+  @override
+  String get exchangeOfferSent => 'Предложение отправлено.';
+
+  @override
+  String exchangeOfferMine(String description) {
+    return 'Ваше предложение: $description';
+  }
+
+  @override
+  String get exchangeOfferListEmpty => 'Предложений пока нет.';
+
+  @override
+  String get exchangeOfferAccept => 'Выбрать';
+
+  @override
+  String get exchangeOfferAccepted => 'Предложение выбрано.';
+
+  @override
+  String get exchangeOfferRejectedAnother => 'Автор выбрал другое предложение.';
+
+  @override
+  String get exchangeOfferDuplicate =>
+      'Вы уже предложили вещь: дождитесь ответа автора.';
+
+  @override
+  String get exchangeOfferInvalid => 'Проверьте описание предложения.';
+
+  @override
+  String reservationTimeLeft(int hours, int minutes) {
+    return 'До снятия брони: $hours ч $minutes мин';
+  }
+
+  @override
+  String reservationTimeLeftMinutes(int minutes) {
+    return 'До снятия брони: $minutes мин';
+  }
+
+  @override
+  String get reservationTimeLeftSoon =>
+      'Бронь снимается меньше чем через минуту.';
+
+  @override
+  String get reservationTimeLeftEnded => 'Срок брони истёк.';
+
+  @override
+  String get reservationMeetingHint =>
+      'Назначьте встречу, чтобы сохранить бронь.';
+
+  @override
+  String reservationUntilMeeting(String time) {
+    return 'Бронь продлена до встречи: $time';
+  }
+
+  @override
+  String get reservationExpiredByDeadline =>
+      'Бронь снята: встреча не назначена вовремя.';
+
+  @override
+  String exchangeOfferItem(String description) {
+    return 'Предлагает: $description';
+  }
 }

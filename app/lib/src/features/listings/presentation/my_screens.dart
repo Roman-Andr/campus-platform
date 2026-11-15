@@ -9,7 +9,7 @@ import '../../profile/application/my_profile.dart';
 import '../application/listings.dart';
 import '../application/my_listings.dart';
 import '../application/waitlist.dart';
-import 'interaction_timeline_screen.dart';
+import 'interaction_widgets.dart';
 import 'listings_screens.dart';
 import 'meeting_screen.dart';
 import 'waitlist_widgets.dart';
@@ -24,6 +24,7 @@ String mySectionName(AppLocalizations l, MySection section) =>
 
 String listingKindName(AppLocalizations l, String kind) => switch (kind) {
   'giveaway' => l.listingKindGiveaway,
+  'exchange' => l.listingKindExchange,
   'publication' => l.listingKindPublication,
   'event' => l.listingKindEvent,
   _ => kind,
@@ -199,6 +200,8 @@ class ParticipationTile extends StatelessWidget {
                   if (stage != null) l.participationStage(stage),
                 ].join(' · '),
               ),
+              if (item.offerDescription case final description?)
+                Text(l.exchangeOfferMine(description)),
               InteractionStatusText(item: interaction),
             ],
           ),

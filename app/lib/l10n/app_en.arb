@@ -591,9 +591,15 @@
   "profileSetupSkillsIntro": "Mark what you can do and what you want to learn: it helps to find someone to swap skills with. You can skip this step.",
   "profileSkip": "Skip",
   "profileDone": "Done",
-  "@feedSearch": {"description": "Listing search field label"},
-  "@feedSearchClear": {"description": "Clear the listing search"},
-  "@feedSearchEmpty": {"description": "No full-text search matches"},
+  "@feedSearch": {
+    "description": "Listing search field label"
+  },
+  "@feedSearchClear": {
+    "description": "Clear the listing search"
+  },
+  "@feedSearchEmpty": {
+    "description": "No full-text search matches"
+  },
   "feedSearch": "Search listings",
   "feedSearchClear": "Clear search",
   "feedSearchEmpty": "No matching listings",
@@ -667,5 +673,28 @@
   "moreActions": "More",
   "@moreActions": {
     "description": "Menu of secondary actions of the home screen."
-  }
+  },
+  "listingKindExchange": "Exchange",
+  "feedCreateExchange": "Create an exchange listing",
+  "exchangeOfferTitle": "Offers",
+  "exchangeOfferFormTitle": "Offer your item",
+  "exchangeOfferDescriptionLabel": "What you offer",
+  "exchangeOfferRequired": "Describe what you offer.",
+  "exchangeOfferSend": "Send offer",
+  "exchangeOfferSent": "Offer sent.",
+  "exchangeOfferMine": "Your offer: {description}",
+  "exchangeOfferListEmpty": "No offers yet.",
+  "exchangeOfferAccept": "Choose",
+  "exchangeOfferAccepted": "Offer chosen.",
+  "exchangeOfferRejectedAnother": "The author chose another offer.",
+  "exchangeOfferDuplicate": "You already offered an item; wait for the author's answer.",
+  "exchangeOfferInvalid": "Check the offer description.",
+  "reservationTimeLeft": "Hold ends in {hours} h {minutes} min",
+  "reservationTimeLeftMinutes": "Hold ends in {minutes} min",
+  "reservationTimeLeftSoon": "The hold ends in less than a minute.",
+  "reservationTimeLeftEnded": "The hold has ended.",
+  "reservationMeetingHint": "Schedule a meeting to keep the hold.",
+  "reservationUntilMeeting": "The hold is extended until the meeting: {time}",
+  "reservationExpiredByDeadline": "The hold expired: no meeting was scheduled in time.",
+  "exchangeOfferItem": "Offers: {description}"
 }

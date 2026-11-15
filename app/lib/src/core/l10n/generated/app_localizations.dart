@@ -2347,6 +2347,144 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Ещё'**
   String get moreActions;
+
+  /// Kind of a listing: the author exchanges the item for another one.
+  ///
+  /// In ru, this message translates to:
+  /// **'Обменяю'**
+  String get listingKindExchange;
+
+  /// Tooltip of the home screen button that opens the exchange form.
+  ///
+  /// In ru, this message translates to:
+  /// **'Создать «Обменяю»'**
+  String get feedCreateExchange;
+
+  /// Heading of the author's offers list.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложения'**
+  String get exchangeOfferTitle;
+
+  /// Heading of the form where a participant offers an item.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложите свою вещь'**
+  String get exchangeOfferFormTitle;
+
+  /// Label of the field where a participant describes the item they bring.
+  ///
+  /// In ru, this message translates to:
+  /// **'Что вы предлагаете'**
+  String get exchangeOfferDescriptionLabel;
+
+  /// The offer description is empty.
+  ///
+  /// In ru, this message translates to:
+  /// **'Опишите, что вы предлагаете.'**
+  String get exchangeOfferRequired;
+
+  /// Submits the item offer.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отправить предложение'**
+  String get exchangeOfferSend;
+
+  /// The offer reached the author.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложение отправлено.'**
+  String get exchangeOfferSent;
+
+  /// The item the participant offered in exchange.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ваше предложение: {description}'**
+  String exchangeOfferMine(String description);
+
+  /// The author has no offers yet.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложений пока нет.'**
+  String get exchangeOfferListEmpty;
+
+  /// The author chooses this offer.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выбрать'**
+  String get exchangeOfferAccept;
+
+  /// The author chose the offer.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложение выбрано.'**
+  String get exchangeOfferAccepted;
+
+  /// The offer lost to another one.
+  ///
+  /// In ru, this message translates to:
+  /// **'Автор выбрал другое предложение.'**
+  String get exchangeOfferRejectedAnother;
+
+  /// A second offer by the same participant.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы уже предложили вещь: дождитесь ответа автора.'**
+  String get exchangeOfferDuplicate;
+
+  /// The server rejected the offer description.
+  ///
+  /// In ru, this message translates to:
+  /// **'Проверьте описание предложения.'**
+  String get exchangeOfferInvalid;
+
+  /// Remaining hold time in hours and minutes.
+  ///
+  /// In ru, this message translates to:
+  /// **'До снятия брони: {hours} ч {minutes} мин'**
+  String reservationTimeLeft(int hours, int minutes);
+
+  /// Remaining hold time under an hour.
+  ///
+  /// In ru, this message translates to:
+  /// **'До снятия брони: {minutes} мин'**
+  String reservationTimeLeftMinutes(int minutes);
+
+  /// The hold ends in less than a minute.
+  ///
+  /// In ru, this message translates to:
+  /// **'Бронь снимается меньше чем через минуту.'**
+  String get reservationTimeLeftSoon;
+
+  /// The hold is over.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок брони истёк.'**
+  String get reservationTimeLeftEnded;
+
+  /// A meeting keeps the hold alive.
+  ///
+  /// In ru, this message translates to:
+  /// **'Назначьте встречу, чтобы сохранить бронь.'**
+  String get reservationMeetingHint;
+
+  /// The hold now lasts until the scheduled meeting.
+  ///
+  /// In ru, this message translates to:
+  /// **'Бронь продлена до встречи: {time}'**
+  String reservationUntilMeeting(String time);
+
+  /// The reservation was released because no meeting was scheduled in time.
+  ///
+  /// In ru, this message translates to:
+  /// **'Бронь снята: встреча не назначена вовремя.'**
+  String get reservationExpiredByDeadline;
+
+  /// The item another participant offers in an exchange.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предлагает: {description}'**
+  String exchangeOfferItem(String description);
 }
 
 class _AppLocalizationsDelegate

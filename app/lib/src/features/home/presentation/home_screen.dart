@@ -46,6 +46,14 @@ class HomeScreen extends ConsumerWidget {
           IconButton(
             padding: EdgeInsets.zero,
             visualDensity: VisualDensity.compact,
+            key: const Key('feed-create-exchange'),
+            icon: const Icon(Icons.swap_horiz),
+            tooltip: l10n.feedCreateExchange,
+            onPressed: () => context.push('/exchange/new'),
+          ),
+          IconButton(
+            padding: EdgeInsets.zero,
+            visualDensity: VisualDensity.compact,
             key: const Key('home-favorites'),
             icon: const Icon(Icons.star_border),
             tooltip: l10n.favoritesTitle,

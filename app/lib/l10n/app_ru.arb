@@ -1340,9 +1340,15 @@
   "@profileDone": {
     "description": "Finishes filling in the profile."
   },
-  "@feedSearch": {"description": "Listing search field label"},
-  "@feedSearchClear": {"description": "Clear the listing search"},
-  "@feedSearchEmpty": {"description": "No full-text search matches"},
+  "@feedSearch": {
+    "description": "Listing search field label"
+  },
+  "@feedSearchClear": {
+    "description": "Clear the listing search"
+  },
+  "@feedSearchEmpty": {
+    "description": "No full-text search matches"
+  },
   "feedSearch": "Поиск объявлений",
   "feedSearchClear": "Сбросить поиск",
   "feedSearchEmpty": "Объявления не найдены",
@@ -1655,5 +1661,125 @@
   "moreActions": "Ещё",
   "@moreActions": {
     "description": "Menu of secondary actions of the home screen."
+  },
+  "@listingKindExchange": {
+    "description": "Kind of a listing: the author exchanges the item for another one."
+  },
+  "@feedCreateExchange": {
+    "description": "Tooltip of the home screen button that opens the exchange form."
+  },
+  "@exchangeOfferTitle": {
+    "description": "Heading of the author's offers list."
+  },
+  "@exchangeOfferFormTitle": {
+    "description": "Heading of the form where a participant offers an item."
+  },
+  "@exchangeOfferRequired": {
+    "description": "The offer description is empty."
+  },
+  "@exchangeOfferSend": {
+    "description": "Submits the item offer."
+  },
+  "@exchangeOfferSent": {
+    "description": "The offer reached the author."
+  },
+  "@exchangeOfferListEmpty": {
+    "description": "The author has no offers yet."
+  },
+  "@exchangeOfferAccept": {
+    "description": "The author chooses this offer."
+  },
+  "@exchangeOfferAccepted": {
+    "description": "The author chose the offer."
+  },
+  "@exchangeOfferRejectedAnother": {
+    "description": "The offer lost to another one."
+  },
+  "@exchangeOfferDuplicate": {
+    "description": "A second offer by the same participant."
+  },
+  "@exchangeOfferInvalid": {
+    "description": "The server rejected the offer description."
+  },
+  "@reservationTimeLeftSoon": {
+    "description": "The hold ends in less than a minute."
+  },
+  "@reservationTimeLeftEnded": {
+    "description": "The hold is over."
+  },
+  "@reservationMeetingHint": {
+    "description": "A meeting keeps the hold alive."
+  },
+  "@reservationExpiredByDeadline": {
+    "description": "The reservation was released because no meeting was scheduled in time."
+  },
+  "listingKindExchange": "Обменяю",
+  "feedCreateExchange": "Создать «Обменяю»",
+  "exchangeOfferTitle": "Предложения",
+  "exchangeOfferFormTitle": "Предложите свою вещь",
+  "exchangeOfferDescriptionLabel": "Что вы предлагаете",
+  "@exchangeOfferDescriptionLabel": {
+    "description": "Label of the field where a participant describes the item they bring."
+  },
+  "exchangeOfferRequired": "Опишите, что вы предлагаете.",
+  "exchangeOfferSend": "Отправить предложение",
+  "exchangeOfferSent": "Предложение отправлено.",
+  "exchangeOfferMine": "Ваше предложение: {description}",
+  "@exchangeOfferMine": {
+    "description": "The item the participant offered in exchange.",
+    "placeholders": {
+      "description": {
+        "type": "String"
+      }
+    }
+  },
+  "exchangeOfferListEmpty": "Предложений пока нет.",
+  "exchangeOfferAccept": "Выбрать",
+  "exchangeOfferAccepted": "Предложение выбрано.",
+  "exchangeOfferRejectedAnother": "Автор выбрал другое предложение.",
+  "exchangeOfferDuplicate": "Вы уже предложили вещь: дождитесь ответа автора.",
+  "exchangeOfferInvalid": "Проверьте описание предложения.",
+  "reservationTimeLeft": "До снятия брони: {hours} ч {minutes} мин",
+  "@reservationTimeLeft": {
+    "description": "Remaining hold time in hours and minutes.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "reservationTimeLeftMinutes": "До снятия брони: {minutes} мин",
+  "@reservationTimeLeftMinutes": {
+    "description": "Remaining hold time under an hour.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "reservationTimeLeftSoon": "Бронь снимается меньше чем через минуту.",
+  "reservationTimeLeftEnded": "Срок брони истёк.",
+  "reservationMeetingHint": "Назначьте встречу, чтобы сохранить бронь.",
+  "reservationUntilMeeting": "Бронь продлена до встречи: {time}",
+  "@reservationUntilMeeting": {
+    "description": "The hold now lasts until the scheduled meeting.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "reservationExpiredByDeadline": "Бронь снята: встреча не назначена вовремя.",
+  "exchangeOfferItem": "Предлагает: {description}",
+  "@exchangeOfferItem": {
+    "description": "The item another participant offers in an exchange.",
+    "placeholders": {
+      "description": {
+        "type": "String"
+      }
+    }
   }
 }

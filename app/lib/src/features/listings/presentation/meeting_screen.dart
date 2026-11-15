@@ -11,6 +11,7 @@ import '../../../core/widgets/city_date_time_picker.dart';
 import '../../profile/application/my_profile.dart';
 import '../application/listings.dart';
 import '../application/meeting.dart';
+import '../domain/reservation.dart';
 
 /// Route of the meeting of interaction [interactionId] of listing [listingId].
 String meetingPath(String listingId, String interactionId) =>
@@ -102,6 +103,28 @@ class MeetingSummary extends ConsumerWidget {
                 mine ? l.meetingAwaitingAnswer : l.meetingAwaitingYourAnswer,
                 key: Key('meeting-awaiting-${item.id}'),
               ),
+            ],
+            // An accepted item reservation runs on its own deadline until a
+            // meeting is scheduled; the meeting then extends it.
+            if (item.reservationDueAt != null) ...[
+              const Divider(),
+              if (scheduledAt != null)
+                Text(
+                  l.reservationUntilMeeting(
+                    _meetingTime(l, scheduledAt, timezone, cityLabel),
+                  ),
+                  key: Key('reservation-until-${item.id}'),
+                )
+              else ...[
+                Text(
+                  reservationTimeLeft(l, reservationLeft(item)),
+                  key: Key('reservation-left-${item.id}'),
+                ),
+                Text(
+                  l.reservationMeetingHint,
+                  key: Key('reservation-hint-${item.id}'),
+                ),
+              ],
             ],
             if (showOpen)
               Align(
