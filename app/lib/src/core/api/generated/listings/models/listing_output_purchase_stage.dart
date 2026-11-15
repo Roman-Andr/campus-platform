@@ -5,8 +5,8 @@ import 'purchase_stage.dart';
 sealed class ListingOutputPurchaseStage {
   factory ListingOutputPurchaseStage.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches36(json)) "PurchaseStage",
-      if (_matches38(json)) "Null",
+      if (_matches48(json)) "PurchaseStage",
+      if (_matches50(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -42,8 +42,8 @@ class ListingOutputPurchaseStageNull implements ListingOutputPurchaseStage {
   Object? toJson() => value;
 }
 
-bool _matches36(Object? value) => (_matches37(value));
-bool _matches37(Object? value) =>
+bool _matches48(Object? value) => (_matches49(value));
+bool _matches49(Object? value) =>
     (const <Object?>["collecting", "fixed", "cancelled"].contains(value)) &&
     ((value is String));
-bool _matches38(Object? value) => ((value == null));
+bool _matches50(Object? value) => ((value == null));

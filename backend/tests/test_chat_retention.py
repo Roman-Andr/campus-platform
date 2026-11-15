@@ -283,7 +283,10 @@ async def test_retention_starts_after_last_member_and_rejoin_cancels(  # noqa: P
     message_id = UUID(message_response.json()["id"])
     complaint_id = uuid4()
     snapshot = await snapshot_message(
-        chat_auth.db, complaint_id=complaint_id, message_id=message_id
+        chat_auth.db,
+        complaint_id=complaint_id,
+        message_id=message_id,
+        settings=chat_auth.settings,
     )
     await chat_auth.db.commit()
     snapshot_text = snapshot.text
@@ -454,11 +457,17 @@ async def test_snapshot_survives_cleanup_and_active_chat_photo_survives(
     message_id = UUID(sent.json()["id"])
     complaint_id = uuid4()
     snapshot = await snapshot_message(
-        chat_auth.db, complaint_id=complaint_id, message_id=message_id
+        chat_auth.db,
+        complaint_id=complaint_id,
+        message_id=message_id,
+        settings=chat_auth.settings,
     )
     await chat_auth.db.commit()
     duplicate = await snapshot_message(
-        chat_auth.db, complaint_id=complaint_id, message_id=message_id
+        chat_auth.db,
+        complaint_id=complaint_id,
+        message_id=message_id,
+        settings=chat_auth.settings,
     )
     await chat_auth.db.commit()
     assert duplicate.id == snapshot.id

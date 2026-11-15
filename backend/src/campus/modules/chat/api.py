@@ -1,8 +1,8 @@
 """Personal chats: create, list, history and ordered idempotent sending."""
 
 from collections import defaultdict
-from typing import Annotated, Literal
-from uuid import UUID
+from typing import Annotated, Literal, cast
+from uuid import UUID, uuid4
 
 from fastapi import Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
@@ -10,6 +10,10 @@ from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import distinct_on
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from campus.core import clock
+from campus.core.config import Settings
+from campus.core.outbox import add_message
+from campus.core.storage import Storage, storage_io
 from campus.core.web import (
     CurrentUser,
     DbSession,
@@ -22,20 +26,28 @@ from campus.core.web import (
     paginate,
     sort_by,
 )
+from campus.core.web.problems import NOT_FOUND
 from campus.modules.chat.models import (
     Chat,
     ChatMember,
     ChatMessage,
+    ChatMessageArchive,
     ChatMessageHistory,
 )
 from campus.modules.chat.service import (
+    CHAT_PHOTO_EXPIRED,
     CHAT_SEARCH_INVALID,
     create_personal_chat,
+    delete_message,
+    edit_message,
     leave_chat,
+    message_evidence,
+    message_photos,
     message_snippet,
     post_message,
     require_membership,
 )
+from campus.modules.files import File, expire_later, locked_file
 from campus.modules.identity import User
 
 router = api_router(
@@ -56,6 +68,15 @@ class ParticipantOutput(BaseModel):
     account_type: str
 
 
+class QuoteOutput(BaseModel):
+    """The visible part of a quoted message, never its hidden revision."""
+
+    id: UUID
+    sender_id: UUID
+    text: str
+    created_at: Instant
+
+
 class MessageOutput(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
@@ -66,7 +87,60 @@ class MessageOutput(BaseModel):
         description="Server order number inside the chat; authoritative order."
     )
     text: str
+    reply_to_id: UUID | None = None
+    reply_to: QuoteOutput | None = None
+    version: int = 1
+    photo_ids: list[UUID] = Field(default_factory=list)
     created_at: Instant
+
+
+class ChatFileOutput(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    purpose: str
+    status: str
+    size: int
+    rejection_reason: str | None
+    expires_at: Instant
+
+
+class ChatUploadOutput(BaseModel):
+    file: ChatFileOutput
+    url: str
+    fields: dict[str, str]
+    expires_at: Instant
+
+
+class ChatPhotoOutput(BaseModel):
+    id: UUID
+    url: str
+    preview_url: str
+    expires_at: Instant
+
+
+class ChatPhotosOutput(BaseModel):
+    items: list[ChatPhotoOutput]
+
+
+class EvidenceVersionOutput(BaseModel):
+    version: int
+    kind: Literal["edit", "delete"]
+    text: str
+    created_at: Instant
+
+
+class MessageEvidenceOutput(BaseModel):
+    """A member-scoped view for attaching hidden content to a complaint."""
+
+    message_id: UUID
+    chat_id: UUID
+    sender_id: UUID
+    sequence: int
+    current_text: str | None
+    version: int
+    deleted_at: Instant | None
+    versions: list[EvidenceVersionOutput]
+    photos: list[ChatPhotoOutput]
 
 
 class ChatItem(BaseModel):
@@ -126,16 +200,73 @@ class MessageInput(BaseModel):
         )
     )
     text: str = Field(min_length=1, description="Message text.")
+    reply_to_id: UUID | None = Field(
+        default=None, description="Visible message in the same chat to quote."
+    )
+    photo_ids: list[UUID] = Field(
+        default_factory=list,
+        description="Ready chat photos, at most the configured message limit.",
+    )
 
 
-def message_output(message: ChatMessage | ChatMessageHistory) -> MessageOutput:
+class MessageEditInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    text: str = Field(min_length=1, description="New message text.")
+
+
+def message_output(
+    message: ChatMessage | ChatMessageArchive | ChatMessageHistory,
+) -> MessageOutput:
     return MessageOutput.model_validate(message, from_attributes=True)
+
+
+async def hydrate_messages(
+    session: AsyncSession, messages: list[MessageOutput]
+) -> list[MessageOutput]:
+    """Attach current quotes and photo ids to visible messages in two queries."""
+    if not messages:
+        return []
+    reply_ids = {message.reply_to_id for message in messages if message.reply_to_id}
+    quotes: dict[UUID, QuoteOutput] = {}
+    if reply_ids:
+        for row in await session.scalars(
+            select(ChatMessageHistory).where(
+                ChatMessageHistory.id.in_(reply_ids),
+                ChatMessageHistory.deleted_at.is_(None),
+            )
+        ):
+            quotes[row.id] = QuoteOutput(
+                id=row.id,
+                sender_id=row.sender_id,
+                text=row.text,
+                created_at=row.created_at,
+            )
+    photos: dict[UUID, list[UUID]] = defaultdict(list)
+    for file in await session.scalars(
+        select(File)
+        .where(File.message_id.in_([message.id for message in messages]))
+        .where(File.status == "ready")
+        .order_by(File.message_id, File.message_position, File.id)
+    ):
+        assert file.message_id is not None  # noqa: S101 - selected by id
+        photos[file.message_id].append(file.id)
+    return [
+        message.model_copy(
+            update={
+                "reply_to": quotes.get(message.reply_to_id)
+                if message.reply_to_id
+                else None,
+                "photo_ids": photos.get(message.id, []),
+            }
+        )
+        for message in messages
+    ]
 
 
 def chat_output(
     chat: Chat,
     participants: list[ParticipantOutput],
-    last_message: ChatMessage | ChatMessageHistory | None,
+    last_message: MessageOutput | None,
 ) -> ChatOutput:
     return ChatOutput(
         id=chat.id,
@@ -145,7 +276,7 @@ def chat_output(
         created_at=chat.created_at,
         updated_at=chat.updated_at,
         participants=participants,
-        last_message=None if last_message is None else message_output(last_message),
+        last_message=last_message,
     )
 
 
@@ -199,11 +330,56 @@ async def hydrate(session: AsyncSession, chats: list[Chat]) -> list[ChatOutput]:
             .ext(distinct_on(ChatMessageHistory.chat_id))
         )
     )
-    latest = {message.chat_id: message for message in last}
+    latest = {
+        message.chat_id: message
+        for message in await hydrate_messages(
+            session, [message_output(message) for message in last]
+        )
+    }
     return [
         chat_output(chat, members.get(chat.id, []), latest.get(chat.id))
         for chat in chats
     ]
+
+
+def chat_file_output(file: File) -> ChatFileOutput:
+    return ChatFileOutput.model_validate(file, from_attributes=True)
+
+
+def chat_photo_output(file: File, settings: Settings) -> ChatPhotoOutput:
+    """Short-lived signed links to the processed photo and its preview.
+
+    The link is a bearer credential, not public metadata: it is issued only
+    after a membership check and expires after ``photo_read_ttl``. A link
+    handed out earlier cannot be revoked before it expires; leaving the chat
+    stops further links, not ones already issued.
+    """
+    storage = Storage(settings)
+    return ChatPhotoOutput(
+        id=file.id,
+        url=storage.url(file.key + "/photo"),
+        preview_url=storage.url(file.key + "/preview"),
+        expires_at=clock.now() + settings.photo_read_ttl,
+    )
+
+
+async def chat_photo_page(
+    request: Request, session: AsyncSession, chat_id: UUID, message_id: UUID
+) -> ChatPhotosOutput:
+    """Ready photos of a visible message; membership is checked by the caller."""
+    message = await session.scalar(
+        select(ChatMessageHistory.id).where(
+            ChatMessageHistory.id == message_id,
+            ChatMessageHistory.chat_id == chat_id,
+            ChatMessageHistory.deleted_at.is_(None),
+        )
+    )
+    if message is None:
+        raise ProblemError(NOT_FOUND)
+    files = await message_photos(session, message_id)
+    return ChatPhotosOutput(
+        items=[chat_photo_output(file, request.app.state.settings) for file in files]
+    )
 
 
 @router.post(
@@ -338,7 +514,10 @@ async def search_chats(
     )
     return Page[ChatSearchResult](
         items=await search_results(
-            session, result.items, query, settings.chat_search_snippet_length
+            session,
+            await hydrate_messages(session, result.items),
+            query,
+            settings.chat_search_snippet_length,
         ),
         next_page=result.next_page,
     )
@@ -380,13 +559,17 @@ async def list_messages(  # noqa: PLR0913, PLR0917
         {"sequence": ChatMessageHistory.sequence},
         ChatMessageHistory.id,
     )
-    return await paginate(
+    result = await paginate(
         session,
         query,
         page,
         MessageOutput,
         settings=request.app.state.settings,
         context=f"chat:{chat_id}:{after_sequence}:{ascending}",
+    )
+    return Page[MessageOutput](
+        items=await hydrate_messages(session, result.items),
+        next_page=result.next_page,
     )
 
 
@@ -403,6 +586,165 @@ async def leave(chat_id: UUID, session: DbSession, principal: CurrentUser) -> Re
     is a no-op and also returns ``204``.
     """
     await leave_chat(session, chat_id, principal.user_id)
+    return Response(status_code=204)
+
+
+@router.post("/{chat_id}/photo-uploads", status_code=201)
+async def request_chat_photo(
+    chat_id: UUID,
+    request: Request,
+    response: Response,
+    session: DbSession,
+    principal: CurrentUser,
+) -> ChatUploadOutput:
+    """A protected upload form for one chat; the object is never public."""
+    response.headers["Cache-Control"] = "private, no-store"
+    await require_membership(session, chat_id, principal.user_id)
+    settings = request.app.state.settings
+    now = clock.now()
+    file = File(
+        owner_id=principal.user_id,
+        chat_id=chat_id,
+        purpose="chat_photo",
+        key=f"photos/{uuid4()}",
+        upload_expires_at=now + settings.photo_upload_ttl,
+        expires_at=now + max(settings.photo_upload_ttl, settings.photo_unattached_ttl),
+    )
+    session.add(file)
+    await session.flush()
+    post = await storage_io(Storage(settings).upload, file.key + "/source")
+    await expire_later(session, file)
+    return ChatUploadOutput(
+        file=chat_file_output(file),
+        url=post["url"],
+        fields=post["fields"],
+        expires_at=file.upload_expires_at,
+    )
+
+
+@router.post("/{chat_id}/photo-uploads/{file_id}/complete", status_code=202)
+async def complete_chat_photo(
+    chat_id: UUID,
+    file_id: UUID,
+    session: DbSession,
+    principal: CurrentUser,
+) -> ChatFileOutput:
+    """Start processing only for the uploader's own chat photo."""
+    await require_membership(session, chat_id, principal.user_id)
+    file = await locked_file(session, file_id)
+    if (
+        file is None
+        or file.owner_id != principal.user_id
+        or file.chat_id != chat_id
+        or file.purpose != "chat_photo"
+    ):
+        raise ProblemError(NOT_FOUND)
+    if file.expires_at <= clock.now():
+        raise ProblemError(CHAT_PHOTO_EXPIRED)
+    if file.status == "pending":
+        file.status = "processing"
+        add_message(session, "files.process", {"file_id": str(file.id)})
+    return chat_file_output(file)
+
+
+@router.get("/{chat_id}/messages/{message_id}/photos")
+async def list_message_photos(  # noqa: PLR0913, PLR0917
+    chat_id: UUID,
+    message_id: UUID,
+    request: Request,
+    response: Response,
+    session: DbSession,
+    principal: CurrentUser,
+) -> ChatPhotosOutput:
+    """Signed URLs only for a member of the chat and a visible message."""
+    response.headers["Cache-Control"] = "private, no-store"
+    await require_membership(session, chat_id, principal.user_id)
+    return await chat_photo_page(request, session, chat_id, message_id)
+
+
+@router.get("/{chat_id}/messages/{message_id}/evidence")
+async def message_evidence_view(  # noqa: PLR0913, PLR0917
+    chat_id: UUID,
+    message_id: UUID,
+    request: Request,
+    response: Response,
+    session: DbSession,
+    principal: CurrentUser,
+) -> MessageEvidenceOutput:
+    """Hidden versions for a complaint, restricted to the chat and 30 days."""
+    response.headers["Cache-Control"] = "private, no-store"
+    await require_membership(session, chat_id, principal.user_id)
+    evidence = await message_evidence(session, chat_id=chat_id, message_id=message_id)
+    if evidence is None:
+        raise ProblemError(NOT_FOUND)
+    message, versions, photos = evidence
+    settings = request.app.state.settings
+    now = clock.now()
+    if (
+        message.deleted_at is not None
+        and message.deleted_at <= now - settings.chat_message_version_retention
+    ):
+        raise ProblemError(NOT_FOUND)
+    if not versions and not photos and message.deleted_at is not None:
+        raise ProblemError(NOT_FOUND)
+    return MessageEvidenceOutput(
+        message_id=message.id,
+        chat_id=message.chat_id,
+        sender_id=message.sender_id,
+        sequence=message.sequence,
+        current_text=None if message.deleted_at is not None else message.text,
+        version=message.version,
+        deleted_at=message.deleted_at,
+        versions=[
+            EvidenceVersionOutput(
+                version=version.version,
+                kind=cast(Literal["edit", "delete"], version.kind),
+                text=version.text,
+                created_at=version.created_at,
+            )
+            for version in versions
+        ],
+        photos=[chat_photo_output(file, settings) for file in photos],
+    )
+
+
+@router.patch("/{chat_id}/messages/{message_id}")
+async def edit_message_view(  # noqa: PLR0913, PLR0917
+    chat_id: UUID,
+    message_id: UUID,
+    data: MessageEditInput,
+    request: Request,
+    session: DbSession,
+    principal: CurrentUser,
+) -> MessageOutput:
+    """Edit the author's own message; the previous text becomes a revision."""
+    message, _ = await edit_message(
+        session,
+        chat_id=chat_id,
+        message_id=message_id,
+        editor_id=principal.user_id,
+        text=data.text,
+        settings=request.app.state.settings,
+    )
+    return (await hydrate_messages(session, [message_output(message)]))[0]
+
+
+@router.delete("/{chat_id}/messages/{message_id}", status_code=204)
+async def delete_message_view(
+    chat_id: UUID,
+    message_id: UUID,
+    request: Request,
+    session: DbSession,
+    principal: CurrentUser,
+) -> Response:
+    """Delete the author's own message; repeating the request is a no-op."""
+    await delete_message(
+        session,
+        chat_id=chat_id,
+        message_id=message_id,
+        author_id=principal.user_id,
+        settings=request.app.state.settings,
+    )
     return Response(status_code=204)
 
 
@@ -437,7 +779,9 @@ async def send_message(  # noqa: PLR0913, PLR0917
         client_id=data.client_id,
         text=data.text,
         settings=request.app.state.settings,
+        reply_to_id=data.reply_to_id,
+        photo_ids=data.photo_ids,
     )
     if not created:
         response.status_code = 200
-    return message_output(message)
+    return (await hydrate_messages(session, [message_output(message)]))[0]

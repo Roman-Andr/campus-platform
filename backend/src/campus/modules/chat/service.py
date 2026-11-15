@@ -16,7 +16,8 @@ worker and the tests exercise the same code:
 import hashlib
 import math
 import re
-from typing import Any
+from collections.abc import Sequence
+from typing import Any, cast
 from uuid import UUID, uuid7
 
 from sqlalchemy import func, select, text, update
@@ -34,10 +35,14 @@ from campus.modules.chat.models import (
     Chat,
     ChatMember,
     ChatMessage,
+    ChatMessageArchive,
     ChatMessageDedup,
     ChatMessageHistory,
     ChatMessageSnapshot,
+    ChatMessageSnapshotPhoto,
+    ChatMessageVersion,
 )
+from campus.modules.files import File
 from campus.modules.identity import User, serialize_contact_pair
 from campus.modules.listings import (
     RELATED_INTERACTION_STATUSES,
@@ -89,6 +94,25 @@ CHAT_SEARCH_INVALID = ProblemType(
     N_("The search query must be at most {max_length} characters."),
 )
 
+CHAT_MESSAGE_DELETED = ProblemType(
+    "chat_message_deleted",
+    409,
+    N_("The message is deleted."),
+    N_("A deleted message cannot be edited."),
+)
+CHAT_PHOTO_INVALID = ProblemType(
+    "chat_photo_invalid",
+    422,
+    N_("Invalid chat photo."),
+    N_("A photo must be ready, belong to this chat and not be attached yet."),
+)
+CHAT_PHOTO_EXPIRED = ProblemType(
+    "chat_photo_expired",
+    409,
+    N_("The photo upload expired."),
+    N_("Request a new chat photo upload."),
+)
+
 
 def canonical_pair(first: UUID, second: UUID) -> tuple[UUID, UUID]:
     """The pair as stored: the smaller UUID first, so the index is stable."""
@@ -126,17 +150,143 @@ def message_snippet(text_value: str, query: str, limit: int) -> str:
     return snippet
 
 
-def message_payload(message: ChatMessage) -> dict[str, Any]:
-    """Publication of a stored message; clients recover gaps through the API."""
+StoredMessage = ChatMessage | ChatMessageArchive
+
+
+def message_payload(
+    message: StoredMessage, *, action: str = "created"
+) -> dict[str, Any]:
+    """Realtime wakeup for a stored message; clients load history through the API.
+
+    The payload deliberately carries identifiers only. A queued edit or
+    delete must not publish text that the API has already hidden, and an
+    outbox row must not become a copy of a version that expires after the
+    retention window.
+    """
     return {
+        "action": action,
         "chat_id": str(message.chat_id),
         "message_id": str(message.id),
         "client_id": str(message.client_id),
         "sender_id": str(message.sender_id),
         "sequence": message.sequence,
-        "text": message.text,
+        "reply_to_id": str(message.reply_to_id) if message.reply_to_id else None,
+        "version": message.version,
         "created_at": message.created_at.isoformat(),
     }
+
+
+async def stored_message_by_id(
+    session: AsyncSession, message_id: UUID
+) -> StoredMessage | None:
+    """Load a message from the active or archive partition, without a lock."""
+    for model in (ChatMessage, ChatMessageArchive):
+        message = await session.scalar(select(model).where(model.id == message_id))
+        if message is not None:
+            return cast(StoredMessage, message)
+    return None
+
+
+async def locked_stored_message(
+    session: AsyncSession, message_id: UUID
+) -> StoredMessage | None:
+    """Lock the message row, whichever partition currently stores it."""
+    for model in (ChatMessage, ChatMessageArchive):
+        message = await session.scalar(
+            select(model).where(model.id == message_id).with_for_update()
+        )
+        if message is not None:
+            return cast(StoredMessage, message)
+    return None
+
+
+async def visible_message(
+    session: AsyncSession, chat_id: UUID, message_id: UUID
+) -> ChatMessageHistory | None:
+    """A message the chat may quote: not deleted and in this chat."""
+    return await session.scalar(
+        select(ChatMessageHistory).where(
+            ChatMessageHistory.id == message_id,
+            ChatMessageHistory.chat_id == chat_id,
+            ChatMessageHistory.deleted_at.is_(None),
+        )
+    )
+
+
+async def message_photos(
+    session: AsyncSession,
+    message_id: UUID,
+    *,
+    for_evidence: bool = False,
+    for_share: bool = False,
+) -> list[File]:
+    """Ready photos of a message in display order.
+
+    ``for_evidence`` is used only by the member-scoped complaint evidence
+    endpoint: ordinary history calls it with ``False`` and callers never see
+    photos of a deleted message. ``for_share`` makes the snapshot copy wait
+    for a concurrent purge instead of recording keys of deleted objects.
+    """
+    query = select(File).where(
+        File.message_id == message_id,
+        File.status == "ready",
+    )
+    if not for_evidence:
+        query = query.join(
+            ChatMessageHistory, ChatMessageHistory.id == File.message_id
+        ).where(ChatMessageHistory.deleted_at.is_(None))
+    if for_share:
+        query = query.with_for_update(read=True, of=File)
+    return list(await session.scalars(query.order_by(File.message_position, File.id)))
+
+
+async def lock_message_photos(
+    session: AsyncSession, chat_id: UUID, owner_id: UUID, photo_ids: Sequence[UUID]
+) -> list[File]:
+    """Validate and lock chat photos for a new message."""
+    if not photo_ids:
+        return []
+    if len(set(photo_ids)) != len(photo_ids):
+        raise ProblemError(CHAT_PHOTO_INVALID)
+    files = list(
+        await session.scalars(
+            select(File)
+            .where(File.id.in_(photo_ids))
+            .order_by(File.id)
+            .with_for_update()
+        )
+    )
+    now = clock.now()
+    if len(files) != len(photo_ids):
+        raise ProblemError(CHAT_PHOTO_INVALID)
+    for file in files:
+        if (
+            file.owner_id != owner_id
+            or file.chat_id != chat_id
+            or file.purpose != "chat_photo"
+            or file.status != "ready"
+            or file.message_id is not None
+            or file.expires_at <= now
+        ):
+            raise ProblemError(CHAT_PHOTO_INVALID)
+    # Rows are locked in id order to avoid deadlocks; the caller's order is
+    # the display order of the message and survives on the file positions.
+    by_id = {file.id: file for file in files}
+    return [by_id[photo_id] for photo_id in photo_ids]
+
+
+def _version_row(
+    message: StoredMessage, kind: str, *, now: Any, retention: Any
+) -> ChatMessageVersion:
+    return ChatMessageVersion(
+        chat_id=message.chat_id,
+        message_id=message.id,
+        version=message.version,
+        kind=kind,
+        text=message.text,
+        created_at=now,
+        purge_at=now + retention,
+    )
 
 
 async def require_membership(
@@ -459,6 +609,8 @@ async def post_message(  # noqa: PLR0913 - message fields
     client_id: UUID,
     text: str,
     settings: Settings,
+    reply_to_id: UUID | None = None,
+    photo_ids: Sequence[UUID] | None = None,
 ) -> tuple[ChatMessage | ChatMessageHistory, bool]:
     """Store a message once, deduplicated by its client identifier.
 
@@ -505,6 +657,15 @@ async def post_message(  # noqa: PLR0913 - message fields
         if existing.sender_id != sender_id or existing.content_hash != digest:
             raise ProblemError(CHAT_MESSAGE_CONFLICT)
         return await stored_message(session, existing), False
+    if (
+        reply_to_id is not None
+        and await visible_message(session, chat_id, reply_to_id) is None
+    ):
+        raise ProblemError(NOT_FOUND)
+    photo_ids = list(photo_ids or [])
+    if len(photo_ids) > settings.chat_photo_limit:
+        raise ProblemError(CHAT_PHOTO_INVALID)
+    photos = await lock_message_photos(session, chat_id, sender_id, photo_ids)
     await check_rate_limit(session, sender_id, settings)
     now = clock.now()
     # The row lock serializes the counter; the number is committed with the
@@ -556,21 +717,143 @@ async def post_message(  # noqa: PLR0913 - message fields
         client_id=client_id,
         sequence=sequence,
         text=text,
+        reply_to_id=reply_to_id,
+        version=1,
         created_at=now,
     )
     session.add(message)
+    for position, file in enumerate(photos):
+        file.message_id = message.id
+        file.message_position = position
     add_message(session, MESSAGE_TOPIC, message_payload(message))
     return message, True
 
 
-async def snapshot_message(
-    session: AsyncSession, *, complaint_id: UUID, message_id: UUID
-) -> ChatMessageSnapshot:
-    """Copy a message into an immutable complaint attachment.
+async def edit_message(  # noqa: PLR0913 - message fields
+    session: AsyncSession,
+    *,
+    chat_id: UUID,
+    message_id: UUID,
+    editor_id: UUID,
+    text: str,
+    settings: Settings,
+) -> tuple[StoredMessage, bool]:
+    """Edit the author's message and keep the previous text hidden.
 
-    The copy has no foreign keys, so deleting the chat later does not erase
-    the evidence. Repeating the capture for the same complaint and message
-    returns the first snapshot instead of creating a second one.
+    The message row is locked, so concurrent edits and a delete serialize:
+    every change stores the text it replaced and no revision is lost. A
+    repeated edit with the same text is a no-op; editing a deleted message
+    is a conflict.
+    """
+    message = await locked_stored_message(session, message_id)
+    if message is None or message.chat_id != chat_id:
+        raise ProblemError(NOT_FOUND)
+    await require_membership(session, chat_id, editor_id)
+    if message.sender_id != editor_id:
+        raise ProblemError(NOT_FOUND)
+    if message.deleted_at is not None:
+        raise ProblemError(CHAT_MESSAGE_DELETED)
+    if not text.strip() or len(text) > settings.chat_message_max_length:
+        raise ProblemError(CHAT_MESSAGE_INVALID)
+    if text == message.text:
+        return message, False
+    now = clock.now()
+    session.add(
+        _version_row(
+            message,
+            "edit",
+            now=now,
+            retention=settings.chat_message_version_retention,
+        )
+    )
+    message.text = text
+    message.version += 1
+    add_message(session, MESSAGE_TOPIC, message_payload(message, action="edited"))
+    return message, True
+
+
+async def delete_message(
+    session: AsyncSession,
+    *,
+    chat_id: UUID,
+    message_id: UUID,
+    author_id: UUID,
+    settings: Settings,
+) -> bool:
+    """Hide the author's message and keep its text as a 30-day revision.
+
+    The base row stops carrying the text immediately: the space is a
+    non-empty placeholder required by the table constraint, is not indexed
+    by full-text search and is never returned by the history API. The
+    hidden revision remains available only through complaint evidence.
+    """
+    message = await locked_stored_message(session, message_id)
+    if message is None or message.chat_id != chat_id:
+        raise ProblemError(NOT_FOUND)
+    await require_membership(session, chat_id, author_id)
+    if message.sender_id != author_id:
+        raise ProblemError(NOT_FOUND)
+    if message.deleted_at is not None:
+        return False
+    now = clock.now()
+    session.add(
+        _version_row(
+            message,
+            "delete",
+            now=now,
+            retention=settings.chat_message_version_retention,
+        )
+    )
+    message.text = " "
+    message.deleted_at = now
+    message.version += 1
+    add_message(session, MESSAGE_TOPIC, message_payload(message, action="deleted"))
+    return True
+
+
+async def message_evidence(
+    session: AsyncSession, *, chat_id: UUID, message_id: UUID
+) -> tuple[StoredMessage, list[ChatMessageVersion], list[File]] | None:
+    """Hidden revisions and photos available to a complaint within 30 days."""
+    message = await stored_message_by_id(session, message_id)
+    if message is None or message.chat_id != chat_id:
+        return None
+    now = clock.now()
+    versions = list(
+        await session.scalars(
+            select(ChatMessageVersion)
+            .where(
+                ChatMessageVersion.message_id == message_id,
+                ChatMessageVersion.purge_at > now,
+            )
+            .order_by(ChatMessageVersion.version)
+        )
+    )
+    photos = await message_photos(session, message_id, for_evidence=True)
+    return message, versions, photos
+
+
+async def snapshot_message(
+    session: AsyncSession,
+    *,
+    complaint_id: UUID,
+    message_id: UUID,
+    version: int | None = None,
+    settings: Settings,
+) -> ChatMessageSnapshot:
+    """Copy a message and its photos into an immutable complaint attachment.
+
+    The copy has no foreign keys to the chat, the message or the sender, so
+    deleting the chat later does not erase the evidence. A deleted message
+    is captured only while its hidden revision is inside the retention
+    window: after the boundary the text is erased even if the cleanup job
+    has not run yet.
+
+    ``version`` selects one revision returned by :func:`message_evidence`
+    instead of the current text. The revision must still be inside its own
+    retention window; an already purged revision is refused. Repeating the
+    capture for the same complaint and message returns the first snapshot,
+    whose ``version`` reports the revision actually preserved.
     """
     snapshot = await session.scalar(
         select(ChatMessageSnapshot).where(
@@ -585,16 +868,83 @@ async def snapshot_message(
     )
     if message is None:
         raise ProblemError(NOT_FOUND)
+    now = clock.now()
+    if (
+        message.deleted_at is not None
+        and message.deleted_at <= now - settings.chat_message_version_retention
+    ):
+        # The boundary applies to every capture of a deleted message, not
+        # only to the default current-text path.
+        raise ProblemError(NOT_FOUND)
+    text, captured_version = message.text, message.version
+    if version is not None:
+        revision = await session.scalar(
+            select(ChatMessageVersion).where(
+                ChatMessageVersion.message_id == message_id,
+                ChatMessageVersion.chat_id == message.chat_id,
+                ChatMessageVersion.version == version,
+                ChatMessageVersion.purge_at > now,
+            )
+        )
+        if revision is not None:
+            text, captured_version = revision.text, revision.version
+        elif version != message.version or message.deleted_at is not None:
+            # A visible current revision has no hidden row; a deleted
+            # message always has a deletion revision until it expires.
+            raise ProblemError(NOT_FOUND)
+    elif message.deleted_at is not None:
+        # A complaint filed after deletion must capture the hidden deletion
+        # revision, not the placeholder left in the base row.
+        hidden = await session.scalar(
+            select(ChatMessageVersion)
+            .where(
+                ChatMessageVersion.message_id == message_id,
+                ChatMessageVersion.purge_at > now,
+            )
+            .order_by(ChatMessageVersion.version.desc())
+            .limit(1)
+        )
+        if hidden is None:
+            raise ProblemError(NOT_FOUND)
+        text, captured_version = hidden.text, hidden.version
     snapshot = ChatMessageSnapshot(
         complaint_id=complaint_id,
         chat_id=message.chat_id,
         message_id=message.id,
         sender_id=message.sender_id,
         sequence=message.sequence,
-        text=message.text,
+        text=text,
+        version=captured_version,
         message_created_at=message.created_at,
-        captured_at=clock.now(),
+        captured_at=now,
     )
     session.add(snapshot)
     await session.flush()
+    photos = await message_photos(
+        session, message_id, for_evidence=True, for_share=True
+    )
+    for position, file in enumerate(photos):
+        session.add(
+            ChatMessageSnapshotPhoto(
+                snapshot_id=snapshot.id,
+                file_id=file.id,
+                key=file.key,
+                size=file.size,
+                position=position,
+            )
+        )
+    await session.flush()
     return snapshot
+
+
+async def snapshot_photos(
+    session: AsyncSession, snapshot_id: UUID
+) -> list[ChatMessageSnapshotPhoto]:
+    """Processed photo objects copied into one complaint attachment."""
+    return list(
+        await session.scalars(
+            select(ChatMessageSnapshotPhoto)
+            .where(ChatMessageSnapshotPhoto.snapshot_id == snapshot_id)
+            .order_by(ChatMessageSnapshotPhoto.position, ChatMessageSnapshotPhoto.id)
+        )
+    )

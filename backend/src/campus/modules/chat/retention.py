@@ -22,20 +22,28 @@ share this module:
 
 Complaint snapshots live in ``chat_message_snapshot`` without foreign keys
 to the chat, so deleting a chat never deletes evidence of a complaint.
+Copied photos keep their processed objects in S3: the cleanup deletes the
+``file`` row and the original source but never the ``/photo`` and
+``/preview`` objects referenced by ``chat_message_snapshot_photo``.
 """
 
 from datetime import datetime
 from uuid import UUID
 
 import structlog
-from sqlalchemy import select, text, tuple_
+from sqlalchemy import delete, select, text, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from campus.core import clock
 from campus.core.config import Settings
 from campus.core.storage import Storage, storage_io
 from campus.core.tasks import register_cleanup
-from campus.modules.chat.models import Chat, ChatMember
+from campus.modules.chat.models import (
+    Chat,
+    ChatMember,
+    ChatMessageHistory,
+    ChatMessageSnapshotPhoto,
+)
 from campus.modules.files import File
 from campus.modules.realtime import revoke_chat_access
 
@@ -59,20 +67,48 @@ _ARCHIVE_SQL = text(
           AND message.created_at = due.created_at
         RETURNING message.id, message.chat_id, message.sender_id,
                   message.client_id, message.sequence, message.text,
-                  message.deleted_at, message.created_at
+                  message.reply_to_id, message.version, message.deleted_at,
+                  message.created_at
     )
     INSERT INTO chat_message_archive
-        (id, chat_id, sender_id, client_id, sequence, text, deleted_at,
-         created_at)
-    SELECT id, chat_id, sender_id, client_id, sequence, text, deleted_at,
-           created_at
+        (id, chat_id, sender_id, client_id, sequence, text, reply_to_id,
+         version, deleted_at, created_at)
+    SELECT id, chat_id, sender_id, client_id, sequence, text, reply_to_id,
+           version, deleted_at, created_at
     FROM moved
     ON CONFLICT (id, created_at) DO NOTHING
     RETURNING id
     """
 )
 
-_PHOTO_SUFFIXES = ("/source", "/photo", "/preview")
+_EVIDENCE_SUFFIXES = ("/photo", "/preview")
+
+
+async def _snapshot_protected_file_ids(
+    session: AsyncSession, files: list[File]
+) -> set[UUID]:
+    """Files whose processed objects belong to a complaint attachment."""
+    ids = [file.id for file in files]
+    if not ids:
+        return set()
+    return set(
+        await session.scalars(
+            select(ChatMessageSnapshotPhoto.file_id).where(
+                ChatMessageSnapshotPhoto.file_id.in_(ids)
+            )
+        )
+    )
+
+
+async def _delete_file_objects(
+    storage: Storage, file: File, *, keep_evidence: bool
+) -> None:
+    """Delete the original source; processed objects may be case evidence."""
+    await storage_io(storage.delete, file.key + "/source")
+    if keep_evidence:
+        return
+    for suffix in _EVIDENCE_SUFFIXES:
+        await storage_io(storage.delete, file.key + suffix)
 
 
 async def archive_messages(
@@ -146,10 +182,14 @@ async def _purge_chat(
         )
     )
     if files:
+        protected = await _snapshot_protected_file_ids(session, files)
         storage = Storage(settings)
         for file in files:
-            for suffix in _PHOTO_SUFFIXES:
-                await storage_io(storage.delete, file.key + suffix)
+            await _delete_file_objects(
+                storage,
+                file,
+                keep_evidence=file.id in protected,
+            )
         for file in files:
             await session.delete(file)
         # File has no relationship object, so make the FK order explicit:
@@ -213,6 +253,96 @@ async def cleanup_chat_messages(
 ) -> dict[str, int]:
     """Registered archive job; a database failure is reported, not hidden."""
     return await archive_messages(sessions, settings)
+
+
+async def purge_message_versions(
+    sessions: async_sessionmaker[AsyncSession], settings: Settings
+) -> dict[str, int]:
+    """Erase hidden revisions and unprotected photos after 30 days.
+
+    Files go first: deleting a revision is cheap and idempotent, while a
+    storage failure must leave the revision in place so the next run can
+    still find and delete the object. A photo copied into a complaint
+    snapshot loses its file row and original source but keeps the processed
+    objects the case still refers to.
+    """
+    cutoff = clock.now() - settings.chat_message_version_retention
+    report = {"versions": 0, "files": 0, "protected": 0, "batches": 0, "failed": 0}
+    while report["versions"] < settings.chat_message_version_cleanup_limit:
+        batch = min(
+            settings.chat_message_version_cleanup_batch,
+            settings.chat_message_version_cleanup_limit - report["versions"],
+        )
+        try:
+            async with sessions() as db, db.begin():
+                files = list(
+                    await db.scalars(
+                        select(File)
+                        .join(
+                            ChatMessageHistory,
+                            ChatMessageHistory.id == File.message_id,
+                        )
+                        .where(
+                            File.message_id.is_not(None),
+                            ChatMessageHistory.deleted_at.is_not(None),
+                            ChatMessageHistory.deleted_at <= cutoff,
+                        )
+                        .order_by(File.id)
+                        .limit(batch)
+                        .with_for_update(of=File, skip_locked=True)
+                    )
+                )
+                if files:
+                    protected = await _snapshot_protected_file_ids(db, files)
+                    storage = Storage(settings)
+                    for file in files:
+                        await _delete_file_objects(
+                            storage,
+                            file,
+                            keep_evidence=file.id in protected,
+                        )
+                    await db.execute(
+                        delete(File).where(File.id.in_([file.id for file in files]))
+                    )
+                    report["files"] += len(files)
+                    report["protected"] += len(protected)
+                purged = await db.scalars(
+                    text(
+                        """
+                        DELETE FROM chat_message_version
+                        WHERE id IN (
+                            SELECT id FROM chat_message_version
+                            WHERE purge_at <= :now
+                            ORDER BY purge_at, id
+                            LIMIT :batch
+                            FOR UPDATE SKIP LOCKED
+                        )
+                        RETURNING id
+                        """
+                    ),
+                    {"now": clock.now(), "batch": batch},
+                )
+                count = len(list(purged))
+        except Exception as error:
+            report["failed"] += 1
+            logger.warning(
+                "chat_message_version_cleanup_failed",
+                error=type(error).__name__,
+            )
+            break
+        if files == [] and count == 0:
+            break
+        report["versions"] += count
+        report["batches"] += 1
+    return report
+
+
+@register_cleanup("chat_message_versions")
+async def cleanup_message_versions(
+    sessions: async_sessionmaker[AsyncSession], settings: Settings
+) -> dict[str, int]:
+    """Registered 30-day hidden-message cleanup."""
+    return await purge_message_versions(sessions, settings)
 
 
 @register_cleanup("chat_retention")

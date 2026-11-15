@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 18:10+0300\n"
+"POT-Creation-Date: 2026-11-15 19:20+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -23,6 +23,9 @@ msgstr "Нужна причина отмены."
 msgid "A chat must have two different members."
 msgstr "В чате должно быть два разных участника."
 
+msgid "A deleted message cannot be edited."
+msgstr "Удалённое сообщение нельзя изменить."
+
 #, python-brace-format
 msgid "A lesson has from {min} to {max} time options."
 msgstr "В занятии должно быть от {min} до {max} вариантов времени."
@@ -32,6 +35,9 @@ msgstr "Второй участник предложил время и мест�
 
 msgid "A participant asks to leave the purchase."
 msgstr "Участник просит выйти из закупки."
+
+msgid "A photo must be ready, belong to this chat and not be attached yet."
+msgstr "Фото должно быть готово, принадлежать этому чату и ещё не быть прикреплённым."
 
 msgid ""
 "A place in the queue is available for you. Confirm it before the timer "
@@ -180,6 +186,9 @@ msgstr "Внутренняя ошибка"
 
 msgid "Invalid cancellation reason."
 msgstr "Некорректная причина отмены."
+
+msgid "Invalid chat photo."
+msgstr "Некорректное фото для чата."
 
 msgid "Invalid client version"
 msgstr "Неверная версия клиента"
@@ -407,6 +416,9 @@ msgstr "Обновите объявление. Его текущая верси�
 msgid "Reload the settings. Their current version is {version}."
 msgstr "Обновите настройки. Их текущая версия: {version}."
 
+msgid "Request a new chat photo upload."
+msgstr "Запросите новую загрузку фото в чат."
+
 msgid "Request failed"
 msgstr "Запрос не выполнен"
 
@@ -567,6 +579,9 @@ msgstr "Время встречи должно быть в будущем."
 msgid "The message identifier is already used."
 msgstr "Идентификатор сообщения уже использован."
 
+msgid "The message is deleted."
+msgstr "Сообщение удалено."
+
 msgid "The message text is empty or too long."
 msgstr "Текст сообщения пуст или слишком длинный."
 
@@ -604,6 +619,9 @@ msgstr "Курсор страницы неверен или относится �
 
 msgid "The photo is not processed yet, has expired or is used by a listing."
 msgstr "Фото ещё обрабатывается, устарело или уже прикреплено к объявлению."
+
+msgid "The photo upload expired."
+msgstr "Срок загрузки фото истёк."
 
 msgid "The place is offered to another participant."
 msgstr "Место предложено другому участнику."

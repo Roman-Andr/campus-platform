@@ -4,10 +4,17 @@ import 'dart:convert' as convert;
 
 import 'package:dio/dio.dart' show Dio, Options, ResponseType, CancelToken;
 
+import 'models/chat_file_output.dart' as models show ChatFileOutput;
 import 'models/chat_input.dart' as models show ChatInput;
 import 'models/chat_output.dart' as models show ChatOutput;
 import 'models/chat_output_last_message.dart' as models show MessageOutput;
+import 'models/chat_photos_output.dart' as models show ChatPhotosOutput;
+import 'models/chat_upload_output.dart' as models show ChatUploadOutput;
 import 'models/list_chats_order_by.dart' as models show ListChatsOrderBy;
+import 'models/message_edit_input.dart' as models show MessageEditInput;
+import 'models/message_evidence_output.dart'
+    as models
+    show MessageEvidenceOutput;
 import 'models/message_input.dart' as models show MessageInput;
 import 'models/page_chat_output.dart' as models show PageChatOutput;
 import 'models/page_chat_search_result.dart'
@@ -328,5 +335,262 @@ class ChatsClient {
       options: _options,
       cancelToken: cancelToken,
     );
+  }
+
+  /// Request Chat Photo
+  ///
+  /// A protected upload form for one chat; the object is never public.
+  Future<models.ChatUploadOutput> requestChatPhoto({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String chatId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(chatId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 201),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/chats/" + Uri.encodeComponent(chatId) + "/photo-uploads",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.ChatUploadOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Complete Chat Photo
+  ///
+  /// Start processing only for the uploader's own chat photo.
+  Future<models.ChatFileOutput> completeChatPhoto({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String chatId,
+    required String fileId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(chatId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(fileId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 202),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/chats/" +
+          Uri.encodeComponent(chatId) +
+          "/photo-uploads/" +
+          Uri.encodeComponent(fileId) +
+          "/complete",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.ChatFileOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// List Message Photos
+  ///
+  /// Signed URLs only for a member of the chat and a visible message.
+  Future<models.ChatPhotosOutput> listMessagePhotos({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String chatId,
+    required String messageId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(chatId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(messageId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/chats/" +
+          Uri.encodeComponent(chatId) +
+          "/messages/" +
+          Uri.encodeComponent(messageId) +
+          "/photos",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.ChatPhotosOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Message Evidence View
+  ///
+  /// Hidden versions for a complaint, restricted to the chat and 30 days.
+  Future<models.MessageEvidenceOutput> messageEvidenceView({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String chatId,
+    required String messageId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(chatId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(messageId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/chats/" +
+          Uri.encodeComponent(chatId) +
+          "/messages/" +
+          Uri.encodeComponent(messageId) +
+          "/evidence",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.MessageEvidenceOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Delete Message View
+  ///
+  /// Delete the author's own message; repeating the request is a no-op.
+  Future<void> deleteMessageView({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String chatId,
+    required String messageId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(chatId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(messageId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "DELETE",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 204),
+    );
+    await _transport.request<dynamic>(
+      "/api/v1/chats/" +
+          Uri.encodeComponent(chatId) +
+          "/messages/" +
+          Uri.encodeComponent(messageId),
+      options: _options,
+      cancelToken: cancelToken,
+    );
+  }
+
+  /// Edit Message View
+  ///
+  /// Edit the author's own message; the previous text becomes a revision.
+  Future<models.MessageOutput> editMessageView({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String chatId,
+    required String messageId,
+    required models.MessageEditInput body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(chatId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(messageId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "PATCH",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/chats/" +
+          Uri.encodeComponent(chatId) +
+          "/messages/" +
+          Uri.encodeComponent(messageId),
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.MessageOutput.fromJson(response.data as Map<String, Object?>);
   }
 }

@@ -7,6 +7,12 @@ class MessageInput {
 
     /// Message text.
     required this.text,
+
+    /// Visible message in the same chat to quote.
+    this.replyToId,
+
+    /// Ready chat photos, at most the configured message limit.
+    this.photoIds,
   });
 
   factory MessageInput.fromJson(Map<String, Object?> json) {
@@ -16,6 +22,14 @@ class MessageInput {
     return MessageInput(
       clientId: json["client_id"] as String,
       text: json["text"] as String,
+      replyToId: json.containsKey("reply_to_id")
+          ? json["reply_to_id"] as String?
+          : null,
+      photoIds: json.containsKey("photo_ids")
+          ? (json["photo_ids"] as List<Object?>)
+                .map((item) => item as String)
+                .toList()
+          : null,
     );
   }
 
@@ -25,10 +39,24 @@ class MessageInput {
   /// Message text.
   final String text;
 
-  static const _knownKeys = <String>{"client_id", "text"};
+  /// Visible message in the same chat to quote.
+  final String? replyToId;
+
+  /// Ready chat photos, at most the configured message limit.
+  final List<String>? photoIds;
+
+  static const _knownKeys = <String>{
+    "client_id",
+    "text",
+    "reply_to_id",
+    "photo_ids",
+  };
 
   Map<String, Object?> toJson() => {
     "client_id": this.clientId,
     "text": this.text,
+    if (this.replyToId != null) "reply_to_id": this.replyToId,
+    if (this.photoIds != null)
+      "photo_ids": this.photoIds?.map((item) => item).toList(),
   };
 }

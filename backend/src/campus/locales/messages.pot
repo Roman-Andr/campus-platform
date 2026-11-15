@@ -4,6 +4,9 @@ msgstr ""
 msgid "A chat must have two different members."
 msgstr ""
 
+msgid "A deleted message cannot be edited."
+msgstr ""
+
 #, python-brace-format
 msgid "A lesson has from {min} to {max} time options."
 msgstr ""
@@ -12,6 +15,9 @@ msgid "A meeting time and place were proposed."
 msgstr ""
 
 msgid "A participant asks to leave the purchase."
+msgstr ""
+
+msgid "A photo must be ready, belong to this chat and not be attached yet."
 msgstr ""
 
 msgid ""
@@ -152,6 +158,9 @@ msgid "Internal error"
 msgstr ""
 
 msgid "Invalid cancellation reason."
+msgstr ""
+
+msgid "Invalid chat photo."
 msgstr ""
 
 msgid "Invalid client version"
@@ -378,6 +387,9 @@ msgstr ""
 msgid "Reload the settings. Their current version is {version}."
 msgstr ""
 
+msgid "Request a new chat photo upload."
+msgstr ""
+
 msgid "Request failed"
 msgstr ""
 
@@ -534,6 +546,9 @@ msgstr ""
 msgid "The message identifier is already used."
 msgstr ""
 
+msgid "The message is deleted."
+msgstr ""
+
 msgid "The message text is empty or too long."
 msgstr ""
 
@@ -568,6 +583,9 @@ msgid "The page cursor is invalid or belongs to another list; start over."
 msgstr ""
 
 msgid "The photo is not processed yet, has expired or is used by a listing."
+msgstr ""
+
+msgid "The photo upload expired."
 msgstr ""
 
 msgid "The place is offered to another participant."

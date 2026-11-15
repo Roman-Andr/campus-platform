@@ -6,8 +6,11 @@ enum ProblemCodeValue {
   chatForbidden("chat_forbidden"),
   chatLinkInvalid("chat_link_invalid"),
   chatMessageConflict("chat_message_conflict"),
+  chatMessageDeleted("chat_message_deleted"),
   chatMessageInvalid("chat_message_invalid"),
   chatNotFound("chat_not_found"),
+  chatPhotoExpired("chat_photo_expired"),
+  chatPhotoInvalid("chat_photo_invalid"),
   chatRateLimited("chat_rate_limited"),
   chatSearchInvalid("chat_search_invalid"),
   chatSelf("chat_self"),
@@ -128,10 +131,19 @@ sealed class ProblemCode {
   static const chatMessageConflict = ProblemCodeKnown(
     ProblemCodeValue.chatMessageConflict,
   );
+  static const chatMessageDeleted = ProblemCodeKnown(
+    ProblemCodeValue.chatMessageDeleted,
+  );
   static const chatMessageInvalid = ProblemCodeKnown(
     ProblemCodeValue.chatMessageInvalid,
   );
   static const chatNotFound = ProblemCodeKnown(ProblemCodeValue.chatNotFound);
+  static const chatPhotoExpired = ProblemCodeKnown(
+    ProblemCodeValue.chatPhotoExpired,
+  );
+  static const chatPhotoInvalid = ProblemCodeKnown(
+    ProblemCodeValue.chatPhotoInvalid,
+  );
   static const chatRateLimited = ProblemCodeKnown(
     ProblemCodeValue.chatRateLimited,
   );
