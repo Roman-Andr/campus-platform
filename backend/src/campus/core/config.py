@@ -385,6 +385,12 @@ class Settings(BaseSettings):
     listing_open_to_all_before: timedelta = Field(
         default=timedelta(hours=1), gt=timedelta(0)
     )
+    # A participant cancellation closer to a meeting or event start than this
+    # is counted as late (appendix 4: 24 hours).
+    listing_late_cancellation_threshold: timedelta = Field(
+        default=timedelta(hours=24), gt=timedelta(0)
+    )
+    listing_cancellation_reason_max_length: int = Field(default=500, ge=1)
 
     # How many time options a skill lesson offers (specification, 5.1.1).
     lesson_options_min: int = Field(default=2, ge=1)
