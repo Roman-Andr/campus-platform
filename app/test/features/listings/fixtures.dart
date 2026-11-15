@@ -76,6 +76,7 @@ Map<String, Object?> eventListingJson({
   String? startsAt,
   String? endsAt,
   String location = 'Hall A',
+  String? attendanceMode = 'self',
 }) {
   final ends = endsAt ?? '2099-01-01T02:00:00Z';
   return {
@@ -88,6 +89,7 @@ Map<String, Object?> eventListingJson({
     'event_location': location,
     'event_capacity': capacity,
     'remaining_places': remaining,
+    'event_attendance_mode': attendanceMode,
   };
 }
 

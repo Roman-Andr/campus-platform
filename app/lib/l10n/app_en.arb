@@ -1251,4 +1251,101 @@
   "@chatPhotoFix": {"description": "Asks to remove or retry failed photos."},
   "@chatPhotosUnavailable": {"description": "Signed photo links were not received."},
   "@chatYou": {"description": "Author label of an own quote."}
+,
+  "attendanceTitle": "Event attendance",
+  "attendanceManageAction": "Participants' attendance",
+  "attendanceOpenAction": "Mark my attendance",
+  "attendanceUnavailable": "Only events have attendance.",
+  "attendanceModeTitle": "Attendance mode",
+  "attendanceModeSelf": "Participants mark themselves",
+  "attendanceModeScan": "The organizer marks participants",
+  "attendanceModeSelfHint": "Show the code to participants: they enter it in the app.",
+  "attendanceModeScanHint": "A participant shows a personal code, you mark them.",
+  "attendanceModeMissing": "The organizer has not chosen an attendance mode yet.",
+  "attendanceWindowBefore": "Attendance opens at {time}.",
+  "@attendanceWindowBefore": {
+    "description": "The attendance window has not opened yet; the time is in the event city zone.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceWindowOpen": "Attendance is open until {time}.",
+  "@attendanceWindowOpen": {
+    "description": "The attendance window is open; the end time is in the event city zone.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceWindowAfter": "Attendance is closed: the event has ended.",
+  "attendanceCodeTitle": "Organizer's code",
+  "attendanceCodeHint": "Show this code to participants: it refreshes automatically.",
+  "attendanceParticipantCodeTitle": "Your code",
+  "attendanceParticipantCodeHint": "Show this code to the organizer. It refreshes automatically.",
+  "attendanceCodeExpires": "The code refreshes in {seconds} s.",
+  "@attendanceCodeExpires": {
+    "description": "Countdown to the next rotating code.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "attendanceCodeCopy": "Copy code",
+  "attendanceCodeRefresh": "Show a new code",
+  "attendanceCodeCopied": "Code copied.",
+  "attendanceCodeRequired": "Enter the code.",
+  "attendanceOrganizerCodeLabel": "Organizer's code",
+  "attendanceParticipantCodeLabel": "Participant's personal code",
+  "attendanceSelfHint": "Enter the code the organizer shows.",
+  "attendanceScanHint": "Enter the participant's personal code.",
+  "attendanceSubmitSelf": "Mark me present",
+  "attendanceSubmitScan": "Mark participant",
+  "attendanceSelfMarked": "You are marked at the event.",
+  "attendanceSelfAlreadyMarked": "You are already marked at the event.",
+  "attendanceScanMarked": "{name} is marked present.",
+  "@attendanceScanMarked": {
+    "description": "The organizer marked a participant.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceScanAlreadyMarked": "{name} is already marked.",
+  "@attendanceScanAlreadyMarked": {
+    "description": "A repeated scan did not add a second mark.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceListTitle": "Marked participants",
+  "attendanceListCount": "Marked: {count}",
+  "@attendanceListCount": {
+    "description": "How many participants are marked now.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "attendanceListEmpty": "Nobody has been marked yet.",
+  "attendanceRefreshList": "Refresh the list",
+  "attendanceRemoved": "mark removed",
+  "attendanceRemovedDone": "The mark was removed.",
+  "attendanceRemove": "Remove mark",
+  "attendanceNoLongerRegistered": "no longer registered",
+  "attendanceMethodSelf": "Self-marking",
+  "attendanceMethodScan": "Scanning",
+  "attendanceForbidden": "Only the event organizer can do this.",
+  "attendanceNotRegistered": "Only a registered participant can be marked.",
+  "attendanceModeConflict": "The event has switched to another attendance mode.",
+  "attendanceCodeInvalid": "The code does not belong to this event.",
+  "attendanceCodeExpired": "The code has expired. Ask for a new one.",
+  "attendanceNotFound": "This participant has no mark."
 }

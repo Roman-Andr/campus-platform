@@ -2339,4 +2339,143 @@
   "@chatPhotoFix": {"description": "Просит убрать или повторить неудачные фото."},
   "@chatPhotosUnavailable": {"description": "Подписанные ссылки на фото не получены."},
   "@chatYou": {"description": "Подпись автора своей цитаты."}
+,
+  "attendanceTitle": "Отметка на мероприятии",
+  "@attendanceTitle": {"description": "Заголовок экрана отметки на мероприятии."},
+  "attendanceManageAction": "Отметка участников",
+  "@attendanceManageAction": {"description": "Кнопка организатора: открыть отметку участников."},
+  "attendanceOpenAction": "Отметка на мероприятии",
+  "@attendanceOpenAction": {"description": "Кнопка участника: открыть экран своей отметки."},
+  "attendanceUnavailable": "У этого мероприятия нет отметки.",
+  "@attendanceUnavailable": {"description": "Отметка есть только у мероприятий."},
+  "attendanceModeTitle": "Режим отметки",
+  "@attendanceModeTitle": {"description": "Заголовок выбора режима отметки организатором."},
+  "attendanceModeSelf": "Участники отмечаются сами",
+  "@attendanceModeSelf": {"description": "Режим: участник вводит код организатора."},
+  "attendanceModeScan": "Организатор отмечает участников",
+  "@attendanceModeScan": {"description": "Режим: организатор вводит личные коды участников."},
+  "attendanceModeSelfHint": "Покажите код участникам: они введут его в приложении.",
+  "@attendanceModeSelfHint": {"description": "Пояснение режима самоотметки организатору."},
+  "attendanceModeScanHint": "Участник показывает личный код, вы отмечаете его.",
+  "@attendanceModeScanHint": {"description": "Пояснение режима отметки организатором."},
+  "attendanceModeMissing": "Организатор ещё не выбрал режим отметки.",
+  "@attendanceModeMissing": {"description": "У мероприятия нет режима отметки."},
+  "attendanceWindowBefore": "Отметка откроется {time}.",
+  "@attendanceWindowBefore": {
+    "description": "Окно отметки ещё не открылось; время в поясе города события.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceWindowOpen": "Отметка открыта до {time}.",
+  "@attendanceWindowOpen": {
+    "description": "Окно отметки открыто; время окончания в поясе города события.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceWindowAfter": "Отметка закрыта: мероприятие закончилось.",
+  "@attendanceWindowAfter": {"description": "Окно отметки закрылось."},
+  "attendanceCodeTitle": "Код организатора",
+  "@attendanceCodeTitle": {"description": "Заголовок обновляемого кода организатора."},
+  "attendanceCodeHint": "Покажите этот код участникам: он обновляется автоматически.",
+  "@attendanceCodeHint": {"description": "Пояснение к коду организатора."},
+  "attendanceParticipantCodeTitle": "Ваш код",
+  "@attendanceParticipantCodeTitle": {"description": "Заголовок личного кода участника."},
+  "attendanceParticipantCodeHint": "Покажите этот код организатору. Он обновляется автоматически.",
+  "@attendanceParticipantCodeHint": {"description": "Пояснение к личному коду участника."},
+  "attendanceCodeExpires": "Код обновится через {seconds} с.",
+  "@attendanceCodeExpires": {
+    "description": "Обратный отсчёт до обновления кода отметки.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "attendanceCodeCopy": "Скопировать код",
+  "@attendanceCodeCopy": {"description": "Кнопка копирования кода отметки."},
+  "attendanceCodeRefresh": "Показать новый код",
+  "@attendanceCodeRefresh": {"description": "Кнопка досрочного обновления кода отметки."},
+  "attendanceCodeCopied": "Код скопирован.",
+  "@attendanceCodeCopied": {"description": "Код отметки скопирован в буфер обмена."},
+  "attendanceCodeRequired": "Введите код.",
+  "@attendanceCodeRequired": {"description": "Поле кода отметки не заполнено."},
+  "attendanceOrganizerCodeLabel": "Код организатора",
+  "@attendanceOrganizerCodeLabel": {"description": "Поле ввода кода организатора участником."},
+  "attendanceParticipantCodeLabel": "Личный код участника",
+  "@attendanceParticipantCodeLabel": {"description": "Поле ввода личного кода участника организатором."},
+  "attendanceSelfHint": "Введите код, который показывает организатор.",
+  "@attendanceSelfHint": {"description": "Пояснение самоотметки участнику."},
+  "attendanceScanHint": "Введите личный код участника.",
+  "@attendanceScanHint": {"description": "Пояснение отметки организатором."},
+  "attendanceSubmitSelf": "Отметить меня",
+  "@attendanceSubmitSelf": {"description": "Кнопка самоотметки участника."},
+  "attendanceSubmitScan": "Отметить участника",
+  "@attendanceSubmitScan": {"description": "Кнопка отметки участника организатором."},
+  "attendanceSelfMarked": "Вы отмечены на мероприятии.",
+  "@attendanceSelfMarked": {"description": "Участник отмечен на мероприятии."},
+  "attendanceSelfAlreadyMarked": "Вы уже отмечены на мероприятии.",
+  "@attendanceSelfAlreadyMarked": {"description": "Повторная самоотметка не добавила вторую."},
+  "attendanceScanMarked": "{name}: отметка поставлена.",
+  "@attendanceScanMarked": {
+    "description": "Организатор отметил участника.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceScanAlreadyMarked": "{name}: уже отмечен.",
+  "@attendanceScanAlreadyMarked": {
+    "description": "Повторное сканирование не добавило вторую отметку.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceListTitle": "Отметившиеся",
+  "@attendanceListTitle": {"description": "Заголовок списка отметившихся организатору."},
+  "attendanceListCount": "Отмечено: {count}",
+  "@attendanceListCount": {
+    "description": "Сколько участников отмечено сейчас.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "attendanceListEmpty": "Пока никто не отмечен.",
+  "@attendanceListEmpty": {"description": "Список отметившихся пуст."},
+  "attendanceRefreshList": "Обновить список",
+  "@attendanceRefreshList": {"description": "Кнопка обновления списка отметившихся."},
+  "attendanceRemoved": "отметка снята",
+  "@attendanceRemoved": {"description": "Подпись снятой отметки в списке организатора."},
+  "attendanceRemovedDone": "Отметка снята.",
+  "@attendanceRemovedDone": {"description": "Организатор снял отметку."},
+  "attendanceRemove": "Снять отметку",
+  "@attendanceRemove": {"description": "Кнопка снятия отметки организатором."},
+  "attendanceNoLongerRegistered": "запись отменена",
+  "@attendanceNoLongerRegistered": {"description": "Участник отменил запись, но отметка осталась."},
+  "attendanceMethodSelf": "Самоотметка",
+  "@attendanceMethodSelf": {"description": "Способ отметки: участник отметился сам."},
+  "attendanceMethodScan": "Сканирование",
+  "@attendanceMethodScan": {"description": "Способ отметки: организатор сканировал код."},
+  "attendanceForbidden": "Это может только организатор мероприятия.",
+  "@attendanceForbidden": {"description": "Сервер отказал: действие только для организатора."},
+  "attendanceNotRegistered": "Отметиться может только записавшийся участник.",
+  "@attendanceNotRegistered": {"description": "Сервер отказал: нет принятой записи на мероприятие."},
+  "attendanceModeConflict": "Мероприятие переключилось на другой режим отметки.",
+  "@attendanceModeConflict": {"description": "Код относится к другому режиму отметки."},
+  "attendanceCodeInvalid": "Код не подходит для этого мероприятия.",
+  "@attendanceCodeInvalid": {"description": "Код повреждён или относится к другому мероприятию."},
+  "attendanceCodeExpired": "Код устарел. Попросите показать новый.",
+  "@attendanceCodeExpired": {"description": "Срок действия кода отметки истёк."},
+  "attendanceNotFound": "У этого участника нет отметки.",
+  "@attendanceNotFound": {"description": "Отметку нечего снимать."}
 }

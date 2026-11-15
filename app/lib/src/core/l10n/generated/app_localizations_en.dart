@@ -2227,4 +2227,170 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatYou => 'You';
+
+  @override
+  String get attendanceTitle => 'Event attendance';
+
+  @override
+  String get attendanceManageAction => 'Participants\' attendance';
+
+  @override
+  String get attendanceOpenAction => 'Mark my attendance';
+
+  @override
+  String get attendanceUnavailable => 'Only events have attendance.';
+
+  @override
+  String get attendanceModeTitle => 'Attendance mode';
+
+  @override
+  String get attendanceModeSelf => 'Participants mark themselves';
+
+  @override
+  String get attendanceModeScan => 'The organizer marks participants';
+
+  @override
+  String get attendanceModeSelfHint =>
+      'Show the code to participants: they enter it in the app.';
+
+  @override
+  String get attendanceModeScanHint =>
+      'A participant shows a personal code, you mark them.';
+
+  @override
+  String get attendanceModeMissing =>
+      'The organizer has not chosen an attendance mode yet.';
+
+  @override
+  String attendanceWindowBefore(String time) {
+    return 'Attendance opens at $time.';
+  }
+
+  @override
+  String attendanceWindowOpen(String time) {
+    return 'Attendance is open until $time.';
+  }
+
+  @override
+  String get attendanceWindowAfter =>
+      'Attendance is closed: the event has ended.';
+
+  @override
+  String get attendanceCodeTitle => 'Organizer\'s code';
+
+  @override
+  String get attendanceCodeHint =>
+      'Show this code to participants: it refreshes automatically.';
+
+  @override
+  String get attendanceParticipantCodeTitle => 'Your code';
+
+  @override
+  String get attendanceParticipantCodeHint =>
+      'Show this code to the organizer. It refreshes automatically.';
+
+  @override
+  String attendanceCodeExpires(int seconds) {
+    return 'The code refreshes in $seconds s.';
+  }
+
+  @override
+  String get attendanceCodeCopy => 'Copy code';
+
+  @override
+  String get attendanceCodeRefresh => 'Show a new code';
+
+  @override
+  String get attendanceCodeCopied => 'Code copied.';
+
+  @override
+  String get attendanceCodeRequired => 'Enter the code.';
+
+  @override
+  String get attendanceOrganizerCodeLabel => 'Organizer\'s code';
+
+  @override
+  String get attendanceParticipantCodeLabel => 'Participant\'s personal code';
+
+  @override
+  String get attendanceSelfHint => 'Enter the code the organizer shows.';
+
+  @override
+  String get attendanceScanHint => 'Enter the participant\'s personal code.';
+
+  @override
+  String get attendanceSubmitSelf => 'Mark me present';
+
+  @override
+  String get attendanceSubmitScan => 'Mark participant';
+
+  @override
+  String get attendanceSelfMarked => 'You are marked at the event.';
+
+  @override
+  String get attendanceSelfAlreadyMarked =>
+      'You are already marked at the event.';
+
+  @override
+  String attendanceScanMarked(String name) {
+    return '$name is marked present.';
+  }
+
+  @override
+  String attendanceScanAlreadyMarked(String name) {
+    return '$name is already marked.';
+  }
+
+  @override
+  String get attendanceListTitle => 'Marked participants';
+
+  @override
+  String attendanceListCount(int count) {
+    return 'Marked: $count';
+  }
+
+  @override
+  String get attendanceListEmpty => 'Nobody has been marked yet.';
+
+  @override
+  String get attendanceRefreshList => 'Refresh the list';
+
+  @override
+  String get attendanceRemoved => 'mark removed';
+
+  @override
+  String get attendanceRemovedDone => 'The mark was removed.';
+
+  @override
+  String get attendanceRemove => 'Remove mark';
+
+  @override
+  String get attendanceNoLongerRegistered => 'no longer registered';
+
+  @override
+  String get attendanceMethodSelf => 'Self-marking';
+
+  @override
+  String get attendanceMethodScan => 'Scanning';
+
+  @override
+  String get attendanceForbidden => 'Only the event organizer can do this.';
+
+  @override
+  String get attendanceNotRegistered =>
+      'Only a registered participant can be marked.';
+
+  @override
+  String get attendanceModeConflict =>
+      'The event has switched to another attendance mode.';
+
+  @override
+  String get attendanceCodeInvalid => 'The code does not belong to this event.';
+
+  @override
+  String get attendanceCodeExpired =>
+      'The code has expired. Ask for a new one.';
+
+  @override
+  String get attendanceNotFound => 'This participant has no mark.';
 }

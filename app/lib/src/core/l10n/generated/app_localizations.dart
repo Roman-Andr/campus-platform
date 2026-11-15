@@ -3985,6 +3985,294 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Вы'**
   String get chatYou;
+
+  /// Заголовок экрана отметки на мероприятии.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметка на мероприятии'**
+  String get attendanceTitle;
+
+  /// Кнопка организатора: открыть отметку участников.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметка участников'**
+  String get attendanceManageAction;
+
+  /// Кнопка участника: открыть экран своей отметки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметка на мероприятии'**
+  String get attendanceOpenAction;
+
+  /// Отметка есть только у мероприятий.
+  ///
+  /// In ru, this message translates to:
+  /// **'У этого мероприятия нет отметки.'**
+  String get attendanceUnavailable;
+
+  /// Заголовок выбора режима отметки организатором.
+  ///
+  /// In ru, this message translates to:
+  /// **'Режим отметки'**
+  String get attendanceModeTitle;
+
+  /// Режим: участник вводит код организатора.
+  ///
+  /// In ru, this message translates to:
+  /// **'Участники отмечаются сами'**
+  String get attendanceModeSelf;
+
+  /// Режим: организатор вводит личные коды участников.
+  ///
+  /// In ru, this message translates to:
+  /// **'Организатор отмечает участников'**
+  String get attendanceModeScan;
+
+  /// Пояснение режима самоотметки организатору.
+  ///
+  /// In ru, this message translates to:
+  /// **'Покажите код участникам: они введут его в приложении.'**
+  String get attendanceModeSelfHint;
+
+  /// Пояснение режима отметки организатором.
+  ///
+  /// In ru, this message translates to:
+  /// **'Участник показывает личный код, вы отмечаете его.'**
+  String get attendanceModeScanHint;
+
+  /// У мероприятия нет режима отметки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Организатор ещё не выбрал режим отметки.'**
+  String get attendanceModeMissing;
+
+  /// Окно отметки ещё не открылось; время в поясе города события.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметка откроется {time}.'**
+  String attendanceWindowBefore(String time);
+
+  /// Окно отметки открыто; время окончания в поясе города события.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметка открыта до {time}.'**
+  String attendanceWindowOpen(String time);
+
+  /// Окно отметки закрылось.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметка закрыта: мероприятие закончилось.'**
+  String get attendanceWindowAfter;
+
+  /// Заголовок обновляемого кода организатора.
+  ///
+  /// In ru, this message translates to:
+  /// **'Код организатора'**
+  String get attendanceCodeTitle;
+
+  /// Пояснение к коду организатора.
+  ///
+  /// In ru, this message translates to:
+  /// **'Покажите этот код участникам: он обновляется автоматически.'**
+  String get attendanceCodeHint;
+
+  /// Заголовок личного кода участника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ваш код'**
+  String get attendanceParticipantCodeTitle;
+
+  /// Пояснение к личному коду участника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Покажите этот код организатору. Он обновляется автоматически.'**
+  String get attendanceParticipantCodeHint;
+
+  /// Обратный отсчёт до обновления кода отметки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Код обновится через {seconds} с.'**
+  String attendanceCodeExpires(int seconds);
+
+  /// Кнопка копирования кода отметки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Скопировать код'**
+  String get attendanceCodeCopy;
+
+  /// Кнопка досрочного обновления кода отметки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Показать новый код'**
+  String get attendanceCodeRefresh;
+
+  /// Код отметки скопирован в буфер обмена.
+  ///
+  /// In ru, this message translates to:
+  /// **'Код скопирован.'**
+  String get attendanceCodeCopied;
+
+  /// Поле кода отметки не заполнено.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите код.'**
+  String get attendanceCodeRequired;
+
+  /// Поле ввода кода организатора участником.
+  ///
+  /// In ru, this message translates to:
+  /// **'Код организатора'**
+  String get attendanceOrganizerCodeLabel;
+
+  /// Поле ввода личного кода участника организатором.
+  ///
+  /// In ru, this message translates to:
+  /// **'Личный код участника'**
+  String get attendanceParticipantCodeLabel;
+
+  /// Пояснение самоотметки участнику.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите код, который показывает организатор.'**
+  String get attendanceSelfHint;
+
+  /// Пояснение отметки организатором.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите личный код участника.'**
+  String get attendanceScanHint;
+
+  /// Кнопка самоотметки участника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметить меня'**
+  String get attendanceSubmitSelf;
+
+  /// Кнопка отметки участника организатором.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметить участника'**
+  String get attendanceSubmitScan;
+
+  /// Участник отмечен на мероприятии.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы отмечены на мероприятии.'**
+  String get attendanceSelfMarked;
+
+  /// Повторная самоотметка не добавила вторую.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы уже отмечены на мероприятии.'**
+  String get attendanceSelfAlreadyMarked;
+
+  /// Организатор отметил участника.
+  ///
+  /// In ru, this message translates to:
+  /// **'{name}: отметка поставлена.'**
+  String attendanceScanMarked(String name);
+
+  /// Повторное сканирование не добавило вторую отметку.
+  ///
+  /// In ru, this message translates to:
+  /// **'{name}: уже отмечен.'**
+  String attendanceScanAlreadyMarked(String name);
+
+  /// Заголовок списка отметившихся организатору.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметившиеся'**
+  String get attendanceListTitle;
+
+  /// Сколько участников отмечено сейчас.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отмечено: {count}'**
+  String attendanceListCount(int count);
+
+  /// Список отметившихся пуст.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пока никто не отмечен.'**
+  String get attendanceListEmpty;
+
+  /// Кнопка обновления списка отметившихся.
+  ///
+  /// In ru, this message translates to:
+  /// **'Обновить список'**
+  String get attendanceRefreshList;
+
+  /// Подпись снятой отметки в списке организатора.
+  ///
+  /// In ru, this message translates to:
+  /// **'отметка снята'**
+  String get attendanceRemoved;
+
+  /// Организатор снял отметку.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметка снята.'**
+  String get attendanceRemovedDone;
+
+  /// Кнопка снятия отметки организатором.
+  ///
+  /// In ru, this message translates to:
+  /// **'Снять отметку'**
+  String get attendanceRemove;
+
+  /// Участник отменил запись, но отметка осталась.
+  ///
+  /// In ru, this message translates to:
+  /// **'запись отменена'**
+  String get attendanceNoLongerRegistered;
+
+  /// Способ отметки: участник отметился сам.
+  ///
+  /// In ru, this message translates to:
+  /// **'Самоотметка'**
+  String get attendanceMethodSelf;
+
+  /// Способ отметки: организатор сканировал код.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сканирование'**
+  String get attendanceMethodScan;
+
+  /// Сервер отказал: действие только для организатора.
+  ///
+  /// In ru, this message translates to:
+  /// **'Это может только организатор мероприятия.'**
+  String get attendanceForbidden;
+
+  /// Сервер отказал: нет принятой записи на мероприятие.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отметиться может только записавшийся участник.'**
+  String get attendanceNotRegistered;
+
+  /// Код относится к другому режиму отметки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Мероприятие переключилось на другой режим отметки.'**
+  String get attendanceModeConflict;
+
+  /// Код повреждён или относится к другому мероприятию.
+  ///
+  /// In ru, this message translates to:
+  /// **'Код не подходит для этого мероприятия.'**
+  String get attendanceCodeInvalid;
+
+  /// Срок действия кода отметки истёк.
+  ///
+  /// In ru, this message translates to:
+  /// **'Код устарел. Попросите показать новый.'**
+  String get attendanceCodeExpired;
+
+  /// Отметку нечего снимать.
+  ///
+  /// In ru, this message translates to:
+  /// **'У этого участника нет отметки.'**
+  String get attendanceNotFound;
 }
 
 class _AppLocalizationsDelegate
