@@ -17,7 +17,11 @@ from campus.core.i18n import N_
 from campus.core.jobs import JobInfo
 from campus.core.web import ProblemError, ProblemType
 from campus.core.web.problems import NOT_FOUND
-from campus.modules.identity import User
+from campus.modules.identity import (
+    User,
+    blocked_between,
+    serialize_contact_pair,
+)
 from campus.modules.listings.models import (
     PERMANENT_KINDS,
     Audience,
@@ -333,6 +337,14 @@ TYPE_POLICIES = {
 RESERVATION_KINDS = frozenset({"giveaway", "exchange"})
 RESERVATION_EXPIRED = "reservation_expired"
 EXCHANGE_OFFER_DECLINED = "another_offer_accepted"
+# A started interaction keeps its completion path after a block. Rejected and
+# cancelled applications never count as a relation for the "related" policy.
+RELATED_INTERACTION_STATUSES = (
+    InteractionStatus.PENDING,
+    InteractionStatus.ACCEPTED,
+    InteractionStatus.COMPLETED,
+    InteractionStatus.NO_SHOW,
+)
 
 
 def visible(listing: Listing, user: User) -> bool:
@@ -359,6 +371,68 @@ async def locked(session: AsyncSession, listing_id: UUID) -> Listing:
     if listing is None:
         raise ProblemError(NOT_FOUND)
     return listing
+
+
+async def related_between(session: AsyncSession, first: UUID, second: UUID) -> bool:
+    """Whether the users share a permitted listing interaction."""
+    found = await session.scalar(
+        select(Interaction.id)
+        .join(Listing, Listing.id == Interaction.listing_id)
+        .where(
+            or_(
+                and_(
+                    Interaction.participant_id == first,
+                    Listing.author_id == second,
+                ),
+                and_(
+                    Interaction.participant_id == second,
+                    Listing.author_id == first,
+                ),
+            ),
+            Interaction.status.in_(RELATED_INTERACTION_STATUSES),
+        )
+        .limit(1)
+    )
+    return found is not None
+
+
+async def ensure_can_respond(
+    session: AsyncSession, viewer_id: UUID, author_id: UUID
+) -> None:
+    """Refuse a new response when either side has blocked the other.
+
+    The pair lock serializes the check with a concurrent block. Existing
+    interactions do not call this: their completion endpoints stay open.
+    """
+    await serialize_contact_pair(session, viewer_id, author_id)
+    if await blocked_between(session, viewer_id, author_id):
+        raise ProblemError(NOT_FOUND)
+
+
+async def can_contact(
+    session: AsyncSession,
+    sender_id: UUID,
+    recipient_id: UUID,
+    *,
+    linked: bool = False,
+) -> bool:
+    """Whether ``sender_id`` may start or continue a personal dialog.
+
+    ``linked`` means the dialog already carries a validated listing or
+    interaction link, which is a permitted relation by itself. The personal
+    block wins over the recipient's policy and is checked for both
+    directions. Callers that mutate data serialize the pair first.
+    """
+    if await blocked_between(session, sender_id, recipient_id):
+        return False
+    policy = await session.scalar(
+        select(User.message_policy).where(User.id == recipient_id)
+    )
+    if policy is None or policy == "all":
+        return True
+    if linked:
+        return True
+    return await related_between(session, sender_id, recipient_id)
 
 
 def listing_start(listing: Listing) -> datetime | None:

@@ -14,6 +14,7 @@ import '../../profile/application/my_profile.dart';
 import '../application/listings.dart';
 import '../application/meeting.dart';
 import '../domain/reservation.dart';
+import 'cancellation.dart';
 import 'no_meeting_screen.dart';
 
 /// Route of the meeting of interaction [interactionId] of listing [listingId].
@@ -345,11 +346,36 @@ class _MeetingScreenState extends ConsumerState<MeetingScreen> {
 
   Future<void> _cancelInteraction() async {
     final l = context.l10n;
+    InteractionCancellationPreview preview;
+    try {
+      preview = await loadInteractionCancellationPreview(
+        ref,
+        listingId: widget.listingId,
+        interactionId: widget.interactionId,
+      );
+    } on Object catch (error) {
+      if (mounted) {
+        setState(() => _error = meetingFailureMessage(l, error));
+      }
+      return;
+    }
+    if (!mounted) return;
+    if (!preview.allowed) {
+      setState(() => _error = l.listingTransitionConflict);
+      return;
+    }
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l.meetingCancelTitle),
-        content: Text(l.meetingCancelBody),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l.meetingCancelBody),
+            interactionCancellationWarning(context, l, preview),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

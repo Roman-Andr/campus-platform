@@ -13,6 +13,7 @@ import '../application/help_config.dart';
 import '../application/listings.dart';
 import '../application/purchase.dart';
 import '../domain/purchase.dart';
+import 'cancellation.dart';
 import 'listings_screens.dart';
 
 /// Explains the purchase conflicts of the server (Problem Details).
@@ -600,6 +601,12 @@ class _PurchaseOwnShare extends ConsumerWidget {
               buttonKey: const Key('purchase-request-leave'),
               failureMessage: purchaseFailureMessage,
               run: () async {
+                await ensureParticipantCancellation(
+                  context,
+                  ref,
+                  listingId: listing.id,
+                  interactionId: share.id,
+                );
                 await ref
                     .read(campusApiProvider)
                     .listings

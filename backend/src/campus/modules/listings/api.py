@@ -48,7 +48,14 @@ from campus.core.web.pagination import (
     sort_by,
 )
 from campus.core.web.problems import NOT_FOUND, ProblemResponse, problem_response
-from campus.modules.identity import Permissions, ProfiledUser, Role, User
+from campus.modules.identity import (
+    Block,
+    Permissions,
+    ProfiledUser,
+    Role,
+    User,
+    blocked_between,
+)
 from campus.modules.listings.models import (
     PERMANENT_KINDS,
     Audience,
@@ -91,6 +98,7 @@ from campus.modules.listings.service import (
     OFFER_PENDING,
     PURCHASE_CLOSED,
     RATE_LIMIT,
+    RELATED_INTERACTION_STATUSES,
     STALE,
     TYPE_POLICIES,
     accept_lesson_option,
@@ -103,6 +111,7 @@ from campus.modules.listings.service import (
     claim_offer,
     confirm_no_meeting,
     decline_offer,
+    ensure_can_respond,
     extend_reservation,
     interaction_start,
     is_late_cancellation,
@@ -734,16 +743,32 @@ async def readable(session: DbSession, listing_id: UUID, user: User) -> Listing:
     listing = await session.get(Listing, listing_id)
     if listing is None:
         raise ProblemError(NOT_FOUND)
-    if listing.author_id == user.id or visible(listing, user):
+    if listing.author_id == user.id:
         return listing
-    # Existing participants retain the card needed to finish and review.
-    participant = await session.scalar(
+    # Existing participants retain the card needed to finish and review,
+    # also after a block: blocking never cancels a started interaction.
+    started = await session.scalar(
+        select(Interaction.id).where(
+            Interaction.listing_id == listing.id,
+            Interaction.participant_id == user.id,
+            Interaction.status.in_(RELATED_INTERACTION_STATUSES),
+        )
+    )
+    if await blocked_between(session, user.id, listing.author_id):
+        if started is None:
+            raise ProblemError(NOT_FOUND)
+        return listing
+    if visible(listing, user):
+        return listing
+    # A finished, rejected or cancelled application still preserves the
+    # historical card for a participant whose account lost visibility.
+    historical = await session.scalar(
         select(Interaction.id).where(
             Interaction.listing_id == listing.id,
             Interaction.participant_id == user.id,
         )
     )
-    if participant is None:
+    if historical is None:
         raise ProblemError(NOT_FOUND)
     return listing
 
@@ -1052,6 +1077,12 @@ async def listing_feed(  # noqa: PLR0913, PLR0917 - independent feed filters
             ),
         ),
         Listing.created_at <= snapshot,
+        Listing.author_id.not_in(
+            select(Block.blocked_id).where(Block.blocker_id == user.id)
+        ),
+        Listing.author_id.not_in(
+            select(Block.blocker_id).where(Block.blocked_id == user.id)
+        ),
     )
     if user.account_type != AccountType.STUDENT:
         query = query.where(Listing.audience == Audience.COMMUNITY)
@@ -1599,6 +1630,7 @@ async def reserve_giveaway(
         AccountType.EMPLOYEE,
     ):
         raise ProblemError(FORBIDDEN)
+    await ensure_can_respond(session, user.id, listing.author_id)
     if not visible(listing, user):
         raise ProblemError(NOT_FOUND)
     require_live(listing)
@@ -1654,6 +1686,7 @@ async def offer_exchange(
     listing = await locked(session, listing_id)
     user = await user_for(session, principal)
     check_participant(listing, user)
+    await ensure_can_respond(session, user.id, listing.author_id)
     if not visible(listing, user):
         raise ProblemError(NOT_FOUND)
     require_live(listing)
@@ -1743,6 +1776,7 @@ async def propose_lesson(
     listing = await locked(session, listing_id)
     user = await user_for(session, principal)
     check_participant(listing, user)
+    await ensure_can_respond(session, user.id, listing.author_id)
     if not visible(listing, user):
         raise ProblemError(NOT_FOUND)
     require_live(listing)
@@ -1857,6 +1891,12 @@ async def repeat_lesson(  # noqa: PLR0913, PLR0917 - request context
     listing, original = await lesson_context(session, listing_id, interaction_id)
     if principal.user_id not in (listing.author_id, original.participant_id):
         raise ProblemError(FORBIDDEN)
+    other_id = (
+        original.participant_id
+        if principal.user_id == listing.author_id
+        else listing.author_id
+    )
+    await ensure_can_respond(session, principal.user_id, other_id)
     if listing.kind != "skill":
         raise ProblemError(CONFLICT)
     if original.status not in (
@@ -1928,6 +1968,7 @@ async def respond_to_help(
         AccountType.EMPLOYEE,
     ):
         raise ProblemError(FORBIDDEN)
+    await ensure_can_respond(session, user.id, listing.author_id)
     if not visible(listing, user):
         raise ProblemError(NOT_FOUND)
     require_live(listing)
@@ -2492,6 +2533,7 @@ async def join_listing_waitlist(
     listing = await locked(session, listing_id)
     user = await user_for(session, principal)
     check_participant(listing, user)
+    await ensure_can_respond(session, user.id, listing.author_id)
     if not visible(listing, user):
         raise ProblemError(NOT_FOUND)
     require_live(listing)
@@ -2600,6 +2642,7 @@ async def accept_place_offer(
     listing = await locked(session, listing_id)
     user = await user_for(session, principal)
     check_participant(listing, user)
+    await ensure_can_respond(session, user.id, listing.author_id)
     interaction = await claim_offer(session, listing, user, request.app.state.settings)
     return InteractionOutput.model_validate(interaction)
 

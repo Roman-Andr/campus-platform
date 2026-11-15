@@ -131,6 +131,15 @@ class FakePurchaseBackend {
     if (method == 'GET' && path == '/api/v1/listings/$id') {
       return jsonBody(200, listing());
     }
+    if (method == 'GET' && path.endsWith('/cancellation')) {
+      return jsonBody(
+        200,
+        interactionCancellationJson(
+          late: stage == 'fixed',
+          requiresApproval: stage == 'fixed',
+        ),
+      );
+    }
     if (method == 'GET' && path == '/api/v1/listings/$id/shares/me') {
       return me == null
           ? problemBody(404, 'not_found')
@@ -431,6 +440,9 @@ void main() {
 
     await tester.ensureVisible(find.byKey(const Key('purchase-request-leave')));
     await tester.tap(find.byKey(const Key('purchase-request-leave')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('late-cancellation-warning')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('interaction-cancel-confirm')));
     await tester.pumpAndSettle();
 
     expect(

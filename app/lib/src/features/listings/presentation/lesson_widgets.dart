@@ -11,6 +11,7 @@ import '../../profile/application/my_profile.dart';
 import '../application/lesson_config.dart';
 import '../application/listings.dart';
 import '../domain/skills.dart';
+import 'cancellation.dart';
 import 'meeting_screen.dart';
 import 'no_meeting_screen.dart';
 import 'status_labels.dart';
@@ -68,6 +69,8 @@ class _LessonActionState extends ConsumerState<LessonAction> {
             ?.showSnackBar(SnackBar(content: Text(message)));
       }
       widget.after?.call();
+    } on CancellationDismissed {
+      // The user kept the interaction.
     } on Object catch (e) {
       if (mounted) {
         final config = ref.read(lessonConfigProvider);
@@ -844,6 +847,12 @@ class _LessonParticipationCard extends ConsumerWidget {
             label: l.reservationCancel,
             filled: false,
             run: () async {
+              await ensureParticipantCancellation(
+                context,
+                ref,
+                listingId: listing.id,
+                interactionId: item.id,
+              );
               await ref
                   .read(campusApiProvider)
                   .listings

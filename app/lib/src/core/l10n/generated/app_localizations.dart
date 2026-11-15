@@ -1394,6 +1394,120 @@ abstract class AppLocalizations {
   /// **'Срок объявления продлён.'**
   String get listingExtended;
 
+  /// Owner action that cancels a listing.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отменить объявление'**
+  String get listingCancel;
+
+  /// Title of the cancellation dialog.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отменить объявление?'**
+  String get listingCancelTitle;
+
+  /// Explains what cancelling a listing does.
+  ///
+  /// In ru, this message translates to:
+  /// **'Объявление закроется, а принятые заявки и брони будут отменены.'**
+  String get listingCancelBody;
+
+  /// The listing has accepted interactions; participants will be notified.
+  ///
+  /// In ru, this message translates to:
+  /// **'Принятых взаимодействий: {count}. Участники получат уведомление с причиной.'**
+  String listingCancelAcceptedWarning(int count);
+
+  /// Label of the cancellation reason field.
+  ///
+  /// In ru, this message translates to:
+  /// **'Причина отмены'**
+  String get listingCancelReason;
+
+  /// The reason is required after acceptance.
+  ///
+  /// In ru, this message translates to:
+  /// **'Укажите причину: объявление уже принято.'**
+  String get listingCancelReasonRequired;
+
+  /// Validation error for an empty required reason.
+  ///
+  /// In ru, this message translates to:
+  /// **'Укажите причину отмены.'**
+  String get listingCancelReasonMissing;
+
+  /// The cancellation reason exceeds the server limit.
+  ///
+  /// In ru, this message translates to:
+  /// **'Причина длиннее {max} символов.'**
+  String listingCancelReasonTooLong(int max);
+
+  /// The server rejected the cancellation reason.
+  ///
+  /// In ru, this message translates to:
+  /// **'Проверьте причину отмены.'**
+  String get listingCancelReasonInvalid;
+
+  /// Confirm button of the cancellation dialog.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отменить объявление'**
+  String get listingCancelConfirm;
+
+  /// Dismisses the cancellation dialog.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оставить'**
+  String get listingCancelKeep;
+
+  /// Confirmation after cancelling a listing.
+  ///
+  /// In ru, this message translates to:
+  /// **'Объявление отменено.'**
+  String get listingCancelled;
+
+  /// A participant sees why the author cancelled.
+  ///
+  /// In ru, this message translates to:
+  /// **'Автор отменил: {reason}'**
+  String listingCancelledByAuthor(String reason);
+
+  /// Title of the participant cancellation warning.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отменить взаимодействие?'**
+  String get interactionCancelTitle;
+
+  /// Explains what cancelling an interaction does.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заявка или бронь будут отменены.'**
+  String get interactionCancelBody;
+
+  /// Warning before a late cancellation.
+  ///
+  /// In ru, this message translates to:
+  /// **'Это поздняя отмена: она будет учтена как поздняя.'**
+  String get interactionLateCancellation;
+
+  /// A fixed purchase share needs the organiser's approval.
+  ///
+  /// In ru, this message translates to:
+  /// **'Организатор должен подтвердить выход.'**
+  String get interactionCancellationApproval;
+
+  /// Dismisses the late cancellation warning.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оставить'**
+  String get interactionCancelKeep;
+
+  /// Confirms the late cancellation anyway.
+  ///
+  /// In ru, this message translates to:
+  /// **'Всё равно отменить'**
+  String get interactionCancelConfirm;
+
   /// Title of the meeting screen and of the meeting card.
   ///
   /// In ru, this message translates to:

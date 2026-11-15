@@ -21,6 +21,7 @@ from campus.modules.identity.consents import router as consent_router
 from campus.modules.identity.emails import notify_account_security
 from campus.modules.identity.emails import router as email_router
 from campus.modules.identity.models import (
+    Block,
     NameChange,
     RefreshToken,
     Session,
@@ -30,6 +31,7 @@ from campus.modules.identity.models import (
     UserEmail,
     UserSkill,
 )
+from campus.modules.identity.privacy import blocked_between, serialize_contact_pair
 from campus.modules.identity.profile import ProfiledUser
 from campus.modules.identity.profile import router as profile_router
 from campus.modules.identity.retention import delete_expired_credentials
@@ -51,6 +53,7 @@ from campus.modules.identity.skill_seed import seed_skill_tags
 from campus.modules.identity.skills import router as skills_router
 
 __all__ = [
+    "Block",
     "ConsentChange",
     "ConsentDecision",
     "DocumentKind",
@@ -71,6 +74,7 @@ __all__ = [
     "UserEmail",
     "UserSkill",
     "admin_router",
+    "blocked_between",
     "check_consents",
     "consent_consumers",
     "consent_router",
@@ -88,6 +92,7 @@ __all__ = [
     "router",
     "seed_documents",
     "seed_skill_tags",
+    "serialize_contact_pair",
     "session_consumers",
     "sessions_router",
     "skills_router",

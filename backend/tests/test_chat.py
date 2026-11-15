@@ -3,6 +3,7 @@
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -23,7 +24,13 @@ from campus.core.db import create_engine, create_session_factory
 from campus.core.outbox import OutboxMessage, process_outbox
 from campus.modules.chat import Chat, ChatMessage
 from campus.modules.chat.service import create_personal_chat, post_message
-from campus.modules.identity import Role, RoleAssignment, User, seed_documents
+from campus.modules.identity import (
+    Role,
+    RoleAssignment,
+    User,
+    seed_documents,
+    serialize_contact_pair,
+)
 from campus.modules.listings import Category, Interaction
 from campus.modules.university import (
     AccountType,
@@ -515,6 +522,83 @@ async def test_concurrent_creation_returns_one_chat(chat_auth: Auth) -> None:
         )
     )
     assert count == 1
+
+
+async def test_concurrent_create_and_send_take_pair_lock_before_chat(
+    sessions: async_sessionmaker[AsyncSession],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Create and send share the lock order: pair lock, then chat row lock."""
+    async with sessions() as setup:
+        alice, bob = await local_users(setup)
+        chat, _ = await create_personal_chat(
+            setup, creator_id=alice.id, recipient_id=bob.id
+        )
+        await setup.commit()
+        alice_id, bob_id, chat_id = alice.id, bob.id, chat.id
+
+    create_started = asyncio.Event()
+    send_at_pair = asyncio.Event()
+    create_has_pair = asyncio.Event()
+    marker: ContextVar[str | None] = ContextVar("lock-test", default=None)
+    original = serialize_contact_pair
+
+    async def coordinated(session: AsyncSession, first: UUID, second: UUID) -> None:
+        owner = marker.get()
+        if owner == "create":
+            create_started.set()
+            await send_at_pair.wait()
+            await original(session, first, second)
+            create_has_pair.set()
+            return
+        if owner == "send":
+            send_at_pair.set()
+            await create_has_pair.wait()
+        await original(session, first, second)
+
+    monkeypatch.setattr(
+        "campus.modules.chat.service.serialize_contact_pair", coordinated
+    )
+
+    async def create_call() -> bool:
+        marker.set("create")
+        async with sessions() as session:
+            _, created = await create_personal_chat(
+                session, creator_id=alice_id, recipient_id=bob_id
+            )
+            await session.commit()
+            return created
+
+    async def send_call() -> bool:
+        marker.set("send")
+        async with sessions() as session:
+            _, created = await post_message(
+                session,
+                chat_id=chat_id,
+                sender_id=bob_id,
+                client_id=uuid4(),
+                text="racing",
+                settings=default_chat_settings(),
+            )
+            await session.commit()
+            return created
+
+    create_task = asyncio.create_task(create_call())
+    await asyncio.wait_for(create_started.wait(), timeout=5)
+    send_task = asyncio.create_task(send_call())
+    created, sent = await asyncio.wait_for(
+        asyncio.gather(create_task, send_task), timeout=10
+    )
+    assert created is False
+    assert sent is True
+
+    async with sessions() as check:
+        stored = await check.scalar(
+            select(ChatMessage).where(
+                ChatMessage.chat_id == chat_id, ChatMessage.text == "racing"
+            )
+        )
+    assert stored is not None
 
 
 async def test_concurrent_same_client_uuid_is_stored_once(chat_auth: Auth) -> None:

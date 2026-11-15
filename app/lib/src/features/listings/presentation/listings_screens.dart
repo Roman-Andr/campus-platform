@@ -19,6 +19,7 @@ import '../domain/feed.dart';
 import '../domain/help.dart';
 import '../domain/purchase.dart';
 import '../domain/skills.dart';
+import 'cancellation.dart';
 import 'event_screen.dart';
 import 'exchange_widgets.dart';
 import 'interaction_widgets.dart';
@@ -91,6 +92,8 @@ class _ListingActionState extends ConsumerState<ListingAction> {
                   widget.after?.call();
                 } on InvalidListingForm {
                   // Field validators already explain what to fix.
+                } on CancellationDismissed {
+                  // The user kept the interaction.
                 } catch (e) {
                   if (mounted) {
                     setState(
@@ -627,6 +630,17 @@ class ListingScreen extends ConsumerWidget {
                   if (publication && item.authorId == user?.id)
                     PublicationActions(item: item),
                   if (!publication &&
+                      user != null &&
+                      item.authorId == user.id &&
+                      listingCanBeCancelled(item))
+                    CancelListingAction(
+                      item: item,
+                      after: () => ScaffoldMessenger.maybeOf(context)
+                          ?.showSnackBar(
+                            SnackBar(content: Text(l.listingCancelled)),
+                          ),
+                    ),
+                  if (!publication &&
                       !event &&
                       !skill &&
                       !help &&
@@ -983,6 +997,12 @@ class ParticipantCancel extends ConsumerWidget {
     return ListingAction(
       label: context.l10n.reservationCancel,
       run: () async {
+        await ensureParticipantCancellation(
+          context,
+          ref,
+          listingId: item.listingId,
+          interactionId: item.id,
+        );
         await ref
             .read(campusApiProvider)
             .listings
@@ -1126,6 +1146,77 @@ class _IncomingListState extends ConsumerState<IncomingList> {
   }
 }
 
+/// Cancels an own listing after showing the reason requirement and, when
+/// accepted interactions exist, a dialog with a required explanation.
+class CancelListingAction extends ConsumerStatefulWidget {
+  const CancelListingAction({required this.item, this.after, super.key});
+
+  final ListingOutput item;
+  final VoidCallback? after;
+
+  @override
+  ConsumerState<CancelListingAction> createState() =>
+      _CancelListingActionState();
+}
+
+class _CancelListingActionState extends ConsumerState<CancelListingAction> {
+  bool busy = false;
+  String? error;
+
+  Future<void> _cancel() async {
+    setState(() {
+      busy = true;
+      error = null;
+    });
+    try {
+      final preview = await ref
+          .read(campusApiProvider)
+          .listings
+          .listingCancellationPreview(listingId: widget.item.id);
+      if (!mounted) return;
+      if (!preview.canCancel) {
+        setState(() => error = context.l10n.listingTransitionConflict);
+        return;
+      }
+      final reason = await showListingCancellationDialog(
+        context,
+        preview: preview,
+      );
+      if (reason == null || !mounted) return;
+      await ref
+          .read(campusApiProvider)
+          .listings
+          .cancelListing(
+            listingId: widget.item.id,
+            body: CancelListingInput(reason: reason.isEmpty ? null : reason),
+          );
+      if (!mounted) return;
+      refreshListings(ref);
+      widget.after?.call();
+    } catch (e) {
+      if (mounted) {
+        setState(() => error = listingFailureMessage(context.l10n, e));
+      }
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      if (error != null) Text(error!, key: const Key('listing-cancel-error')),
+      FilledButton(
+        key: const Key('listing-cancel'),
+        onPressed: busy ? null : _cancel,
+        child: Text(context.l10n.listingCancel),
+      ),
+    ],
+  );
+}
+
 class ListingOwnerActions extends ConsumerWidget {
   const ListingOwnerActions({required this.item, super.key});
   final ListingOutput item;
@@ -1177,15 +1268,25 @@ class ListingOwnerActions extends ConsumerWidget {
   }
 }
 
-String listingFailureMessage(AppLocalizations l, Object error) =>
-    switch (ApiFailure.from(error)) {
-      ProblemFailure(
-        code: ProblemCodeKnown(value: ProblemCodeValue.listingConflict),
-      ) =>
-        l.listingTransitionConflict,
-      ProblemFailure(status: 404) => l.listingUnavailable,
-      _ => apiFailureMessage(l, error),
-    };
+String listingFailureMessage(
+  AppLocalizations l,
+  Object error,
+) => switch (ApiFailure.from(error)) {
+  ProblemFailure(
+    code: ProblemCodeKnown(value: ProblemCodeValue.listingConflict),
+  ) =>
+    l.listingTransitionConflict,
+  ProblemFailure(
+    code: ProblemCodeKnown(value: ProblemCodeValue.listingCancelReasonRequired),
+  ) =>
+    l.listingCancelReasonMissing,
+  ProblemFailure(
+    code: ProblemCodeKnown(value: ProblemCodeValue.listingCancelReasonInvalid),
+  ) =>
+    l.listingCancelReasonInvalid,
+  ProblemFailure(status: 404) => l.listingUnavailable,
+  _ => apiFailureMessage(l, error),
+};
 
 class ListingParticipation extends ConsumerWidget {
   const ListingParticipation({required this.id, super.key});

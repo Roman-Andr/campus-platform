@@ -5,6 +5,7 @@ import '../../../core/api/api_client.dart';
 import '../../../core/l10n/l10n.dart';
 import '../application/exchange.dart';
 import '../application/listings.dart';
+import 'cancellation.dart';
 import 'interaction_widgets.dart';
 import 'meeting_screen.dart';
 
@@ -44,6 +45,8 @@ class _ExchangeActionState extends ConsumerState<ExchangeAction> {
       if (!mounted) return;
       refreshListings(ref);
       widget.after?.call();
+    } on CancellationDismissed {
+      // The user kept the offer.
     } on Object catch (e) {
       if (mounted) {
         setState(() => error = exchangeFailureMessage(context.l10n, e));
@@ -121,16 +124,24 @@ class ExchangeParticipation extends ConsumerWidget {
                       label: l.reservationCancel,
                       filled: false,
                       buttonKey: Key('exchange-offer-cancel-${offer.id}'),
-                      run: () => ref
-                          .read(campusApiProvider)
-                          .listings
-                          .transitionInteraction(
-                            listingId: offer.listingId,
-                            interactionId: offer.id,
-                            body: const TransitionInput(
-                              status: InteractionStatus.cancelled,
-                            ),
-                          ),
+                      run: () async {
+                        await ensureParticipantCancellation(
+                          context,
+                          ref,
+                          listingId: offer.listingId,
+                          interactionId: offer.id,
+                        );
+                        await ref
+                            .read(campusApiProvider)
+                            .listings
+                            .transitionInteraction(
+                              listingId: offer.listingId,
+                              interactionId: offer.id,
+                              body: const TransitionInput(
+                                status: InteractionStatus.cancelled,
+                              ),
+                            );
+                      },
                     )
                   : null,
             ),

@@ -10,8 +10,8 @@ import 'interaction_timeline_screen.dart';
 import 'status_labels.dart';
 
 /// The status of an interaction and, once it is rejected or cancelled, the
-/// reason the server recorded. A cancellation by the participant has no
-/// reason, so nothing but the status is shown then.
+/// reason the server recorded. An author cancellation carries its reason;
+/// a participant cancellation has none, so only the status is shown then.
 class InteractionStatusText extends ConsumerWidget {
   const InteractionStatusText({required this.item, super.key});
   final InteractionOutput item;
@@ -27,6 +27,23 @@ class InteractionStatusText extends ConsumerWidget {
       );
     }
     final status = interactionStatusLabel(l, item.status);
+    final authorReason =
+        item.status == InteractionStatus.cancelled &&
+            item.cancelledBy?.toJson() == 'author'
+        ? item.cancellationReason?.trim()
+        : null;
+    if (authorReason != null && authorReason.isNotEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(status),
+          Text(
+            l.listingCancelledByAuthor(authorReason),
+            key: Key('author-cancellation-${item.id}'),
+          ),
+        ],
+      );
+    }
     if (item.status != InteractionStatus.rejected &&
         item.status != InteractionStatus.cancelled) {
       return Text(status);

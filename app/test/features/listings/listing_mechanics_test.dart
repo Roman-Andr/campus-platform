@@ -296,6 +296,9 @@ void main() {
           if (r.path.endsWith('/token/refresh')) {
             return jsonBody(200, tokensJson(1));
           }
+          if (r.path.endsWith('/cancellation')) {
+            return jsonBody(200, interactionCancellationJson());
+          }
           if (r.path.endsWith('/transition')) {
             current = 'cancelled';
             return jsonBody(200, interactionJson(current));

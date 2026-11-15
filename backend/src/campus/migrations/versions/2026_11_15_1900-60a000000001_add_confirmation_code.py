@@ -1,7 +1,7 @@
 """Add six-digit confirmation codes.
 
 Revision ID: 60a000000001
-Revises: 59a000000001
+Revises: 84merge00001
 """
 
 from collections.abc import Sequence
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "60a000000001"
-down_revision: str | Sequence[str] | None = "59a000000001"
+down_revision: str | Sequence[str] | None = "84merge00001"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
