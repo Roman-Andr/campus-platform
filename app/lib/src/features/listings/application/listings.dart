@@ -157,14 +157,26 @@ void refreshListings(WidgetRef ref) {
   ref.invalidate(favoritesProvider);
   ref.invalidate(incomingProvider);
   ref.invalidate(listingPhotosProvider);
-  ref.invalidate(interactionRejectionProvider);
+  ref.invalidate(interactionReasonProvider);
   ref.invalidate(listingParticipationProvider);
   ref.invalidate(interactionTimelineProvider);
   ref.invalidate(myWaitlistProvider);
   ref.invalidate(myWaitlistEntryProvider);
   ref.invalidate(myPurchaseShareProvider);
   ref.invalidate(purchaseCompositionProvider);
+  ref.invalidate(exchangeOffersProvider);
 }
+
+/// Every offer of an exchange listing: all of them for the author, only the
+/// caller's own offer otherwise (the server decides).
+final exchangeOffersProvider = FutureProvider.autoDispose
+    .family<List<InteractionOutput>, String>((ref, listingId) async {
+      final page = await ref
+          .watch(campusApiProvider)
+          .listings
+          .exchangeOffers(listingId: listingId);
+      return page.items;
+    }, retry: listingRetry);
 
 /// Refresh interaction rows after a completion without refetching the listing
 /// itself: a screen that still shows the agreed time keeps its time zone even
@@ -173,13 +185,14 @@ void refreshInteractionLists(WidgetRef ref) {
   ref.invalidate(myListingsProvider);
   ref.invalidate(myParticipationProvider);
   ref.invalidate(incomingProvider);
-  ref.invalidate(interactionRejectionProvider);
+  ref.invalidate(interactionReasonProvider);
   ref.invalidate(listingParticipationProvider);
   ref.invalidate(interactionTimelineProvider);
 }
 
-/// Events are ascending and paginated. Keep the latest rejection only.
-final interactionRejectionProvider = FutureProvider.autoDispose
+/// The latest reason why an interaction was rejected, cancelled or closed;
+/// the reason itself is written on the closing event.
+final interactionReasonProvider = FutureProvider.autoDispose
     .family<String?, (String, String)>((ref, ids) async {
       final api = ref.watch(campusApiProvider).listings;
       String? cursor;
@@ -191,7 +204,10 @@ final interactionRejectionProvider = FutureProvider.autoDispose
           cursor: cursor,
         );
         for (final event in page.items) {
-          if (event.status == 'rejected') reason = event.reason;
+          if (event.reason == null) continue;
+          if (event.status == 'rejected' || event.status == 'cancelled') {
+            reason = event.reason;
+          }
         }
         cursor = page.nextPage;
       } while (cursor != null);

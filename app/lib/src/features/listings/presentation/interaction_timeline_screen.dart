@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart' hide Visibility;
 
 import '../../../core/api/api_client.dart';
@@ -22,15 +21,8 @@ String timelineFailureMessage(AppLocalizations l, Object error) =>
       _ => apiFailureMessage(l, error),
     };
 
-String? timelineReason(AppLocalizations l, String? reason) => switch (reason) {
-  null || '' => null,
-  'listing_expired' => l.reservationRejectedExpired,
-  'listing_cancelled' => l.reservationRejectedClosed,
-  'author_timeout' => l.reservationRejectedTimeout,
-  'listing_hidden' => l.timelineReasonHidden,
-  // Free text from a person is shown as written.
-  _ => reason,
-};
+String? timelineReason(AppLocalizations l, String? reason) =>
+    interactionReasonLabel(l, reason);
 
 String timelineAction(AppLocalizations l, EventOutput event) =>
     switch (event.action) {
@@ -241,20 +233,4 @@ class TimelineEventTile extends ConsumerWidget {
       ),
     );
   }
-}
-
-/// Opens the history from a request or reservation row.
-class TimelineButton extends StatelessWidget {
-  const TimelineButton({required this.item, super.key});
-  final InteractionOutput item;
-  @override
-  Widget build(BuildContext context) => TextButton.icon(
-    key: Key('timeline-open-${item.id}'),
-    onPressed: () => context.push(
-      interactionTimelinePath(item.listingId, item.id),
-      extra: item.participantName,
-    ),
-    icon: const Icon(Icons.history),
-    label: Text(context.l10n.timelineOpen),
-  );
 }

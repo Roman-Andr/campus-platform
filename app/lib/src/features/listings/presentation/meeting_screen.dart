@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +13,7 @@ import '../../../core/widgets/city_date_time_picker.dart';
 import '../../profile/application/my_profile.dart';
 import '../application/listings.dart';
 import '../application/meeting.dart';
+import '../domain/reservation.dart';
 import 'no_meeting_screen.dart';
 
 /// Route of the meeting of interaction [interactionId] of listing [listingId].
@@ -110,6 +113,28 @@ class MeetingSummary extends ConsumerWidget {
                 key: Key('meeting-awaiting-${item.id}'),
               ),
             ],
+            // An accepted item reservation runs on its own deadline until a
+            // meeting is scheduled; the meeting then extends it.
+            if (item.reservationDueAt != null) ...[
+              const Divider(),
+              if (scheduledAt != null)
+                Text(
+                  l.reservationUntilMeeting(
+                    _meetingTime(l, scheduledAt, timezone, cityLabel),
+                  ),
+                  key: Key('reservation-until-${item.id}'),
+                )
+              else ...[
+                _ReservationCountdown(
+                  item: item,
+                  key: Key('reservation-left-${item.id}'),
+                ),
+                Text(
+                  l.reservationMeetingHint,
+                  key: Key('reservation-hint-${item.id}'),
+                ),
+              ],
+            ],
             if (showOpen)
               Align(
                 alignment: Alignment.centerLeft,
@@ -126,6 +151,100 @@ class MeetingSummary extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// The remaining hold time, updated once a minute. When the deadline passes,
+/// the authoritative interaction is fetched again, so a server-side release
+/// replaces the ended hold with its final status and reason.
+class _ReservationCountdown extends ConsumerStatefulWidget {
+  const _ReservationCountdown({required this.item, super.key});
+
+  final InteractionOutput item;
+
+  @override
+  ConsumerState<_ReservationCountdown> createState() =>
+      _ReservationCountdownState();
+}
+
+class _ReservationCountdownState extends ConsumerState<_ReservationCountdown>
+    with WidgetsBindingObserver {
+  Timer? _timer;
+  bool _expired = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _schedule();
+  }
+
+  @override
+  void didUpdateWidget(_ReservationCountdown oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.item.reservationDueAt != widget.item.reservationDueAt) {
+      _expired = false;
+      _schedule();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // A background app may miss or delay timers; on return the remaining time
+    // is measured again and an expired hold triggers the refresh.
+    if (state == AppLifecycleState.resumed) {
+      _tick();
+    } else if (state == AppLifecycleState.paused) {
+      _timer?.cancel();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _schedule() {
+    _timer?.cancel();
+    final now = clock.now();
+    final left = reservationLeft(widget.item, now: now);
+    if (left <= Duration.zero) {
+      _expire();
+      return;
+    }
+    final nextMinute = Duration(
+      seconds: 60 - now.second,
+      milliseconds: -now.millisecond,
+      microseconds: -now.microsecond,
+    );
+    _timer = Timer(nextMinute < left ? nextMinute : left, _tick);
+  }
+
+  void _tick() {
+    if (!mounted) return;
+    setState(() {});
+    _schedule();
+  }
+
+  void _expire() {
+    _timer?.cancel();
+    if (_expired) return;
+    _expired = true;
+    // The providers cannot be changed while the tree is building; the frame
+    // that shows the ended hold also starts the authoritative refresh.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      refreshListings(ref);
+      ref.invalidate(
+        meetingInteractionProvider((widget.item.listingId, widget.item.id)),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      Text(reservationTimeLeft(context.l10n, reservationLeft(widget.item)));
 }
 
 /// The meeting of one interaction: confirms a proposal, reschedules it and

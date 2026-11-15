@@ -75,6 +75,11 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) => const CreateListingScreen(),
       ),
       GoRoute(
+        path: '/exchange/new',
+        builder: (context, state) =>
+            const CreateListingScreen(kind: 'exchange'),
+      ),
+      GoRoute(
         path: '/publication/new',
         builder: (context, state) => const CreatePublicationScreen(),
       ),

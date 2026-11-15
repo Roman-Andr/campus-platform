@@ -19,8 +19,11 @@ class HomeScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final user = ref.watch(myProfileProvider).value;
     final headman = isHeadman(user);
-    // The action row must fit a narrow phone; the purchase entry moves into
-    // the menu there instead of overflowing the bar.
+    // The narrowest phones cannot fit every create action in the bar; the
+    // exchange form stays available from the overflow menu there.
+    final compact = MediaQuery.sizeOf(context).width < 400;
+    // The purchase entry moves into the menu even earlier, so the remaining
+    // actions stay tappable on narrow phones.
     final narrow = MediaQuery.sizeOf(context).width < 360;
 
     return Scaffold(
@@ -45,6 +48,15 @@ class HomeScreen extends ConsumerWidget {
               icon: const Icon(Icons.campaign_outlined),
               tooltip: l10n.feedCreatePublication,
               onPressed: () => context.push('/publication/new'),
+            ),
+          if (!compact)
+            IconButton(
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+              key: const Key('feed-create-exchange'),
+              icon: const Icon(Icons.swap_horiz),
+              tooltip: l10n.feedCreateExchange,
+              onPressed: () => context.push('/exchange/new'),
             ),
           IconButton(
             padding: EdgeInsets.zero,
@@ -85,9 +97,15 @@ class HomeScreen extends ConsumerWidget {
             icon: const Icon(Icons.more_vert),
             onSelected: (route) => context.push(route),
             itemBuilder: (context) => [
+              if (compact)
+                PopupMenuItem(
+                  key: const Key('home-create-exchange'),
+                  value: '/exchange/new',
+                  child: Text(l10n.feedCreateExchange),
+                ),
               if (narrow)
                 PopupMenuItem(
-                  key: const Key('feed-create-purchase'),
+                  key: const Key('home-create-purchase'),
                   value: '/purchase/new',
                   child: Text(l10n.purchaseCreateTitle),
                 ),
