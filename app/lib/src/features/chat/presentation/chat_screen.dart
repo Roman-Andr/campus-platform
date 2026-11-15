@@ -440,10 +440,12 @@ class _MessageBubble extends StatelessWidget {
                       child: Text(l10n.chatMessageDiscard),
                     ),
                 ] else
-                  Text(
-                    chatTime(item.createdAt, user, l10n),
-                    style: Theme.of(context).textTheme.bodySmall
-                        ?.copyWith(color: colors.onSurfaceVariant),
+                  Flexible(
+                    child: Text(
+                      chatTime(item.createdAt, user, l10n),
+                      style: Theme.of(context).textTheme.bodySmall
+                          ?.copyWith(color: colors.onSurfaceVariant),
+                    ),
                   ),
               ],
             ),

@@ -99,6 +99,31 @@ void main() {
     expect(texts, ['First', 'Second', 'Third']);
   });
 
+  testWidgets('a long city time wraps inside the message bubble', (
+    tester,
+  ) async {
+    final server = FakeHttpAdapter(
+      me: {
+        ...userJson,
+        ...filledProfileJson,
+        'city_timezone': 'Pacific/Kiritimati',
+      },
+    );
+    final api = FakeChatApi(
+      chats: [chatJson(id: testChatId)],
+      messages: {
+        testChatId: [
+          messageJson(chatId: testChatId, sequence: 1, text: 'Long time'),
+        ],
+      },
+    );
+    await pumpChats(tester, api: api, server: server);
+    await openChat(tester);
+
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('Kiritimati'), findsOneWidget);
+  });
+
   testWidgets('opens a dialog from a listing author', (tester) async {
     final server =
         FakeHttpAdapter(
