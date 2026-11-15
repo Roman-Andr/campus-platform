@@ -14,10 +14,10 @@ keeps immutable.
 """
 
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated, Literal, cast
 from uuid import UUID
 
-from fastapi import Depends, Request
+from fastapi import Depends, Request, Response
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic_core import PydanticCustomError
 from sqlalchemy import select
@@ -29,18 +29,23 @@ from campus.core.i18n import N_, translate
 from campus.core.web import (
     DbSession,
     FieldError,
+    Page,
+    PageQuery,
     Principal,
     Problem,
     ProblemError,
     ProblemType,
     api_router,
+    paginate,
     request_locale,
+    sort_by,
 )
 from campus.core.web.auth import CurrentUser
 from campus.core.web.datetimes import Instant
-from campus.core.web.problems import VALIDATION_FAILED
+from campus.core.web.problems import NOT_FOUND, VALIDATION_FAILED
 from campus.modules.identity.consents import cross_border_allowed
-from campus.modules.identity.models import NameChange, User
+from campus.modules.identity.models import Block, NameChange, User
+from campus.modules.identity.privacy import serialize_contact_pair
 from campus.modules.identity.roles import RoleOutput, user_roles
 from campus.modules.university import AccountType, City, Dormitory, Faculty
 
@@ -49,6 +54,11 @@ PROFILE_INCOMPLETE = ProblemType(
     403,
     N_("Profile incomplete"),
     N_("Fill in your profile first: campus city, faculty and course."),
+)
+BLOCK_SELF = ProblemType(
+    "block_self",
+    422,
+    N_("You cannot block yourself."),
 )
 NAME_CHANGE_TOO_SOON = ProblemType(
     "name_change_too_soon",
@@ -93,6 +103,11 @@ class UserOutput(BaseModel):
     )
     name_change_available_at: Instant | None = Field(
         description="When the name may change next; empty: now."
+    )
+    message_policy: Literal["all", "related"] = Field(
+        default="all",
+        description="Who may start a personal dialog: everybody or only"
+        " users with a permitted listing or interaction relation.",
     )
 
 
@@ -310,3 +325,161 @@ ProfiledUser = Annotated[Principal, Depends(profiled_user)]
 """A signed-in user with a filled profile; required to publish and respond.
 
 Answers ``403 profile_incomplete`` otherwise."""
+
+
+class MessagePolicyInput(BaseModel):
+    """The new incoming personal message policy."""
+
+    model_config = ConfigDict(extra="forbid")
+    policy: Literal["all", "related"]
+
+
+class MessagePolicyOutput(BaseModel):
+    policy: Literal["all", "related"]
+
+
+class BlockInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    user_id: UUID
+
+
+class BlockedUserOutput(BaseModel):
+    id: UUID
+    first_name: str
+    last_name: str
+    account_type: Literal["student", "employee", "former_employee"]
+    blocked_at: Instant
+
+
+class BlockRow(BaseModel):
+    """A block row as paginated; the user fields are loaded separately."""
+
+    model_config = ConfigDict(from_attributes=True)
+    blocked_id: UUID
+    created_at: datetime
+
+
+@router.get("/message-policy")
+async def get_message_policy(
+    session: DbSession, principal: CurrentUser
+) -> MessagePolicyOutput:
+    """The signed-in user's incoming personal message policy."""
+    user = await _user(session, principal)
+    return MessagePolicyOutput(
+        policy=cast(Literal["all", "related"], user.message_policy)
+    )
+
+
+@router.put("/message-policy")
+async def update_message_policy(
+    data: MessagePolicyInput, session: DbSession, principal: CurrentUser
+) -> MessagePolicyOutput:
+    """Change who may start a personal dialog with the signed-in user.
+
+    Only the owner can change it; there is no user id in the path or body.
+    """
+    user = await session.get(User, principal.user_id, with_for_update=True)
+    assert user is not None  # noqa: S101 - see _user
+    user.message_policy = data.policy
+    await session.flush()
+    return MessagePolicyOutput(policy=user.message_policy)
+
+
+def blocked_user_output(user: User, blocked_at: datetime) -> BlockedUserOutput:
+    return BlockedUserOutput(
+        id=user.id,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        account_type=cast(
+            Literal["student", "employee", "former_employee"], user.account_type
+        ),
+        blocked_at=blocked_at,
+    )
+
+
+@router.get("/blocks")
+async def list_blocks(
+    request: Request,
+    session: DbSession,
+    principal: CurrentUser,
+    page: PageQuery,
+) -> Page[BlockedUserOutput]:
+    """The owner's blacklist, newest first; only the owner can read it."""
+    query = sort_by(
+        select(Block).where(Block.blocker_id == principal.user_id),
+        "-created_at",
+        {"created_at": Block.created_at},
+        Block.blocked_id,
+    )
+    rows = await paginate(
+        session,
+        query,
+        page,
+        BlockRow,
+        settings=request.app.state.settings,
+        context=f"blocks:{principal.user_id}",
+    )
+    users = {
+        user.id: user
+        for user in await session.scalars(
+            select(User).where(User.id.in_([row.blocked_id for row in rows.items]))
+        )
+    }
+    items = [
+        blocked_user_output(users[row.blocked_id], row.created_at)
+        for row in rows.items
+        if row.blocked_id in users
+    ]
+    return Page[BlockedUserOutput](items=items, next_page=rows.next_page)
+
+
+@router.post(
+    "/blocks",
+    status_code=201,
+    responses={
+        200: {
+            "model": BlockedUserOutput,
+            "description": "The user was already blocked; the stored block is"
+            " returned.",
+        }
+    },
+)
+async def block_user(
+    data: BlockInput,
+    session: DbSession,
+    principal: CurrentUser,
+    response: Response,
+) -> BlockedUserOutput:
+    """Block a user; repeating the same command returns the stored block.
+
+    A block is personal and owner-scoped. It does not cancel an interaction
+    that has already started; it only refuses new personal messages and
+    responses in both directions.
+    """
+    if data.user_id == principal.user_id:
+        raise ProblemError(BLOCK_SELF)
+    target = await session.get(User, data.user_id)
+    if target is None:
+        raise ProblemError(NOT_FOUND)
+    await serialize_contact_pair(session, principal.user_id, target.id)
+    block = await session.get(Block, (principal.user_id, target.id))
+    if block is not None:
+        response.status_code = 200
+        return blocked_user_output(target, block.created_at)
+    block = Block(blocker_id=principal.user_id, blocked_id=target.id)
+    session.add(block)
+    await session.flush()
+    return blocked_user_output(target, block.created_at)
+
+
+@router.delete("/blocks/{blocked_id}", status_code=204)
+async def unblock_user(
+    blocked_id: UUID, session: DbSession, principal: CurrentUser
+) -> None:
+    """Remove a block; absent blocks and repeats are no-ops."""
+    if blocked_id == principal.user_id:
+        return
+    await serialize_contact_pair(session, principal.user_id, blocked_id)
+    block = await session.get(Block, (principal.user_id, blocked_id))
+    if block is not None:
+        await session.delete(block)

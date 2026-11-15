@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 17:00+0300\n"
+"POT-Creation-Date: 2026-11-15 17:16+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -42,9 +42,6 @@ msgstr ""
 
 msgid "Accepted interactions can only be cancelled with a reason."
 msgstr "Принятые взаимодействия можно отменить только с указанием причины."
-
-msgid "Alumni and former employees can write only in existing chats."
-msgstr "Выпускники и бывшие сотрудники могут писать только в существующих чатах."
 
 msgid "An event or return deadline is approaching."
 msgstr "Приближается мероприятие или срок возврата."
@@ -323,6 +320,9 @@ msgstr "Подтвердить взаимодействие могут толь�
 #, python-brace-format
 msgid "Only {available} units are available."
 msgstr "Доступно только {available} ед."
+
+msgid "Personal messaging with this user is not available."
+msgstr "Личные сообщения этому пользователю недоступны."
 
 msgid "Photo unavailable"
 msgstr "Фото недоступно"
@@ -708,6 +708,9 @@ msgstr "Вы не участник этого канала."
 msgid "You are not a member of this chat."
 msgstr "Вы не участник этого чата."
 
+msgid "You cannot block yourself."
+msgstr "Нельзя заблокировать себя."
+
 msgid "You have a new notification."
 msgstr "У вас новое уведомление."
 
@@ -742,4 +745,9 @@ msgstr "Ваш код входа: {code}. Он действует {minutes} ми
 
 #~ msgid "E-mail domain not allowed"
 #~ msgstr "Домен почты не разрешён"
+
+#~ msgid "Alumni and former employees can write only in existing chats."
+#~ msgstr ""
+#~ "Выпускники и бывшие сотрудники могут "
+#~ "писать только в существующих чатах."
 

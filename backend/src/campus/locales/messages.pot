@@ -22,9 +22,6 @@ msgstr ""
 msgid "Accepted interactions can only be cancelled with a reason."
 msgstr ""
 
-msgid "Alumni and former employees can write only in existing chats."
-msgstr ""
-
 msgid "An event or return deadline is approaching."
 msgstr ""
 
@@ -295,6 +292,9 @@ msgstr ""
 
 #, python-brace-format
 msgid "Only {available} units are available."
+msgstr ""
+
+msgid "Personal messaging with this user is not available."
 msgstr ""
 
 msgid "Photo unavailable"
@@ -669,6 +669,9 @@ msgid "You are not a member of this channel."
 msgstr ""
 
 msgid "You are not a member of this chat."
+msgstr ""
+
+msgid "You cannot block yourself."
 msgstr ""
 
 msgid "You have a new notification."

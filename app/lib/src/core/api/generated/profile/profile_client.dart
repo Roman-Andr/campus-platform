@@ -5,7 +5,14 @@ import 'dart:convert' as convert;
 import 'package:dio/dio.dart' show Dio, Options, ResponseType, CancelToken;
 
 import '../authentication/models/user_output.dart' as models show UserOutput;
+import 'models/block_input.dart' as models show BlockInput;
+import 'models/blocked_user_output.dart' as models show BlockedUserOutput;
+import 'models/message_policy_input.dart' as models show MessagePolicyInput;
+import 'models/message_policy_output.dart' as models show MessagePolicyOutput;
 import 'models/name_input.dart' as models show NameInput;
+import 'models/page_blocked_user_output.dart'
+    as models
+    show PageBlockedUserOutput;
 import 'models/profile_input.dart' as models show ProfileInput;
 import 'models/profile_photo.dart' as models show ProfilePhoto;
 import 'models/profile_photo_input.dart' as models show ProfilePhotoInput;
@@ -126,6 +133,200 @@ class ProfileClient {
       cancelToken: cancelToken,
     );
     return models.UserOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Get Message Policy
+  ///
+  /// The signed-in user's incoming personal message policy.
+  Future<models.MessagePolicyOutput> getMessagePolicy({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/me/message-policy",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.MessagePolicyOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Update Message Policy
+  ///
+  /// Change who may start a personal dialog with the signed-in user.
+  ///
+  /// Only the owner can change it; there is no user id in the path or body.
+  Future<models.MessagePolicyOutput> updateMessagePolicy({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required models.MessagePolicyInput body,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "PUT",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/me/message-policy",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.MessagePolicyOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// List Blocks
+  ///
+  /// The owner's blacklist, newest first; only the owner can read it.
+  Future<models.PageBlockedUserOutput> listBlocks({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+
+    /// Number of items; the default (20) and the maximum (100) are set in the server configuration.
+    int? size,
+
+    /// `next_page` of the previous page.
+    String? cursor,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/me/blocks",
+      options: _options,
+      queryParameters: <String, Object?>{
+        if (size != null) "size": size,
+        if (cursor != null) "cursor": cursor,
+      },
+      cancelToken: cancelToken,
+    );
+    return models.PageBlockedUserOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Block User
+  ///
+  /// Block a user; repeating the same command returns the stored block.
+  ///
+  /// A block is personal and owner-scoped. It does not cancel an interaction
+  /// that has already started; it only refuses new personal messages and
+  /// responses in both directions.
+  Future<models.BlockedUserOutput> blockUser({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required models.BlockInput body,
+  }) async {
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) =>
+          status != null && (status == 200 || status == 201),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/me/blocks",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.BlockedUserOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Unblock User
+  ///
+  /// Remove a block; absent blocks and repeats are no-ops.
+  Future<void> unblockUser({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String blockedId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(blockedId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "DELETE",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 204),
+    );
+    await _transport.request<dynamic>(
+      "/api/v1/me/blocks/" + Uri.encodeComponent(blockedId),
+      options: _options,
+      cancelToken: cancelToken,
+    );
   }
 
   /// Get My Skills

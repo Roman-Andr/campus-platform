@@ -70,6 +70,33 @@ def test_upgrade_and_downgrade_on_empty_database(empty_database: str) -> None:
     assert applied_revisions(empty_database) == []
 
 
+@pytest.mark.parametrize("start", ["55merge00001", "59a000000001"])
+def test_existing_main_upgrade_adds_block_schema(
+    empty_database: str, start: str
+) -> None:
+    """Deployed main revisions must still receive the block migration."""
+    tables = """
+        SELECT table_name FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'identity_block'
+    """
+    columns = """
+        SELECT column_name FROM information_schema.columns
+        WHERE table_name = 'identity_user'
+    """
+
+    run_alembic(empty_database, "upgrade", start)
+    assert asyncio.run(fetch(empty_database, tables)) == []
+    assert "message_policy" not in {
+        row["column_name"] for row in asyncio.run(fetch(empty_database, columns))
+    }
+
+    run_alembic(empty_database, "upgrade", "head")
+    assert asyncio.run(fetch(empty_database, tables))
+    assert "message_policy" in {
+        row["column_name"] for row in asyncio.run(fetch(empty_database, columns))
+    }
+
+
 def test_reservation_and_exchange_columns_migrate(empty_database: str) -> None:
     columns = """
         SELECT column_name FROM information_schema.columns
