@@ -11,6 +11,7 @@ import '../../../core/l10n/l10n.dart';
 import '../../../core/time/city_time.dart';
 import '../../chat/presentation/chat_actions.dart';
 import '../../profile/application/my_profile.dart';
+import '../../qr/presentation/qr_summary.dart';
 import '../application/feed_filters.dart';
 import '../application/listing_photo_draft.dart';
 import '../application/listings.dart';
@@ -982,6 +983,8 @@ class ReservationTile extends ConsumerWidget {
           ),
         if (listing.value case final value?)
           NoMeetingSummary(item: item, kind: value.kind),
+        if (listing.value case final value?)
+          QrConfirmationSummary(item: item, kind: value.kind),
         ParticipantCancel(item: item),
       ],
     );
@@ -1080,6 +1083,8 @@ class _IncomingListState extends ConsumerState<IncomingList> {
                       ),
                     if (listing != null)
                       NoMeetingSummary(item: item, kind: listing.kind),
+                    if (listing != null)
+                      QrConfirmationSummary(item: item, kind: listing.kind),
                     if (listing != null && skill)
                       LessonOptionsCard(item: item, listing: listing),
                     if (listing != null && skill)

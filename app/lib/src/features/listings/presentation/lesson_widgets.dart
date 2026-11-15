@@ -8,6 +8,7 @@ import '../../../core/l10n/l10n.dart';
 import '../../../core/time/city_time.dart';
 import '../../../core/widgets/city_date_time_picker.dart';
 import '../../profile/application/my_profile.dart';
+import '../../qr/presentation/qr_summary.dart';
 import '../application/lesson_config.dart';
 import '../application/listings.dart';
 import '../domain/skills.dart';
@@ -842,6 +843,7 @@ class _LessonParticipationCard extends ConsumerWidget {
         MeetingSummary(item: item, timezone: listing.cityTimezone, city: city),
         LessonRepeatButton(item: item, listing: listing),
         NoMeetingSummary(item: item, kind: listing.kind),
+        QrConfirmationSummary(item: item, kind: listing.kind),
         if (active && item.participantId == me)
           LessonAction(
             label: l.reservationCancel,

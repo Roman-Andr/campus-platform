@@ -31,6 +31,8 @@ import '../../features/profile/application/my_profile.dart';
 import '../../features/profile/presentation/profile_form_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/profile/presentation/profile_steps.dart';
+import '../../features/qr/presentation/qr_presenter_screen.dart';
+import '../../features/qr/presentation/qr_scanner_screen.dart';
 import '../../features/sessions/presentation/devices_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/update/presentation/update_required_screen.dart';
@@ -167,6 +169,22 @@ GoRouter appRouter(Ref ref) {
                   listingId: state.pathParameters['id']!,
                   interactionId: state.pathParameters['interactionId']!,
                 ),
+              ),
+              GoRoute(
+                path: 'qr',
+                builder: (context, state) => QrPresenterScreen(
+                  listingId: state.pathParameters['id']!,
+                  interactionId: state.pathParameters['interactionId']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'scan',
+                    builder: (context, state) => QrScannerScreen(
+                      listingId: state.pathParameters['id']!,
+                      interactionId: state.pathParameters['interactionId']!,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
