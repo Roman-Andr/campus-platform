@@ -1297,6 +1297,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedCreateExchange => 'Create an exchange listing';
 
   @override
+  String get exchangeCreateTitle => 'New exchange listing';
+
+  @override
   String get exchangeOfferTitle => 'Offers';
 
   @override

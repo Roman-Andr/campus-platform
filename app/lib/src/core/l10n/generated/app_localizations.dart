@@ -2360,6 +2360,12 @@ abstract class AppLocalizations {
   /// **'Создать «Обменяю»'**
   String get feedCreateExchange;
 
+  /// Title of the form that publishes an exchange listing.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новое объявление «Обменяю»'**
+  String get exchangeCreateTitle;
+
   /// Heading of the author's offers list.
   ///
   /// In ru, this message translates to:

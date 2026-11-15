@@ -1668,6 +1668,9 @@
   "@feedCreateExchange": {
     "description": "Tooltip of the home screen button that opens the exchange form."
   },
+  "@exchangeCreateTitle": {
+    "description": "Title of the form that publishes an exchange listing."
+  },
   "@exchangeOfferTitle": {
     "description": "Heading of the author's offers list."
   },
@@ -1715,6 +1718,7 @@
   },
   "listingKindExchange": "Обменяю",
   "feedCreateExchange": "Создать «Обменяю»",
+  "exchangeCreateTitle": "Новое объявление «Обменяю»",
   "exchangeOfferTitle": "Предложения",
   "exchangeOfferFormTitle": "Предложите свою вещь",
   "exchangeOfferDescriptionLabel": "Что вы предлагаете",

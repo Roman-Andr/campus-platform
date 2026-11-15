@@ -45,3 +45,18 @@ String? interactionReasonLabel(AppLocalizations l, String? reason) =>
       'listing_hidden' => l.timelineReasonHidden,
       _ => reason,
     };
+
+/// A rejection reason for an interaction card. An unknown server code is a
+/// technical value, so it is replaced with the generic explanation instead of
+/// being shown to the user.
+String? interactionRejectionLabel(AppLocalizations l, String? reason) =>
+    switch (reason) {
+      null || '' => null,
+      'listing_expired' => l.reservationRejectedExpired,
+      'listing_cancelled' => l.reservationRejectedClosed,
+      'author_timeout' => l.reservationRejectedTimeout,
+      'another_offer_accepted' => l.exchangeOfferRejectedAnother,
+      'reservation_expired' => l.reservationExpiredByDeadline,
+      'listing_hidden' => l.timelineReasonHidden,
+      _ => l.reservationRejectedOther,
+    };

@@ -676,6 +676,7 @@
   },
   "listingKindExchange": "Exchange",
   "feedCreateExchange": "Create an exchange listing",
+  "exchangeCreateTitle": "New exchange listing",
   "exchangeOfferTitle": "Offers",
   "exchangeOfferFormTitle": "Offer your item",
   "exchangeOfferDescriptionLabel": "What you offer",

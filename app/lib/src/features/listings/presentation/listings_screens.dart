@@ -624,7 +624,7 @@ class ListingScreen extends ConsumerWidget {
                       user != null)
                     ListingWaitlistSection(listing: item),
                   if (exchange && item.authorId == user?.id)
-                    ExchangeOffersList(listingId: id),
+                    ExchangeOffersList(listing: item),
                   if (exchange && user != null && item.authorId != user.id)
                     ExchangeParticipation(listing: item),
                   if (!publication &&
@@ -771,7 +771,11 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.initial == null ? l.listingCreate : l.listingEditDraft,
+          widget.initial == null
+              ? (widget.kind == 'exchange'
+                    ? l.exchangeCreateTitle
+                    : l.listingCreate)
+              : l.listingEditDraft,
         ),
       ),
       body: Form(

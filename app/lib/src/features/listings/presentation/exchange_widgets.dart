@@ -85,66 +85,116 @@ class ExchangeParticipation extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
-    final own = ref.watch(listingParticipationProvider(listing.id));
+    final own = ref.watch(exchangeOffersProvider(listing.id));
     return own.when(
       loading: () => const LinearProgressIndicator(),
       error: (e, _) => Column(
         children: [
           Text(exchangeFailureMessage(l, e)),
           TextButton(
-            onPressed: () =>
-                ref.invalidate(listingParticipationProvider(listing.id)),
+            onPressed: () => ref.invalidate(exchangeOffersProvider(listing.id)),
             child: Text(l.errorRetry),
           ),
         ],
       ),
       data: (items) {
-        final offer = activeExchangeOffer(items);
-        if (offer == null) return ExchangeOfferForm(listing: listing);
-        final description = offer.offerDescription;
-        return Card(
-          key: Key('exchange-offer-${offer.id}'),
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  description == null
-                      ? l.exchangeOfferTitle
-                      : l.exchangeOfferMine(description),
-                  key: Key('exchange-offer-mine-${offer.id}'),
-                ),
-                InteractionStatusText(item: offer),
-                MeetingSummary(
-                  item: offer,
-                  timezone: listing.cityTimezone,
-                  city: listing.cityTimezone,
-                ),
-                TimelineButton(item: offer),
-                if (offer.status == InteractionStatus.pending ||
-                    offer.status == InteractionStatus.accepted)
-                  ExchangeAction(
-                    label: l.reservationCancel,
-                    filled: false,
-                    buttonKey: Key('exchange-offer-cancel-${offer.id}'),
-                    run: () => ref
-                        .read(campusApiProvider)
-                        .listings
-                        .transitionInteraction(
-                          listingId: offer.listingId,
-                          interactionId: offer.id,
-                          body: const TransitionInput(
-                            status: InteractionStatus.cancelled,
+        final offer = latestExchangeOffer(items);
+        final canOffer = listing.status == ListingStatus.active;
+        if (offer == null) {
+          return canOffer
+              ? ExchangeOfferForm(listing: listing)
+              : Text(l.listingBusy);
+        }
+        final active =
+            offer.status == InteractionStatus.pending ||
+            offer.status == InteractionStatus.accepted;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _ExchangeOfferCard(
+              offer: offer,
+              timezone: listing.cityTimezone,
+              city: listing.cityTimezone,
+              mine: true,
+              action: active
+                  ? ExchangeAction(
+                      label: l.reservationCancel,
+                      filled: false,
+                      buttonKey: Key('exchange-offer-cancel-${offer.id}'),
+                      run: () => ref
+                          .read(campusApiProvider)
+                          .listings
+                          .transitionInteraction(
+                            listingId: offer.listingId,
+                            interactionId: offer.id,
+                            body: const TransitionInput(
+                              status: InteractionStatus.cancelled,
+                            ),
                           ),
-                        ),
-                  ),
-              ],
+                    )
+                  : null,
             ),
-          ),
+            // A rejected or withdrawn offer stays visible; while the listing
+            // is still active the participant may offer another item.
+            if (!active && canOffer) ExchangeOfferForm(listing: listing),
+          ],
         );
       },
+    );
+  }
+}
+
+/// One offer with its status, the reservation countdown and a timeline link.
+class _ExchangeOfferCard extends StatelessWidget {
+  const _ExchangeOfferCard({
+    required this.offer,
+    required this.timezone,
+    required this.city,
+    this.mine = false,
+    this.action,
+  });
+
+  final InteractionOutput offer;
+  final String timezone;
+  final String city;
+  final bool mine;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final description = offer.offerDescription;
+    final text = mine
+        ? (description == null
+              ? l.exchangeOfferTitle
+              : l.exchangeOfferMine(description))
+        : (description == null
+              ? l.exchangeOfferTitle
+              : l.exchangeOfferItem(description));
+    return Card(
+      key: Key('exchange-offer-${offer.id}'),
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (!mine)
+              Text(
+                offer.participantName,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+            Text(
+              text,
+              key: mine ? Key('exchange-offer-mine-${offer.id}') : null,
+            ),
+            InteractionStatusText(item: offer),
+            MeetingSummary(item: offer, timezone: timezone, city: city),
+            TimelineButton(item: offer),
+            ?action,
+          ],
+        ),
+      ),
     );
   }
 }
@@ -244,21 +294,21 @@ class _ExchangeOfferFormState extends ConsumerState<ExchangeOfferForm> {
 /// The author's view of every offer: the chosen one is accepted, the others
 /// are rejected by the server.
 class ExchangeOffersList extends ConsumerWidget {
-  const ExchangeOffersList({required this.listingId, super.key});
+  const ExchangeOffersList({required this.listing, super.key});
 
-  final String listingId;
+  final ListingOutput listing;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
-    final offers = ref.watch(exchangeOffersProvider(listingId));
+    final offers = ref.watch(exchangeOffersProvider(listing.id));
     return offers.when(
       loading: () => const LinearProgressIndicator(),
       error: (e, _) => Column(
         children: [
           Text(exchangeFailureMessage(l, e)),
           TextButton(
-            onPressed: () => ref.invalidate(exchangeOffersProvider(listingId)),
+            onPressed: () => ref.invalidate(exchangeOffersProvider(listing.id)),
             child: Text(l.errorRetry),
           ),
         ],
@@ -272,47 +322,30 @@ class ExchangeOffersList extends ConsumerWidget {
           ),
           if (items.isEmpty) Text(l.exchangeOfferListEmpty),
           for (final offer in items)
-            Card(
-              key: Key('exchange-offer-${offer.id}'),
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      offer.participantName,
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                    Text(
-                      offer.offerDescription == null
-                          ? l.exchangeOfferTitle
-                          : l.exchangeOfferItem(offer.offerDescription!),
-                    ),
-                    InteractionStatusText(item: offer),
-                    TimelineButton(item: offer),
-                    if (offer.status == InteractionStatus.pending)
-                      ExchangeAction(
-                        label: l.exchangeOfferAccept,
-                        buttonKey: Key('exchange-accept-${offer.id}'),
-                        after: () => ScaffoldMessenger.maybeOf(context)
-                            ?.showSnackBar(
-                              SnackBar(content: Text(l.exchangeOfferAccepted)),
+            _ExchangeOfferCard(
+              offer: offer,
+              timezone: listing.cityTimezone,
+              city: listing.cityTimezone,
+              action: offer.status == InteractionStatus.pending
+                  ? ExchangeAction(
+                      label: l.exchangeOfferAccept,
+                      buttonKey: Key('exchange-accept-${offer.id}'),
+                      after: () => ScaffoldMessenger.maybeOf(context)
+                          ?.showSnackBar(
+                            SnackBar(content: Text(l.exchangeOfferAccepted)),
+                          ),
+                      run: () => ref
+                          .read(campusApiProvider)
+                          .listings
+                          .transitionInteraction(
+                            listingId: listing.id,
+                            interactionId: offer.id,
+                            body: const TransitionInput(
+                              status: InteractionStatus.accepted,
                             ),
-                        run: () => ref
-                            .read(campusApiProvider)
-                            .listings
-                            .transitionInteraction(
-                              listingId: listingId,
-                              interactionId: offer.id,
-                              body: const TransitionInput(
-                                status: InteractionStatus.accepted,
-                              ),
-                            ),
-                      ),
-                  ],
-                ),
-              ),
+                          ),
+                    )
+                  : null,
             ),
         ],
       ),

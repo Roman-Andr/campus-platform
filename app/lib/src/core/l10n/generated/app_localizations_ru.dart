@@ -1291,6 +1291,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get feedCreateExchange => 'Создать «Обменяю»';
 
   @override
+  String get exchangeCreateTitle => 'Новое объявление «Обменяю»';
+
+  @override
   String get exchangeOfferTitle => 'Предложения';
 
   @override

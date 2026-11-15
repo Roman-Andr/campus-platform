@@ -42,7 +42,9 @@ class InteractionStatusText extends ConsumerWidget {
                     )
                   : const SizedBox.shrink(),
               data: (reason) {
-                final label = interactionReasonLabel(l, reason);
+                final label = rejected
+                    ? interactionRejectionLabel(l, reason)
+                    : interactionReasonLabel(l, reason);
                 if (label == null) {
                   return rejected
                       ? Text(l.reservationRejectedAuthor)

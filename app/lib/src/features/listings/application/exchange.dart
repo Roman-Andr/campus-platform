@@ -13,6 +13,17 @@ InteractionOutput? activeExchangeOffer(Iterable<InteractionOutput> offers) {
   return null;
 }
 
+/// The last offer of an exchange listing as the server ordered them by
+/// creation time. A participant sees their own offers, the author all of
+/// them, so the last row is the latest answer to show.
+InteractionOutput? latestExchangeOffer(Iterable<InteractionOutput> offers) {
+  InteractionOutput? latest;
+  for (final offer in offers) {
+    latest = offer;
+  }
+  return latest;
+}
+
 /// Rejects a missing offer description; the server checks its length.
 String? exchangeOfferError(AppLocalizations l, String? description) =>
     description == null || description.trim().isEmpty

@@ -180,6 +180,22 @@ void main() {
       );
     });
 
+    test('the latest offer is shown even when it lost', () {
+      final cancelled = interaction(
+        status: 'cancelled',
+        offerDescription: 'A chair',
+      );
+      final rejected = interaction(
+        status: 'rejected',
+        offerDescription: 'A lamp',
+      );
+      expect(latestExchangeOffer(const []), isNull);
+      expect(
+        latestExchangeOffer([cancelled, rejected])?.offerDescription,
+        'A lamp',
+      );
+    });
+
     test('describes the item or asks for a description', () {
       expect(exchangeOfferError(en, null), 'Describe what you offer.');
       expect(exchangeOfferError(en, '   '), 'Describe what you offer.');
@@ -226,6 +242,15 @@ void main() {
     expect(interactionReasonLabel(en, 'Я передумал'), 'Я передумал');
     expect(interactionReasonLabel(en, null), isNull);
     expect(interactionReasonLabel(en, ''), isNull);
+    expect(
+      interactionRejectionLabel(en, 'future_reason'),
+      en.reservationRejectedOther,
+    );
+    expect(
+      interactionRejectionLabel(en, 'another_offer_accepted'),
+      en.exchangeOfferRejectedAnother,
+    );
+    expect(interactionRejectionLabel(en, null), isNull);
   });
 
   test('the clock decides the hold time by default', () {

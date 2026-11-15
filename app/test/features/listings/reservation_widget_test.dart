@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:campus/src/core/router/app_router.dart';
+import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -192,5 +193,92 @@ void main() {
       find.text('The hold expired: no meeting was scheduled in time.'),
       findsNothing,
     );
+  });
+
+  testWidgets('the countdown ticks and refreshes the released hold', (
+    tester,
+  ) async {
+    english(tester);
+    var now = DateTime.utc(2027, 1, 15, 12);
+    var expired = false;
+    final due = now.add(const Duration(seconds: 90));
+    final server = FakeHttpAdapter(feed: pageJson([]))
+      ..route((options) {
+        if (options.path.endsWith('/token/refresh')) {
+          return jsonBody(200, tokensJson(1));
+        }
+        if (options.path.endsWith('/reservations/mine')) {
+          return jsonBody(
+            200,
+            pageJson([
+              participationJson(
+                status: expired ? 'cancelled' : 'accepted',
+                reservationDueAt: expired ? null : due.toIso8601String(),
+              ),
+            ]),
+          );
+        }
+        if (options.path.endsWith('/events')) {
+          return jsonBody(
+            200,
+            pageJson([eventJson(reason: 'reservation_expired')]),
+          );
+        }
+        return jsonBody(200, pageJson([]));
+      });
+    await withClock(Clock(() => now), () async {
+      await openMy(tester, server);
+      expect(find.text('Hold ends in 1 min'), findsOneWidget);
+      expect(
+        find.byKey(const Key('reservation-left-interaction-1')),
+        findsOneWidget,
+      );
+
+      now = now.add(const Duration(minutes: 1));
+      await tester.pump(const Duration(minutes: 1));
+      expect(find.text('The hold ends in less than a minute.'), findsOneWidget);
+
+      expired = true;
+      now = now.add(const Duration(seconds: 30));
+      await tester.pump(const Duration(seconds: 30));
+      await tester.pumpAndSettle();
+      for (
+        var i = 0;
+        i < 20 && find.text('Cancelled').evaluate().isEmpty;
+        i++
+      ) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(find.text('Cancelled'), findsOneWidget);
+      for (
+        var i = 0;
+        i < 20 &&
+            find
+                .text('The hold expired: no meeting was scheduled in time.')
+                .evaluate()
+                .isEmpty;
+        i++
+      ) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(
+        find.text('The hold expired: no meeting was scheduled in time.'),
+        findsOneWidget,
+      );
+      expect(
+        server.sent
+            .where((request) => request.path.endsWith('/reservations/mine'))
+            .length,
+        greaterThanOrEqualTo(2),
+      );
+      expect(
+        server.sent.where((request) => request.path.endsWith('/events')),
+        isNotEmpty,
+      );
+      expect(
+        find.byKey(const Key('reservation-left-interaction-1')),
+        findsNothing,
+      );
+    });
   });
 }
