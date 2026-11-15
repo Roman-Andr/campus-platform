@@ -72,7 +72,7 @@ def upgrade() -> None:
           AND EXISTS (
               SELECT 1 FROM listing_interaction interaction
               WHERE interaction.listing_id = listing.id
-                AND interaction.status = 'accepted'
+                AND interaction.status IN ('accepted', 'completed')
           )
         """
     )
@@ -93,7 +93,7 @@ def upgrade() -> None:
         FROM chat
         JOIN listing_interaction interaction
           ON interaction.listing_id = chat.listing_id
-         AND interaction.status = 'accepted'
+         AND interaction.status IN ('accepted', 'completed')
         WHERE chat.kind IN ('event', 'purchase')
         ON CONFLICT (chat_id, user_id) DO NOTHING
         """

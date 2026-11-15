@@ -2,8 +2,9 @@
 
 A listing owns one group chat, created by the first accepted participation.
 The membership is a projection of the domain: the organiser of the listing
-and every participant whose interaction is accepted right now. The projector
-re-reads that state in the transaction that changes it, so a repeated or
+and every participant whose interaction is accepted or completed right
+now. The projector re-reads that state in the transaction that changes it,
+so a repeated or
 delayed call converges to the same rows and can never re-add a participant
 whose acceptance was already cancelled. The chat and its channel grants are
 written in that same transaction; a rollback leaves neither.
@@ -45,11 +46,13 @@ async def group_chat_of(
 
 
 async def group_member_ids(session: AsyncSession, listing: Listing) -> set[UUID]:
-    """The organiser and every accepted participant of the listing now."""
+    """The organiser and every accepted or completed participant now."""
     participants = await session.scalars(
         select(Interaction.participant_id).where(
             Interaction.listing_id == listing.id,
-            Interaction.status == InteractionStatus.ACCEPTED,
+            Interaction.status.in_(
+                (InteractionStatus.ACCEPTED, InteractionStatus.COMPLETED)
+            ),
         )
     )
     return {listing.author_id, *participants}

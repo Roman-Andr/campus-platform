@@ -481,6 +481,36 @@ async def test_reacceptance_restores_membership_and_history(
     assert (await send(alice, chat_id, "after returning")).status_code == 201
 
 
+@pytest.mark.parametrize(("status", "kept"), [("completed", True), ("no_show", False)])
+async def test_projection_keeps_completed_participation_and_drops_no_show(
+    chat_auth: Auth,
+    reference: Reference,
+    sessions: async_sessionmaker[AsyncSession],
+    status: str,
+    kept: bool,
+) -> None:
+    owner = await account(chat_auth, reference.places, "owner@university.example")
+    alice = await account(chat_auth, reference.places, "alice@university.example")
+    listing = await publish_event(owner, reference)
+    interaction = (await signup(alice, listing)).json()["interaction"]
+    chat_id = UUID((await group_of(alice, listing))["id"])
+    alice_id = UUID(alice.tokens["user"]["id"])
+
+    # A completed participation is not a leave; a no-show ends it.
+    async with sessions() as db, db.begin():
+        stored_interaction = await db.get(Interaction, UUID(interaction["id"]))
+        stored_listing = await db.get(Listing, UUID(listing["id"]))
+        assert stored_interaction is not None
+        assert stored_listing is not None
+        stored_interaction.status = status
+        await db.flush()
+        await sync_group_chat(db, stored_listing)
+        member = await member_of(db, chat_id, alice_id)
+        assert member is not None
+        assert (member.left_at is None) is kept
+        assert await can_access(db, f"chat:{chat_id}", alice_id) is kept
+
+
 async def test_late_projection_cannot_return_removed_participant(
     chat_auth: Auth, reference: Reference, sessions: async_sessionmaker[AsyncSession]
 ) -> None:
