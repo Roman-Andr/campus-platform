@@ -1,3 +1,4 @@
+import 'package:campus/src/core/api/generated/campus_api.dart';
 import 'package:campus/src/core/auth/auth_session.dart';
 import 'package:campus/src/features/chat/data/chat_api.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -54,6 +55,36 @@ void main() {
       expect(request.json['text'], 'hello');
     },
   );
+
+  test('passes the query, cursor and size to chat search', () async {
+    final result = ChatSearchResult(
+      chat: chatJson(id: testChatId),
+      message: messageJson(
+        chatId: testChatId,
+        sequence: 7,
+        text: 'bicycle route',
+      ),
+      snippet: '…bicycle route…',
+    );
+    final page = PageChatSearchResult(items: [result], nextPage: 'cursor-2');
+    server.route(
+      (options) => options.path == '/api/v1/chats/search'
+          ? jsonBody(200, page.toJson())
+          : jsonBody(200, tokensJson(1)),
+    );
+
+    final found = await api.searchChats(
+      query: 'bicycle',
+      cursor: 'cursor-1',
+      size: 10,
+    );
+
+    expect(found.items.single.snippet, '…bicycle route…');
+    final request = server.sent.last;
+    expect(request.method, 'GET');
+    expect(request.path, '/api/v1/chats/search');
+    expect(request.query, {'q': 'bicycle', 'cursor': 'cursor-1', 'size': 10});
+  });
 
   test('accepts a 200 stored dialog from the generated client', () async {
     final chat = chatJson(id: testChatId);
