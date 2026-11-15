@@ -28,28 +28,38 @@ class ChatDialogsState {
 @Riverpod(keepAlive: true, retry: chatRetry)
 class ChatDialogs extends _$ChatDialogs {
   String? _owner;
+  ChatStore? _store;
   bool _loadingMore = false;
+  int _generation = 0;
 
   @override
   Future<ChatDialogsState> build() async {
+    final generation = ++_generation;
+    _owner = null;
+    _store = null;
+    _loadingMore = false;
     final status = ref.watch(authStatusProvider).value;
     if (status != AuthenticationStatus.authenticated) {
       return const ChatDialogsState();
     }
     final owner = await ref.read(authStorageProvider).cacheNamespace();
-    _owner = owner;
+    if (!_isGeneration(generation)) return const ChatDialogsState();
     final cache = ref.read(chatStoreProvider);
     final cached = await cache.loadDialogs(owner);
+    if (!_isGeneration(generation)) return const ChatDialogsState();
+    _owner = owner;
+    _store = cache;
     final online = ref.watch(networkStatusProvider);
-    if (!online) {
-      return ChatDialogsState(items: cached);
-    }
+    if (!online) return ChatDialogsState(items: cached);
     try {
       final page = await ref.read(chatApiProvider).listChats();
+      if (!_isCurrent(generation, owner)) return const ChatDialogsState();
       await cache.replaceDialogs(owner, page.items);
+      if (!_isCurrent(generation, owner)) return const ChatDialogsState();
       return ChatDialogsState(items: page.items, nextPage: page.nextPage);
     } on Object catch (error) {
-      if (ApiFailure.from(error) is NetworkFailure) {
+      if (ApiFailure.from(error) is NetworkFailure &&
+          _isCurrent(generation, owner)) {
         return ChatDialogsState(items: cached);
       }
       rethrow;
@@ -58,11 +68,14 @@ class ChatDialogs extends _$ChatDialogs {
 
   /// Reloads the first page, replacing the cached list.
   Future<void> refresh() async {
+    final generation = _generation;
     final owner = _owner;
-    if (owner == null) return;
+    final cache = _store;
+    if (owner == null || cache == null) return;
     final page = await ref.read(chatApiProvider).listChats();
-    await ref.read(chatStoreProvider).replaceDialogs(owner, page.items);
-    if (!ref.mounted) return;
+    if (!_isCurrent(generation, owner)) return;
+    await cache.replaceDialogs(owner, page.items);
+    if (!_isCurrent(generation, owner)) return;
     state = AsyncData(
       ChatDialogsState(items: page.items, nextPage: page.nextPage),
     );
@@ -70,13 +83,22 @@ class ChatDialogs extends _$ChatDialogs {
 
   /// Appends the next page, without repeating a dialog.
   Future<void> more() async {
+    final generation = _generation;
+    final owner = _owner;
+    final cache = _store;
     final current = state.value;
     final cursor = current?.nextPage;
-    if (_loadingMore || current == null || cursor == null) return;
+    if (owner == null ||
+        cache == null ||
+        _loadingMore ||
+        current == null ||
+        cursor == null) {
+      return;
+    }
     _loadingMore = true;
     try {
       final page = await ref.read(chatApiProvider).listChats(cursor: cursor);
-      if (!ref.mounted) return;
+      if (!_isCurrent(generation, owner)) return;
       final latest = state.value ?? current;
       final byId = <String, ChatOutput>{
         for (final chat in [...latest.items, ...page.items]) chat.id: chat,
@@ -86,18 +108,21 @@ class ChatDialogs extends _$ChatDialogs {
           final byTime = b.updatedAt.compareTo(a.updatedAt);
           return byTime != 0 ? byTime : a.id.compareTo(b.id);
         });
-      final owner = _owner;
-      if (owner != null) {
-        await ref.read(chatStoreProvider).upsertDialogs(owner, page.items);
-      }
-      if (!ref.mounted) return;
+      await cache.upsertDialogs(owner, page.items);
+      if (!_isCurrent(generation, owner)) return;
       state = AsyncData(
         ChatDialogsState(items: items, nextPage: page.nextPage),
       );
     } finally {
-      _loadingMore = false;
+      if (_generation == generation) _loadingMore = false;
     }
   }
+
+  bool _isGeneration(int generation) =>
+      ref.mounted && _generation == generation;
+
+  bool _isCurrent(int generation, String owner) =>
+      _isGeneration(generation) && _owner == owner;
 }
 
 /// One dialog of the signed-in user, with the cached copy as an offline
@@ -117,6 +142,8 @@ Future<ChatOutput?> chat(Ref ref, String chatId) async {
   }
   try {
     final chat = await ref.read(chatApiProvider).readChat(chatId);
+    final current = await ref.read(authStorageProvider).cacheNamespace();
+    if (!ref.mounted || current != owner) return chat;
     await store.upsertDialogs(owner, [chat]);
     return chat;
   } on Object catch (error) {

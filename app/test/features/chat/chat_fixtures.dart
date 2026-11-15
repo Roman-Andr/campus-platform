@@ -87,6 +87,9 @@ class FakeChatApi implements ChatApi {
   /// While set, messages requests snapshot the data, then wait for it.
   Completer<void>? listGate;
 
+  /// While set, dialogs requests snapshot the data, then wait for it.
+  Completer<void>? listChatsGate;
+
   /// Maximum rows per messages page; the next cursor is the last sequence.
   int? pageLimit;
 
@@ -107,8 +110,12 @@ class FakeChatApi implements ChatApi {
   int _serverSequence = 100;
 
   @override
-  Future<PageChatOutput> listChats({String? cursor}) async =>
-      PageChatOutput(items: chats, nextPage: null);
+  Future<PageChatOutput> listChats({String? cursor}) async {
+    final snapshot = List<ChatOutput>.of(chats);
+    final gate = listChatsGate;
+    if (gate != null) await gate.future;
+    return PageChatOutput(items: snapshot, nextPage: null);
+  }
 
   @override
   Future<ChatOutput> createChat({

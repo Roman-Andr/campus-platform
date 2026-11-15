@@ -40,15 +40,23 @@ class ChatHistoryState {
 @Riverpod(retry: chatRetry)
 class ChatHistory extends _$ChatHistory {
   String? _owner;
+  ChatStore? _store;
   bool _loadingOlder = false;
   bool _syncing = false;
   bool _syncRequested = false;
+  int _generation = 0;
   int _realtimeGeneration = 0;
   RealtimeSubscription? _subscription;
   final _events = <StreamSubscription<Object?>>[];
 
   @override
   Future<ChatHistoryState> build(String chatId) async {
+    final generation = ++_generation;
+    _owner = null;
+    _store = null;
+    _loadingOlder = false;
+    _syncing = false;
+    _syncRequested = false;
     ref.onDispose(() {
       unawaited(_stopRealtime());
     });
@@ -56,22 +64,27 @@ class ChatHistory extends _$ChatHistory {
     if (status != AuthenticationStatus.authenticated) {
       return const ChatHistoryState();
     }
-    _owner = await ref.read(authStorageProvider).cacheNamespace();
+    final owner = await ref.read(authStorageProvider).cacheNamespace();
+    if (!_isGeneration(generation)) return const ChatHistoryState();
     final store = ref.read(chatStoreProvider);
-    final cached = await store.loadMessages(_owner!, chatId);
+    final cached = await store.loadMessages(owner, chatId);
+    if (!_isGeneration(generation)) return const ChatHistoryState();
+    _owner = owner;
+    _store = store;
     final online = ref.watch(networkStatusProvider);
-    if (!online) {
-      return ChatHistoryState(messages: cached);
-    }
+    if (!online) return ChatHistoryState(messages: cached);
     try {
       final page = await ref.read(chatApiProvider).listMessages(chatId);
-      await store.saveMessages(_owner!, chatId, page.items);
+      if (!_isCurrent(generation, owner)) return const ChatHistoryState();
+      await store.saveMessages(owner, chatId, page.items);
+      if (!_isCurrent(generation, owner)) return const ChatHistoryState();
       return ChatHistoryState(
         messages: mergeMessages(const [], page.items),
         nextPage: page.nextPage,
       );
     } on Object catch (error) {
-      if (ApiFailure.from(error) is NetworkFailure) {
+      if (ApiFailure.from(error) is NetworkFailure &&
+          _isCurrent(generation, owner)) {
         return ChatHistoryState(messages: cached);
       }
       rethrow;
@@ -80,21 +93,26 @@ class ChatHistory extends _$ChatHistory {
 
   /// Loads the page before the oldest loaded message.
   Future<void> loadOlder() async {
+    final generation = _generation;
+    final owner = _owner;
+    final store = _store;
     final current = state.value;
     final cursor = current?.nextPage;
-    if (_loadingOlder || current == null || cursor == null) return;
+    if (owner == null ||
+        store == null ||
+        _loadingOlder ||
+        current == null ||
+        cursor == null) {
+      return;
+    }
     _loadingOlder = true;
     try {
       final page = await ref
           .read(chatApiProvider)
           .listMessages(chatId, cursor: cursor);
-      final owner = _owner;
-      if (owner != null) {
-        await ref
-            .read(chatStoreProvider)
-            .saveMessages(owner, chatId, page.items);
-      }
-      if (!ref.mounted) return;
+      if (!_isCurrent(generation, owner)) return;
+      await store.saveMessages(owner, chatId, page.items);
+      if (!_isCurrent(generation, owner)) return;
       final latest = state.value ?? current;
       state = AsyncData(
         ChatHistoryState(
@@ -103,7 +121,7 @@ class ChatHistory extends _$ChatHistory {
         ),
       );
     } finally {
-      _loadingOlder = false;
+      if (_generation == generation) _loadingOlder = false;
     }
   }
 
@@ -116,33 +134,36 @@ class ChatHistory extends _$ChatHistory {
   /// coalesced into one more pass instead of being dropped: the response of
   /// the first pass may predate the message that caused the second wakeup.
   Future<void> sync() async {
+    final generation = _generation;
+    if (!_isGeneration(generation)) return;
     if (_syncing) {
       _syncRequested = true;
       return;
     }
     _syncing = true;
     try {
-      if (state.value == null) {
-        try {
-          await future;
-        } on Object {
-          return;
-        }
-        if (!ref.mounted || state.value == null) return;
-      }
-      while (true) {
+      do {
+        if (!_isGeneration(generation)) return;
         _syncRequested = false;
-        await _syncOnce();
-        if (!_syncRequested || !ref.mounted) break;
-      }
+        await _syncOnce(generation);
+        if (!_isGeneration(generation)) return;
+      } while (_syncRequested);
     } finally {
-      _syncing = false;
+      // A rebuild owns a new generation; its flags must not be reset by the
+      // request of the previous session.
+      if (_generation == generation) {
+        _syncing = false;
+        _syncRequested = false;
+      }
     }
   }
 
-  Future<void> _syncOnce() async {
+  Future<void> _syncOnce(int generation) async {
+    final owner = _owner;
+    final store = _store;
     final current = state.value;
-    if (current == null) return;
+    if (owner == null || store == null || current == null) return;
+    if (!_isCurrent(generation, owner)) return;
     final api = ref.read(chatApiProvider);
     final newest = current.messages.isEmpty
         ? null
@@ -157,6 +178,7 @@ class ChatHistory extends _$ChatHistory {
         ascending: newest == null ? null : true,
         cursor: cursor,
       );
+      if (!_isCurrent(generation, owner)) return;
       loaded.addAll(page.items);
       // Only the initial (newest-first) load can supply the older-history
       // cursor. A forward recovery paginates by sequence; reusing its
@@ -164,14 +186,11 @@ class ChatHistory extends _$ChatHistory {
       if (newest == null) olderCursor ??= page.nextPage;
       cursor = page.nextPage;
     } while (cursor != null);
-    if (!ref.mounted) return;
+    if (!_isCurrent(generation, owner)) return;
     final latest = state.value ?? current;
     final messages = mergeMessages(latest.messages, loaded);
-    final owner = _owner;
-    if (owner != null) {
-      await ref.read(chatStoreProvider).saveMessages(owner, chatId, loaded);
-    }
-    if (!ref.mounted) return;
+    await store.saveMessages(owner, chatId, loaded);
+    if (!_isCurrent(generation, owner)) return;
     state = AsyncData(
       ChatHistoryState(
         messages: messages,
@@ -193,12 +212,15 @@ class ChatHistory extends _$ChatHistory {
 
   /// Applies a message delivered by our own outbox without another request.
   Future<void> mergeDelivered(MessageOutput message) async {
-    final current = state.value;
+    final generation = _generation;
     final owner = _owner;
-    if (owner != null) {
-      await ref.read(chatStoreProvider).saveMessages(owner, chatId, [message]);
+    final store = _store;
+    final current = state.value;
+    if (owner == null || store == null || !_isCurrent(generation, owner)) {
+      return;
     }
-    if (!ref.mounted) return;
+    await store.saveMessages(owner, chatId, [message]);
+    if (!_isCurrent(generation, owner)) return;
     final messages = mergeMessages(current?.messages ?? const [], [message]);
     state = AsyncData(
       ChatHistoryState(messages: messages, nextPage: current?.nextPage),
@@ -248,6 +270,12 @@ class ChatHistory extends _$ChatHistory {
     }
     await subscription?.close();
   }
+
+  bool _isGeneration(int generation) =>
+      ref.mounted && _generation == generation;
+
+  bool _isCurrent(int generation, String owner) =>
+      _isGeneration(generation) && _owner == owner;
 }
 
 /// Subscription API of the realtime service, replaceable in tests.
