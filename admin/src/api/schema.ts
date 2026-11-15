@@ -2656,7 +2656,7 @@ export interface components {
       cancelled_by?: components['schemas']['CancellationActor'] | null;
       /**
        * Cancellation Reason
-       * @description The author's cancellation reason, when given.
+       * @description The reason recorded for the cancellation.
        */
       cancellation_reason?: string | null;
       /**
@@ -3382,7 +3382,7 @@ export interface components {
       cancelled_by?: components['schemas']['CancellationActor'] | null;
       /**
        * Cancellation Reason
-       * @description The author's cancellation reason, when given.
+       * @description The reason recorded for the cancellation.
        */
       cancellation_reason?: string | null;
       /**
@@ -3833,7 +3833,7 @@ export interface components {
       cancelled_by?: components['schemas']['CancellationActor'] | null;
       /**
        * Cancellation Reason
-       * @description The author's cancellation reason, when given.
+       * @description The reason recorded for the cancellation.
        */
       cancellation_reason?: string | null;
       /**

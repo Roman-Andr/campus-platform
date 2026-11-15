@@ -36,7 +36,7 @@ class InteractionOutput implements SignupOutputInteraction {
     /// Who cancelled the interaction; null otherwise.
     this.cancelledBy,
 
-    /// The author's cancellation reason, when given.
+    /// The reason recorded for the cancellation.
     this.cancellationReason,
 
     /// Whether this participant cancellation counted as late.
@@ -177,7 +177,7 @@ class InteractionOutput implements SignupOutputInteraction {
   /// Who cancelled the interaction; null otherwise.
   final InteractionOutputCancelledBy? cancelledBy;
 
-  /// The author's cancellation reason, when given.
+  /// The reason recorded for the cancellation.
   final String? cancellationReason;
 
   /// Whether this participant cancellation counted as late.

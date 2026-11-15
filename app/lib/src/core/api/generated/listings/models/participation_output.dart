@@ -37,7 +37,7 @@ class ParticipationOutput {
     /// Who cancelled the interaction; null otherwise.
     this.cancelledBy,
 
-    /// The author's cancellation reason, when given.
+    /// The reason recorded for the cancellation.
     this.cancellationReason,
 
     /// Whether this participant cancellation counted as late.
@@ -188,7 +188,7 @@ class ParticipationOutput {
   /// Who cancelled the interaction; null otherwise.
   final ParticipationOutputCancelledBy? cancelledBy;
 
-  /// The author's cancellation reason, when given.
+  /// The reason recorded for the cancellation.
   final String? cancellationReason;
 
   /// Whether this participant cancellation counted as late.

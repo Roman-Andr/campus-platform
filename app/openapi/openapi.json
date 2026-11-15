@@ -19080,7 +19080,7 @@
               "null"
             ],
             "title": "Cancellation Reason",
-            "description": "The author's cancellation reason, when given."
+            "description": "The reason recorded for the cancellation."
           },
           "late_cancelled": {
             "type": "boolean",
@@ -20650,7 +20650,7 @@
               "null"
             ],
             "title": "Cancellation Reason",
-            "description": "The author's cancellation reason, when given."
+            "description": "The reason recorded for the cancellation."
           },
           "late_cancelled": {
             "type": "boolean",
@@ -21495,7 +21495,7 @@
               "null"
             ],
             "title": "Cancellation Reason",
-            "description": "The author's cancellation reason, when given."
+            "description": "The reason recorded for the cancellation."
           },
           "late_cancelled": {
             "type": "boolean",
