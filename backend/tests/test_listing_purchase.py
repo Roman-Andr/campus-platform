@@ -353,7 +353,12 @@ async def test_author_cancels_collecting_purchase(
     share = (await join(borrower, listing, 2)).json()
     assert (await queue_join(queue_member, listing, 1)).status_code == 201
 
-    cancelled = await request(owner, "POST", f"/{listing['id']}/cancel")
+    cancelled = await request(
+        owner,
+        "POST",
+        f"/{listing['id']}/cancel",
+        {"reason": "Supplier is out of stock"},
+    )
     assert cancelled.status_code == 200, cancelled.text
     assert cancelled.json()["status"] == "cancelled"
     assert cancelled.json()["purchase_stage"] == "cancelled"
@@ -363,6 +368,8 @@ async def test_author_cancels_collecting_purchase(
     stored_share = await owner.auth.db.get(Interaction, UUID(share["id"]))
     assert stored_share is not None
     assert stored_share.status == InteractionStatus.CANCELLED
+    assert stored_share.cancelled_by == "author"
+    assert stored_share.cancellation_reason == "Supplier is out of stock"
     entry = await owner.auth.db.scalar(
         select(WaitlistEntry).where(
             WaitlistEntry.listing_id == UUID(listing["id"]),
@@ -391,6 +398,128 @@ async def test_author_cancels_collecting_purchase(
         ),
     ]
     assert [response.status_code for response in later] == [409, 409, 409]
+
+
+async def test_author_cancel_purchase_requires_reason(
+    owner: Account, borrower: Account
+) -> None:
+    listing = await publish_purchase(owner, min_units=1, max_units=2)
+    share = (await join(borrower, listing, 1)).json()
+
+    preview = await request(owner, "GET", f"/{listing['id']}/cancellation")
+    assert preview.status_code == 200
+    assert preview.json()["accepted_interactions"] == 1
+    assert preview.json()["reason_required"] is True
+
+    refused = await request(owner, "POST", f"/{listing['id']}/cancel")
+    assert refused.status_code == 422
+    assert refused.json()["code"] == "listing_cancel_reason_required"
+
+    cancelled = await request(
+        owner,
+        "POST",
+        f"/{listing['id']}/cancel",
+        {"reason": "Supplier is out of stock"},
+    )
+    assert cancelled.status_code == 200, cancelled.text
+    await owner.auth.db.rollback()
+    stored = await owner.auth.db.get(Interaction, UUID(share["id"]))
+    assert stored is not None
+    assert stored.status == InteractionStatus.CANCELLED
+    assert stored.cancelled_by == "author"
+    assert stored.cancellation_reason == "Supplier is out of stock"
+    messages = [
+        message
+        for message in await notifications(borrower)
+        if message.payload.get("type") == "listing.purchase.cancelled"
+    ]
+    assert "Supplier is out of stock" in messages[-1].payload["text"]["en"]
+
+
+async def test_collecting_leave_is_not_late(owner: Account, borrower: Account) -> None:
+    listing = await publish_purchase(owner, min_units=1, max_units=2)
+    share = (await join(borrower, listing, 1)).json()
+    assert (await leave(borrower, listing)).status_code == 204
+
+    await owner.auth.db.rollback()
+    stored = await owner.auth.db.get(Interaction, UUID(share["id"]))
+    assert stored is not None
+    assert stored.status == InteractionStatus.CANCELLED
+    assert stored.cancelled_by == "participant"
+    assert stored.late_cancelled is False
+
+
+async def test_fixed_purchase_leave_is_late(owner: Account, borrower: Account) -> None:
+    deadline = clock.now() + timedelta(hours=2)
+    listing = await publish_purchase(
+        owner, min_units=1, max_units=5, collection_deadline=instant(deadline)
+    )
+    share = (await join(borrower, listing, 2)).json()
+    with at(deadline + timedelta(seconds=1)):
+        assert await deadlines(owner) >= 1
+
+    preview = await request(
+        borrower,
+        "GET",
+        f"/{listing['id']}/interactions/{share['id']}/cancellation",
+    )
+    assert preview.status_code == 200, preview.text
+    assert preview.json()["late"] is True
+    assert preview.json()["requires_approval"] is True
+
+    requested = await withdrawal(borrower, listing, reason="Changed plans")
+    assert requested.status_code == 201
+    decided = await decide(owner, listing, share["id"], True)
+    assert decided.status_code == 200, decided.text
+    assert decided.json()["late_cancelled"] is True
+
+    await owner.auth.db.rollback()
+    stored = await owner.auth.db.get(Interaction, UUID(share["id"]))
+    assert stored is not None
+    assert stored.cancelled_by == "participant"
+    assert stored.late_cancelled is True
+    history = await events(owner, listing)
+    approved = next(item for item in history if item["action"] == "leave_approved")
+    assert approved["details"]["late"] is True
+
+
+async def test_price_change_exempts_fixed_leave(
+    owner: Account, borrower: Account
+) -> None:
+    deadline = clock.now() + timedelta(hours=2)
+    listing = await publish_purchase(
+        owner, min_units=1, max_units=5, collection_deadline=instant(deadline)
+    )
+    share = (await join(borrower, listing, 2)).json()
+    current = (await request(owner, "GET", f"/{listing['id']}")).json()
+    changed = await request(
+        owner,
+        "PATCH",
+        f"/{listing['id']}/purchase",
+        {"version": current["version"], "price_per_unit": "15.00"},
+    )
+    assert changed.status_code == 200, changed.text
+
+    with at(deadline + timedelta(seconds=1)):
+        assert await deadlines(owner) >= 1
+
+    preview = await request(
+        borrower,
+        "GET",
+        f"/{listing['id']}/interactions/{share['id']}/cancellation",
+    )
+    assert preview.status_code == 200, preview.text
+    assert preview.json()["late"] is False
+    requested = await withdrawal(borrower, listing, reason="Price changed")
+    assert requested.status_code == 201
+    decided = await decide(owner, listing, share["id"], True)
+    assert decided.status_code == 200, decided.text
+    assert decided.json()["late_cancelled"] is False
+
+    await owner.auth.db.rollback()
+    stored = await owner.auth.db.get(Interaction, UUID(share["id"]))
+    assert stored is not None
+    assert stored.late_cancelled is False
 
 
 async def test_pending_offer_expires_when_composition_freezes(

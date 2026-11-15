@@ -3,6 +3,7 @@
 import 'interaction_status.dart';
 import 'lesson_option_output.dart';
 import 'participation_listing.dart';
+import 'participation_output_cancelled_by.dart';
 import 'participation_output_completion_method.dart';
 import 'purchase_share_output_meeting.dart';
 
@@ -32,6 +33,15 @@ class ParticipationOutput {
 
     /// When a participant asked to leave a fixed purchase.
     this.leaveRequestedAt,
+
+    /// Who cancelled the interaction; null otherwise.
+    this.cancelledBy,
+
+    /// The author's cancellation reason, when given.
+    this.cancellationReason,
+
+    /// Whether this participant cancellation counted as late.
+    this.lateCancelled = false,
     required this.meeting,
 
     /// Time options of a skill lesson; empty for other types.
@@ -96,6 +106,17 @@ class ParticipationOutput {
                 ? null
                 : DateTime.parse(json["leave_requested_at"] as String).toUtc()
           : null,
+      cancelledBy: json.containsKey("cancelled_by")
+          ? json["cancelled_by"] == null
+                ? null
+                : ParticipationOutputCancelledBy.fromJson(json["cancelled_by"])
+          : null,
+      cancellationReason: json.containsKey("cancellation_reason")
+          ? json["cancellation_reason"] as String?
+          : null,
+      lateCancelled: json.containsKey("late_cancelled")
+          ? json["late_cancelled"] as bool
+          : false,
       meeting: ParticipationOutputMeeting.fromJson(json["meeting"]),
       options: json.containsKey("options")
           ? (json["options"] as List<Object?>)
@@ -164,6 +185,15 @@ class ParticipationOutput {
   /// When a participant asked to leave a fixed purchase.
   final DateTime? leaveRequestedAt;
 
+  /// Who cancelled the interaction; null otherwise.
+  final ParticipationOutputCancelledBy? cancelledBy;
+
+  /// The author's cancellation reason, when given.
+  final String? cancellationReason;
+
+  /// Whether this participant cancellation counted as late.
+  final bool lateCancelled;
+
   final ParticipationOutputMeeting meeting;
 
   /// Time options of a skill lesson; empty for other types.
@@ -200,6 +230,9 @@ class ParticipationOutput {
     "offer_description",
     "units",
     "leave_requested_at",
+    "cancelled_by",
+    "cancellation_reason",
+    "late_cancelled",
     "meeting",
     "options",
     "completion_method",
@@ -230,6 +263,10 @@ class ParticipationOutput {
     if (this.units != null) "units": this.units,
     if (this.leaveRequestedAt != null)
       "leave_requested_at": this.leaveRequestedAt?.toUtc().toIso8601String(),
+    if (this.cancelledBy != null) "cancelled_by": this.cancelledBy?.toJson(),
+    if (this.cancellationReason != null)
+      "cancellation_reason": this.cancellationReason,
+    "late_cancelled": this.lateCancelled,
     "meeting": this.meeting.toJson(),
     if (this.options != null)
       "options": this.options?.map((item) => item.toJson()).toList(),

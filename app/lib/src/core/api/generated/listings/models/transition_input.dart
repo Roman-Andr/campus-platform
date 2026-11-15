@@ -3,18 +3,26 @@
 import 'interaction_status.dart';
 
 class TransitionInput {
-  const TransitionInput({required this.status});
+  const TransitionInput({required this.status, this.reason});
 
   factory TransitionInput.fromJson(Map<String, Object?> json) {
     if (json.keys.any((key) => !_knownKeys.contains(key))) {
       throw ArgumentError('Unexpected JSON property.');
     }
-    return TransitionInput(status: InteractionStatus.fromJson(json["status"]));
+    return TransitionInput(
+      status: InteractionStatus.fromJson(json["status"]),
+      reason: json.containsKey("reason") ? json["reason"] as String? : null,
+    );
   }
 
   final InteractionStatus status;
 
-  static const _knownKeys = <String>{"status"};
+  final String? reason;
 
-  Map<String, Object?> toJson() => {"status": this.status.toJson()};
+  static const _knownKeys = <String>{"status", "reason"};
+
+  Map<String, Object?> toJson() => {
+    "status": this.status.toJson(),
+    if (this.reason != null) "reason": this.reason,
+  };
 }
