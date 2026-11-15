@@ -73,7 +73,7 @@ final class ChatPhotoDraftProvider
   }
 }
 
-String _$chatPhotoDraftHash() => r'0810c8aa3208b6e41ff34ace2553b8dbf1c990b4';
+String _$chatPhotoDraftHash() => r'594fb507e25ce7e991acdfdd80b7b0b41e327276';
 
 /// Photos of one chat composer.
 ///
