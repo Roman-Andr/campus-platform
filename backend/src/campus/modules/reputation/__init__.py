@@ -1,21 +1,26 @@
 """Public interface of the QR and reputation module."""
 
 from campus.modules.reputation.api import (
+    code_router,
     device_router,
     qr_router,
     time_router,
 )
-from campus.modules.reputation.models import DeviceKey, QrScan
+from campus.modules.reputation.models import ConfirmationCode, DeviceKey, QrScan
 from campus.modules.reputation.service import (
     QR_ALGORITHM,
     QR_COMPLETION_KINDS,
+    CodeIssue,
+    CodeResult,
     QrPayload,
     QrResult,
     active_signing_key,
     base64url_decode,
     base64url_encode,
+    confirm_with_code,
     confirm_with_qr,
     decode_payload,
+    issue_confirmation_code,
     public_key_bytes,
     register_device_key,
     revoke_device_key,
@@ -25,6 +30,9 @@ from campus.modules.reputation.service import (
 __all__ = [
     "QR_ALGORITHM",
     "QR_COMPLETION_KINDS",
+    "CodeIssue",
+    "CodeResult",
+    "ConfirmationCode",
     "DeviceKey",
     "QrPayload",
     "QrResult",
@@ -32,9 +40,12 @@ __all__ = [
     "active_signing_key",
     "base64url_decode",
     "base64url_encode",
+    "code_router",
+    "confirm_with_code",
     "confirm_with_qr",
     "decode_payload",
     "device_router",
+    "issue_confirmation_code",
     "public_key_bytes",
     "qr_router",
     "register_device_key",

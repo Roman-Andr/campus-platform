@@ -2,8 +2,10 @@
 
 import base64
 import binascii
+import hmac
 import json
 import re
+import secrets
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Literal
@@ -14,12 +16,13 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from campus.core import clock
 from campus.core.config import Settings
 from campus.core.i18n import N_
 from campus.core.web import Instant, ProblemError, ProblemType
+from campus.core.web.auth import digest
 from campus.core.web.problems import NOT_FOUND
 from campus.modules.identity import Session
 from campus.modules.listings import (
@@ -30,7 +33,7 @@ from campus.modules.listings import (
     locked,
     transition,
 )
-from campus.modules.reputation.models import DeviceKey, QrScan
+from campus.modules.reputation.models import ConfirmationCode, DeviceKey, QrScan
 
 # These are the scenarios that are completed by meeting a person. Events,
 # group purchases and publications use other workflows, and a loan needs a
@@ -39,6 +42,7 @@ QR_COMPLETION_KINDS = frozenset({"giveaway", "exchange", "skill", "help"})
 QR_ALGORITHM = "ed25519"
 PUBLIC_KEY_SIZE = 32
 SIGNATURE_SIZE = 64
+CONFIRMATION_CODE_LENGTH = 6
 
 QR_PAYLOAD_INVALID = ProblemType(
     "qr_payload_invalid",
@@ -121,6 +125,63 @@ DEVICE_KEY_CONFLICT = ProblemType(
     N_("Device key conflict"),
     N_("This public key is already registered to another device session."),
 )
+CODE_INVALID = ProblemType(
+    "confirmation_code_invalid",
+    422,
+    N_("Confirmation code rejected"),
+    N_("The six-digit confirmation code is invalid."),
+)
+CODE_EXPIRED = ProblemType(
+    "confirmation_code_expired",
+    409,
+    N_("Confirmation code expired"),
+    N_("The six-digit confirmation code has expired; request a new one."),
+)
+CODE_ATTEMPTS_EXCEEDED = ProblemType(
+    "confirmation_code_attempts_exceeded",
+    429,
+    N_("Confirmation code attempts exceeded"),
+    N_("This interaction has no confirmation-code attempts left."),
+)
+CODE_NOT_PARTICIPANT = ProblemType(
+    "confirmation_code_not_participant",
+    403,
+    N_("Forbidden"),
+    N_("Only the two participants of the interaction can use its code."),
+)
+CODE_SAME_PARTICIPANT = ProblemType(
+    "confirmation_code_same_participant",
+    403,
+    N_("Forbidden"),
+    N_("The same participant cannot issue and enter the same code."),
+)
+CODE_NOT_ACCEPTED = ProblemType(
+    "confirmation_code_not_accepted",
+    409,
+    N_("Confirmation code cannot be used"),
+    N_("The interaction is not accepted and cannot be completed."),
+)
+CODE_ALREADY_COMPLETED = ProblemType(
+    "confirmation_code_already_completed",
+    409,
+    N_("Interaction already completed"),
+    N_("The interaction was completed by another method."),
+)
+CODE_UNAVAILABLE = ProblemType(
+    "confirmation_code_unavailable",
+    409,
+    N_("Confirmation code is unavailable"),
+    N_("This type of interaction is not completed with a confirmation code."),
+)
+CODE_STAGE_UNAVAILABLE = ProblemType(
+    "confirmation_code_stage_unavailable",
+    409,
+    N_("Confirmation code cannot complete this stage"),
+    N_(
+        "Confirm the current scenario stage by its own action; a confirmation"
+        " code completes only the final meeting."
+    ),
+)
 
 _BASE64URL = re.compile(r"[A-Za-z0-9_-]+={0,2}")
 
@@ -183,6 +244,38 @@ class QrResult:
     nonce: UUID
     issued_at: datetime
     received_at: datetime
+
+
+@dataclass(frozen=True)
+class CodeIssue:
+    """A freshly issued six-digit code; the only place its plaintext exists."""
+
+    interaction: Interaction
+    presenter_id: UUID
+    code: str
+    issued_at: datetime
+    expires_at: datetime
+    attempts_left: int
+
+
+@dataclass(frozen=True)
+class CodeResult:
+    """The interaction after a code was entered."""
+
+    interaction: Interaction
+    presenter_id: UUID
+    scanner_id: UUID
+    received_at: datetime
+
+
+@dataclass(frozen=True)
+class CodeCheck:
+    """The locked code row and the outcome of one verification attempt."""
+
+    id: UUID
+    presenter_id: UUID
+    matched: bool
+    attempts_left: int
 
 
 def decode_payload(encoded: str) -> tuple[bytes, QrPayload]:
@@ -356,6 +449,239 @@ async def _load_interaction(
 
 async def _existing_scan(session: AsyncSession, nonce: UUID) -> QrScan | None:
     return await session.scalar(select(QrScan).where(QrScan.nonce == nonce))
+
+
+def _participant_pair(listing: Listing, interaction: Interaction) -> tuple[UUID, UUID]:
+    """Return the author and participant of a valid two-person interaction."""
+    author_id = listing.author_id
+    participant_id = interaction.participant_id
+    if author_id == participant_id:
+        raise ProblemError(CODE_NOT_PARTICIPANT)
+    return author_id, participant_id
+
+
+def _code_digest(settings: Settings, interaction_id: UUID, code: str) -> str:
+    """Keyed hash of a code; the database never stores the plaintext."""
+    return digest(settings, f"confirmation-code:{interaction_id}:{code}")
+
+
+def _new_code() -> str:
+    """Generate exactly six decimal digits, preserving leading zeroes."""
+    upper = 10**CONFIRMATION_CODE_LENGTH
+    return f"{secrets.randbelow(upper):0{CONFIRMATION_CODE_LENGTH}d}"
+
+
+async def issue_confirmation_code(
+    session: AsyncSession,
+    listing_id: UUID,
+    interaction_id: UUID,
+    presenter_id: UUID,
+    settings: Settings,
+) -> CodeIssue:
+    """Issue or reissue the current six-digit code of an interaction.
+
+    The code row is locked with the listing, so two requests cannot issue
+    different valid codes at once. Reissue keeps the cumulative number of
+    incorrect attempts: requesting a new code never resets the limit.
+    """
+    listing, interaction = await _load_interaction(session, listing_id, interaction_id)
+    author_id, participant_id = _participant_pair(listing, interaction)
+    if presenter_id not in (author_id, participant_id):
+        raise ProblemError(CODE_NOT_PARTICIPANT)
+    if listing.kind not in QR_COMPLETION_KINDS:
+        raise ProblemError(CODE_UNAVAILABLE)
+    if interaction.stage is not None:
+        raise ProblemError(CODE_STAGE_UNAVAILABLE)
+    status = InteractionStatus(interaction.status)
+    if status == InteractionStatus.COMPLETED:
+        raise ProblemError(CODE_ALREADY_COMPLETED)
+    if status != InteractionStatus.ACCEPTED:
+        raise ProblemError(CODE_NOT_ACCEPTED)
+
+    now = clock.now()
+    code = _new_code()
+    expires_at = now + settings.confirmation_code_ttl
+    row = await session.scalar(
+        select(ConfirmationCode)
+        .where(ConfirmationCode.interaction_id == interaction.id)
+        .with_for_update()
+    )
+    if row is None:
+        row = ConfirmationCode(
+            listing_id=listing.id,
+            interaction_id=interaction.id,
+            presenter_id=presenter_id,
+            code_hash=_code_digest(settings, interaction.id, code),
+            issued_at=now,
+            expires_at=expires_at,
+            attempts=0,
+            consumed_at=None,
+            created_at=now,
+            updated_at=now,
+        )
+        session.add(row)
+        attempts = 0
+    else:
+        if row.consumed_at is not None:
+            raise ProblemError(CODE_INVALID)
+        if row.attempts >= settings.confirmation_code_max_attempts:
+            raise ProblemError(CODE_ATTEMPTS_EXCEEDED)
+        attempts = row.attempts
+        row.presenter_id = presenter_id
+        row.code_hash = _code_digest(settings, interaction.id, code)
+        row.issued_at = now
+        row.expires_at = expires_at
+        row.consumed_at = None
+        row.updated_at = now
+
+    return CodeIssue(
+        interaction=interaction,
+        presenter_id=presenter_id,
+        code=code,
+        issued_at=now,
+        expires_at=expires_at,
+        attempts_left=max(0, settings.confirmation_code_max_attempts - attempts),
+    )
+
+
+async def _check_code_attempt(  # noqa: PLR0913, PLR0917 - request parts
+    session_factory: async_sessionmaker[AsyncSession],
+    settings: Settings,
+    interaction_id: UUID,
+    code: str,
+    scanner_id: UUID,
+    author_id: UUID,
+    participant_id: UUID,
+) -> CodeCheck:
+    """Check and, on mismatch, count an attempt in its own transaction.
+
+    A failed request rolls the outer transaction back, so the counter would
+    disappear with it. This short transaction commits the increment even
+    when the endpoint then returns an error. The listing row is already
+    locked, so attempts and redemption for one interaction are serialized.
+    """
+    now = clock.now()
+    expected = _code_digest(settings, interaction_id, code)
+    async with session_factory() as check_session, check_session.begin():
+        row = await check_session.scalar(
+            select(ConfirmationCode)
+            .where(ConfirmationCode.interaction_id == interaction_id)
+            .with_for_update()
+        )
+        if row is None or row.consumed_at is not None:
+            raise ProblemError(CODE_INVALID)
+        if row.presenter_id not in (author_id, participant_id):
+            raise ProblemError(CODE_INVALID)
+        if row.presenter_id == scanner_id:
+            raise ProblemError(CODE_SAME_PARTICIPANT)
+        if row.expires_at <= now:
+            raise ProblemError(CODE_EXPIRED)
+        if row.attempts >= settings.confirmation_code_max_attempts:
+            raise ProblemError(CODE_ATTEMPTS_EXCEEDED)
+        if hmac.compare_digest(row.code_hash, expected):
+            return CodeCheck(
+                id=row.id,
+                presenter_id=row.presenter_id,
+                matched=True,
+                attempts_left=settings.confirmation_code_max_attempts - row.attempts,
+            )
+        row.attempts += 1
+        row.updated_at = now
+        return CodeCheck(
+            id=row.id,
+            presenter_id=row.presenter_id,
+            matched=False,
+            attempts_left=settings.confirmation_code_max_attempts - row.attempts,
+        )
+
+
+async def confirm_with_code(  # noqa: PLR0913, PLR0917 - request parts
+    session: AsyncSession,
+    session_factory: async_sessionmaker[AsyncSession],
+    listing_id: UUID,
+    interaction_id: UUID,
+    scanner_id: UUID,
+    code: str,
+    settings: Settings,
+) -> CodeResult:
+    """Check and atomically apply a six-digit confirmation code.
+
+    The listing lock serializes this request with QR scans, cancellation
+    and reissue. A wrong code is counted in a separate committed
+    transaction; the successful interaction update, its journal event and
+    its outbox message commit together, and the code is consumed only then.
+    """
+    if (
+        len(code) != CONFIRMATION_CODE_LENGTH
+        or not code.isascii()
+        or not code.isdigit()
+    ):
+        raise ProblemError(CODE_INVALID)
+    listing, interaction = await _load_interaction(session, listing_id, interaction_id)
+    author_id, participant_id = _participant_pair(listing, interaction)
+    if scanner_id not in (author_id, participant_id):
+        raise ProblemError(CODE_NOT_PARTICIPANT)
+    if listing.kind not in QR_COMPLETION_KINDS:
+        raise ProblemError(CODE_UNAVAILABLE)
+    if interaction.stage is not None:
+        raise ProblemError(CODE_STAGE_UNAVAILABLE)
+    status = InteractionStatus(interaction.status)
+    if status == InteractionStatus.COMPLETED:
+        if interaction.completion_method == CompletionMethod.QR.value:
+            presenter_id = participant_id if scanner_id == author_id else author_id
+            return CodeResult(
+                interaction=interaction,
+                presenter_id=presenter_id,
+                scanner_id=scanner_id,
+                received_at=clock.now(),
+            )
+        raise ProblemError(CODE_ALREADY_COMPLETED)
+    if status != InteractionStatus.ACCEPTED:
+        raise ProblemError(CODE_NOT_ACCEPTED)
+
+    checked = await _check_code_attempt(
+        session_factory,
+        settings,
+        interaction.id,
+        code,
+        scanner_id,
+        author_id,
+        participant_id,
+    )
+    if not checked.matched:
+        if checked.attempts_left <= 0:
+            raise ProblemError(CODE_ATTEMPTS_EXCEEDED)
+        raise ProblemError(CODE_INVALID)
+
+    now = clock.now()
+    await session.execute(
+        update(ConfirmationCode)
+        .where(ConfirmationCode.id == checked.id)
+        .values(consumed_at=now, updated_at=now)
+    )
+    await transition(
+        session,
+        listing,
+        interaction,
+        InteractionStatus.COMPLETED,
+        scanner_id,
+        settings=settings,
+        completion_method=CompletionMethod.QR,
+        action="code_completed",
+        details={
+            "method": "code",
+            "presenter_id": str(checked.presenter_id),
+            "scanner_id": str(scanner_id),
+            "code_id": str(checked.id),
+            "received_at": now.isoformat(),
+        },
+    )
+    return CodeResult(
+        interaction=interaction,
+        presenter_id=checked.presenter_id,
+        scanner_id=scanner_id,
+        received_at=now,
+    )
 
 
 def qr_result(

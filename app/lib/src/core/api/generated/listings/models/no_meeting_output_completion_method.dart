@@ -5,8 +5,8 @@ import 'completion_method.dart';
 sealed class NoMeetingOutputCompletionMethod {
   factory NoMeetingOutputCompletionMethod.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches37(json)) "CompletionMethod",
-      if (_matches38(json)) "Null",
+      if (_matches39(json)) "CompletionMethod",
+      if (_matches40(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -43,8 +43,8 @@ class NoMeetingOutputCompletionMethodNull
   Object? toJson() => value;
 }
 
-bool _matches37(Object? value) => (_matches29(value));
-bool _matches29(Object? value) =>
+bool _matches39(Object? value) => (_matches12(value));
+bool _matches12(Object? value) =>
     (const <Object?>["qr", "no_meeting"].contains(value)) &&
     ((value is String));
-bool _matches38(Object? value) => ((value == null));
+bool _matches40(Object? value) => ((value == null));

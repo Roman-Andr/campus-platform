@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 17:16+0300\n"
+"POT-Creation-Date: 2026-11-15 18:10+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -94,6 +94,13 @@ msgid "Client version missing"
 msgstr "Не указана версия клиента"
 
 msgid ""
+"Confirm the current scenario stage by its own action; a confirmation code"
+" completes only the final meeting."
+msgstr ""
+"Подтвердите текущий этап сценария его собственным действием; код "
+"подтверждения завершает только финальную встречу."
+
+msgid ""
 "Confirm the current scenario stage by its own action; an online QR code "
 "completes only the final meeting."
 msgstr ""
@@ -107,6 +114,24 @@ msgid ""
 msgstr ""
 "Подтвердите адрес электронной почты кодом: {code}. Он действует {minutes}"
 " минут."
+
+msgid "Confirmation code attempts exceeded"
+msgstr "Попытки ввода кода подтверждения исчерпаны"
+
+msgid "Confirmation code cannot be used"
+msgstr "Код подтверждения нельзя использовать"
+
+msgid "Confirmation code cannot complete this stage"
+msgstr "Код подтверждения не может завершить этот этап"
+
+msgid "Confirmation code expired"
+msgstr "Срок кода подтверждения истёк"
+
+msgid "Confirmation code is unavailable"
+msgstr "Подтверждение кодом недоступно"
+
+msgid "Confirmation code rejected"
+msgstr "Код подтверждения отклонён"
 
 msgid "Current documents must be accepted"
 msgstr "Необходимо принять актуальные документы"
@@ -316,6 +341,9 @@ msgstr "На этом этапе доступны только действия 
 
 msgid "Only the two participants of the interaction can confirm it."
 msgstr "Подтвердить взаимодействие могут только два его участника."
+
+msgid "Only the two participants of the interaction can use its code."
+msgstr "Использовать код взаимодействия могут только два его участника."
 
 #, python-brace-format
 msgid "Only {available} units are available."
@@ -615,12 +643,21 @@ msgstr "Ресурс не поддерживает этот метод."
 msgid "The same client message identifier carries different content."
 msgstr "Один и тот же идентификатор сообщения клиента передан с другим содержимым."
 
+msgid "The same participant cannot issue and enter the same code."
+msgstr "Один и тот же участник не может выдать и ввести один код."
+
 msgid "The same participant cannot show and scan the same QR code."
 msgstr "Один и тот же участник не может показывать и сканировать один QR-код."
 
 #, python-brace-format
 msgid "The search query must be at most {max_length} characters."
 msgstr "Поисковый запрос должен быть не длиннее {max_length} символов."
+
+msgid "The six-digit confirmation code has expired; request a new one."
+msgstr "Срок шестизначного кода подтверждения истёк; запросите новый."
+
+msgid "The six-digit confirmation code is invalid."
+msgstr "Шестизначный код подтверждения неверен."
 
 msgid "There is an update to your listing."
 msgstr "Появилось обновление вашего объявления."
@@ -640,6 +677,9 @@ msgstr "Обязательное поле."
 msgid "This interaction cannot be completed without a meeting."
 msgstr "Это взаимодействие нельзя завершить без встречи."
 
+msgid "This interaction has no confirmation-code attempts left."
+msgstr "У этого взаимодействия не осталось попыток ввода кода подтверждения."
+
 msgid "This listing has no queue."
 msgstr "У этого объявления нет очереди."
 
@@ -648,6 +688,9 @@ msgstr "Этот одноразовый QR-код уже использован.
 
 msgid "This public key is already registered to another device session."
 msgstr "Этот открытый ключ уже зарегистрирован в другой сессии устройства."
+
+msgid "This type of interaction is not completed with a confirmation code."
+msgstr "Этот тип взаимодействия не завершается кодом подтверждения."
 
 msgid "This type of interaction is not completed with an online QR code."
 msgstr "Этот тип взаимодействия не завершается онлайн-QR-кодом."

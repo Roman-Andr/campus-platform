@@ -488,6 +488,16 @@ class Settings(BaseSettings):
         ge=timedelta(0),
         description="Maximum accepted clock skew into the future.",
     )
+    confirmation_code_ttl: timedelta = Field(
+        default=timedelta(seconds=30),
+        gt=timedelta(0),
+        description="Lifetime of a six-digit confirmation code.",
+    )
+    confirmation_code_max_attempts: int = Field(
+        default=5,
+        ge=1,
+        description="Incorrect entries allowed for one interaction's codes.",
+    )
     # Review weights of completed interactions (Appendix 4): a review after
     # an online lesson or help confirmed without a meeting weighs less.
     rating_weight_qr: float = Field(

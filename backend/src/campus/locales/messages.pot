@@ -73,6 +73,11 @@ msgid "Client version missing"
 msgstr ""
 
 msgid ""
+"Confirm the current scenario stage by its own action; a confirmation code"
+" completes only the final meeting."
+msgstr ""
+
+msgid ""
 "Confirm the current scenario stage by its own action; an online QR code "
 "completes only the final meeting."
 msgstr ""
@@ -81,6 +86,24 @@ msgstr ""
 msgid ""
 "Confirm your e-mail address with code: {code}. It expires in {minutes} "
 "minutes."
+msgstr ""
+
+msgid "Confirmation code attempts exceeded"
+msgstr ""
+
+msgid "Confirmation code cannot be used"
+msgstr ""
+
+msgid "Confirmation code cannot complete this stage"
+msgstr ""
+
+msgid "Confirmation code expired"
+msgstr ""
+
+msgid "Confirmation code is unavailable"
+msgstr ""
+
+msgid "Confirmation code rejected"
 msgstr ""
 
 msgid "Current documents must be accepted"
@@ -288,6 +311,9 @@ msgid "Only the composition exchange is available at this stage."
 msgstr ""
 
 msgid "Only the two participants of the interaction can confirm it."
+msgstr ""
+
+msgid "Only the two participants of the interaction can use its code."
 msgstr ""
 
 #, python-brace-format
@@ -580,11 +606,20 @@ msgstr ""
 msgid "The same client message identifier carries different content."
 msgstr ""
 
+msgid "The same participant cannot issue and enter the same code."
+msgstr ""
+
 msgid "The same participant cannot show and scan the same QR code."
 msgstr ""
 
 #, python-brace-format
 msgid "The search query must be at most {max_length} characters."
+msgstr ""
+
+msgid "The six-digit confirmation code has expired; request a new one."
+msgstr ""
+
+msgid "The six-digit confirmation code is invalid."
 msgstr ""
 
 msgid "There is an update to your listing."
@@ -605,6 +640,9 @@ msgstr ""
 msgid "This interaction cannot be completed without a meeting."
 msgstr ""
 
+msgid "This interaction has no confirmation-code attempts left."
+msgstr ""
+
 msgid "This listing has no queue."
 msgstr ""
 
@@ -612,6 +650,9 @@ msgid "This one-time QR code has already been used."
 msgstr ""
 
 msgid "This public key is already registered to another device session."
+msgstr ""
+
+msgid "This type of interaction is not completed with a confirmation code."
 msgstr ""
 
 msgid "This type of interaction is not completed with an online QR code."

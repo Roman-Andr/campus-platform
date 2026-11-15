@@ -17,6 +17,15 @@ enum ProblemCodeValue {
   complaintReasonCodeConflict("complaint_reason_code_conflict"),
   complaintReasonRulesInvalid("complaint_reason_rules_invalid"),
   complaintReasonVersionConflict("complaint_reason_version_conflict"),
+  confirmationCodeAlreadyCompleted("confirmation_code_already_completed"),
+  confirmationCodeAttemptsExceeded("confirmation_code_attempts_exceeded"),
+  confirmationCodeExpired("confirmation_code_expired"),
+  confirmationCodeInvalid("confirmation_code_invalid"),
+  confirmationCodeNotAccepted("confirmation_code_not_accepted"),
+  confirmationCodeNotParticipant("confirmation_code_not_participant"),
+  confirmationCodeSameParticipant("confirmation_code_same_participant"),
+  confirmationCodeStageUnavailable("confirmation_code_stage_unavailable"),
+  confirmationCodeUnavailable("confirmation_code_unavailable"),
   consentInvalid("consent_invalid"),
   consentRequired("consent_required"),
   deviceKeyConflict("device_key_conflict"),
@@ -147,6 +156,33 @@ sealed class ProblemCode {
   );
   static const complaintReasonVersionConflict = ProblemCodeKnown(
     ProblemCodeValue.complaintReasonVersionConflict,
+  );
+  static const confirmationCodeAlreadyCompleted = ProblemCodeKnown(
+    ProblemCodeValue.confirmationCodeAlreadyCompleted,
+  );
+  static const confirmationCodeAttemptsExceeded = ProblemCodeKnown(
+    ProblemCodeValue.confirmationCodeAttemptsExceeded,
+  );
+  static const confirmationCodeExpired = ProblemCodeKnown(
+    ProblemCodeValue.confirmationCodeExpired,
+  );
+  static const confirmationCodeInvalid = ProblemCodeKnown(
+    ProblemCodeValue.confirmationCodeInvalid,
+  );
+  static const confirmationCodeNotAccepted = ProblemCodeKnown(
+    ProblemCodeValue.confirmationCodeNotAccepted,
+  );
+  static const confirmationCodeNotParticipant = ProblemCodeKnown(
+    ProblemCodeValue.confirmationCodeNotParticipant,
+  );
+  static const confirmationCodeSameParticipant = ProblemCodeKnown(
+    ProblemCodeValue.confirmationCodeSameParticipant,
+  );
+  static const confirmationCodeStageUnavailable = ProblemCodeKnown(
+    ProblemCodeValue.confirmationCodeStageUnavailable,
+  );
+  static const confirmationCodeUnavailable = ProblemCodeKnown(
+    ProblemCodeValue.confirmationCodeUnavailable,
   );
   static const consentInvalid = ProblemCodeKnown(
     ProblemCodeValue.consentInvalid,
