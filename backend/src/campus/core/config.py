@@ -458,6 +458,30 @@ class Settings(BaseSettings):
         ge=1,
         description="Longest excerpt around a matched chat message.",
     )
+    chat_photo_limit: int = Field(
+        default=10,
+        ge=1,
+        le=10,
+        description="Photos in one chat message (Appendix 4: up to 10).",
+    )
+    chat_message_version_retention: timedelta = Field(
+        default=timedelta(days=30),
+        gt=timedelta(0),
+        description=(
+            "How long hidden deleted messages and previous edited versions"
+            " are kept for a complaint."
+        ),
+    )
+    chat_message_version_cleanup_batch: int = Field(
+        default=100,
+        ge=1,
+        description="Hidden message versions selected per cleanup batch.",
+    )
+    chat_message_version_cleanup_limit: int = Field(
+        default=1000,
+        ge=1,
+        description="Most hidden message versions cleaned in one cleanup run.",
+    )
 
     meeting_place_max_length: int = Field(default=200, ge=1)
     return_reminder_before: timedelta = Field(

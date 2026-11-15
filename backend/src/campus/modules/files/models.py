@@ -3,7 +3,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, ForeignKey, Index, String
+from sqlalchemy import CheckConstraint, ForeignKey, Index, String, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from campus.core.db import Entity
@@ -22,8 +22,22 @@ class File(Entity):
             "num_nonnulls(listing_id, profile_user_id, chat_id) <= 1",
             name="single_owner",
         ),
+        CheckConstraint(
+            "(message_id IS NULL) = (message_position IS NULL)",
+            name="message_attachment",
+        ),
+        CheckConstraint(
+            "message_id IS NULL OR chat_id IS NOT NULL", name="message_in_chat"
+        ),
         Index("ix_file_listing_id", "listing_id"),
         Index("ix_file_chat_id", "chat_id"),
+        Index(
+            "ix_file_message_id",
+            "chat_id",
+            "message_id",
+            "message_position",
+            postgresql_where=text("message_id IS NOT NULL"),
+        ),
     )
     owner_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
     purpose: Mapped[str] = mapped_column(String(32), default="listing_photo")
@@ -44,3 +58,7 @@ class File(Entity):
     chat_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("chat.id", ondelete="RESTRICT")
     )
+    # Set when a chat photo is attached to a message. No FK: messages are
+    # partitioned; the chat id and cleanup job keep the row reachable.
+    message_id: Mapped[UUID | None]
+    message_position: Mapped[int | None]

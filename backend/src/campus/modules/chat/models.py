@@ -188,6 +188,11 @@ class ChatMessage(Base):
     client_id: Mapped[UUID]
     sequence: Mapped[int] = mapped_column(BigInteger)
     text: Mapped[str] = mapped_column(Text)
+    # The message this one quotes; validated to be in the same chat and
+    # visible when the reply is sent. No FK: messages are partitioned.
+    reply_to_id: Mapped[UUID | None]
+    # Incremented by every edit; prior text lives in ChatMessageVersion.
+    version: Mapped[int] = mapped_column(default=1)
     # Set by #81 when a message is deleted; search hides such rows.
     deleted_at: Mapped[datetime | None]
     # Both dictionaries feed one vector: a query in either language matches,
@@ -239,6 +244,8 @@ class ChatMessageArchive(Base):
     client_id: Mapped[UUID]
     sequence: Mapped[int] = mapped_column(BigInteger)
     text: Mapped[str] = mapped_column(Text)
+    reply_to_id: Mapped[UUID | None]
+    version: Mapped[int] = mapped_column(default=1)
     # Archived rows keep the deletion marker and the generated search vector:
     # moving a row must not change what the history or search returns.
     deleted_at: Mapped[datetime | None]
@@ -270,9 +277,41 @@ class ChatMessageHistory(Base):
     client_id: Mapped[UUID]
     sequence: Mapped[int] = mapped_column(BigInteger)
     text: Mapped[str] = mapped_column(Text)
+    reply_to_id: Mapped[UUID | None]
+    version: Mapped[int]
     deleted_at: Mapped[datetime | None]
     search_vector: Mapped[Any] = mapped_column(TSVECTOR)
     created_at: Mapped[datetime] = mapped_column(primary_key=True)
+
+
+class ChatMessageVersion(Base):
+    """Hidden previous text of an edited or deleted message.
+
+    Rows are not part of history, search or realtime. They exist only for
+    the restricted complaint-evidence API and are purged by the cleanup job
+    ``purge_at``; a snapshot already attached to a complaint has no foreign
+    key to this table and survives the purge.
+    """
+
+    __tablename__ = "chat_message_version"
+    __table_args__ = (
+        UniqueConstraint(
+            "message_id", "version", name="uq_chat_message_version_message_version"
+        ),
+        CheckConstraint("version > 0", name="version_positive"),
+        CheckConstraint("kind IN ('edit','delete')", name="kind"),
+        Index("ix_chat_message_version_purge_at", "purge_at"),
+        Index("ix_chat_message_version_message_id", "message_id"),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, server_default=func.uuidv7())
+    chat_id: Mapped[UUID] = mapped_column(ForeignKey("chat.id", ondelete="CASCADE"))
+    message_id: Mapped[UUID]
+    version: Mapped[int]
+    kind: Mapped[str] = mapped_column(String(16))
+    text: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(default=clock.now)
+    purge_at: Mapped[datetime]
 
 
 class ChatMessageSnapshot(Base):
@@ -281,7 +320,8 @@ class ChatMessageSnapshot(Base):
     Deliberately has no foreign keys to the chat, the message or the sender:
     retaining a complaint must survive the retention cleanup of the chat.
     The complaint case itself is created by the moderation module later; its
-    identifier is stored without a foreign key for the same reason.
+    identifier is stored without a foreign key for the same reason. Photos
+    are copied into :class:`ChatMessageSnapshotPhoto` for the same reason.
     """
 
     __tablename__ = "chat_message_snapshot"
@@ -302,5 +342,39 @@ class ChatMessageSnapshot(Base):
     sender_id: Mapped[UUID]
     sequence: Mapped[int] = mapped_column(BigInteger)
     text: Mapped[str] = mapped_column(Text)
+    version: Mapped[int] = mapped_column(default=1)
     message_created_at: Mapped[datetime]
     captured_at: Mapped[datetime] = mapped_column(default=clock.now)
+
+
+class ChatMessageSnapshotPhoto(Base):
+    """Photo object copied into an immutable complaint attachment.
+
+    The row keeps the object key and size, so moderators can still sign a
+    link after the chat, its messages and the ``file`` rows are gone. The
+    cleanup never deletes the processed photo objects of a file referenced
+    here; the original source object is not part of the evidence.
+    """
+
+    __tablename__ = "chat_message_snapshot_photo"
+    __table_args__ = (
+        UniqueConstraint(
+            "snapshot_id",
+            "file_id",
+            name="uq_chat_message_snapshot_photo_snapshot_id_file_id",
+        ),
+        CheckConstraint("size >= 0", name="size"),
+        CheckConstraint("position >= 0", name="position"),
+        Index("ix_chat_message_snapshot_photo_file_id", "file_id"),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, server_default=func.uuidv7())
+    snapshot_id: Mapped[UUID] = mapped_column(
+        ForeignKey("chat_message_snapshot.id", ondelete="CASCADE")
+    )
+    # No foreign key: the file row is deleted by retention, the key outlives it.
+    file_id: Mapped[UUID]
+    key: Mapped[str] = mapped_column(String(200))
+    size: Mapped[int]
+    position: Mapped[int]
+    created_at: Mapped[datetime] = mapped_column(default=clock.now)

@@ -743,9 +743,10 @@ async def test_outbox_publishes_stored_message(
     assert len(calls) == 1
     channel, payload, delivery_id = calls[0]
     assert channel == f"chat:{chat.id}"
+    assert payload["action"] == "created"
     assert payload["message_id"] == str(message.id)
     assert payload["sequence"] == 1
-    assert payload["text"] == "publish me"
+    assert "text" not in payload
     assert delivery_id
 
 
