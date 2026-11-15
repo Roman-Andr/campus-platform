@@ -861,6 +861,63 @@ class $ChatMessagesTable extends ChatMessages
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _replyToIdMeta = const VerificationMeta(
+    'replyToId',
+  );
+  @override
+  late final GeneratedColumn<String> replyToId = GeneratedColumn<String>(
+    'reply_to_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _replyToPayloadMeta = const VerificationMeta(
+    'replyToPayload',
+  );
+  @override
+  late final GeneratedColumn<String> replyToPayload = GeneratedColumn<String>(
+    'reply_to_payload',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _photoIdsMeta = const VerificationMeta(
+    'photoIds',
+  );
+  @override
+  late final GeneratedColumn<String> photoIds = GeneratedColumn<String>(
+    'photo_ids',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _quoteRevisionMeta = const VerificationMeta(
+    'quoteRevision',
+  );
+  @override
+  late final GeneratedColumn<int> quoteRevision = GeneratedColumn<int>(
+    'quote_revision',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -881,6 +938,11 @@ class $ChatMessagesTable extends ChatMessages
     sequence,
     senderId,
     body,
+    version,
+    replyToId,
+    replyToPayload,
+    photoIds,
+    quoteRevision,
     createdAt,
   ];
   @override
@@ -951,6 +1013,42 @@ class $ChatMessagesTable extends ChatMessages
     } else if (isInserting) {
       context.missing(_bodyMeta);
     }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('reply_to_id')) {
+      context.handle(
+        _replyToIdMeta,
+        replyToId.isAcceptableOrUnknown(data['reply_to_id']!, _replyToIdMeta),
+      );
+    }
+    if (data.containsKey('reply_to_payload')) {
+      context.handle(
+        _replyToPayloadMeta,
+        replyToPayload.isAcceptableOrUnknown(
+          data['reply_to_payload']!,
+          _replyToPayloadMeta,
+        ),
+      );
+    }
+    if (data.containsKey('photo_ids')) {
+      context.handle(
+        _photoIdsMeta,
+        photoIds.isAcceptableOrUnknown(data['photo_ids']!, _photoIdsMeta),
+      );
+    }
+    if (data.containsKey('quote_revision')) {
+      context.handle(
+        _quoteRevisionMeta,
+        quoteRevision.isAcceptableOrUnknown(
+          data['quote_revision']!,
+          _quoteRevisionMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -1000,6 +1098,26 @@ class $ChatMessagesTable extends ChatMessages
         DriftSqlType.string,
         data['${effectivePrefix}body'],
       )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      replyToId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reply_to_id'],
+      ),
+      replyToPayload: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reply_to_payload'],
+      ),
+      photoIds: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}photo_ids'],
+      ),
+      quoteRevision: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}quote_revision'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1021,6 +1139,23 @@ class ChatMessageRow extends DataClass implements Insertable<ChatMessageRow> {
   final int sequence;
   final String senderId;
   final String body;
+  final int version;
+  final String? replyToId;
+
+  /// `QuoteOutput` of the quoted message, as returned with this message.
+  final String? replyToPayload;
+
+  /// Ready photo ids of the message, in display order, as a JSON array.
+  final String? photoIds;
+
+  /// Local revision of [replyToPayload].
+  ///
+  /// A reply keeps its own server version when the quoted message is edited
+  /// or deleted, so a delayed page with the same version could otherwise
+  /// restore the old quote text. Every authoritative quote update gets a
+  /// newer local revision; a page response only replaces the snapshot when
+  /// its request started after that revision.
+  final int quoteRevision;
   final DateTime createdAt;
   const ChatMessageRow({
     required this.owner,
@@ -1030,6 +1165,11 @@ class ChatMessageRow extends DataClass implements Insertable<ChatMessageRow> {
     required this.sequence,
     required this.senderId,
     required this.body,
+    required this.version,
+    this.replyToId,
+    this.replyToPayload,
+    this.photoIds,
+    required this.quoteRevision,
     required this.createdAt,
   });
   @override
@@ -1042,6 +1182,17 @@ class ChatMessageRow extends DataClass implements Insertable<ChatMessageRow> {
     map['sequence'] = Variable<int>(sequence);
     map['sender_id'] = Variable<String>(senderId);
     map['body'] = Variable<String>(body);
+    map['version'] = Variable<int>(version);
+    if (!nullToAbsent || replyToId != null) {
+      map['reply_to_id'] = Variable<String>(replyToId);
+    }
+    if (!nullToAbsent || replyToPayload != null) {
+      map['reply_to_payload'] = Variable<String>(replyToPayload);
+    }
+    if (!nullToAbsent || photoIds != null) {
+      map['photo_ids'] = Variable<String>(photoIds);
+    }
+    map['quote_revision'] = Variable<int>(quoteRevision);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -1055,6 +1206,17 @@ class ChatMessageRow extends DataClass implements Insertable<ChatMessageRow> {
       sequence: Value(sequence),
       senderId: Value(senderId),
       body: Value(body),
+      version: Value(version),
+      replyToId: replyToId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(replyToId),
+      replyToPayload: replyToPayload == null && nullToAbsent
+          ? const Value.absent()
+          : Value(replyToPayload),
+      photoIds: photoIds == null && nullToAbsent
+          ? const Value.absent()
+          : Value(photoIds),
+      quoteRevision: Value(quoteRevision),
       createdAt: Value(createdAt),
     );
   }
@@ -1072,6 +1234,11 @@ class ChatMessageRow extends DataClass implements Insertable<ChatMessageRow> {
       sequence: serializer.fromJson<int>(json['sequence']),
       senderId: serializer.fromJson<String>(json['senderId']),
       body: serializer.fromJson<String>(json['body']),
+      version: serializer.fromJson<int>(json['version']),
+      replyToId: serializer.fromJson<String?>(json['replyToId']),
+      replyToPayload: serializer.fromJson<String?>(json['replyToPayload']),
+      photoIds: serializer.fromJson<String?>(json['photoIds']),
+      quoteRevision: serializer.fromJson<int>(json['quoteRevision']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -1086,6 +1253,11 @@ class ChatMessageRow extends DataClass implements Insertable<ChatMessageRow> {
       'sequence': serializer.toJson<int>(sequence),
       'senderId': serializer.toJson<String>(senderId),
       'body': serializer.toJson<String>(body),
+      'version': serializer.toJson<int>(version),
+      'replyToId': serializer.toJson<String?>(replyToId),
+      'replyToPayload': serializer.toJson<String?>(replyToPayload),
+      'photoIds': serializer.toJson<String?>(photoIds),
+      'quoteRevision': serializer.toJson<int>(quoteRevision),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -1098,6 +1270,11 @@ class ChatMessageRow extends DataClass implements Insertable<ChatMessageRow> {
     int? sequence,
     String? senderId,
     String? body,
+    int? version,
+    Value<String?> replyToId = const Value.absent(),
+    Value<String?> replyToPayload = const Value.absent(),
+    Value<String?> photoIds = const Value.absent(),
+    int? quoteRevision,
     DateTime? createdAt,
   }) => ChatMessageRow(
     owner: owner ?? this.owner,
@@ -1107,6 +1284,13 @@ class ChatMessageRow extends DataClass implements Insertable<ChatMessageRow> {
     sequence: sequence ?? this.sequence,
     senderId: senderId ?? this.senderId,
     body: body ?? this.body,
+    version: version ?? this.version,
+    replyToId: replyToId.present ? replyToId.value : this.replyToId,
+    replyToPayload: replyToPayload.present
+        ? replyToPayload.value
+        : this.replyToPayload,
+    photoIds: photoIds.present ? photoIds.value : this.photoIds,
+    quoteRevision: quoteRevision ?? this.quoteRevision,
     createdAt: createdAt ?? this.createdAt,
   );
   ChatMessageRow copyWithCompanion(ChatMessagesCompanion data) {
@@ -1118,6 +1302,15 @@ class ChatMessageRow extends DataClass implements Insertable<ChatMessageRow> {
       sequence: data.sequence.present ? data.sequence.value : this.sequence,
       senderId: data.senderId.present ? data.senderId.value : this.senderId,
       body: data.body.present ? data.body.value : this.body,
+      version: data.version.present ? data.version.value : this.version,
+      replyToId: data.replyToId.present ? data.replyToId.value : this.replyToId,
+      replyToPayload: data.replyToPayload.present
+          ? data.replyToPayload.value
+          : this.replyToPayload,
+      photoIds: data.photoIds.present ? data.photoIds.value : this.photoIds,
+      quoteRevision: data.quoteRevision.present
+          ? data.quoteRevision.value
+          : this.quoteRevision,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -1132,6 +1325,11 @@ class ChatMessageRow extends DataClass implements Insertable<ChatMessageRow> {
           ..write('sequence: $sequence, ')
           ..write('senderId: $senderId, ')
           ..write('body: $body, ')
+          ..write('version: $version, ')
+          ..write('replyToId: $replyToId, ')
+          ..write('replyToPayload: $replyToPayload, ')
+          ..write('photoIds: $photoIds, ')
+          ..write('quoteRevision: $quoteRevision, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -1146,6 +1344,11 @@ class ChatMessageRow extends DataClass implements Insertable<ChatMessageRow> {
     sequence,
     senderId,
     body,
+    version,
+    replyToId,
+    replyToPayload,
+    photoIds,
+    quoteRevision,
     createdAt,
   );
   @override
@@ -1159,6 +1362,11 @@ class ChatMessageRow extends DataClass implements Insertable<ChatMessageRow> {
           other.sequence == this.sequence &&
           other.senderId == this.senderId &&
           other.body == this.body &&
+          other.version == this.version &&
+          other.replyToId == this.replyToId &&
+          other.replyToPayload == this.replyToPayload &&
+          other.photoIds == this.photoIds &&
+          other.quoteRevision == this.quoteRevision &&
           other.createdAt == this.createdAt);
 }
 
@@ -1170,6 +1378,11 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessageRow> {
   final Value<int> sequence;
   final Value<String> senderId;
   final Value<String> body;
+  final Value<int> version;
+  final Value<String?> replyToId;
+  final Value<String?> replyToPayload;
+  final Value<String?> photoIds;
+  final Value<int> quoteRevision;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const ChatMessagesCompanion({
@@ -1180,6 +1393,11 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessageRow> {
     this.sequence = const Value.absent(),
     this.senderId = const Value.absent(),
     this.body = const Value.absent(),
+    this.version = const Value.absent(),
+    this.replyToId = const Value.absent(),
+    this.replyToPayload = const Value.absent(),
+    this.photoIds = const Value.absent(),
+    this.quoteRevision = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1191,6 +1409,11 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessageRow> {
     required int sequence,
     required String senderId,
     required String body,
+    this.version = const Value.absent(),
+    this.replyToId = const Value.absent(),
+    this.replyToPayload = const Value.absent(),
+    this.photoIds = const Value.absent(),
+    this.quoteRevision = const Value.absent(),
     required DateTime createdAt,
     this.rowid = const Value.absent(),
   }) : owner = Value(owner),
@@ -1209,6 +1432,11 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessageRow> {
     Expression<int>? sequence,
     Expression<String>? senderId,
     Expression<String>? body,
+    Expression<int>? version,
+    Expression<String>? replyToId,
+    Expression<String>? replyToPayload,
+    Expression<String>? photoIds,
+    Expression<int>? quoteRevision,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -1220,6 +1448,11 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessageRow> {
       if (sequence != null) 'sequence': sequence,
       if (senderId != null) 'sender_id': senderId,
       if (body != null) 'body': body,
+      if (version != null) 'version': version,
+      if (replyToId != null) 'reply_to_id': replyToId,
+      if (replyToPayload != null) 'reply_to_payload': replyToPayload,
+      if (photoIds != null) 'photo_ids': photoIds,
+      if (quoteRevision != null) 'quote_revision': quoteRevision,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1233,6 +1466,11 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessageRow> {
     Value<int>? sequence,
     Value<String>? senderId,
     Value<String>? body,
+    Value<int>? version,
+    Value<String?>? replyToId,
+    Value<String?>? replyToPayload,
+    Value<String?>? photoIds,
+    Value<int>? quoteRevision,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
@@ -1244,6 +1482,11 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessageRow> {
       sequence: sequence ?? this.sequence,
       senderId: senderId ?? this.senderId,
       body: body ?? this.body,
+      version: version ?? this.version,
+      replyToId: replyToId ?? this.replyToId,
+      replyToPayload: replyToPayload ?? this.replyToPayload,
+      photoIds: photoIds ?? this.photoIds,
+      quoteRevision: quoteRevision ?? this.quoteRevision,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -1273,6 +1516,21 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessageRow> {
     if (body.present) {
       map['body'] = Variable<String>(body.value);
     }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (replyToId.present) {
+      map['reply_to_id'] = Variable<String>(replyToId.value);
+    }
+    if (replyToPayload.present) {
+      map['reply_to_payload'] = Variable<String>(replyToPayload.value);
+    }
+    if (photoIds.present) {
+      map['photo_ids'] = Variable<String>(photoIds.value);
+    }
+    if (quoteRevision.present) {
+      map['quote_revision'] = Variable<int>(quoteRevision.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1292,7 +1550,428 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessageRow> {
           ..write('sequence: $sequence, ')
           ..write('senderId: $senderId, ')
           ..write('body: $body, ')
+          ..write('version: $version, ')
+          ..write('replyToId: $replyToId, ')
+          ..write('replyToPayload: $replyToPayload, ')
+          ..write('photoIds: $photoIds, ')
+          ..write('quoteRevision: $quoteRevision, ')
           ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ChatMessageTombstonesTable extends ChatMessageTombstones
+    with TableInfo<$ChatMessageTombstonesTable, ChatMessageTombstoneRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ChatMessageTombstonesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _ownerMeta = const VerificationMeta('owner');
+  @override
+  late final GeneratedColumn<String> owner = GeneratedColumn<String>(
+    'owner',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _chatIdMeta = const VerificationMeta('chatId');
+  @override
+  late final GeneratedColumn<String> chatId = GeneratedColumn<String>(
+    'chat_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _messageIdMeta = const VerificationMeta(
+    'messageId',
+  );
+  @override
+  late final GeneratedColumn<String> messageId = GeneratedColumn<String>(
+    'message_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sequenceMeta = const VerificationMeta(
+    'sequence',
+  );
+  @override
+  late final GeneratedColumn<int> sequence = GeneratedColumn<int>(
+    'sequence',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    owner,
+    chatId,
+    messageId,
+    sequence,
+    version,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chat_message_tombstones';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ChatMessageTombstoneRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('owner')) {
+      context.handle(
+        _ownerMeta,
+        owner.isAcceptableOrUnknown(data['owner']!, _ownerMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerMeta);
+    }
+    if (data.containsKey('chat_id')) {
+      context.handle(
+        _chatIdMeta,
+        chatId.isAcceptableOrUnknown(data['chat_id']!, _chatIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_chatIdMeta);
+    }
+    if (data.containsKey('message_id')) {
+      context.handle(
+        _messageIdMeta,
+        messageId.isAcceptableOrUnknown(data['message_id']!, _messageIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_messageIdMeta);
+    }
+    if (data.containsKey('sequence')) {
+      context.handle(
+        _sequenceMeta,
+        sequence.isAcceptableOrUnknown(data['sequence']!, _sequenceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sequenceMeta);
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_deletedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {owner, chatId, messageId};
+  @override
+  ChatMessageTombstoneRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ChatMessageTombstoneRow(
+      owner: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner'],
+      )!,
+      chatId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}chat_id'],
+      )!,
+      messageId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}message_id'],
+      )!,
+      sequence: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sequence'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ChatMessageTombstonesTable createAlias(String alias) {
+    return $ChatMessageTombstonesTable(attachedDatabase, alias);
+  }
+}
+
+class ChatMessageTombstoneRow extends DataClass
+    implements Insertable<ChatMessageTombstoneRow> {
+  final String owner;
+  final String chatId;
+  final String messageId;
+  final int sequence;
+  final int version;
+  final DateTime deletedAt;
+  const ChatMessageTombstoneRow({
+    required this.owner,
+    required this.chatId,
+    required this.messageId,
+    required this.sequence,
+    required this.version,
+    required this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['owner'] = Variable<String>(owner);
+    map['chat_id'] = Variable<String>(chatId);
+    map['message_id'] = Variable<String>(messageId);
+    map['sequence'] = Variable<int>(sequence);
+    map['version'] = Variable<int>(version);
+    map['deleted_at'] = Variable<DateTime>(deletedAt);
+    return map;
+  }
+
+  ChatMessageTombstonesCompanion toCompanion(bool nullToAbsent) {
+    return ChatMessageTombstonesCompanion(
+      owner: Value(owner),
+      chatId: Value(chatId),
+      messageId: Value(messageId),
+      sequence: Value(sequence),
+      version: Value(version),
+      deletedAt: Value(deletedAt),
+    );
+  }
+
+  factory ChatMessageTombstoneRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ChatMessageTombstoneRow(
+      owner: serializer.fromJson<String>(json['owner']),
+      chatId: serializer.fromJson<String>(json['chatId']),
+      messageId: serializer.fromJson<String>(json['messageId']),
+      sequence: serializer.fromJson<int>(json['sequence']),
+      version: serializer.fromJson<int>(json['version']),
+      deletedAt: serializer.fromJson<DateTime>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'owner': serializer.toJson<String>(owner),
+      'chatId': serializer.toJson<String>(chatId),
+      'messageId': serializer.toJson<String>(messageId),
+      'sequence': serializer.toJson<int>(sequence),
+      'version': serializer.toJson<int>(version),
+      'deletedAt': serializer.toJson<DateTime>(deletedAt),
+    };
+  }
+
+  ChatMessageTombstoneRow copyWith({
+    String? owner,
+    String? chatId,
+    String? messageId,
+    int? sequence,
+    int? version,
+    DateTime? deletedAt,
+  }) => ChatMessageTombstoneRow(
+    owner: owner ?? this.owner,
+    chatId: chatId ?? this.chatId,
+    messageId: messageId ?? this.messageId,
+    sequence: sequence ?? this.sequence,
+    version: version ?? this.version,
+    deletedAt: deletedAt ?? this.deletedAt,
+  );
+  ChatMessageTombstoneRow copyWithCompanion(
+    ChatMessageTombstonesCompanion data,
+  ) {
+    return ChatMessageTombstoneRow(
+      owner: data.owner.present ? data.owner.value : this.owner,
+      chatId: data.chatId.present ? data.chatId.value : this.chatId,
+      messageId: data.messageId.present ? data.messageId.value : this.messageId,
+      sequence: data.sequence.present ? data.sequence.value : this.sequence,
+      version: data.version.present ? data.version.value : this.version,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatMessageTombstoneRow(')
+          ..write('owner: $owner, ')
+          ..write('chatId: $chatId, ')
+          ..write('messageId: $messageId, ')
+          ..write('sequence: $sequence, ')
+          ..write('version: $version, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(owner, chatId, messageId, sequence, version, deletedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ChatMessageTombstoneRow &&
+          other.owner == this.owner &&
+          other.chatId == this.chatId &&
+          other.messageId == this.messageId &&
+          other.sequence == this.sequence &&
+          other.version == this.version &&
+          other.deletedAt == this.deletedAt);
+}
+
+class ChatMessageTombstonesCompanion
+    extends UpdateCompanion<ChatMessageTombstoneRow> {
+  final Value<String> owner;
+  final Value<String> chatId;
+  final Value<String> messageId;
+  final Value<int> sequence;
+  final Value<int> version;
+  final Value<DateTime> deletedAt;
+  final Value<int> rowid;
+  const ChatMessageTombstonesCompanion({
+    this.owner = const Value.absent(),
+    this.chatId = const Value.absent(),
+    this.messageId = const Value.absent(),
+    this.sequence = const Value.absent(),
+    this.version = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ChatMessageTombstonesCompanion.insert({
+    required String owner,
+    required String chatId,
+    required String messageId,
+    required int sequence,
+    this.version = const Value.absent(),
+    required DateTime deletedAt,
+    this.rowid = const Value.absent(),
+  }) : owner = Value(owner),
+       chatId = Value(chatId),
+       messageId = Value(messageId),
+       sequence = Value(sequence),
+       deletedAt = Value(deletedAt);
+  static Insertable<ChatMessageTombstoneRow> custom({
+    Expression<String>? owner,
+    Expression<String>? chatId,
+    Expression<String>? messageId,
+    Expression<int>? sequence,
+    Expression<int>? version,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (owner != null) 'owner': owner,
+      if (chatId != null) 'chat_id': chatId,
+      if (messageId != null) 'message_id': messageId,
+      if (sequence != null) 'sequence': sequence,
+      if (version != null) 'version': version,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ChatMessageTombstonesCompanion copyWith({
+    Value<String>? owner,
+    Value<String>? chatId,
+    Value<String>? messageId,
+    Value<int>? sequence,
+    Value<int>? version,
+    Value<DateTime>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return ChatMessageTombstonesCompanion(
+      owner: owner ?? this.owner,
+      chatId: chatId ?? this.chatId,
+      messageId: messageId ?? this.messageId,
+      sequence: sequence ?? this.sequence,
+      version: version ?? this.version,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (owner.present) {
+      map['owner'] = Variable<String>(owner.value);
+    }
+    if (chatId.present) {
+      map['chat_id'] = Variable<String>(chatId.value);
+    }
+    if (messageId.present) {
+      map['message_id'] = Variable<String>(messageId.value);
+    }
+    if (sequence.present) {
+      map['sequence'] = Variable<int>(sequence.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatMessageTombstonesCompanion(')
+          ..write('owner: $owner, ')
+          ..write('chatId: $chatId, ')
+          ..write('messageId: $messageId, ')
+          ..write('sequence: $sequence, ')
+          ..write('version: $version, ')
+          ..write('deletedAt: $deletedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1354,6 +2033,51 @@ class $ChatOutboxTable extends ChatOutbox
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _replyToIdMeta = const VerificationMeta(
+    'replyToId',
+  );
+  @override
+  late final GeneratedColumn<String> replyToId = GeneratedColumn<String>(
+    'reply_to_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _replyToPayloadMeta = const VerificationMeta(
+    'replyToPayload',
+  );
+  @override
+  late final GeneratedColumn<String> replyToPayload = GeneratedColumn<String>(
+    'reply_to_payload',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _quoteRevisionMeta = const VerificationMeta(
+    'quoteRevision',
+  );
+  @override
+  late final GeneratedColumn<int> quoteRevision = GeneratedColumn<int>(
+    'quote_revision',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _photoIdsMeta = const VerificationMeta(
+    'photoIds',
+  );
+  @override
+  late final GeneratedColumn<String> photoIds = GeneratedColumn<String>(
+    'photo_ids',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -1405,6 +2129,10 @@ class $ChatOutboxTable extends ChatOutbox
     clientId,
     idempotencyKey,
     body,
+    replyToId,
+    replyToPayload,
+    quoteRevision,
+    photoIds,
     createdAt,
     attempts,
     status,
@@ -1465,6 +2193,36 @@ class $ChatOutboxTable extends ChatOutbox
     } else if (isInserting) {
       context.missing(_bodyMeta);
     }
+    if (data.containsKey('reply_to_id')) {
+      context.handle(
+        _replyToIdMeta,
+        replyToId.isAcceptableOrUnknown(data['reply_to_id']!, _replyToIdMeta),
+      );
+    }
+    if (data.containsKey('reply_to_payload')) {
+      context.handle(
+        _replyToPayloadMeta,
+        replyToPayload.isAcceptableOrUnknown(
+          data['reply_to_payload']!,
+          _replyToPayloadMeta,
+        ),
+      );
+    }
+    if (data.containsKey('quote_revision')) {
+      context.handle(
+        _quoteRevisionMeta,
+        quoteRevision.isAcceptableOrUnknown(
+          data['quote_revision']!,
+          _quoteRevisionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('photo_ids')) {
+      context.handle(
+        _photoIdsMeta,
+        photoIds.isAcceptableOrUnknown(data['photo_ids']!, _photoIdsMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -1524,6 +2282,22 @@ class $ChatOutboxTable extends ChatOutbox
         DriftSqlType.string,
         data['${effectivePrefix}body'],
       )!,
+      replyToId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reply_to_id'],
+      ),
+      replyToPayload: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reply_to_payload'],
+      ),
+      quoteRevision: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}quote_revision'],
+      )!,
+      photoIds: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}photo_ids'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1555,6 +2329,17 @@ class ChatOutboxRow extends DataClass implements Insertable<ChatOutboxRow> {
   final String clientId;
   final String idempotencyKey;
   final String body;
+  final String? replyToId;
+
+  /// Quote shown above the pending text; the server validates only the id.
+  final String? replyToPayload;
+
+  /// Local revision of [replyToPayload]; a delivery compares it with the
+  /// revision captured when the send request started.
+  final int quoteRevision;
+
+  /// Ready photo ids chosen before the first attempt, as a JSON array.
+  final String? photoIds;
   final DateTime createdAt;
   final int attempts;
   final String status;
@@ -1565,6 +2350,10 @@ class ChatOutboxRow extends DataClass implements Insertable<ChatOutboxRow> {
     required this.clientId,
     required this.idempotencyKey,
     required this.body,
+    this.replyToId,
+    this.replyToPayload,
+    required this.quoteRevision,
+    this.photoIds,
     required this.createdAt,
     required this.attempts,
     required this.status,
@@ -1578,6 +2367,16 @@ class ChatOutboxRow extends DataClass implements Insertable<ChatOutboxRow> {
     map['client_id'] = Variable<String>(clientId);
     map['idempotency_key'] = Variable<String>(idempotencyKey);
     map['body'] = Variable<String>(body);
+    if (!nullToAbsent || replyToId != null) {
+      map['reply_to_id'] = Variable<String>(replyToId);
+    }
+    if (!nullToAbsent || replyToPayload != null) {
+      map['reply_to_payload'] = Variable<String>(replyToPayload);
+    }
+    map['quote_revision'] = Variable<int>(quoteRevision);
+    if (!nullToAbsent || photoIds != null) {
+      map['photo_ids'] = Variable<String>(photoIds);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['attempts'] = Variable<int>(attempts);
     map['status'] = Variable<String>(status);
@@ -1594,6 +2393,16 @@ class ChatOutboxRow extends DataClass implements Insertable<ChatOutboxRow> {
       clientId: Value(clientId),
       idempotencyKey: Value(idempotencyKey),
       body: Value(body),
+      replyToId: replyToId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(replyToId),
+      replyToPayload: replyToPayload == null && nullToAbsent
+          ? const Value.absent()
+          : Value(replyToPayload),
+      quoteRevision: Value(quoteRevision),
+      photoIds: photoIds == null && nullToAbsent
+          ? const Value.absent()
+          : Value(photoIds),
       createdAt: Value(createdAt),
       attempts: Value(attempts),
       status: Value(status),
@@ -1614,6 +2423,10 @@ class ChatOutboxRow extends DataClass implements Insertable<ChatOutboxRow> {
       clientId: serializer.fromJson<String>(json['clientId']),
       idempotencyKey: serializer.fromJson<String>(json['idempotencyKey']),
       body: serializer.fromJson<String>(json['body']),
+      replyToId: serializer.fromJson<String?>(json['replyToId']),
+      replyToPayload: serializer.fromJson<String?>(json['replyToPayload']),
+      quoteRevision: serializer.fromJson<int>(json['quoteRevision']),
+      photoIds: serializer.fromJson<String?>(json['photoIds']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       attempts: serializer.fromJson<int>(json['attempts']),
       status: serializer.fromJson<String>(json['status']),
@@ -1629,6 +2442,10 @@ class ChatOutboxRow extends DataClass implements Insertable<ChatOutboxRow> {
       'clientId': serializer.toJson<String>(clientId),
       'idempotencyKey': serializer.toJson<String>(idempotencyKey),
       'body': serializer.toJson<String>(body),
+      'replyToId': serializer.toJson<String?>(replyToId),
+      'replyToPayload': serializer.toJson<String?>(replyToPayload),
+      'quoteRevision': serializer.toJson<int>(quoteRevision),
+      'photoIds': serializer.toJson<String?>(photoIds),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'attempts': serializer.toJson<int>(attempts),
       'status': serializer.toJson<String>(status),
@@ -1642,6 +2459,10 @@ class ChatOutboxRow extends DataClass implements Insertable<ChatOutboxRow> {
     String? clientId,
     String? idempotencyKey,
     String? body,
+    Value<String?> replyToId = const Value.absent(),
+    Value<String?> replyToPayload = const Value.absent(),
+    int? quoteRevision,
+    Value<String?> photoIds = const Value.absent(),
     DateTime? createdAt,
     int? attempts,
     String? status,
@@ -1652,6 +2473,12 @@ class ChatOutboxRow extends DataClass implements Insertable<ChatOutboxRow> {
     clientId: clientId ?? this.clientId,
     idempotencyKey: idempotencyKey ?? this.idempotencyKey,
     body: body ?? this.body,
+    replyToId: replyToId.present ? replyToId.value : this.replyToId,
+    replyToPayload: replyToPayload.present
+        ? replyToPayload.value
+        : this.replyToPayload,
+    quoteRevision: quoteRevision ?? this.quoteRevision,
+    photoIds: photoIds.present ? photoIds.value : this.photoIds,
     createdAt: createdAt ?? this.createdAt,
     attempts: attempts ?? this.attempts,
     status: status ?? this.status,
@@ -1666,6 +2493,14 @@ class ChatOutboxRow extends DataClass implements Insertable<ChatOutboxRow> {
           ? data.idempotencyKey.value
           : this.idempotencyKey,
       body: data.body.present ? data.body.value : this.body,
+      replyToId: data.replyToId.present ? data.replyToId.value : this.replyToId,
+      replyToPayload: data.replyToPayload.present
+          ? data.replyToPayload.value
+          : this.replyToPayload,
+      quoteRevision: data.quoteRevision.present
+          ? data.quoteRevision.value
+          : this.quoteRevision,
+      photoIds: data.photoIds.present ? data.photoIds.value : this.photoIds,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       attempts: data.attempts.present ? data.attempts.value : this.attempts,
       status: data.status.present ? data.status.value : this.status,
@@ -1681,6 +2516,10 @@ class ChatOutboxRow extends DataClass implements Insertable<ChatOutboxRow> {
           ..write('clientId: $clientId, ')
           ..write('idempotencyKey: $idempotencyKey, ')
           ..write('body: $body, ')
+          ..write('replyToId: $replyToId, ')
+          ..write('replyToPayload: $replyToPayload, ')
+          ..write('quoteRevision: $quoteRevision, ')
+          ..write('photoIds: $photoIds, ')
           ..write('createdAt: $createdAt, ')
           ..write('attempts: $attempts, ')
           ..write('status: $status, ')
@@ -1696,6 +2535,10 @@ class ChatOutboxRow extends DataClass implements Insertable<ChatOutboxRow> {
     clientId,
     idempotencyKey,
     body,
+    replyToId,
+    replyToPayload,
+    quoteRevision,
+    photoIds,
     createdAt,
     attempts,
     status,
@@ -1710,6 +2553,10 @@ class ChatOutboxRow extends DataClass implements Insertable<ChatOutboxRow> {
           other.clientId == this.clientId &&
           other.idempotencyKey == this.idempotencyKey &&
           other.body == this.body &&
+          other.replyToId == this.replyToId &&
+          other.replyToPayload == this.replyToPayload &&
+          other.quoteRevision == this.quoteRevision &&
+          other.photoIds == this.photoIds &&
           other.createdAt == this.createdAt &&
           other.attempts == this.attempts &&
           other.status == this.status &&
@@ -1722,6 +2569,10 @@ class ChatOutboxCompanion extends UpdateCompanion<ChatOutboxRow> {
   final Value<String> clientId;
   final Value<String> idempotencyKey;
   final Value<String> body;
+  final Value<String?> replyToId;
+  final Value<String?> replyToPayload;
+  final Value<int> quoteRevision;
+  final Value<String?> photoIds;
   final Value<DateTime> createdAt;
   final Value<int> attempts;
   final Value<String> status;
@@ -1733,6 +2584,10 @@ class ChatOutboxCompanion extends UpdateCompanion<ChatOutboxRow> {
     this.clientId = const Value.absent(),
     this.idempotencyKey = const Value.absent(),
     this.body = const Value.absent(),
+    this.replyToId = const Value.absent(),
+    this.replyToPayload = const Value.absent(),
+    this.quoteRevision = const Value.absent(),
+    this.photoIds = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.attempts = const Value.absent(),
     this.status = const Value.absent(),
@@ -1745,6 +2600,10 @@ class ChatOutboxCompanion extends UpdateCompanion<ChatOutboxRow> {
     required String clientId,
     required String idempotencyKey,
     required String body,
+    this.replyToId = const Value.absent(),
+    this.replyToPayload = const Value.absent(),
+    this.quoteRevision = const Value.absent(),
+    this.photoIds = const Value.absent(),
     required DateTime createdAt,
     this.attempts = const Value.absent(),
     this.status = const Value.absent(),
@@ -1762,6 +2621,10 @@ class ChatOutboxCompanion extends UpdateCompanion<ChatOutboxRow> {
     Expression<String>? clientId,
     Expression<String>? idempotencyKey,
     Expression<String>? body,
+    Expression<String>? replyToId,
+    Expression<String>? replyToPayload,
+    Expression<int>? quoteRevision,
+    Expression<String>? photoIds,
     Expression<DateTime>? createdAt,
     Expression<int>? attempts,
     Expression<String>? status,
@@ -1774,6 +2637,10 @@ class ChatOutboxCompanion extends UpdateCompanion<ChatOutboxRow> {
       if (clientId != null) 'client_id': clientId,
       if (idempotencyKey != null) 'idempotency_key': idempotencyKey,
       if (body != null) 'body': body,
+      if (replyToId != null) 'reply_to_id': replyToId,
+      if (replyToPayload != null) 'reply_to_payload': replyToPayload,
+      if (quoteRevision != null) 'quote_revision': quoteRevision,
+      if (photoIds != null) 'photo_ids': photoIds,
       if (createdAt != null) 'created_at': createdAt,
       if (attempts != null) 'attempts': attempts,
       if (status != null) 'status': status,
@@ -1788,6 +2655,10 @@ class ChatOutboxCompanion extends UpdateCompanion<ChatOutboxRow> {
     Value<String>? clientId,
     Value<String>? idempotencyKey,
     Value<String>? body,
+    Value<String?>? replyToId,
+    Value<String?>? replyToPayload,
+    Value<int>? quoteRevision,
+    Value<String?>? photoIds,
     Value<DateTime>? createdAt,
     Value<int>? attempts,
     Value<String>? status,
@@ -1800,6 +2671,10 @@ class ChatOutboxCompanion extends UpdateCompanion<ChatOutboxRow> {
       clientId: clientId ?? this.clientId,
       idempotencyKey: idempotencyKey ?? this.idempotencyKey,
       body: body ?? this.body,
+      replyToId: replyToId ?? this.replyToId,
+      replyToPayload: replyToPayload ?? this.replyToPayload,
+      quoteRevision: quoteRevision ?? this.quoteRevision,
+      photoIds: photoIds ?? this.photoIds,
       createdAt: createdAt ?? this.createdAt,
       attempts: attempts ?? this.attempts,
       status: status ?? this.status,
@@ -1825,6 +2700,18 @@ class ChatOutboxCompanion extends UpdateCompanion<ChatOutboxRow> {
     }
     if (body.present) {
       map['body'] = Variable<String>(body.value);
+    }
+    if (replyToId.present) {
+      map['reply_to_id'] = Variable<String>(replyToId.value);
+    }
+    if (replyToPayload.present) {
+      map['reply_to_payload'] = Variable<String>(replyToPayload.value);
+    }
+    if (quoteRevision.present) {
+      map['quote_revision'] = Variable<int>(quoteRevision.value);
+    }
+    if (photoIds.present) {
+      map['photo_ids'] = Variable<String>(photoIds.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -1852,6 +2739,10 @@ class ChatOutboxCompanion extends UpdateCompanion<ChatOutboxRow> {
           ..write('clientId: $clientId, ')
           ..write('idempotencyKey: $idempotencyKey, ')
           ..write('body: $body, ')
+          ..write('replyToId: $replyToId, ')
+          ..write('replyToPayload: $replyToPayload, ')
+          ..write('quoteRevision: $quoteRevision, ')
+          ..write('photoIds: $photoIds, ')
           ..write('createdAt: $createdAt, ')
           ..write('attempts: $attempts, ')
           ..write('status: $status, ')
@@ -1869,6 +2760,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ListingFeedsTable listingFeeds = $ListingFeedsTable(this);
   late final $ChatDialogsTable chatDialogs = $ChatDialogsTable(this);
   late final $ChatMessagesTable chatMessages = $ChatMessagesTable(this);
+  late final $ChatMessageTombstonesTable chatMessageTombstones =
+      $ChatMessageTombstonesTable(this);
   late final $ChatOutboxTable chatOutbox = $ChatOutboxTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -1879,6 +2772,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     listingFeeds,
     chatDialogs,
     chatMessages,
+    chatMessageTombstones,
     chatOutbox,
   ];
   @override
@@ -2403,6 +3297,11 @@ typedef $$ChatMessagesTableCreateCompanionBuilder =
       required int sequence,
       required String senderId,
       required String body,
+      Value<int> version,
+      Value<String?> replyToId,
+      Value<String?> replyToPayload,
+      Value<String?> photoIds,
+      Value<int> quoteRevision,
       required DateTime createdAt,
       Value<int> rowid,
     });
@@ -2415,6 +3314,11 @@ typedef $$ChatMessagesTableUpdateCompanionBuilder =
       Value<int> sequence,
       Value<String> senderId,
       Value<String> body,
+      Value<int> version,
+      Value<String?> replyToId,
+      Value<String?> replyToPayload,
+      Value<String?> photoIds,
+      Value<int> quoteRevision,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -2460,6 +3364,31 @@ class $$ChatMessagesTableFilterComposer
 
   ColumnFilters<String> get body => $composableBuilder(
     column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get replyToId => $composableBuilder(
+    column: $table.replyToId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get replyToPayload => $composableBuilder(
+    column: $table.replyToPayload,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get photoIds => $composableBuilder(
+    column: $table.photoIds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get quoteRevision => $composableBuilder(
+    column: $table.quoteRevision,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2513,6 +3442,31 @@ class $$ChatMessagesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get replyToId => $composableBuilder(
+    column: $table.replyToId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get replyToPayload => $composableBuilder(
+    column: $table.replyToPayload,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get photoIds => $composableBuilder(
+    column: $table.photoIds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get quoteRevision => $composableBuilder(
+    column: $table.quoteRevision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -2548,6 +3502,25 @@ class $$ChatMessagesTableAnnotationComposer
 
   GeneratedColumn<String> get body =>
       $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<String> get replyToId =>
+      $composableBuilder(column: $table.replyToId, builder: (column) => column);
+
+  GeneratedColumn<String> get replyToPayload => $composableBuilder(
+    column: $table.replyToPayload,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get photoIds =>
+      $composableBuilder(column: $table.photoIds, builder: (column) => column);
+
+  GeneratedColumn<int> get quoteRevision => $composableBuilder(
+    column: $table.quoteRevision,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -2591,6 +3564,11 @@ class $$ChatMessagesTableTableManager
                 Value<int> sequence = const Value.absent(),
                 Value<String> senderId = const Value.absent(),
                 Value<String> body = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<String?> replyToId = const Value.absent(),
+                Value<String?> replyToPayload = const Value.absent(),
+                Value<String?> photoIds = const Value.absent(),
+                Value<int> quoteRevision = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChatMessagesCompanion(
@@ -2601,6 +3579,11 @@ class $$ChatMessagesTableTableManager
                 sequence: sequence,
                 senderId: senderId,
                 body: body,
+                version: version,
+                replyToId: replyToId,
+                replyToPayload: replyToPayload,
+                photoIds: photoIds,
+                quoteRevision: quoteRevision,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -2613,6 +3596,11 @@ class $$ChatMessagesTableTableManager
                 required int sequence,
                 required String senderId,
                 required String body,
+                Value<int> version = const Value.absent(),
+                Value<String?> replyToId = const Value.absent(),
+                Value<String?> replyToPayload = const Value.absent(),
+                Value<String?> photoIds = const Value.absent(),
+                Value<int> quoteRevision = const Value.absent(),
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
               }) => ChatMessagesCompanion.insert(
@@ -2623,6 +3611,11 @@ class $$ChatMessagesTableTableManager
                 sequence: sequence,
                 senderId: senderId,
                 body: body,
+                version: version,
+                replyToId: replyToId,
+                replyToPayload: replyToPayload,
+                photoIds: photoIds,
+                quoteRevision: quoteRevision,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -2660,12 +3653,266 @@ typedef $$ChatMessagesTableProcessedTableManager =
       ChatMessageRow,
       PrefetchHooks Function()
     >;
+typedef $$ChatMessageTombstonesTableCreateCompanionBuilder =
+    ChatMessageTombstonesCompanion Function({
+      required String owner,
+      required String chatId,
+      required String messageId,
+      required int sequence,
+      Value<int> version,
+      required DateTime deletedAt,
+      Value<int> rowid,
+    });
+typedef $$ChatMessageTombstonesTableUpdateCompanionBuilder =
+    ChatMessageTombstonesCompanion Function({
+      Value<String> owner,
+      Value<String> chatId,
+      Value<String> messageId,
+      Value<int> sequence,
+      Value<int> version,
+      Value<DateTime> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$ChatMessageTombstonesTableFilterComposer
+    extends Composer<_$AppDatabase, $ChatMessageTombstonesTable> {
+  $$ChatMessageTombstonesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get owner => $composableBuilder(
+    column: $table.owner,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get chatId => $composableBuilder(
+    column: $table.chatId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get messageId => $composableBuilder(
+    column: $table.messageId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sequence => $composableBuilder(
+    column: $table.sequence,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ChatMessageTombstonesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ChatMessageTombstonesTable> {
+  $$ChatMessageTombstonesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get owner => $composableBuilder(
+    column: $table.owner,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get chatId => $composableBuilder(
+    column: $table.chatId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get messageId => $composableBuilder(
+    column: $table.messageId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sequence => $composableBuilder(
+    column: $table.sequence,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ChatMessageTombstonesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ChatMessageTombstonesTable> {
+  $$ChatMessageTombstonesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get owner =>
+      $composableBuilder(column: $table.owner, builder: (column) => column);
+
+  GeneratedColumn<String> get chatId =>
+      $composableBuilder(column: $table.chatId, builder: (column) => column);
+
+  GeneratedColumn<String> get messageId =>
+      $composableBuilder(column: $table.messageId, builder: (column) => column);
+
+  GeneratedColumn<int> get sequence =>
+      $composableBuilder(column: $table.sequence, builder: (column) => column);
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$ChatMessageTombstonesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ChatMessageTombstonesTable,
+          ChatMessageTombstoneRow,
+          $$ChatMessageTombstonesTableFilterComposer,
+          $$ChatMessageTombstonesTableOrderingComposer,
+          $$ChatMessageTombstonesTableAnnotationComposer,
+          $$ChatMessageTombstonesTableCreateCompanionBuilder,
+          $$ChatMessageTombstonesTableUpdateCompanionBuilder,
+          (
+            ChatMessageTombstoneRow,
+            BaseReferences<
+              _$AppDatabase,
+              $ChatMessageTombstonesTable,
+              ChatMessageTombstoneRow
+            >,
+          ),
+          ChatMessageTombstoneRow,
+          PrefetchHooks Function()
+        > {
+  $$ChatMessageTombstonesTableTableManager(
+    _$AppDatabase db,
+    $ChatMessageTombstonesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ChatMessageTombstonesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$ChatMessageTombstonesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$ChatMessageTombstonesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> owner = const Value.absent(),
+                Value<String> chatId = const Value.absent(),
+                Value<String> messageId = const Value.absent(),
+                Value<int> sequence = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ChatMessageTombstonesCompanion(
+                owner: owner,
+                chatId: chatId,
+                messageId: messageId,
+                sequence: sequence,
+                version: version,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String owner,
+                required String chatId,
+                required String messageId,
+                required int sequence,
+                Value<int> version = const Value.absent(),
+                required DateTime deletedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => ChatMessageTombstonesCompanion.insert(
+                owner: owner,
+                chatId: chatId,
+                messageId: messageId,
+                sequence: sequence,
+                version: version,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $ChatMessageTombstonesTable,
+                    ChatMessageTombstoneRow
+                  >(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $ChatMessageTombstonesTable,
+                    ChatMessageTombstoneRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ChatMessageTombstonesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ChatMessageTombstonesTable,
+      ChatMessageTombstoneRow,
+      $$ChatMessageTombstonesTableFilterComposer,
+      $$ChatMessageTombstonesTableOrderingComposer,
+      $$ChatMessageTombstonesTableAnnotationComposer,
+      $$ChatMessageTombstonesTableCreateCompanionBuilder,
+      $$ChatMessageTombstonesTableUpdateCompanionBuilder,
+      (
+        ChatMessageTombstoneRow,
+        BaseReferences<
+          _$AppDatabase,
+          $ChatMessageTombstonesTable,
+          ChatMessageTombstoneRow
+        >,
+      ),
+      ChatMessageTombstoneRow,
+      PrefetchHooks Function()
+    >;
 typedef $$ChatOutboxTableCreateCompanionBuilder = ChatOutboxCompanion Function({
   required String owner,
   required String chatId,
   required String clientId,
   required String idempotencyKey,
   required String body,
+  Value<String?> replyToId,
+  Value<String?> replyToPayload,
+  Value<int> quoteRevision,
+  Value<String?> photoIds,
   required DateTime createdAt,
   Value<int> attempts,
   Value<String> status,
@@ -2678,6 +3925,10 @@ typedef $$ChatOutboxTableUpdateCompanionBuilder = ChatOutboxCompanion Function({
   Value<String> clientId,
   Value<String> idempotencyKey,
   Value<String> body,
+  Value<String?> replyToId,
+  Value<String?> replyToPayload,
+  Value<int> quoteRevision,
+  Value<String?> photoIds,
   Value<DateTime> createdAt,
   Value<int> attempts,
   Value<String> status,
@@ -2716,6 +3967,26 @@ class $$ChatOutboxTableFilterComposer
 
   ColumnFilters<String> get body => $composableBuilder(
     column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get replyToId => $composableBuilder(
+    column: $table.replyToId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get replyToPayload => $composableBuilder(
+    column: $table.replyToPayload,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get quoteRevision => $composableBuilder(
+    column: $table.quoteRevision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get photoIds => $composableBuilder(
+    column: $table.photoIds,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2774,6 +4045,26 @@ class $$ChatOutboxTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get replyToId => $composableBuilder(
+    column: $table.replyToId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get replyToPayload => $composableBuilder(
+    column: $table.replyToPayload,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get quoteRevision => $composableBuilder(
+    column: $table.quoteRevision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get photoIds => $composableBuilder(
+    column: $table.photoIds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -2820,6 +4111,22 @@ class $$ChatOutboxTableAnnotationComposer
 
   GeneratedColumn<String> get body =>
       $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<String> get replyToId =>
+      $composableBuilder(column: $table.replyToId, builder: (column) => column);
+
+  GeneratedColumn<String> get replyToPayload => $composableBuilder(
+    column: $table.replyToPayload,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get quoteRevision => $composableBuilder(
+    column: $table.quoteRevision,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get photoIds =>
+      $composableBuilder(column: $table.photoIds, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -2870,6 +4177,10 @@ class $$ChatOutboxTableTableManager
                 Value<String> clientId = const Value.absent(),
                 Value<String> idempotencyKey = const Value.absent(),
                 Value<String> body = const Value.absent(),
+                Value<String?> replyToId = const Value.absent(),
+                Value<String?> replyToPayload = const Value.absent(),
+                Value<int> quoteRevision = const Value.absent(),
+                Value<String?> photoIds = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> attempts = const Value.absent(),
                 Value<String> status = const Value.absent(),
@@ -2881,6 +4192,10 @@ class $$ChatOutboxTableTableManager
                 clientId: clientId,
                 idempotencyKey: idempotencyKey,
                 body: body,
+                replyToId: replyToId,
+                replyToPayload: replyToPayload,
+                quoteRevision: quoteRevision,
+                photoIds: photoIds,
                 createdAt: createdAt,
                 attempts: attempts,
                 status: status,
@@ -2894,6 +4209,10 @@ class $$ChatOutboxTableTableManager
                 required String clientId,
                 required String idempotencyKey,
                 required String body,
+                Value<String?> replyToId = const Value.absent(),
+                Value<String?> replyToPayload = const Value.absent(),
+                Value<int> quoteRevision = const Value.absent(),
+                Value<String?> photoIds = const Value.absent(),
                 required DateTime createdAt,
                 Value<int> attempts = const Value.absent(),
                 Value<String> status = const Value.absent(),
@@ -2905,6 +4224,10 @@ class $$ChatOutboxTableTableManager
                 clientId: clientId,
                 idempotencyKey: idempotencyKey,
                 body: body,
+                replyToId: replyToId,
+                replyToPayload: replyToPayload,
+                quoteRevision: quoteRevision,
+                photoIds: photoIds,
                 createdAt: createdAt,
                 attempts: attempts,
                 status: status,
@@ -2957,6 +4280,8 @@ class $AppDatabaseManager {
       $$ChatDialogsTableTableManager(_db, _db.chatDialogs);
   $$ChatMessagesTableTableManager get chatMessages =>
       $$ChatMessagesTableTableManager(_db, _db.chatMessages);
+  $$ChatMessageTombstonesTableTableManager get chatMessageTombstones =>
+      $$ChatMessageTombstonesTableTableManager(_db, _db.chatMessageTombstones);
   $$ChatOutboxTableTableManager get chatOutbox =>
       $$ChatOutboxTableTableManager(_db, _db.chatOutbox);
 }

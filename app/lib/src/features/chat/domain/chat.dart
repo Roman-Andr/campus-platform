@@ -16,8 +16,66 @@ enum OutgoingChatFailure {
   invalid,
   unauthorized,
   server,
+  photo,
   unexpected,
 }
+
+/// The visible part of a quoted message.
+///
+/// The server returns the current text of a quoted message, never a hidden
+/// revision; a deleted quote arrives as a null payload with a non-null id.
+class ChatQuote {
+  const ChatQuote({
+    required this.messageId,
+    required this.senderId,
+    required this.text,
+    required this.createdAt,
+  });
+
+  final String messageId;
+  final String senderId;
+  final String text;
+  final DateTime createdAt;
+
+  factory ChatQuote.fromJson(Map<String, Object?> json) => ChatQuote(
+    messageId: json['id'] as String,
+    senderId: json['sender_id'] as String,
+    text: json['text'] as String,
+    createdAt: DateTime.parse(json['created_at'] as String).toUtc(),
+  );
+
+  Map<String, Object?> toJson() => {
+    'id': messageId,
+    'sender_id': senderId,
+    'text': text,
+    'created_at': createdAt.toUtc().toIso8601String(),
+  };
+}
+
+/// The quote snapshot of [message]; null when it quotes nothing or when the
+/// quoted message is already deleted and the server returned no visible part.
+ChatQuote? quoteOf(MessageOutput message) {
+  final reply = message.replyTo;
+  return reply is QuoteOutput
+      ? ChatQuote(
+          messageId: reply.id,
+          senderId: reply.senderId,
+          text: reply.text,
+          createdAt: reply.createdAt,
+        )
+      : null;
+}
+
+/// The quote another message would show when it quotes [message].
+///
+/// It uses only the visible row returned by the API, so a hidden revision
+/// can never become a quote.
+ChatQuote chatQuoteOf(MessageOutput message) => ChatQuote(
+  messageId: message.id,
+  senderId: message.senderId,
+  text: message.text,
+  createdAt: message.createdAt,
+);
 
 /// A message waiting in the persistent outbox of this account.
 class OutgoingChatMessage {
@@ -29,6 +87,9 @@ class OutgoingChatMessage {
     required this.createdAt,
     required this.attempts,
     required this.state,
+    this.replyToId,
+    this.replyTo,
+    this.photoIds = const [],
     this.failure,
   });
 
@@ -41,6 +102,21 @@ class OutgoingChatMessage {
   final String idempotencyKey;
 
   final String text;
+
+  /// The immutable `reply_to_id` sent with every retry.
+  ///
+  /// It is kept apart from [replyTo]: the visible quote snapshot may be
+  /// refreshed or cleared when the quoted message is edited or deleted, but
+  /// the wire field must not change after the first attempt, or a retry with
+  /// the same Idempotency-Key would send different content.
+  final String? replyToId;
+
+  /// The visible quote used by the pending bubble; null means the quoted
+  /// message was deleted.
+  final ChatQuote? replyTo;
+
+  /// Ready photo ids chosen before the first attempt.
+  final List<String> photoIds;
 
   /// When the user sent the message, in UTC.
   final DateTime createdAt;
@@ -63,9 +139,17 @@ class ChatThreadItem {
     required this.senderId,
     required this.text,
     required this.createdAt,
+    this.id,
     this.sequence,
+    this.version = 1,
+    this.replyToId,
+    this.replyTo,
+    this.photoIds = const [],
     this.outgoing,
   });
+
+  /// Server id; null for a message that is still in the outbox.
+  final String? id;
 
   final String clientId;
   final String senderId;
@@ -78,10 +162,23 @@ class ChatThreadItem {
   /// The authoritative server order number; null for a pending message.
   final int? sequence;
 
+  /// Server revision of the text; edits do not take a new sequence.
+  final int version;
+
+  final String? replyToId;
+
+  /// Current visible quote snapshot, when the quoted message is available.
+  final ChatQuote? replyTo;
+
+  final List<String> photoIds;
+
   /// The outbox row when the message has not been delivered yet.
   final OutgoingChatMessage? outgoing;
 
   bool get isPending => outgoing != null;
+
+  /// The server marks every edit with a higher version.
+  bool get edited => !isPending && version > 1;
 }
 
 /// Combines delivered history and the outbox into the order shown by a chat.
@@ -109,11 +206,16 @@ List<ChatThreadItem> chatThread({
   return [
     for (final message in stored)
       ChatThreadItem(
+        id: message.id,
         clientId: message.clientId,
         senderId: message.senderId,
         text: message.text,
         createdAt: message.createdAt,
         sequence: message.sequence,
+        version: message.version,
+        replyToId: message.replyToId,
+        replyTo: quoteOf(message),
+        photoIds: message.photoIds ?? const [],
       ),
     for (final message in pending)
       ChatThreadItem(
@@ -121,6 +223,9 @@ List<ChatThreadItem> chatThread({
         senderId: myId,
         text: message.text,
         createdAt: message.createdAt,
+        replyTo: message.replyTo,
+        replyToId: message.replyToId,
+        photoIds: message.photoIds,
         outgoing: message,
       ),
   ];

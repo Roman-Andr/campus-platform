@@ -1,10 +1,16 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:campus/src/core/api/generated/campus_api.dart';
+import 'package:campus/src/core/photos/photo_upload.dart';
 import 'package:campus/src/core/realtime/realtime_channel.dart';
 import 'package:campus/src/core/realtime/realtime_models.dart';
 import 'package:campus/src/features/chat/application/chat_history.dart';
 import 'package:campus/src/features/chat/data/chat_api.dart';
+import 'package:campus/src/features/chat/data/chat_photo_uploader.dart';
+import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
 
 /// A canonical UUID the realtime channel accepts for a test dialog.
 const testChatId = '01890a5d-ac96-774b-bcce-b302099a8060';
@@ -17,6 +23,10 @@ MessageOutput messageJson({
   String senderId = '01890a5d-ac96-774b-bcce-b302099a8058',
   String text = 'Hello',
   DateTime? createdAt,
+  int version = 1,
+  String? replyToId,
+  MessageOutputReplyTo? replyTo,
+  List<String>? photoIds,
 }) => MessageOutput(
   id: id ?? 'server-$sequence',
   chatId: chatId,
@@ -24,7 +34,19 @@ MessageOutput messageJson({
   clientId: clientId ?? '01890a5d-ac96-774b-bcce-b302099a80$sequence',
   sequence: sequence,
   text: text,
+  version: version,
+  replyToId: replyToId,
+  replyTo: replyTo,
+  photoIds: photoIds,
   createdAt: createdAt ?? DateTime.utc(2026, 11, 14, 12, sequence),
+);
+
+/// The quote payload the history API returns for a replied message.
+QuoteOutput quoteJson(MessageOutput message) => QuoteOutput(
+  id: message.id,
+  senderId: message.senderId,
+  text: message.text,
+  createdAt: message.createdAt,
 );
 
 ParticipantOutput participantJson({
@@ -93,14 +115,70 @@ class FakeChatApi implements ChatApi {
 
   final createCalls = <ChatInput>[];
   final sendCalls =
-      <({String chatId, String clientId, String key, String text})>[];
+      <
+        ({
+          String chatId,
+          String clientId,
+          String key,
+          String text,
+          String? replyToId,
+          List<String> photoIds,
+        })
+      >[];
+  final editCalls =
+      <({String chatId, String messageId, String key, String text})>[];
+  final deleteCalls = <({String chatId, String messageId, String key})>[];
   final listMessageCalls = <({String chatId, int? after, bool? ascending})>[];
+  final photoRequests = <String>[];
+  final photoRequestKeys = <String>[];
+  final photoRequestCancels = <CancelToken?>[];
+  final completePhotoCalls = <({String chatId, String fileId, String key})>[];
+  final photoStatusCalls = <String>[];
+  final messagePhotoCalls = <({String chatId, String messageId})>[];
+
+  /// Created forms by upload key; a retry with the same key returns this.
+  final photoForms = <String, ChatUploadOutput>{};
+
+  /// Current state of every uploaded file, by id.
+  final photoFiles = <String, ChatFileOutput>{};
+
+  /// Failures after the server committed the form/completion, to model a
+  /// lost response.
+  Object? photoRequestError;
+  Object? completePhotoError;
+
+  /// While set, a form request waits for it, so a test can cancel the
+  /// CancelToken before the server answers.
+  Completer<void>? photoRequestGate;
+
+  /// Statuses returned by `completeChatPhoto`, consumed in order; a ready
+  /// result is synthesized when the queue is empty.
+  final photoStatuses = <String>[];
+
+  /// Signed photos returned for a message id.
+  final messagePhotos = <String, List<ChatPhotoOutput>>{};
+  Object? messagePhotosError;
+
+  /// Failures of the next edit or delete request.
+  Object? editError;
+  Object? deleteError;
+
+  int _photoSequence = 0;
 
   /// While set, every send waits for this future before replying.
   Completer<void>? sendGate;
 
   /// While set, messages requests snapshot the data, then wait for it.
   Completer<void>? listGate;
+
+  /// Per-`after_sequence` gates, so a targeted event refresh can run while
+  /// a stale page request is still in flight.
+  final listGates = <int?, Completer<void>>{};
+
+  /// Replaces the response of a specific request after its snapshot and
+  /// gate, for simulating a stale read that must not erase newer data.
+  List<MessageOutput>? Function(String chatId, int? afterSequence)?
+  listOverride;
 
   /// While set, dialogs requests snapshot the data, then wait for it.
   Completer<void>? listChatsGate;
@@ -237,7 +315,12 @@ class FakeChatApi implements ChatApi {
     ));
     final snapshot = List<MessageOutput>.of(messages[chatId] ?? const [])
       ..sort((a, b) => a.sequence.compareTo(b.sequence));
-    if (listGate != null) await listGate!.future;
+    final gate = listGates[afterSequence] ?? listGate;
+    if (gate != null) await gate.future;
+    final overridden = listOverride?.call(chatId, afterSequence);
+    if (overridden != null) {
+      return PageMessageOutput(items: overridden, nextPage: null);
+    }
     final error = listError;
     if (error != null) {
       listError = null;
@@ -274,12 +357,16 @@ class FakeChatApi implements ChatApi {
     required String clientId,
     required String text,
     required String idempotencyKey,
+    String? replyToId,
+    List<String> photoIds = const [],
   }) async {
     sendCalls.add((
       chatId: chatId,
       clientId: clientId,
       key: idempotencyKey,
       text: text,
+      replyToId: replyToId,
+      photoIds: photoIds,
     ));
     final gate = sendGate;
     if (gate != null) await gate.future;
@@ -290,11 +377,19 @@ class FakeChatApi implements ChatApi {
       sendError = null;
       throw error;
     }
+    final quoted = replyToId == null
+        ? null
+        : (messages[chatId] ?? const <MessageOutput>[])
+              .where((row) => row.id == replyToId)
+              .firstOrNull;
     final message = messageJson(
       chatId: chatId,
       sequence: ++_serverSequence,
       clientId: clientId,
       text: text,
+      replyToId: replyToId,
+      replyTo: quoted == null ? null : quoteJson(quoted),
+      photoIds: photoIds.isEmpty ? null : photoIds,
     );
     _storedByKey[idempotencyKey] = message;
     messages.putIfAbsent(chatId, () => []).add(message);
@@ -303,6 +398,199 @@ class FakeChatApi implements ChatApi {
       throw StateError('connection lost after commit');
     }
     return message;
+  }
+
+  @override
+  Future<MessageOutput> editMessage(
+    String chatId,
+    String messageId, {
+    required String text,
+    required String idempotencyKey,
+  }) async {
+    editCalls.add((
+      chatId: chatId,
+      messageId: messageId,
+      key: idempotencyKey,
+      text: text,
+    ));
+    final error = editError;
+    if (error != null) {
+      editError = null;
+      throw error;
+    }
+    final rows = messages[chatId] ?? const <MessageOutput>[];
+    final index = rows.indexWhere((row) => row.id == messageId);
+    if (index < 0) throw StateError('message not found');
+    final current = rows[index];
+    final updated = MessageOutput(
+      id: current.id,
+      chatId: current.chatId,
+      senderId: current.senderId,
+      clientId: current.clientId,
+      sequence: current.sequence,
+      text: text,
+      replyToId: current.replyToId,
+      replyTo: current.replyTo,
+      version: current.version + 1,
+      photoIds: current.photoIds,
+      createdAt: current.createdAt,
+    );
+    rows[index] = updated;
+    return updated;
+  }
+
+  @override
+  Future<void> deleteMessage(
+    String chatId,
+    String messageId, {
+    required String idempotencyKey,
+  }) async {
+    deleteCalls.add((
+      chatId: chatId,
+      messageId: messageId,
+      key: idempotencyKey,
+    ));
+    final error = deleteError;
+    if (error != null) {
+      deleteError = null;
+      throw error;
+    }
+    messages[chatId]?.removeWhere((row) => row.id == messageId);
+  }
+
+  @override
+  Future<ChatUploadOutput> requestChatPhoto(
+    String chatId, {
+    required String idempotencyKey,
+    CancelToken? cancel,
+  }) async {
+    photoRequests.add(chatId);
+    photoRequestKeys.add(idempotencyKey);
+    photoRequestCancels.add(cancel);
+    final gate = photoRequestGate;
+    if (gate != null) await gate.future;
+    if (cancel?.isCancelled ?? false) {
+      throw DioException.requestCancelled(
+        requestOptions: RequestOptions(),
+        reason: cancel!.cancelError,
+      );
+    }
+    final existing = photoForms[idempotencyKey];
+    if (existing != null) return existing;
+    final file = ChatFileOutput(
+      id: 'file-${++_photoSequence}',
+      purpose: 'chat_photo',
+      status: 'pending',
+      size: 1,
+      rejectionReason: null,
+      expiresAt: DateTime.now().add(const Duration(hours: 1)),
+    );
+    final form = ChatUploadOutput(
+      file: file,
+      url: 'https://storage.test/upload',
+      fields: const {},
+      expiresAt: DateTime.now().add(const Duration(hours: 1)),
+    );
+    photoFiles[file.id] = file;
+    photoForms[idempotencyKey] = form;
+    final error = photoRequestError;
+    if (error != null) {
+      photoRequestError = null;
+      throw error;
+    }
+    return form;
+  }
+
+  @override
+  Future<ChatFileOutput> completeChatPhoto(
+    String chatId,
+    String fileId, {
+    required String idempotencyKey,
+    CancelToken? cancel,
+  }) async {
+    completePhotoCalls.add((
+      chatId: chatId,
+      fileId: fileId,
+      key: idempotencyKey,
+    ));
+    if (cancel?.isCancelled ?? false) {
+      throw DioException.requestCancelled(
+        requestOptions: RequestOptions(),
+        reason: cancel!.cancelError,
+      );
+    }
+    final current = photoFiles[fileId];
+    if (current == null) throw StateError('file not found');
+    final status = photoStatuses.isEmpty ? 'ready' : photoStatuses.removeAt(0);
+    final file = ChatFileOutput(
+      id: fileId,
+      purpose: 'chat_photo',
+      status: current.status == 'pending' ? 'processing' : status,
+      size: 1,
+      rejectionReason: status == 'rejected' ? 'invalid_image' : null,
+      expiresAt: current.expiresAt,
+    );
+    photoFiles[fileId] = file;
+    final error = completePhotoError;
+    if (error != null) {
+      completePhotoError = null;
+      throw error;
+    }
+    return file;
+  }
+
+  @override
+  Future<ChatFileOutput> getPhotoUpload(
+    String fileId, {
+    CancelToken? cancel,
+  }) async {
+    photoStatusCalls.add(fileId);
+    if (cancel?.isCancelled ?? false) {
+      throw DioException.requestCancelled(
+        requestOptions: RequestOptions(),
+        reason: cancel!.cancelError,
+      );
+    }
+    final stored = photoFiles[fileId];
+    if (stored == null) {
+      return ChatFileOutput(
+        id: fileId,
+        purpose: 'chat_photo',
+        status: 'ready',
+        size: 1,
+        rejectionReason: null,
+        expiresAt: DateTime.now().add(const Duration(hours: 1)),
+      );
+    }
+    if (stored.status == 'processing') {
+      final next = photoStatuses.isEmpty ? 'ready' : photoStatuses.removeAt(0);
+      final ready = ChatFileOutput(
+        id: stored.id,
+        purpose: stored.purpose,
+        status: next,
+        size: stored.size,
+        rejectionReason: next == 'rejected' ? 'invalid_image' : null,
+        expiresAt: stored.expiresAt,
+      );
+      photoFiles[fileId] = ready;
+      return ready;
+    }
+    return stored;
+  }
+
+  @override
+  Future<ChatPhotosOutput> listMessagePhotos(
+    String chatId,
+    String messageId, {
+    CancelToken? cancel,
+  }) async {
+    messagePhotoCalls.add((chatId: chatId, messageId: messageId));
+    final error = messagePhotosError;
+    if (error != null) {
+      messagePhotosError = null;
+      throw error;
+    }
+    return ChatPhotosOutput(items: messagePhotos[messageId] ?? const []);
   }
 }
 
@@ -362,5 +650,109 @@ class FakeChatSubscription implements RealtimeSubscription {
     closed = true;
     await _events.close();
     await _statuses.close();
+  }
+}
+
+/// A picker that returns files already in memory.
+class FakePhotoPicker implements PhotoPicker {
+  FakePhotoPicker({this.galleryFiles = const [], this.cameraFile});
+
+  final List<XFile> galleryFiles;
+  final XFile? cameraFile;
+
+  @override
+  bool get hasCamera => cameraFile != null;
+
+  @override
+  Future<List<XFile>> gallery({required int limit}) async =>
+      galleryFiles.take(limit).toList();
+
+  @override
+  Future<XFile?> camera() async => cameraFile;
+}
+
+XFile testImage(String name) => XFile.fromData(
+  base64Decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk'
+    'YPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+  ),
+  name: name,
+  mimeType: 'image/png',
+);
+
+/// A chat photo uploader with controllable processing outcomes.
+class FakeChatPhotoUploader implements ChatPhotoUploader {
+  final statuses = <String>[];
+  final rejectionReasons = <String?>[];
+  final calls = <({String chatId, int length})>[];
+  final attempts =
+      <({String uploadKey, String completeKey, String? formFileId})>[];
+
+  /// While set, the upload waits for it after reporting processing.
+  Completer<void>? gate;
+
+  /// Throws this instead of returning a file; the form is still reported.
+  Object? error;
+
+  int _sequence = 0;
+
+  @override
+  Future<({ChatPhotoForm form, ChatFileOutput file})> upload(
+    String chatId,
+    Uint8List bytes, {
+    required String filename,
+    required String uploadKey,
+    required String completeKey,
+    ChatPhotoForm? form,
+    required void Function(ChatPhotoForm form) onForm,
+    void Function(double progress)? onProgress,
+    void Function()? onProcessing,
+    CancelToken? cancel,
+  }) async {
+    calls.add((chatId: chatId, length: bytes.length));
+    attempts.add((
+      uploadKey: uploadKey,
+      completeKey: completeKey,
+      formFileId: form?.fileId,
+    ));
+    onProgress?.call(0.5);
+    final current =
+        form ??
+        ChatPhotoForm(
+          url: 'https://storage.test/upload',
+          fields: const {},
+          fileId: 'upload-${++_sequence}',
+          expiresAt: DateTime.now().add(const Duration(hours: 1)),
+        );
+    if (form == null) onForm(current);
+    onProcessing?.call();
+    final wait = gate;
+    if (wait != null) await wait.future;
+    if (cancel?.isCancelled ?? false) {
+      throw DioException.requestCancelled(
+        requestOptions: RequestOptions(),
+        reason: cancel!.cancelError,
+      );
+    }
+    final failure = error;
+    if (failure != null) {
+      error = null;
+      throw failure;
+    }
+    final status = statuses.isEmpty ? 'ready' : statuses.removeAt(0);
+    final reason = rejectionReasons.isEmpty
+        ? null
+        : rejectionReasons.removeAt(0);
+    return (
+      form: current,
+      file: ChatFileOutput(
+        id: current.fileId,
+        purpose: 'chat_photo',
+        status: status,
+        size: bytes.length,
+        rejectionReason: reason,
+        expiresAt: DateTime.now().add(const Duration(hours: 1)),
+      ),
+    );
   }
 }

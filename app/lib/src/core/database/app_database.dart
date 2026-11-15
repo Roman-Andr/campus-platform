@@ -12,7 +12,14 @@ part 'app_database.g.dart';
 /// Schema changes must bump [schemaVersion], add a step to [migration] and
 /// be exported with `dart run drift_dev make-migrations` (see README).
 @DriftDatabase(
-  tables: [Preferences, ListingFeeds, ChatDialogs, ChatMessages, ChatOutbox],
+  tables: [
+    Preferences,
+    ListingFeeds,
+    ChatDialogs,
+    ChatMessages,
+    ChatMessageTombstones,
+    ChatOutbox,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openDefault());
@@ -20,17 +27,61 @@ class AppDatabase extends _$AppDatabase {
   static const databaseName = 'campus';
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
     onUpgrade: (m, from, to) async {
       if (from < 2) await m.createTable(listingFeeds);
-      if (from < 3) {
+      if (from < 3 && to >= 3) {
         await m.createTable(chatDialogs);
-        await m.createTable(chatMessages);
-        await m.createTable(chatOutbox);
+        // The app first shipped chats in v3, before quotes, photos and
+        // edits. Creating the current table here would put v4 columns into
+        // a v3 database, so recreate the exact v3 shape and let the v4
+        // step below add its columns.
+        await customStatement(
+          'CREATE TABLE chat_messages ('
+          'owner TEXT NOT NULL, '
+          'chat_id TEXT NOT NULL, '
+          'client_id TEXT NOT NULL, '
+          'server_id TEXT NOT NULL, '
+          'sequence INTEGER NOT NULL, '
+          'sender_id TEXT NOT NULL, '
+          'body TEXT NOT NULL, '
+          'created_at TEXT NOT NULL, '
+          'PRIMARY KEY(owner, chat_id, client_id), '
+          'UNIQUE(owner, chat_id, sequence))',
+        );
+        await customStatement(
+          'CREATE TABLE chat_outbox ('
+          'owner TEXT NOT NULL, '
+          'chat_id TEXT NOT NULL, '
+          'client_id TEXT NOT NULL, '
+          'idempotency_key TEXT NOT NULL, '
+          'body TEXT NOT NULL, '
+          'created_at TEXT NOT NULL, '
+          'attempts INTEGER NOT NULL DEFAULT 0, '
+          'status TEXT NOT NULL DEFAULT \'pending\', '
+          'failure TEXT NULL, '
+          'PRIMARY KEY(owner, chat_id, client_id), '
+          'UNIQUE(owner, idempotency_key))',
+        );
+      }
+      if (from < 4 && to >= 4) {
+        await m.createTable(chatMessageTombstones);
+        // A database older than v3 was created above with the v3 shape and
+        // needs these columns too; a database that started at v3 gets them
+        // from this same step.
+        await m.addColumn(chatMessages, chatMessages.version);
+        await m.addColumn(chatMessages, chatMessages.replyToId);
+        await m.addColumn(chatMessages, chatMessages.replyToPayload);
+        await m.addColumn(chatMessages, chatMessages.photoIds);
+        await m.addColumn(chatMessages, chatMessages.quoteRevision);
+        await m.addColumn(chatOutbox, chatOutbox.replyToId);
+        await m.addColumn(chatOutbox, chatOutbox.replyToPayload);
+        await m.addColumn(chatOutbox, chatOutbox.quoteRevision);
+        await m.addColumn(chatOutbox, chatOutbox.photoIds);
       }
     },
     beforeOpen: (details) async {

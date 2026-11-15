@@ -2152,4 +2152,79 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get chatUnavailable =>
       'Personal messaging with this user is unavailable.';
+
+  @override
+  String get chatMessageEdited => 'edited';
+
+  @override
+  String get chatReply => 'Reply';
+
+  @override
+  String get chatReplyCancel => 'Cancel reply';
+
+  @override
+  String get chatQuoteDeleted => 'Message deleted';
+
+  @override
+  String get chatEdit => 'Edit';
+
+  @override
+  String get chatDelete => 'Delete message';
+
+  @override
+  String get chatEditTitle => 'Edit message';
+
+  @override
+  String get chatDeleteTitle => 'Delete message?';
+
+  @override
+  String get chatDeleteExplanation =>
+      'The text disappears for the other participant. A hidden copy is kept for 30 days for complaints only.';
+
+  @override
+  String get chatCancel => 'Cancel';
+
+  @override
+  String get chatSave => 'Save';
+
+  @override
+  String get chatEditFailed => 'Could not edit the message. Try again.';
+
+  @override
+  String get chatDeleteFailed => 'Could not delete the message. Try again.';
+
+  @override
+  String get chatMessageDeleted => 'The message is already deleted.';
+
+  @override
+  String get chatMessageUnavailable => 'The message is no longer available.';
+
+  @override
+  String get chatActionForbidden =>
+      'The action is unavailable: your permissions changed.';
+
+  @override
+  String get chatPhotoInvalid =>
+      'The photo was not processed or expired. Add it again.';
+
+  @override
+  String get chatPhotoExpired => 'The photo upload expired. Add it again.';
+
+  @override
+  String get chatPhotoAdd => 'Attach a photo';
+
+  @override
+  String get chatPhotoFailed => 'Could not upload the photo';
+
+  @override
+  String get chatPhotoWait => 'Wait for the photos to be processed.';
+
+  @override
+  String get chatPhotoFix => 'Remove or retry the failed photos.';
+
+  @override
+  String get chatPhotosUnavailable => 'Photos are unavailable.';
+
+  @override
+  String get chatYou => 'You';
 }
