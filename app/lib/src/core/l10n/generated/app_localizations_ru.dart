@@ -852,6 +852,70 @@ class AppLocalizationsRu extends AppLocalizations {
   String get meetingCancelConfirm => 'Отменить';
 
   @override
+  String get noMeetingTitle => 'Без встречи';
+
+  @override
+  String get noMeetingBothConfirm =>
+      'Оба участника подтверждают, что взаимодействие состоялось без встречи.';
+
+  @override
+  String get noMeetingOpen => 'Открыть подтверждение';
+
+  @override
+  String get noMeetingIntro =>
+      'Подтвердите, что взаимодействие состоялось без встречи. Оно завершится после согласия обоих участников.';
+
+  @override
+  String get noMeetingConfirm => 'Подтвердить без встречи';
+
+  @override
+  String get noMeetingYourConsent => 'Ваше согласие';
+
+  @override
+  String get noMeetingOtherConsent => 'Согласие второго участника';
+
+  @override
+  String noMeetingConfirmedAt(String time) {
+    return 'Подтверждено $time';
+  }
+
+  @override
+  String get noMeetingNotConfirmed => 'Пока нет';
+
+  @override
+  String get noMeetingWaiting => 'Ожидаем подтверждения второго участника.';
+
+  @override
+  String get noMeetingRefresh => 'Обновить';
+
+  @override
+  String get noMeetingCompletedStatus => 'Завершено без встречи';
+
+  @override
+  String get noMeetingCompleted => 'Взаимодействие завершено без встречи.';
+
+  @override
+  String noMeetingAgreedAt(String time) {
+    return 'Согласованное время: $time';
+  }
+
+  @override
+  String noMeetingCompletedAt(String time) {
+    return 'Завершено: $time';
+  }
+
+  @override
+  String get noMeetingSent => 'Согласие отправлено.';
+
+  @override
+  String get noMeetingUnavailable =>
+      'Это взаимодействие нельзя завершить без встречи.';
+
+  @override
+  String get noMeetingForbidden =>
+      'Вы не можете подтвердить это взаимодействие.';
+
+  @override
   String get mySectionDrafts => 'Черновики';
 
   @override
