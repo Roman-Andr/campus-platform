@@ -747,7 +747,7 @@ async def readable(session: DbSession, listing_id: UUID, user: User) -> Listing:
         return listing
     # Existing participants retain the card needed to finish and review,
     # also after a block: blocking never cancels a started interaction.
-    participant = await session.scalar(
+    started = await session.scalar(
         select(Interaction.id).where(
             Interaction.listing_id == listing.id,
             Interaction.participant_id == user.id,
@@ -755,12 +755,20 @@ async def readable(session: DbSession, listing_id: UUID, user: User) -> Listing:
         )
     )
     if await blocked_between(session, user.id, listing.author_id):
-        if participant is None:
+        if started is None:
             raise ProblemError(NOT_FOUND)
         return listing
     if visible(listing, user):
         return listing
-    if participant is None:
+    # A finished, rejected or cancelled application still preserves the
+    # historical card for a participant whose account lost visibility.
+    historical = await session.scalar(
+        select(Interaction.id).where(
+            Interaction.listing_id == listing.id,
+            Interaction.participant_id == user.id,
+        )
+    )
+    if historical is None:
         raise ProblemError(NOT_FOUND)
     return listing
 
