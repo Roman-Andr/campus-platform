@@ -21,9 +21,15 @@ from campus.core.web import (
     paginate,
     sort_by,
 )
-from campus.modules.chat.models import Chat, ChatMember, ChatMessage
+from campus.modules.chat.models import (
+    Chat,
+    ChatMember,
+    ChatMessage,
+    ChatMessageHistory,
+)
 from campus.modules.chat.service import (
     create_personal_chat,
+    leave_chat,
     post_message,
     require_membership,
 )
@@ -109,14 +115,14 @@ class MessageInput(BaseModel):
     text: str = Field(min_length=1, description="Message text.")
 
 
-def message_output(message: ChatMessage) -> MessageOutput:
+def message_output(message: ChatMessage | ChatMessageHistory) -> MessageOutput:
     return MessageOutput.model_validate(message, from_attributes=True)
 
 
 def chat_output(
     chat: Chat,
     participants: list[ParticipantOutput],
-    last_message: ChatMessage | None,
+    last_message: ChatMessage | ChatMessageHistory | None,
 ) -> ChatOutput:
     return ChatOutput(
         id=chat.id,
@@ -146,12 +152,12 @@ async def hydrate(session: AsyncSession, chats: list[Chat]) -> list[ChatOutput]:
         members[chat_id].append(
             ParticipantOutput.model_validate(user, from_attributes=True)
         )
-    last: list[ChatMessage] = list(
+    last: list[ChatMessageHistory] = list(
         await session.scalars(
-            select(ChatMessage)
-            .where(ChatMessage.chat_id.in_(ids))
-            .order_by(ChatMessage.chat_id, ChatMessage.sequence.desc())
-            .ext(distinct_on(ChatMessage.chat_id))
+            select(ChatMessageHistory)
+            .where(ChatMessageHistory.chat_id.in_(ids))
+            .order_by(ChatMessageHistory.chat_id, ChatMessageHistory.sequence.desc())
+            .ext(distinct_on(ChatMessageHistory.chat_id))
         )
     )
     latest = {message.chat_id: message for message in last}
@@ -208,7 +214,10 @@ async def list_chats(
     query = sort_by(
         select(Chat)
         .join(ChatMember, ChatMember.chat_id == Chat.id)
-        .where(ChatMember.user_id == principal.user_id),
+        .where(
+            ChatMember.user_id == principal.user_id,
+            ChatMember.left_at.is_(None),
+        ),
         order_by,
         {"updated_at": Chat.updated_at, "created_at": Chat.created_at},
         Chat.id,
@@ -254,15 +263,15 @@ async def list_messages(  # noqa: PLR0913, PLR0917
     page neither skips nor repeats messages when new ones arrive.
     """
     await require_membership(session, chat_id, principal.user_id)
-    query = select(ChatMessage).where(
-        ChatMessage.chat_id == chat_id,
-        ChatMessage.sequence > after_sequence,
+    query = select(ChatMessageHistory).where(
+        ChatMessageHistory.chat_id == chat_id,
+        ChatMessageHistory.sequence > after_sequence,
     )
     query = sort_by(
         query,
         "sequence" if ascending else "-sequence",
-        {"sequence": ChatMessage.sequence},
-        ChatMessage.id,
+        {"sequence": ChatMessageHistory.sequence},
+        ChatMessageHistory.id,
     )
     return await paginate(
         session,
@@ -272,6 +281,22 @@ async def list_messages(  # noqa: PLR0913, PLR0917
         settings=request.app.state.settings,
         context=f"chat:{chat_id}:{after_sequence}:{ascending}",
     )
+
+
+@router.delete(
+    "/{chat_id}/membership",
+    status_code=204,
+    responses={404: {"model": Problem}},
+)
+async def leave(chat_id: UUID, session: DbSession, principal: CurrentUser) -> Response:
+    """Leave a dialog; the last member starts the one-year retention clock.
+
+    The membership row and the history stay, so creating the same dialog
+    again restores them and cancels a pending cleanup. Repeating the request
+    is a no-op and also returns ``204``.
+    """
+    await leave_chat(session, chat_id, principal.user_id)
+    return Response(status_code=204)
 
 
 @router.post(

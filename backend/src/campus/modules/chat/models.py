@@ -58,6 +58,11 @@ class Chat(Entity):
         CheckConstraint("user_low_id <> user_high_id", name="distinct_members"),
         CheckConstraint("last_sequence >= 0", name="last_sequence_non_negative"),
         Index(
+            "ix_chat_empty_since",
+            "empty_since",
+            postgresql_where=text("empty_since IS NOT NULL"),
+        ),
+        Index(
             "uq_chat_direct_pair",
             "user_low_id",
             "user_high_id",
@@ -89,6 +94,8 @@ class Chat(Entity):
         ForeignKey("listing_interaction.id")
     )
     last_sequence: Mapped[int] = mapped_column(BigInteger, default=0)
+    # When the last active member left; null while somebody is a member.
+    empty_since: Mapped[datetime | None]
 
 
 class ChatMember(Base):
@@ -104,6 +111,9 @@ class ChatMember(Base):
         ForeignKey("identity_user.id", ondelete="CASCADE"), primary_key=True
     )
     joined_at: Mapped[datetime] = mapped_column(default=clock.now)
+    # The member left, but the row is kept so a rejoin restores the same
+    # dialog and the retention clock can be cancelled.
+    left_at: Mapped[datetime | None]
 
 
 class ChatMessageDedup(Base):
@@ -164,3 +174,87 @@ class ChatMessage(Base):
     sequence: Mapped[int] = mapped_column(BigInteger)
     text: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(default=clock.now)
+
+
+class ChatMessageArchive(Base):
+    """Messages older than the active window, partitioned by year.
+
+    The archive is a separate partitioned table, not a child of
+    :class:`ChatMessage`: an old row keeps its id, sequence and client UUID
+    but is served to readers through the ``chat_message_history`` union view.
+    Moving rows out of the active parent keeps its partitions small while
+    the history API and a future search see one logical table.
+    """
+
+    __tablename__ = "chat_message_archive"
+    __table_args__ = (
+        PrimaryKeyConstraint("id", "created_at", name="pk_chat_message_archive"),
+        CheckConstraint("sequence > 0", name="sequence_positive"),
+        CheckConstraint("length(text) > 0", name="text_not_empty"),
+        Index(
+            "ix_chat_message_archive_chat_id_sequence",
+            "chat_id",
+            "sequence",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(server_default=func.uuidv7())
+    chat_id: Mapped[UUID] = mapped_column(ForeignKey("chat.id", ondelete="CASCADE"))
+    sender_id: Mapped[UUID] = mapped_column(
+        ForeignKey("identity_user.id", ondelete="CASCADE")
+    )
+    client_id: Mapped[UUID]
+    sequence: Mapped[int] = mapped_column(BigInteger)
+    text: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(default=clock.now)
+
+
+class ChatMessageHistory(Base):
+    """Read-only union of active and archived messages.
+
+    A view, not a table: the API and the deduplication replay read the same
+    columns and the same indexes regardless of where the row currently lives.
+    Writes always go to :class:`ChatMessage`.
+    """
+
+    __tablename__ = "chat_message_history"
+    __table_args__ = (PrimaryKeyConstraint("id", "created_at"),)
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    chat_id: Mapped[UUID]
+    sender_id: Mapped[UUID]
+    client_id: Mapped[UUID]
+    sequence: Mapped[int] = mapped_column(BigInteger)
+    text: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(primary_key=True)
+
+
+class ChatMessageSnapshot(Base):
+    """Immutable copy of a message attached to a complaint.
+
+    Deliberately has no foreign keys to the chat, the message or the sender:
+    retaining a complaint must survive the retention cleanup of the chat.
+    The complaint case itself is created by the moderation module later; its
+    identifier is stored without a foreign key for the same reason.
+    """
+
+    __tablename__ = "chat_message_snapshot"
+    __table_args__ = (
+        UniqueConstraint(
+            "complaint_id",
+            "message_id",
+            name="uq_chat_message_snapshot_complaint_id_message_id",
+        ),
+        CheckConstraint("sequence > 0", name="sequence_positive"),
+        Index("ix_chat_message_snapshot_complaint_id", "complaint_id"),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, server_default=func.uuidv7())
+    complaint_id: Mapped[UUID]
+    chat_id: Mapped[UUID]
+    message_id: Mapped[UUID]
+    sender_id: Mapped[UUID]
+    sequence: Mapped[int] = mapped_column(BigInteger)
+    text: Mapped[str] = mapped_column(Text)
+    message_created_at: Mapped[datetime]
+    captured_at: Mapped[datetime] = mapped_column(default=clock.now)

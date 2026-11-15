@@ -236,4 +236,41 @@ class ChatsClient {
     );
     return models.MessageOutput.fromJson(response.data as Map<String, Object?>);
   }
+
+  /// Leave
+  ///
+  /// Leave a dialog; the last member starts the one-year retention clock.
+  ///
+  /// The membership row and the history stay, so creating the same dialog
+  /// again restores them and cancels a pending cleanup. Repeating the request
+  /// is a no-op and also returns ``204``.
+  Future<void> leave({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String chatId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(chatId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "DELETE",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 204),
+    );
+    await _transport.request<dynamic>(
+      "/api/v1/chats/" + Uri.encodeComponent(chatId) + "/membership",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+  }
 }
