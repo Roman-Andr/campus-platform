@@ -91,7 +91,8 @@ class ChatsClient {
           if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
         'Accept': "application/json",
       },
-      validateStatus: (status) => status != null && (status == 201),
+      validateStatus: (status) =>
+          status != null && (status == 200 || status == 201),
     );
     final response = await _transport.request<dynamic>(
       "/api/v1/chats",
@@ -224,7 +225,8 @@ class ChatsClient {
           if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
         'Accept': "application/json",
       },
-      validateStatus: (status) => status != null && (status == 201),
+      validateStatus: (status) =>
+          status != null && (status == 200 || status == 201),
     );
     final response = await _transport.request<dynamic>(
       "/api/v1/chats/" + Uri.encodeComponent(chatId) + "/messages",
