@@ -346,6 +346,21 @@ async def test_a_handed_over_loan_refuses_a_mutual_no_show(
             )
             assert refused.status_code == 409, refused.text
             assert refused.json()["code"] == "loan_no_show_unavailable"
+            # The meeting window is formally open, but no mark is offered.
+            state = (
+                await account.auth.client.get(
+                    f"{ROOT}/{listing['id']}/interactions/{interaction['id']}/no-show",
+                    headers=account.headers,
+                )
+            ).json()
+            assert state["status"] == "accepted"
+            assert state["can_mark"] is False
+            assert parse_instant(state["mark_from"]) <= (
+                meeting_at + timedelta(hours=25)
+            )
+            assert parse_instant(state["auto_after"]) > (
+                meeting_at + timedelta(hours=25)
+            )
         assert await marks(owner, interaction) == []
         row = await row_of(owner, interaction)
         assert row.status == "accepted"

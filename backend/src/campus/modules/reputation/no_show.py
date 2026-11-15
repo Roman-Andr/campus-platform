@@ -383,6 +383,9 @@ async def no_show_state(
         else None
     )
     status = InteractionStatus(interaction.status)
+    # A handed-over loan cannot be closed by a mutual no-show, so the state
+    # never offers one even while the meeting window is formally open.
+    staged_loan = listing.kind == "loan" and interaction.stage is not None
     return NoShowState(
         listing_id=listing.id,
         interaction_id=interaction.id,
@@ -393,7 +396,8 @@ async def no_show_state(
         no_show_at=no_show_at,
         mark_from=mark_opens_at(interaction, settings),
         auto_after=auto_no_show_at(interaction, settings),
-        can_mark=can_mark_now(
+        can_mark=not staged_loan
+        and can_mark_now(
             status,
             marks,
             actor_id,
