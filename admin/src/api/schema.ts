@@ -1923,7 +1923,11 @@ export interface paths {
     };
     /**
      * List Chats
-     * @description List the current user's dialogs, the most recently active first.
+     * @description List the current user's chats, the most recently active first.
+     *
+     *     ``kind`` selects one chat kind, for example the group chats of events
+     *     only. Every returned chat has an active membership; a left group is not
+     *     listed after the participation ended.
      */
     get: operations['list_chats'];
     put?: never;
@@ -1977,9 +1981,32 @@ export interface paths {
     };
     /**
      * Read Chat
-     * @description One dialog of the current user; somebody else's chat is ``404``.
+     * @description One chat of the current user; somebody else's chat is ``404``.
      */
     get: operations['read_chat'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/chats/{chat_id}/members': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Chat Members
+     * @description Composition of a chat: active members and the organiser of a group.
+     *
+     *     A removed participant is not a member any more and cannot read the
+     *     composition: the membership check runs before the query.
+     */
+    get: operations['list_chat_members'];
     put?: never;
     post?: never;
     delete?: never;
@@ -2031,11 +2058,15 @@ export interface paths {
     post?: never;
     /**
      * Leave
-     * @description Leave a dialog; the last member starts the one-year retention clock.
+     * @description Leave a personal dialog; its history starts the retention clock.
      *
      *     The membership row and the history stay, so creating the same dialog
      *     again restores them and cancels a pending cleanup. Repeating the request
      *     is a no-op and also returns ``204``.
+     *
+     *     A group chat is not left here: its membership follows the accepted
+     *     participation, so cancelling the participation is the only way out and
+     *     an active member gets ``409``.
      */
     delete: operations['leave'];
     options?: never;
@@ -3156,6 +3187,16 @@ export interface components {
       listing_id: string | null;
       /** Interaction Id */
       interaction_id: string | null;
+      /**
+       * Listing Title
+       * @description Title of the linked listing, if the chat has one.
+       */
+      listing_title?: string | null;
+      /**
+       * Organizer Id
+       * @description Author of the listing; set for the group chats of events and purchases only.
+       */
+      organizer_id?: string | null;
       /**
        * Created At
        * Format: date-time
@@ -4378,6 +4419,35 @@ export interface components {
      * @enum {string}
      */
     MeetingStatus: 'proposed' | 'scheduled';
+    /**
+     * MemberOutput
+     * @description An active member of a chat and the role that grants access.
+     */
+    MemberOutput: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** First Name */
+      first_name: string;
+      /** Last Name */
+      last_name: string;
+      /** Account Type */
+      account_type: string;
+      /**
+       * Joined At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      joined_at: string;
+      /**
+       * Is Organizer
+       * @description The author of the event or the purchase of a group chat.
+       * @default false
+       */
+      is_organizer: boolean;
+    };
     /** MessageEditInput */
     MessageEditInput: {
       /**
@@ -5244,6 +5314,7 @@ export interface components {
         | 'bad_request'
         | 'block_self'
         | 'chat_forbidden'
+        | 'chat_group_managed'
         | 'chat_link_invalid'
         | 'chat_message_conflict'
         | 'chat_message_deleted'
@@ -18355,6 +18426,7 @@ export interface operations {
     parameters: {
       query?: {
         order_by?: '-updated_at' | 'updated_at' | '-created_at' | 'created_at';
+        kind?: ('personal' | 'event' | 'purchase') | null;
         /** @description Number of items; the default (20) and the maximum (100) are set in the server configuration. */
         size?: number | null;
         /** @description `next_page` of the previous page. */
@@ -18720,6 +18792,114 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ChatOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  list_chat_members: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path: {
+        chat_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MemberOutput'][];
         };
       };
       /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */

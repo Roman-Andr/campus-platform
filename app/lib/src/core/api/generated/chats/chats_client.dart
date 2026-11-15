@@ -10,7 +10,9 @@ import 'models/chat_output.dart' as models show ChatOutput;
 import 'models/chat_output_last_message.dart' as models show MessageOutput;
 import 'models/chat_photos_output.dart' as models show ChatPhotosOutput;
 import 'models/chat_upload_output.dart' as models show ChatUploadOutput;
+import 'models/list_chats_kind.dart' as models show ListChatsKind;
 import 'models/list_chats_order_by.dart' as models show ListChatsOrderBy;
+import 'models/member_output.dart' as models show MemberOutput;
 import 'models/message_edit_input.dart' as models show MessageEditInput;
 import 'models/message_evidence_output.dart'
     as models
@@ -29,7 +31,11 @@ class ChatsClient {
 
   /// List Chats
   ///
-  /// List the current user's dialogs, the most recently active first.
+  /// List the current user's chats, the most recently active first.
+  ///
+  /// ``kind`` selects one chat kind, for example the group chats of events
+  /// only. Every returned chat has an active membership; a left group is not
+  /// listed after the participation ended.
   Future<models.PageChatOutput> listChats({
     Map<String, Object?> extra = const {
       "openapi.security": [
@@ -42,6 +48,7 @@ class ChatsClient {
     CancelToken? cancelToken,
     Options? options,
     models.ListChatsOrderBy? orderBy,
+    models.ListChatsKind? kind,
 
     /// Number of items; the default (20) and the maximum (100) are set in the server configuration.
     int? size,
@@ -61,6 +68,7 @@ class ChatsClient {
       options: _options,
       queryParameters: <String, Object?>{
         if (orderBy != null) "order_by": orderBy.toJson(),
+        if (kind != null) "kind": kind.toJson(),
         if (size != null) "size": size,
         if (cursor != null) "cursor": cursor,
       },
@@ -168,7 +176,7 @@ class ChatsClient {
 
   /// Read Chat
   ///
-  /// One dialog of the current user; somebody else's chat is ``404``.
+  /// One chat of the current user; somebody else's chat is ``404``.
   Future<models.ChatOutput> readChat({
     Map<String, Object?> extra = const {
       "openapi.security": [
@@ -198,6 +206,47 @@ class ChatsClient {
       cancelToken: cancelToken,
     );
     return models.ChatOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// List Chat Members
+  ///
+  /// Composition of a chat: active members and the organiser of a group.
+  ///
+  /// A removed participant is not a member any more and cannot read the
+  /// composition: the membership check runs before the query.
+  Future<List<models.MemberOutput>> listChatMembers({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String chatId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(chatId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/chats/" + Uri.encodeComponent(chatId) + "/members",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return (response.data as List<Object?>)
+        .map(
+          (item) => models.MemberOutput.fromJson(item as Map<String, Object?>),
+        )
+        .toList();
   }
 
   /// List Messages
@@ -302,11 +351,15 @@ class ChatsClient {
 
   /// Leave
   ///
-  /// Leave a dialog; the last member starts the one-year retention clock.
+  /// Leave a personal dialog; its history starts the retention clock.
   ///
   /// The membership row and the history stay, so creating the same dialog
   /// again restores them and cancels a pending cleanup. Repeating the request
   /// is a no-op and also returns ``204``.
+  ///
+  /// A group chat is not left here: its membership follows the accepted
+  /// participation, so cancelling the participation is the only way out and
+  /// an active member gets ``409``.
   Future<void> leave({
     Map<String, Object?> extra = const {
       "openapi.security": [

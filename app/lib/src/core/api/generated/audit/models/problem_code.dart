@@ -4,6 +4,7 @@ enum ProblemCodeValue {
   badRequest("bad_request"),
   blockSelf("block_self"),
   chatForbidden("chat_forbidden"),
+  chatGroupManaged("chat_group_managed"),
   chatLinkInvalid("chat_link_invalid"),
   chatMessageConflict("chat_message_conflict"),
   chatMessageDeleted("chat_message_deleted"),
@@ -177,6 +178,9 @@ sealed class ProblemCode {
   static const badRequest = ProblemCodeKnown(ProblemCodeValue.badRequest);
   static const blockSelf = ProblemCodeKnown(ProblemCodeValue.blockSelf);
   static const chatForbidden = ProblemCodeKnown(ProblemCodeValue.chatForbidden);
+  static const chatGroupManaged = ProblemCodeKnown(
+    ProblemCodeValue.chatGroupManaged,
+  );
   static const chatLinkInvalid = ProblemCodeKnown(
     ProblemCodeValue.chatLinkInvalid,
   );
