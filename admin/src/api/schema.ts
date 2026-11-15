@@ -848,6 +848,46 @@ export interface paths {
     patch: operations['edit_listing'];
     trace?: never;
   };
+  '/api/v1/listings/{listing_id}/cancellation': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Listing Cancellation Preview
+     * @description Tell the author whether a cancellation needs a reason (#55).
+     */
+    get: operations['listing_cancellation_preview'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{listing_id}/interactions/{interaction_id}/cancellation': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Interaction Cancellation Preview
+     * @description Warn a participant before a late cancellation; never mutate state.
+     */
+    get: operations['interaction_cancellation_preview'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/listings/{listing_id}/cancel': {
     parameters: {
       query?: never;
@@ -859,7 +899,7 @@ export interface paths {
     put?: never;
     /**
      * Cancel Listing
-     * @description Closing rejects pending applications and preserves accepted interactions.
+     * @description Cancel with a reason when accepted interactions would be affected.
      */
     post: operations['cancel_listing'];
     delete?: never;
@@ -1763,9 +1803,9 @@ export interface paths {
      * Search Chats
      * @description Search messages only in dialogs of the current user.
      *
-     *     The GIN index on the partitioned message table supplies the hits from
-     *     active and archived partitions; membership is checked in SQL before a
-     *     row can leave the database. Relevance is ordered by the combined
+     *     The GIN indexes on both partitioned parents supply the hits from active
+     *     and archived partitions; membership is checked in SQL before a row can
+     *     leave the database. Relevance is ordered by the combined
      *     Russian and English vector, then by creation time and id, so equal
      *     relevance still has a total, repeatable order. A cursor is bound to the
      *     user and the normalized query and cannot be reused for another search.
@@ -1825,6 +1865,30 @@ export interface paths {
      */
     post: operations['send_message'];
     delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/chats/{chat_id}/membership': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /**
+     * Leave
+     * @description Leave a dialog; the last member starts the one-year retention clock.
+     *
+     *     The membership row and the history stay, so creating the same dialog
+     *     again restores them and cancels a pending cleanup. Repeating the request
+     *     is a no-op and also returns ``204``.
+     */
+    delete: operations['leave'];
     options?: never;
     head?: never;
     patch?: never;
@@ -1925,6 +1989,20 @@ export interface components {
       /** Request Id */
       request_id: string | null;
     };
+    /**
+     * CancelListingInput
+     * @description The author's explanation; required when accepted interactions exist.
+     */
+    CancelListingInput: {
+      /** Reason */
+      reason?: string | null;
+    };
+    /**
+     * CancellationActor
+     * @description Who ended an interaction: its author, participant or the server.
+     * @enum {string}
+     */
+    CancellationActor: 'author' | 'participant' | 'system';
     /** CategoryList */
     CategoryList: {
       /** Items */
@@ -2528,6 +2606,27 @@ export interface components {
        */
       actual_until: string;
     };
+    /**
+     * InteractionCancellationPreview
+     * @description What a participant sees before cancelling an accepted interaction.
+     */
+    InteractionCancellationPreview: {
+      /** Allowed */
+      allowed: boolean;
+      /** Late */
+      late: boolean;
+      /**
+       * Requires Approval
+       * @description A fixed purchase share needs the organiser's approval.
+       * @default false
+       */
+      requires_approval: boolean;
+      /**
+       * Starts At
+       * @description The meeting or event start used for the late-cancel threshold.
+       */
+      starts_at?: string | null;
+    };
     /** InteractionOutput */
     InteractionOutput: {
       /**
@@ -2577,6 +2676,19 @@ export interface components {
        * @description When a participant asked to leave a fixed purchase.
        */
       leave_requested_at?: string | null;
+      /** @description Who cancelled the interaction; null otherwise. */
+      cancelled_by?: components['schemas']['CancellationActor'] | null;
+      /**
+       * Cancellation Reason
+       * @description The reason recorded for the cancellation.
+       */
+      cancellation_reason?: string | null;
+      /**
+       * Late Cancelled
+       * @description Whether this participant cancellation counted as late.
+       * @default false
+       */
+      late_cancelled: boolean;
       meeting: components['schemas']['MeetingOutput'] | null;
       /**
        * Options
@@ -2666,6 +2778,17 @@ export interface components {
        * @default false
        */
       online: boolean;
+    };
+    /** ListingCancellationPreview */
+    ListingCancellationPreview: {
+      /** Accepted Interactions */
+      accepted_interactions: number;
+      /** Reason Required */
+      reason_required: boolean;
+      /** Can Cancel */
+      can_cancel: boolean;
+      /** Reason Max Length */
+      reason_max_length: number;
     };
     /** ListingEdit */
     ListingEdit: {
@@ -3279,6 +3402,19 @@ export interface components {
        * @description When a participant asked to leave a fixed purchase.
        */
       leave_requested_at?: string | null;
+      /** @description Who cancelled the interaction; null otherwise. */
+      cancelled_by?: components['schemas']['CancellationActor'] | null;
+      /**
+       * Cancellation Reason
+       * @description The reason recorded for the cancellation.
+       */
+      cancellation_reason?: string | null;
+      /**
+       * Late Cancelled
+       * @description Whether this participant cancellation counted as late.
+       * @default false
+       */
+      late_cancelled: boolean;
       meeting: components['schemas']['MeetingOutput'] | null;
       /**
        * Options
@@ -3405,6 +3541,8 @@ export interface components {
         | 'invalid_cursor'
         | 'last_corporate_email'
         | 'lesson_options_invalid'
+        | 'listing_cancel_reason_invalid'
+        | 'listing_cancel_reason_required'
         | 'listing_category_invalid'
         | 'listing_conflict'
         | 'listing_content_invalid'
@@ -3715,6 +3853,19 @@ export interface components {
        * @description When a participant asked to leave a fixed purchase.
        */
       leave_requested_at?: string | null;
+      /** @description Who cancelled the interaction; null otherwise. */
+      cancelled_by?: components['schemas']['CancellationActor'] | null;
+      /**
+       * Cancellation Reason
+       * @description The reason recorded for the cancellation.
+       */
+      cancellation_reason?: string | null;
+      /**
+       * Late Cancelled
+       * @description Whether this participant cancellation counted as late.
+       * @default false
+       */
+      late_cancelled: boolean;
       meeting: components['schemas']['MeetingOutput'] | null;
       /**
        * Options
@@ -4063,6 +4214,8 @@ export interface components {
     /** TransitionInput */
     TransitionInput: {
       status: components['schemas']['InteractionStatus'];
+      /** Reason */
+      reason?: string | null;
     };
     /** UploadOutput */
     UploadOutput: {
@@ -8982,6 +9135,223 @@ export interface operations {
       };
     };
   };
+  listing_cancellation_preview: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path: {
+        listing_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ListingCancellationPreview'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  interaction_cancellation_preview: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path: {
+        listing_id: string;
+        interaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['InteractionCancellationPreview'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
   cancel_listing: {
     parameters: {
       query?: never;
@@ -8998,7 +9368,11 @@ export interface operations {
       };
       cookie?: never;
     };
-    requestBody?: never;
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['CancelListingInput'] | null;
+      };
+    };
     responses: {
       /** @description Successful Response */
       200: {
@@ -15473,6 +15847,114 @@ export interface operations {
         content: {
           'application/json': components['schemas']['MessageOutput'];
         };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  leave: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        chat_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
       400: {

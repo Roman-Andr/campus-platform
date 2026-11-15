@@ -419,7 +419,12 @@ async def test_cancellation_rejects_the_reserve(
     reserve = await respond_ok(second, listing)
     assert (await move(owner, listing, first, "accepted")).status_code == 200
 
-    response = await request(owner, "POST", f"/{listing['id']}/cancel")
+    response = await request(
+        owner,
+        "POST",
+        f"/{listing['id']}/cancel",
+        {"reason": "I found another helper"},
+    )
     assert response.status_code == 200, response.text
     assert response.json()["status"] == "cancelled"
     await reload(owner)
@@ -428,7 +433,9 @@ async def test_cancellation_rejects_the_reserve(
     assert rejected.status == InteractionStatus.REJECTED
     accepted = await owner.auth.db.get(Interaction, UUID(first["id"]))
     assert accepted is not None
-    assert accepted.status == InteractionStatus.ACCEPTED
+    assert accepted.status == InteractionStatus.CANCELLED
+    assert accepted.cancelled_by == "author"
+    assert accepted.cancellation_reason == "I found another helper"
 
 
 async def test_applications_are_limited_to_open_help_requests(

@@ -209,6 +209,8 @@ async def test_reservation_expiry_releases_the_listing_and_offers_the_queue(
 
     own = await own_interaction(borrower, interaction)
     assert own["status"] == "cancelled"
+    assert own["cancelled_by"] == "system"
+    assert own["late_cancelled"] is False
     assert own["reservation_due_at"] is None
     events = await interaction_events(borrower, listing, interaction)
     assert events[-1]["action"] == "reservation_expired"

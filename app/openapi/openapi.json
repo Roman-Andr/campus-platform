@@ -7250,13 +7250,329 @@
         }
       }
     },
+    "/api/v1/listings/{listing_id}/cancellation": {
+      "get": {
+        "tags": [
+          "Listings"
+        ],
+        "summary": "Listing Cancellation Preview",
+        "description": "Tell the author whether a cancellation needs a reason (#55).",
+        "operationId": "listing_cancellation_preview",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListingCancellationPreview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "401": {
+            "description": "Invalid, expired or revoked authentication (unauthorized).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/listings/{listing_id}/interactions/{interaction_id}/cancellation": {
+      "get": {
+        "tags": [
+          "Listings"
+        ],
+        "summary": "Interaction Cancellation Preview",
+        "description": "Warn a participant before a late cancellation; never mutate state.",
+        "operationId": "interaction_cancellation_preview",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "interaction_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Interaction Id"
+            }
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InteractionCancellationPreview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "401": {
+            "description": "Invalid, expired or revoked authentication (unauthorized).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/listings/{listing_id}/cancel": {
       "post": {
         "tags": [
           "Listings"
         ],
         "summary": "Cancel Listing",
-        "description": "Closing rejects pending applications and preserves accepted interactions.",
+        "description": "Cancel with a reason when accepted interactions would be affected.",
         "operationId": "cancel_listing",
         "security": [
           {
@@ -7311,6 +7627,23 @@
             "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "Data",
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/CancelListingInput"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -16487,7 +16820,7 @@
           "Chats"
         ],
         "summary": "Search Chats",
-        "description": "Search messages only in dialogs of the current user.\n\nThe GIN index on the partitioned message table supplies the hits from\nactive and archived partitions; membership is checked in SQL before a\nrow can leave the database. Relevance is ordered by the combined\nRussian and English vector, then by creation time and id, so equal\nrelevance still has a total, repeatable order. A cursor is bound to the\nuser and the normalized query and cannot be reused for another search.",
+        "description": "Search messages only in dialogs of the current user.\n\nThe GIN indexes on both partitioned parents supply the hits from active\nand archived partitions; membership is checked in SQL before a row can\nleave the database. Relevance is ordered by the combined\nRussian and English vector, then by creation time and id, so equal\nrelevance still has a total, repeatable order. A cursor is bound to the\nuser and the normalized query and cannot be reused for another search.",
         "operationId": "search_chats",
         "security": [
           {
@@ -17191,6 +17524,164 @@
           }
         }
       }
+    },
+    "/api/v1/chats/{chat_id}/membership": {
+      "delete": {
+        "tags": [
+          "Chats"
+        ],
+        "summary": "Leave",
+        "description": "Leave a dialog; the last member starts the one-year retention clock.\n\nThe membership row and the history stay, so creating the same dialog\nagain restores them and cancels a pending cleanup. Repeating the request\nis a no-op and also returns ``204``.",
+        "operationId": "leave",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "chat_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Chat Id"
+            }
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid, expired or revoked authentication (unauthorized).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -17394,6 +17885,31 @@
           "request_id"
         ],
         "title": "AuditRecordOut"
+      },
+      "CancelListingInput": {
+        "properties": {
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CancelListingInput",
+        "description": "The author's explanation; required when accepted interactions exist."
+      },
+      "CancellationActor": {
+        "type": "string",
+        "enum": [
+          "author",
+          "participant",
+          "system"
+        ],
+        "title": "CancellationActor",
+        "description": "Who ended an interaction: its author, participant or the server."
       },
       "CategoryList": {
         "properties": {
@@ -18592,6 +19108,40 @@
         "title": "HelpRequestInput",
         "description": "A help request stays relevant only until its author-set deadline."
       },
+      "InteractionCancellationPreview": {
+        "properties": {
+          "allowed": {
+            "type": "boolean",
+            "title": "Allowed"
+          },
+          "late": {
+            "type": "boolean",
+            "title": "Late"
+          },
+          "requires_approval": {
+            "type": "boolean",
+            "title": "Requires Approval",
+            "description": "A fixed purchase share needs the organiser's approval.",
+            "default": false
+          },
+          "starts_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "The meeting or event start used for the late-cancel threshold.",
+            "title": "Starts At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "allowed",
+          "late"
+        ],
+        "title": "InteractionCancellationPreview",
+        "description": "What a participant sees before cancelling an accepted interaction."
+      },
       "InteractionOutput": {
         "properties": {
           "id": {
@@ -18670,6 +19220,31 @@
             "format": "date-time",
             "description": "When a participant asked to leave a fixed purchase.",
             "title": "Leave Requested At"
+          },
+          "cancelled_by": {
+            "description": "Who cancelled the interaction; null otherwise.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CancellationActor"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cancellation_reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Cancellation Reason",
+            "description": "The reason recorded for the cancellation."
+          },
+          "late_cancelled": {
+            "type": "boolean",
+            "title": "Late Cancelled",
+            "description": "Whether this participant cancellation counted as late.",
+            "default": false
           },
           "meeting": {
             "oneOf": [
@@ -18868,6 +19443,34 @@
         ],
         "title": "LessonSlotInput",
         "description": "One proposed lesson time with a place or an online flag."
+      },
+      "ListingCancellationPreview": {
+        "properties": {
+          "accepted_interactions": {
+            "type": "integer",
+            "title": "Accepted Interactions"
+          },
+          "reason_required": {
+            "type": "boolean",
+            "title": "Reason Required"
+          },
+          "can_cancel": {
+            "type": "boolean",
+            "title": "Can Cancel"
+          },
+          "reason_max_length": {
+            "type": "integer",
+            "title": "Reason Max Length"
+          }
+        },
+        "type": "object",
+        "required": [
+          "accepted_interactions",
+          "reason_required",
+          "can_cancel",
+          "reason_max_length"
+        ],
+        "title": "ListingCancellationPreview"
       },
       "ListingEdit": {
         "properties": {
@@ -20188,6 +20791,31 @@
             "description": "When a participant asked to leave a fixed purchase.",
             "title": "Leave Requested At"
           },
+          "cancelled_by": {
+            "description": "Who cancelled the interaction; null otherwise.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CancellationActor"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cancellation_reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Cancellation Reason",
+            "description": "The reason recorded for the cancellation."
+          },
+          "late_cancelled": {
+            "type": "boolean",
+            "title": "Late Cancelled",
+            "description": "Whether this participant cancellation counted as late.",
+            "default": false
+          },
           "meeting": {
             "oneOf": [
               {
@@ -20416,6 +21044,8 @@
               "invalid_cursor",
               "last_corporate_email",
               "lesson_options_invalid",
+              "listing_cancel_reason_invalid",
+              "listing_cancel_reason_required",
               "listing_category_invalid",
               "listing_conflict",
               "listing_content_invalid",
@@ -21005,6 +21635,31 @@
             "format": "date-time",
             "description": "When a participant asked to leave a fixed purchase.",
             "title": "Leave Requested At"
+          },
+          "cancelled_by": {
+            "description": "Who cancelled the interaction; null otherwise.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CancellationActor"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cancellation_reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Cancellation Reason",
+            "description": "The reason recorded for the cancellation."
+          },
+          "late_cancelled": {
+            "type": "boolean",
+            "title": "Late Cancelled",
+            "description": "Whether this participant cancellation counted as late.",
+            "default": false
           },
           "meeting": {
             "oneOf": [
@@ -21752,6 +22407,13 @@
         "properties": {
           "status": {
             "$ref": "#/components/schemas/InteractionStatus"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Reason"
           }
         },
         "additionalProperties": false,

@@ -52,6 +52,7 @@ from campus.modules.identity import Permissions, ProfiledUser, Role, User
 from campus.modules.listings.models import (
     PERMANENT_KINDS,
     Audience,
+    CancellationActor,
     Category,
     CompletionMethod,
     Favorite,
@@ -93,26 +94,30 @@ from campus.modules.listings.service import (
     STALE,
     TYPE_POLICIES,
     accept_lesson_option,
+    accepted_interactions,
     active_offer,
     active_waitlist,
+    cancel_listing_by_author,
     cancel_purchase,
     change_listing,
     claim_offer,
-    clear_waitlist,
     confirm_no_meeting,
     decline_offer,
     extend_reservation,
+    interaction_start,
+    is_late_cancellation,
     join_waitlist,
     leave_waitlist,
     locked,
+    mark_conditions_changed,
     no_meeting_confirmations,
     no_meeting_time,
+    normalized_cancellation_reason,
     offer_timing,
     propose_lesson_counter,
     rate_limit,
     record,
     record_meeting,
-    reject_pending,
     require_live,
     require_no_meeting,
     schedule_meeting_reminders,
@@ -388,6 +393,16 @@ class InteractionOutput(BaseModel):
         default=None,
         description="When a participant asked to leave a fixed purchase.",
     )
+    cancelled_by: CancellationActor | None = Field(
+        default=None, description="Who cancelled the interaction; null otherwise."
+    )
+    cancellation_reason: str | None = Field(
+        default=None, description="The reason recorded for the cancellation."
+    )
+    late_cancelled: bool = Field(
+        default=False,
+        description="Whether this participant cancellation counted as late.",
+    )
     meeting: MeetingOutput | None
     options: list[LessonOptionOutput] = Field(
         default_factory=list,
@@ -493,6 +508,36 @@ class FavoriteOutput(BaseModel):
 class TransitionInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     status: InteractionStatus
+    reason: str | None = None
+
+
+class CancelListingInput(BaseModel):
+    """The author's explanation; required when accepted interactions exist."""
+
+    model_config = ConfigDict(extra="forbid")
+    reason: str | None = None
+
+
+class ListingCancellationPreview(BaseModel):
+    accepted_interactions: int
+    reason_required: bool
+    can_cancel: bool
+    reason_max_length: int
+
+
+class InteractionCancellationPreview(BaseModel):
+    """What a participant sees before cancelling an accepted interaction."""
+
+    allowed: bool
+    late: bool
+    requires_approval: bool = Field(
+        default=False,
+        description="A fixed purchase share needs the organiser's approval.",
+    )
+    starts_at: Instant | None = Field(
+        default=None,
+        description="The meeting or event start used for the late-cancel threshold.",
+    )
 
 
 class MeetingProposalInput(BaseModel):
@@ -1423,14 +1468,83 @@ async def edit_listing(  # noqa: PLR0913, PLR0917 - request dependencies
     return ListingOutput.model_validate(listing)
 
 
-@router.post("/{listing_id}/cancel")
-async def cancel_listing(
+@router.get("/{listing_id}/cancellation")
+async def listing_cancellation_preview(
     listing_id: UUID,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> ListingCancellationPreview:
+    """Tell the author whether a cancellation needs a reason (#55)."""
+    listing = await session.get(Listing, listing_id)
+    if listing is None:
+        raise ProblemError(NOT_FOUND)
+    if listing.author_id != principal.user_id:
+        raise ProblemError(FORBIDDEN)
+    accepted = await accepted_interactions(session, listing.id)
+    can_cancel = listing.status in (
+        ListingStatus.DRAFT,
+        ListingStatus.ACTIVE,
+        ListingStatus.BUSY,
+    ) and (
+        listing.kind != "purchase" or listing.purchase_stage == PurchaseStage.COLLECTING
+    )
+    return ListingCancellationPreview(
+        accepted_interactions=len(accepted),
+        reason_required=bool(accepted),
+        can_cancel=can_cancel,
+        reason_max_length=request.app.state.settings.listing_cancellation_reason_max_length,
+    )
+
+
+@router.get("/{listing_id}/interactions/{interaction_id}/cancellation")
+async def interaction_cancellation_preview(
+    listing_id: UUID,
+    interaction_id: UUID,
+    request: Request,
+    session: DbSession,
+    principal: CurrentUser,
+) -> InteractionCancellationPreview:
+    """Warn a participant before a late cancellation; never mutate state."""
+    listing = await session.get(Listing, listing_id)
+    if listing is None:
+        raise ProblemError(NOT_FOUND)
+    interaction = await session.get(Interaction, interaction_id)
+    if interaction is None or interaction.listing_id != listing.id:
+        raise ProblemError(NOT_FOUND)
+    if interaction.participant_id != principal.user_id:
+        raise ProblemError(FORBIDDEN)
+    allowed = interaction.status in (
+        InteractionStatus.PENDING,
+        InteractionStatus.ACCEPTED,
+    )
+    if interaction.status == InteractionStatus.PENDING:
+        allowed = allowed and listing.status in (
+            ListingStatus.ACTIVE,
+            ListingStatus.BUSY,
+        )
+    return InteractionCancellationPreview(
+        allowed=allowed,
+        late=allowed
+        and interaction.status == InteractionStatus.ACCEPTED
+        and is_late_cancellation(listing, interaction, request.app.state.settings),
+        requires_approval=interaction.status == InteractionStatus.ACCEPTED
+        and listing.kind == "purchase"
+        and listing.purchase_stage == PurchaseStage.FIXED,
+        starts_at=interaction_start(listing, interaction),
+    )
+
+
+@router.post("/{listing_id}/cancel")
+async def cancel_listing(  # noqa: PLR0913, PLR0917 - route fields
+    listing_id: UUID,
+    request: Request,
     session: DbSession,
     principal: ProfiledUser,
     permissions: Permissions,
+    data: CancelListingInput | None = None,
 ) -> ListingOutput:
-    """Closing rejects pending applications and preserves accepted interactions."""
+    """Cancel with a reason when accepted interactions would be affected."""
     listing = await locked(session, listing_id)
     if listing.author_id != principal.user_id and not (
         listing.kind == "publication"
@@ -1439,17 +1553,29 @@ async def cancel_listing(
         raise ProblemError(FORBIDDEN)
     if listing.status != ListingStatus.DRAFT:
         require_live(listing)
-    if listing.kind == "purchase":
-        if listing.purchase_stage != PurchaseStage.COLLECTING:
-            raise ProblemError(PURCHASE_CLOSED)
-        await cancel_purchase(session, listing, "listing_cancelled")
-        await session.flush()
-        return ListingOutput.model_validate(listing)
-    change_listing(
-        session, listing, ListingStatus.CANCELLED, principal.user_id, "cancelled"
+    settings: Settings = request.app.state.settings
+    if (
+        listing.kind == "purchase"
+        and listing.purchase_stage != PurchaseStage.COLLECTING
+    ):
+        raise ProblemError(PURCHASE_CLOSED)
+    accepted = await accepted_interactions(session, listing.id)
+    reason = normalized_cancellation_reason(
+        data.reason if data is not None else None,
+        settings,
+        required=bool(accepted),
     )
-    await reject_pending(session, listing, "listing_cancelled")
-    await clear_waitlist(session, listing, "listing_cancelled")
+    if listing.kind == "purchase":
+        await cancel_purchase(
+            session,
+            listing,
+            reason or "listing_cancelled",
+            actor_id=principal.user_id,
+        )
+    else:
+        await cancel_listing_by_author(
+            session, listing, principal.user_id, reason, settings
+        )
     await session.flush()
     return ListingOutput.model_validate(listing)
 
@@ -1866,6 +1992,7 @@ async def transition_interaction(  # noqa: PLR0913, PLR0917 - route fields
         data.status,
         principal.user_id,
         settings=request.app.state.settings,
+        reason=data.reason,
     )
     return InteractionOutput.model_validate(interaction)
 
@@ -2088,6 +2215,10 @@ async def accept_meeting(  # noqa: PLR0913, PLR0917 - request context
     location = validate_meeting(proposed_at, proposed_location, settings)
     previous_at = meeting.scheduled_at
     previous_location = meeting.location
+    if previous_at is not None and (
+        previous_at != proposed_at or previous_location != location
+    ):
+        mark_conditions_changed(interaction, proposed_by_id)
     scheduled_at = proposed_at.isoformat()
     meeting.scheduled_at = proposed_at
     meeting.location = location

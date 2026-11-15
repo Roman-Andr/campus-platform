@@ -385,6 +385,12 @@ class Settings(BaseSettings):
     listing_open_to_all_before: timedelta = Field(
         default=timedelta(hours=1), gt=timedelta(0)
     )
+    # A participant cancellation closer to a meeting or event start than this
+    # is counted as late (appendix 4: 24 hours).
+    listing_late_cancellation_threshold: timedelta = Field(
+        default=timedelta(hours=24), gt=timedelta(0)
+    )
+    listing_cancellation_reason_max_length: int = Field(default=500, ge=1)
 
     # How many time options a skill lesson offers (specification, 5.1.1).
     lesson_options_min: int = Field(default=2, ge=1)
@@ -405,6 +411,42 @@ class Settings(BaseSettings):
         default=timedelta(minutes=1),
         gt=timedelta(0),
         description="Rate-limit window of chat messages (Appendix 4: a minute).",
+    )
+    chat_message_archive_after: timedelta = Field(
+        default=timedelta(days=365),
+        gt=timedelta(0),
+        description=(
+            "How long a message stays in the active partition; older rows are"
+            " moved to the archive partitions and remain readable."
+        ),
+    )
+    chat_message_archive_batch: int = Field(
+        default=500,
+        ge=1,
+        description="Messages moved to archive partitions per transaction.",
+    )
+    chat_message_archive_limit: int = Field(
+        default=5000,
+        ge=1,
+        description="Most messages archived in one cleanup run.",
+    )
+    chat_retention: timedelta = Field(
+        default=timedelta(days=365),
+        gt=timedelta(0),
+        description=(
+            "How long an empty chat and its photos are kept after the last"
+            " member leaves; a new membership cancels the cleanup."
+        ),
+    )
+    chat_cleanup_batch: int = Field(
+        default=50,
+        ge=1,
+        description="Empty chats selected per cleanup batch.",
+    )
+    chat_cleanup_limit: int = Field(
+        default=1000,
+        ge=1,
+        description="Most empty chats cleaned in one cleanup run.",
     )
     chat_search_query_max_length: int = Field(
         default=500,
