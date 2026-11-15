@@ -113,7 +113,6 @@ MATRIX = {
 PENDING = {
     "finish_review": {"complete": 59, "review": 63},
     "complain_dispute_appeal": {"complain": 91, "dispute": 94, "appeal": 96},
-    "message": {"existing_chat": 78, "new_chat": 78},
     "create_club": {"create": 142},
     "forum_comment_react": {
         "read": 144,
@@ -149,6 +148,7 @@ LIVE = {
         "respond_students",
     ),
     "finish_review": ("continue",),
+    "message": ("existing_chat", "new_chat"),
     "audit_dashboard_export": ("audit",),
     "student_feed": (
         "feed_students",

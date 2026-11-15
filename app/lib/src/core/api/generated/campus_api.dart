@@ -7,6 +7,7 @@ import 'exports.dart'
     show
         AccountEmailsClient,
         AuthenticationClient,
+        ChatsClient,
         ConsentsClient,
         ListingsClient,
         NotificationsClient,
@@ -16,6 +17,8 @@ import 'exports.dart'
         SessionsClient,
         SkillsClient,
         AuditClient,
+        ModerationClient,
+        ModerationAdminClient,
         SystemClient,
         UniversityClient;
 
@@ -38,6 +41,7 @@ final class CampusApi {
       clients.AccountEmailsClient(_client);
   late final clients.AuthenticationClient authentication =
       clients.AuthenticationClient(_client);
+  late final clients.ChatsClient chats = clients.ChatsClient(_client);
   late final clients.ConsentsClient consents = clients.ConsentsClient(_client);
   late final clients.ListingsClient listings = clients.ListingsClient(_client);
   late final clients.NotificationsClient notifications =
@@ -48,6 +52,11 @@ final class CampusApi {
   late final clients.SessionsClient sessions = clients.SessionsClient(_client);
   late final clients.SkillsClient skills = clients.SkillsClient(_client);
   late final clients.AuditClient audit = clients.AuditClient(_client);
+  late final clients.ModerationClient moderation = clients.ModerationClient(
+    _client,
+  );
+  late final clients.ModerationAdminClient moderationAdmin =
+      clients.ModerationAdminClient(_client);
   late final clients.SystemClient system = clients.SystemClient(_client);
   late final clients.UniversityClient university = clients.UniversityClient(
     _client,

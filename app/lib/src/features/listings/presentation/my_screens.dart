@@ -9,7 +9,10 @@ import '../../profile/application/my_profile.dart';
 import '../application/listings.dart';
 import '../application/my_listings.dart';
 import '../application/waitlist.dart';
+import '../domain/help.dart';
+import '../domain/skills.dart';
 import 'interaction_widgets.dart';
+import 'lesson_widgets.dart';
 import 'listings_screens.dart';
 import 'meeting_screen.dart';
 import 'waitlist_widgets.dart';
@@ -25,8 +28,10 @@ String mySectionName(AppLocalizations l, MySection section) =>
 String listingKindName(AppLocalizations l, String kind) => switch (kind) {
   'giveaway' => l.listingKindGiveaway,
   'exchange' => l.listingKindExchange,
+  'skill' => l.listingKindSkill,
   'publication' => l.listingKindPublication,
   'event' => l.listingKindEvent,
+  'help' => l.listingKindHelp,
   _ => kind,
 };
 
@@ -213,10 +218,49 @@ class ParticipationTile extends StatelessWidget {
           timezone: item.listing.cityTimezone,
           city: item.listing.cityTimezone,
         ),
+        if (item.listing.kind == helpKind) ...[
+          if (interaction.executor)
+            Text(
+              l.helpYouAreExecutor,
+              key: Key('help-executor-${interaction.id}'),
+            ),
+          if (interaction.status == InteractionStatus.pending &&
+              item.listing.status == ListingStatus.busy)
+            Text(
+              l.helpReserveNotice,
+              key: Key('help-reserve-${interaction.id}'),
+            ),
+        ],
+        if (item.listing.kind == skillKind)
+          _SkillLessonActions(item: interaction),
         ParticipantCancel(item: interaction),
       ],
     );
   }
+}
+
+/// Lesson options and the repeat action of a skill row in "My participation";
+/// the full listing carries the author and the time zone.
+class _SkillLessonActions extends ConsumerWidget {
+  const _SkillLessonActions({required this.item});
+
+  final InteractionOutput item;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => ref
+      .watch(listingProvider(item.listingId))
+      .when(
+        loading: () => const SizedBox.shrink(),
+        error: (_, _) => const SizedBox.shrink(),
+        data: (listing) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (item.status == InteractionStatus.pending)
+              LessonOptionsCard(item: item, listing: listing),
+            LessonRepeatButton(item: item, listing: listing),
+          ],
+        ),
+      );
 }
 
 class FavoritesScreen extends ConsumerWidget {

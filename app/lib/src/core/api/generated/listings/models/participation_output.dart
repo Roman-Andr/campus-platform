@@ -3,7 +3,8 @@
 import 'interaction_status.dart';
 import 'lesson_option_output.dart';
 import 'participation_listing.dart';
-import 'participation_output_meeting.dart';
+import 'participation_output_completion_method.dart';
+import 'purchase_share_output_meeting.dart';
 
 class ParticipationOutput {
   const ParticipationOutput({
@@ -25,10 +26,28 @@ class ParticipationOutput {
 
     /// The item a participant offers for an exchange; null otherwise.
     this.offerDescription,
+
+    /// Units taken in a group purchase; null otherwise.
+    this.units,
+
+    /// When a participant asked to leave a fixed purchase.
+    this.leaveRequestedAt,
     required this.meeting,
 
     /// Time options of a skill lesson; empty for other types.
     this.options,
+
+    /// How the interaction was completed; null until completion.
+    this.completionMethod,
+
+    /// RFC 3339 instant with an explicit offset; returned in UTC.
+    this.completedAt,
+
+    /// Weight of a review of the completed interaction.
+    this.completionWeight,
+
+    /// Whether the interaction was completed by mutual confirmation.
+    this.withoutMeeting = false,
 
     /// RFC 3339 instant with an explicit offset; returned in UTC.
     required this.createdAt,
@@ -67,6 +86,16 @@ class ParticipationOutput {
       offerDescription: json.containsKey("offer_description")
           ? json["offer_description"] as String?
           : null,
+      units: json.containsKey("units")
+          ? json["units"] == null
+                ? null
+                : _readJsonInteger(json["units"])
+          : null,
+      leaveRequestedAt: json.containsKey("leave_requested_at")
+          ? json["leave_requested_at"] == null
+                ? null
+                : DateTime.parse(json["leave_requested_at"] as String).toUtc()
+          : null,
       meeting: ParticipationOutputMeeting.fromJson(json["meeting"]),
       options: json.containsKey("options")
           ? (json["options"] as List<Object?>)
@@ -76,6 +105,24 @@ class ParticipationOutput {
                 )
                 .toList()
           : null,
+      completionMethod: json.containsKey("completion_method")
+          ? json["completion_method"] == null
+                ? null
+                : ParticipationOutputCompletionMethod.fromJson(
+                    json["completion_method"],
+                  )
+          : null,
+      completedAt: json.containsKey("completed_at")
+          ? json["completed_at"] == null
+                ? null
+                : DateTime.parse(json["completed_at"] as String).toUtc()
+          : null,
+      completionWeight: json.containsKey("completion_weight")
+          ? json["completion_weight"] as num?
+          : null,
+      withoutMeeting: json.containsKey("without_meeting")
+          ? json["without_meeting"] as bool
+          : false,
       createdAt: DateTime.parse(json["created_at"] as String).toUtc(),
       listing: ParticipationListing.fromJson(
         json["listing"] as Map<String, Object?>,
@@ -111,10 +158,28 @@ class ParticipationOutput {
   /// The item a participant offers for an exchange; null otherwise.
   final String? offerDescription;
 
+  /// Units taken in a group purchase; null otherwise.
+  final int? units;
+
+  /// When a participant asked to leave a fixed purchase.
+  final DateTime? leaveRequestedAt;
+
   final ParticipationOutputMeeting meeting;
 
   /// Time options of a skill lesson; empty for other types.
   final List<LessonOptionOutput>? options;
+
+  /// How the interaction was completed; null until completion.
+  final ParticipationOutputCompletionMethod? completionMethod;
+
+  /// RFC 3339 instant with an explicit offset; returned in UTC.
+  final DateTime? completedAt;
+
+  /// Weight of a review of the completed interaction.
+  final num? completionWeight;
+
+  /// Whether the interaction was completed by mutual confirmation.
+  final bool withoutMeeting;
 
   /// RFC 3339 instant with an explicit offset; returned in UTC.
   final DateTime createdAt;
@@ -133,8 +198,14 @@ class ParticipationOutput {
     "executor",
     "reservation_due_at",
     "offer_description",
+    "units",
+    "leave_requested_at",
     "meeting",
     "options",
+    "completion_method",
+    "completed_at",
+    "completion_weight",
+    "without_meeting",
     "created_at",
     "listing",
   };
@@ -156,10 +227,30 @@ class ParticipationOutput {
       "reservation_due_at": this.reservationDueAt?.toUtc().toIso8601String(),
     if (this.offerDescription != null)
       "offer_description": this.offerDescription,
+    if (this.units != null) "units": this.units,
+    if (this.leaveRequestedAt != null)
+      "leave_requested_at": this.leaveRequestedAt?.toUtc().toIso8601String(),
     "meeting": this.meeting.toJson(),
     if (this.options != null)
       "options": this.options?.map((item) => item.toJson()).toList(),
+    if (this.completionMethod != null)
+      "completion_method": this.completionMethod?.toJson(),
+    if (this.completedAt != null)
+      "completed_at": this.completedAt?.toUtc().toIso8601String(),
+    if (this.completionWeight != null)
+      "completion_weight": this.completionWeight,
+    "without_meeting": this.withoutMeeting,
     "created_at": this.createdAt.toUtc().toIso8601String(),
     "listing": this.listing.toJson(),
   };
+}
+
+int _readJsonInteger(Object? value) {
+  if (value is int) {
+    return value;
+  }
+  if (value is double && value.isFinite && value == value.toInt()) {
+    return value.toInt();
+  }
+  throw FormatException('Expected a JSON integer.', value);
 }

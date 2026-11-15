@@ -80,10 +80,59 @@ def test_reservation_and_exchange_columns_migrate(empty_database: str) -> None:
     names = {row["column_name"] for row in asyncio.run(fetch(empty_database, columns))}
     assert {"reservation_due_at", "offer_description"} <= names
 
-    run_alembic(empty_database, "downgrade", "-1")
+    # Later migrations may sit on top of this one, so step back past it
+    # explicitly instead of counting a single revision.
+    run_alembic(empty_database, "downgrade", "86a000000001")
     names = {row["column_name"] for row in asyncio.run(fetch(empty_database, columns))}
     assert "reservation_due_at" not in names
     assert "offer_description" not in names
+
+
+def test_purchase_columns_migrate(empty_database: str) -> None:
+    columns = """
+        SELECT table_name, column_name FROM information_schema.columns
+        WHERE table_name IN ('listing', 'listing_interaction', 'listing_waitlist')
+    """
+    constraints = """
+        SELECT conname FROM pg_constraint
+        WHERE conname IN (
+            'ck_listing_purchase_details', 'ck_listing_purchase_units',
+            'ck_listing_purchase_absent', 'ck_listing_interaction_units',
+            'ck_listing_waitlist_units', 'ck_listing_waitlist_offer_units'
+        )
+    """
+
+    run_alembic(empty_database, "upgrade", "head")
+    names = {
+        (row["table_name"], row["column_name"])
+        for row in asyncio.run(fetch(empty_database, columns))
+    }
+    assert {
+        ("listing", "purchase_unit_price"),
+        ("listing", "purchase_min_units"),
+        ("listing", "purchase_max_units"),
+        ("listing", "purchase_taken_units"),
+        ("listing", "purchase_fixed_units"),
+        ("listing", "purchase_collection_deadline"),
+        ("listing", "purchase_stage"),
+        ("listing_interaction", "units"),
+        ("listing_interaction", "leave_requested_at"),
+        ("listing_waitlist", "units"),
+        ("listing_waitlist", "offer_units"),
+    } <= names
+    assert len(asyncio.run(fetch(empty_database, constraints))) == 6
+
+    # Step back past the purchase migration explicitly: "-1" now removes
+    # whatever revision sits on top of it.
+    run_alembic(empty_database, "downgrade", "291a00000001")
+    names = {
+        (row["table_name"], row["column_name"])
+        for row in asyncio.run(fetch(empty_database, columns))
+    }
+    assert not {name for name in names if name[1].startswith("purchase_")}
+    assert ("listing_interaction", "units") not in names
+    assert ("listing_waitlist", "units") not in names
+    assert asyncio.run(fetch(empty_database, constraints)) == []
 
 
 def test_models_match_migrations(empty_database: str) -> None:

@@ -5,6 +5,8 @@ Map<String, Object?> listingJson({
   String? author,
   String status = 'active',
   String kind = 'giveaway',
+  String? direction,
+  String? authorName,
   String? pinnedUntil,
   String? previewUrl,
   String? previewFileId,
@@ -12,7 +14,7 @@ Map<String, Object?> listingJson({
 }) => {
   'id': id,
   'author_id': author ?? userJson['id'],
-  'author_name': 'Ivan Ivanov',
+  'author_name': authorName ?? 'Ivan Ivanov',
   'category_id': 'category-items',
   'hidden_reason': null,
   'archived_at': null,
@@ -21,7 +23,8 @@ Map<String, Object?> listingJson({
   'preview_file_id': previewFileId,
   'preview_expires_at': previewExpiresAt,
   'kind': kind,
-  'title': 'A desk',
+  'direction': ?direction,
+  'title': kind == 'skill' ? 'Guitar lessons' : 'A desk',
   'description': 'Collect on campus',
   'visibility': 'city',
   'audience': 'students',
@@ -32,7 +35,9 @@ Map<String, Object?> listingJson({
   'status': status,
   'version': 1,
   'created_at': '2026-11-14T00:00:00Z',
-  'expires_at': status == 'draft' ? null : '2026-12-14T00:00:00Z',
+  'expires_at': status == 'draft' || kind == 'skill'
+      ? null
+      : '2026-12-14T00:00:00Z',
   'pinned_until': ?pinnedUntil,
 };
 Map<String, Object?> pageJson(List<Object?> items, {String? next}) => {

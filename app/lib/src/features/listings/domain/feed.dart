@@ -6,8 +6,10 @@ import '../../../core/api/api_client.dart';
 enum FeedKind {
   giveaway('giveaway'),
   exchange('exchange'),
+  skill('skill'),
   publication('publication'),
-  event('event');
+  event('event'),
+  help('help');
 
   const FeedKind(this.apiValue);
 

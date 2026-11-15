@@ -17,6 +17,12 @@ LISTING_OFFER = N_(
     "A place in the queue is available for you. Confirm it before the timer ends."
 )
 LISTING_OFFER_EXPIRED = N_("Your place offer has expired.")
+PURCHASE_CONDITIONS_CHANGED = N_("The conditions of the purchase have changed.")
+PURCHASE_FIXED = N_("The purchase composition is fixed.")
+PURCHASE_CANCELLED = N_("The purchase is cancelled.")
+PURCHASE_REMINDER = N_("The collection of the purchase ends soon.")
+PURCHASE_WITHDRAWAL_REQUESTED = N_("A participant asks to leave the purchase.")
+PURCHASE_WITHDRAWAL_DECIDED = N_("The organiser has decided on your request to leave.")
 
 # Important notifications are not grouped and pass through quiet hours (#88).
 IMPORTANT_TYPES = frozenset({"listing.offer"})

@@ -206,5 +206,6 @@ async def test_participation_carries_listing_summary(
         "title": "Lamp",
         "status": "busy",
         "city_timezone": "Europe/Moscow",
+        "purchase_unit_price": None,
     }
     assert (await request(owner, "GET", "/reservations/mine")).json()["items"] == []

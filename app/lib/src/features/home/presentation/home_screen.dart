@@ -54,6 +54,22 @@ class HomeScreen extends ConsumerWidget {
           IconButton(
             padding: EdgeInsets.zero,
             visualDensity: VisualDensity.compact,
+            key: const Key('feed-create-skill'),
+            icon: const Icon(Icons.school_outlined),
+            tooltip: l10n.skillCreateTitle,
+            onPressed: () => context.push('/skills/new'),
+          ),
+          IconButton(
+            padding: EdgeInsets.zero,
+            visualDensity: VisualDensity.compact,
+            key: const Key('feed-create-help'),
+            icon: const Icon(Icons.volunteer_activism_outlined),
+            tooltip: l10n.feedCreateHelp,
+            onPressed: () => context.push('/help/new'),
+          ),
+          IconButton(
+            padding: EdgeInsets.zero,
+            visualDensity: VisualDensity.compact,
             key: const Key('home-favorites'),
             icon: const Icon(Icons.star_border),
             tooltip: l10n.favoritesTitle,

@@ -22,9 +22,11 @@ from campus.core.web import (
     use_problem_media_type,
 )
 from campus.modules import (
+    chat,
     files,
     identity,
     listings,
+    moderation,
     notifications,
     realtime,
     university,
@@ -96,6 +98,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(identity.consent_router, prefix=API_PREFIX)
     app.include_router(identity.profile_router, prefix=API_PREFIX)
     app.include_router(identity.skills_router, prefix=API_PREFIX)
+    app.include_router(moderation.router, prefix=API_PREFIX)
     app.include_router(identity.sessions_router, prefix=API_PREFIX)
     app.include_router(identity.email_router, prefix=API_PREFIX)
     app.include_router(listings.router, prefix=API_PREFIX)
@@ -103,6 +106,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(files.profile_router, prefix=API_PREFIX)
     app.include_router(realtime.router, prefix=API_PREFIX)
     app.include_router(notifications.router, prefix=API_PREFIX)
+    app.include_router(chat.router, prefix=API_PREFIX)
 
     # The last added middleware is the outermost: the request ID is set
     # before the access log record is written.

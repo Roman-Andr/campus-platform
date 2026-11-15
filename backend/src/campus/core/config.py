@@ -375,6 +375,11 @@ class Settings(BaseSettings):
     listing_offer_timeout: timedelta = Field(
         default=timedelta(hours=2), gt=timedelta(0)
     )
+    # How long before a group purchase collection deadline participants are
+    # reminded; the collection itself is closed by the scheduler.
+    listing_purchase_reminder_before: timedelta = Field(
+        default=timedelta(hours=24), gt=timedelta(0)
+    )
     # Closer to the start than this, places are not offered by queue: they
     # open to everyone and the whole queue is notified at once.
     listing_open_to_all_before: timedelta = Field(
@@ -384,6 +389,23 @@ class Settings(BaseSettings):
     # How many time options a skill lesson offers (specification, 5.1.1).
     lesson_options_min: int = Field(default=2, ge=1)
     lesson_options_max: int = Field(default=3, ge=1)
+
+    # Chat messages (specification, 5.1.1, module 6; Appendix 4).
+    chat_message_max_length: int = Field(
+        default=4000,
+        ge=1,
+        description="Longest message text, in characters (Appendix 4).",
+    )
+    chat_message_limit: int = Field(
+        default=60,
+        ge=1,
+        description="Messages one user may send per chat_message_window.",
+    )
+    chat_message_window: timedelta = Field(
+        default=timedelta(minutes=1),
+        gt=timedelta(0),
+        description="Rate-limit window of chat messages (Appendix 4: a minute).",
+    )
 
     meeting_place_max_length: int = Field(default=200, ge=1)
     return_reminder_before: timedelta = Field(
@@ -400,6 +422,20 @@ class Settings(BaseSettings):
         default=timedelta(hours=1),
         gt=timedelta(0),
         description="Last reminder before a scheduled meeting, e.g. 1 hour.",
+    )
+    # Review weights of completed interactions (Appendix 4): a review after
+    # an online lesson or help confirmed without a meeting weighs less.
+    rating_weight_qr: float = Field(
+        default=1.0,
+        ge=0,
+        le=1,
+        description="Weight of a review of a QR-confirmed interaction.",
+    )
+    rating_weight_no_meeting: float = Field(
+        default=0.5,
+        ge=0,
+        le=1,
+        description="Weight of a review of an interaction confirmed without a meeting.",
     )
 
     # Notification settings (specification, 5.1.1, module 7): the defaults

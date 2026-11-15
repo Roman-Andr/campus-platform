@@ -2485,6 +2485,414 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Предлагает: {description}'**
   String exchangeOfferItem(String description);
+
+  /// Название вида объявления: навык.
+  ///
+  /// In ru, this message translates to:
+  /// **'Навык'**
+  String get listingKindSkill;
+
+  /// Поле направления объявления о навыке.
+  ///
+  /// In ru, this message translates to:
+  /// **'Направление'**
+  String get skillDirection;
+
+  /// Заголовок формы создания объявления о навыке.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новое объявление о навыке'**
+  String get skillCreateTitle;
+
+  /// Автор предлагает научить навыку.
+  ///
+  /// In ru, this message translates to:
+  /// **'Могу научить'**
+  String get skillDirectionTeach;
+
+  /// Автор ищет того, кто научит навыку.
+  ///
+  /// In ru, this message translates to:
+  /// **'Хочу научиться'**
+  String get skillDirectionLearn;
+
+  /// Направление навыка не выбрано.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите, чему вы можете научить или хотите научиться.'**
+  String get skillDirectionRequired;
+
+  /// Объявление о навыке успешно создано.
+  ///
+  /// In ru, this message translates to:
+  /// **'Объявление о навыке опубликовано.'**
+  String get skillPublished;
+
+  /// Заголовок списка вариантов времени занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Варианты времени'**
+  String get lessonOptionsTitle;
+
+  /// Участник предлагает занятие с вариантами времени.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложить занятие'**
+  String get lessonPropose;
+
+  /// Заголовок формы предложения занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Время занятия'**
+  String get lessonProposeTitle;
+
+  /// Создаёт следующее занятие с тем же участником.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ещё занятие'**
+  String get lessonRepeat;
+
+  /// Заголовок формы повторного занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ещё занятие с {name}'**
+  String lessonRepeatTitle(String name);
+
+  /// Вторая сторона повторного занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'С кем: {name}'**
+  String lessonCounterpart(String name);
+
+  /// Подсказка о числе вариантов времени.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите от {min} до {max} вариантов времени.'**
+  String lessonOptionsHint(int min, int max);
+
+  /// Номер варианта времени занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вариант {number}'**
+  String lessonOptionNumber(int number);
+
+  /// Добавляет ещё один вариант времени.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавить вариант времени'**
+  String get lessonAddOption;
+
+  /// Удаляет вариант времени из формы.
+  ///
+  /// In ru, this message translates to:
+  /// **'Удалить вариант'**
+  String get lessonRemoveOption;
+
+  /// Вариантов времени меньше допустимого.
+  ///
+  /// In ru, this message translates to:
+  /// **'Добавьте хотя бы {min} варианта времени.'**
+  String lessonOptionsTooFew(int min);
+
+  /// Достигнут предел вариантов времени.
+  ///
+  /// In ru, this message translates to:
+  /// **'Можно добавить не больше {max} вариантов времени.'**
+  String lessonOptionsTooMany(int max);
+
+  /// Сервер отклонил число или значения вариантов времени.
+  ///
+  /// In ru, this message translates to:
+  /// **'У занятия должно быть от {min} до {max} вариантов времени в будущем.'**
+  String lessonOptionsInvalid(int min, int max);
+
+  /// Занятие уже обработано, вариант времени недоступен.
+  ///
+  /// In ru, this message translates to:
+  /// **'На занятие уже ответили. Обновите объявление.'**
+  String get lessonConflict;
+
+  /// Нет прав на действие с занятием.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отвечать на занятие могут только автор и участник.'**
+  String get lessonForbidden;
+
+  /// Занятие проходит онлайн.
+  ///
+  /// In ru, this message translates to:
+  /// **'Онлайн'**
+  String get lessonOnline;
+
+  /// Занятие проходит очно.
+  ///
+  /// In ru, this message translates to:
+  /// **'Очно'**
+  String get lessonOffline;
+
+  /// Переключатель онлайн-формата занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Онлайн-встреча'**
+  String get lessonOnlineSwitch;
+
+  /// Поле места очного занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Место занятия'**
+  String get lessonPlaceLabel;
+
+  /// Вариант времени ожидает ответа.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ждёт ответа'**
+  String get lessonOptionProposed;
+
+  /// Выбранный вариант времени занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выбран'**
+  String get lessonOptionSelected;
+
+  /// Отклонённый вариант времени занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отклонён'**
+  String get lessonOptionDeclined;
+
+  /// Вариант времени предложен текущим пользователем.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ваш вариант'**
+  String get lessonOptionByYou;
+
+  /// Вариант времени предложен участником.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вариант участника'**
+  String get lessonOptionByParticipant;
+
+  /// Вариант времени предложен автором объявления.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вариант автора'**
+  String get lessonOptionByAuthor;
+
+  /// Выбирает вариант времени занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выбрать это время'**
+  String get lessonAccept;
+
+  /// Автор предлагает встречное время занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложить другое время'**
+  String get lessonCounter;
+
+  /// Заголовок формы встречного предложения.
+  ///
+  /// In ru, this message translates to:
+  /// **'Другое время'**
+  String get lessonCounterTitle;
+
+  /// Отправляет варианты времени занятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отправить'**
+  String get lessonSend;
+
+  /// Заявка на занятие отправлена.
+  ///
+  /// In ru, this message translates to:
+  /// **'Занятие предложено.'**
+  String get lessonSent;
+
+  /// Встречное время занятия отправлено.
+  ///
+  /// In ru, this message translates to:
+  /// **'Предложено другое время.'**
+  String get lessonCounterSent;
+
+  /// Вариант времени выбран и встреча назначена.
+  ///
+  /// In ru, this message translates to:
+  /// **'Занятие назначено.'**
+  String get lessonAccepted;
+
+  /// Следующее занятие создано.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ещё одно занятие предложено.'**
+  String get lessonRepeated;
+
+  /// У занятия нет вариантов времени.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вариантов времени нет.'**
+  String get lessonNoOptions;
+
+  /// Участник ждёт ответа на предложенные варианты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ждём ответа автора'**
+  String get lessonAwaitingAnswer;
+
+  /// Автор должен ответить на варианты участника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ждёт вашего ответа'**
+  String get lessonAwaitingYourAnswer;
+
+  /// Автор ждёт ответа участника на свои варианты.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ждём ответа участника'**
+  String get lessonAwaitingParticipant;
+
+  /// Срок ответа автора на заявку.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ответить нужно до {time}'**
+  String lessonResponseDue(String time);
+
+  /// Встреча проходит онлайн, без места.
+  ///
+  /// In ru, this message translates to:
+  /// **'Онлайн-встреча'**
+  String get meetingOnline;
+
+  /// Listing kind name: help request.
+  ///
+  /// In ru, this message translates to:
+  /// **'Помощь'**
+  String get listingKindHelp;
+
+  /// Entry point to a new help request.
+  ///
+  /// In ru, this message translates to:
+  /// **'Попросить помощь'**
+  String get feedCreateHelp;
+
+  /// Title of the help request form.
+  ///
+  /// In ru, this message translates to:
+  /// **'Новый запрос о помощи'**
+  String get helpCreateTitle;
+
+  /// The help request was created.
+  ///
+  /// In ru, this message translates to:
+  /// **'Запрос о помощи опубликован.'**
+  String get helpPublished;
+
+  /// Field of the help request relevance deadline.
+  ///
+  /// In ru, this message translates to:
+  /// **'Актуален до'**
+  String get helpDeadline;
+
+  /// The relevance deadline is in the past.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выберите срок в будущем.'**
+  String get helpDeadlinePast;
+
+  /// The server rejected the relevance deadline.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок должен быть в будущем и не позже срока жизни объявления.'**
+  String get helpDeadlineInvalid;
+
+  /// Applies to a help request.
+  ///
+  /// In ru, this message translates to:
+  /// **'Откликнуться'**
+  String get helpRespond;
+
+  /// The application to a help request was sent.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отклик отправлен.'**
+  String get helpResponded;
+
+  /// The application is pending while the request is active.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отклик ждёт решения автора.'**
+  String get helpApplicationPending;
+
+  /// An application kept in reserve behind the selected executor.
+  ///
+  /// In ru, this message translates to:
+  /// **'Резерв'**
+  String get helpReserve;
+
+  /// The respondent is kept in reserve because an executor was chosen.
+  ///
+  /// In ru, this message translates to:
+  /// **'Исполнитель уже выбран; вы остаётесь в резерве.'**
+  String get helpReserveNotice;
+
+  /// The selected executor of a help request.
+  ///
+  /// In ru, this message translates to:
+  /// **'Исполнитель'**
+  String get helpExecutor;
+
+  /// The current user was selected as the executor.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы исполнитель.'**
+  String get helpYouAreExecutor;
+
+  /// The author selects one application as the executor.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выбрать исполнителя'**
+  String get helpSelectExecutor;
+
+  /// The author selected an executor.
+  ///
+  /// In ru, this message translates to:
+  /// **'Исполнитель выбран.'**
+  String get helpSelected;
+
+  /// The help request changed after it was loaded.
+  ///
+  /// In ru, this message translates to:
+  /// **'Запрос уже изменился. Обновите объявление.'**
+  String get helpConflict;
+
+  /// The user may not act on this help request.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы не можете действовать по этому запросу.'**
+  String get helpForbidden;
+
+  /// Heading of the applications to a help request.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отклики'**
+  String get helpIncoming;
+
+  /// Hint about the earliest acceptable deadline.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не позже срока жизни объявления ({days} дн.).'**
+  String helpDeadlineHint(int days);
+
+  /// The deadline exceeds the listing lifetime.
+  ///
+  /// In ru, this message translates to:
+  /// **'Срок не может быть больше срока жизни объявления ({days} дн.).'**
+  String helpDeadlineTooLate(int days);
+
+  /// Relevance deadline shown on a help request.
+  ///
+  /// In ru, this message translates to:
+  /// **'Актуален до {date}'**
+  String helpRelevantUntil(String date);
 }
 
 class _AppLocalizationsDelegate

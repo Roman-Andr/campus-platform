@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from decimal import Decimal
 from enum import StrEnum
 from typing import Any
 from uuid import UUID
@@ -65,6 +66,13 @@ class MeetingStatus(StrEnum):
     SCHEDULED = "scheduled"
 
 
+class CompletionMethod(StrEnum):
+    """How an accepted interaction reached the completed status."""
+
+    QR = "qr"
+    NO_MEETING = "no_meeting"
+
+
 class Visibility(StrEnum):
     UNIVERSITY = "university"
     CITY = "city"
@@ -75,6 +83,14 @@ class Visibility(StrEnum):
 class Audience(StrEnum):
     STUDENTS = "students"
     COMMUNITY = "community"
+
+
+class PurchaseStage(StrEnum):
+    """Stages of a group purchase owned by the listing aggregate."""
+
+    COLLECTING = "collecting"
+    FIXED = "fixed"
+    CANCELLED = "cancelled"
 
 
 class Category(LocalizedName, Entity):
@@ -105,6 +121,28 @@ class Listing(Entity):
             "AND event_location IS NOT NULL "
             "AND event_capacity IS NOT NULL AND event_capacity > 0)",
             name="event_details",
+        ),
+        CheckConstraint(
+            "kind != 'purchase' OR (purchase_unit_price IS NOT NULL "
+            "AND purchase_unit_price > 0 AND purchase_min_units IS NOT NULL "
+            "AND purchase_min_units >= 1 AND purchase_max_units IS NOT NULL "
+            "AND purchase_max_units >= purchase_min_units "
+            "AND purchase_collection_deadline IS NOT NULL "
+            "AND purchase_stage IN ('collecting','fixed','cancelled') "
+            "AND (purchase_stage != 'fixed' OR purchase_fixed_units IS NOT NULL))",
+            name="purchase_details",
+        ),
+        CheckConstraint(
+            "purchase_taken_units >= 0 AND (purchase_max_units IS NULL "
+            "OR purchase_taken_units <= purchase_max_units)",
+            name="purchase_units",
+        ),
+        CheckConstraint(
+            "kind = 'purchase' OR (purchase_unit_price IS NULL "
+            "AND purchase_min_units IS NULL AND purchase_max_units IS NULL "
+            "AND purchase_collection_deadline IS NULL AND purchase_stage IS NULL "
+            "AND purchase_fixed_units IS NULL AND purchase_taken_units = 0)",
+            name="purchase_absent",
         ),
         CheckConstraint("version >= 1", name="version_positive"),
         CheckConstraint(
@@ -141,6 +179,23 @@ class Listing(Entity):
     event_location: Mapped[str | None] = mapped_column(Text)
     event_capacity: Mapped[int | None]
     event_registered: Mapped[int] = mapped_column(default=0, server_default="0")
+
+    purchase_unit_price: Mapped[Decimal | None]
+    purchase_min_units: Mapped[int | None]
+    purchase_max_units: Mapped[int | None]
+    # Accepted units; a database check keeps it at or below the maximum.
+    purchase_taken_units: Mapped[int] = mapped_column(default=0, server_default="0")
+    # Units frozen at the collection deadline; NULL while collecting.
+    purchase_fixed_units: Mapped[int | None]
+    purchase_collection_deadline: Mapped[datetime | None]
+    purchase_stage: Mapped[str | None] = mapped_column(String(16))
+
+    @property
+    def purchase_limit(self) -> int | None:
+        """The volume available to participants: frozen units once fixed."""
+        if self.purchase_stage == PurchaseStage.FIXED:
+            return self.purchase_fixed_units
+        return self.purchase_max_units
 
     @property
     def remaining_places(self) -> int | None:
@@ -263,6 +318,18 @@ class Interaction(Entity):
             unique=True,
             postgresql_where=text("status = 'accepted' AND executor"),
         ),
+        CheckConstraint(
+            "completion_method IS NULL OR completion_method IN ('qr','no_meeting')",
+            name="completion_method",
+        ),
+        CheckConstraint(
+            "(completion_method IS NULL AND completed_at IS NULL "
+            "AND completion_weight IS NULL) OR "
+            "(completion_method IS NOT NULL AND completed_at IS NOT NULL "
+            "AND completion_weight IS NOT NULL AND completion_weight >= 0)",
+            name="completion_complete",
+        ),
+        CheckConstraint("units IS NULL OR units > 0", name="units"),
     )
     listing_id: Mapped[UUID] = mapped_column(ForeignKey("listing.id"))
     # Loaded explicitly by participant views; mutations lock the listing.
@@ -287,6 +354,21 @@ class Interaction(Entity):
     reservation_due_at: Mapped[datetime | None]
     # What a participant offers in exchange; NULL for other scenarios.
     offer_description: Mapped[str | None] = mapped_column(Text)
+    # A purchase share: the number of units this participant took.
+    units: Mapped[int | None]
+    # Set while the participant asks to leave a fixed purchase.
+    leave_requested_at: Mapped[datetime | None]
+
+    # Set together when the interaction is completed: how it was confirmed
+    # and the weight its review contributes to the rating.
+    completion_method: Mapped[str | None] = mapped_column(String(16))
+    completed_at: Mapped[datetime | None]
+    completion_weight: Mapped[float | None]
+
+    @property
+    def without_meeting(self) -> bool:
+        """Whether the interaction was completed by mutual confirmation."""
+        return self.completion_method == CompletionMethod.NO_MEETING
 
     meeting: Mapped[Meeting | None] = relationship(
         lazy="joined", uselist=False, cascade="all, delete-orphan"
@@ -343,6 +425,24 @@ class Meeting(Entity):
     @property
     def status(self) -> MeetingStatus:
         return MeetingStatus.PROPOSED if self.proposed_at else MeetingStatus.SCHEDULED
+
+
+class NoMeetingConfirmation(Entity):
+    """One participant's consent to complete an interaction without a meeting.
+
+    Two rows (one per participant) complete an accepted online lesson or a
+    help interaction that needs no meeting. ``agreed_at`` is the same server
+    moment in both rows: the scheduled online lesson time, or the moment the
+    first participant confirmed a help interaction.
+    """
+
+    __tablename__ = "listing_no_meeting_confirmation"
+    __table_args__ = (UniqueConstraint("interaction_id", "participant_id"),)
+    interaction_id: Mapped[UUID] = mapped_column(
+        ForeignKey("listing_interaction.id", ondelete="CASCADE")
+    )
+    participant_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
+    agreed_at: Mapped[datetime]
 
 
 class LessonOptionStatus(StrEnum):
@@ -413,6 +513,12 @@ class WaitlistEntry(Entity):
         CheckConstraint(
             "(offered_at IS NULL) = (offer_expires_at IS NULL)", name="offer_times"
         ),
+        CheckConstraint("units IS NULL OR units > 0", name="units"),
+        CheckConstraint(
+            "offer_units IS NULL OR (offer_units > 0 "
+            "AND (units IS NULL OR offer_units <= units))",
+            name="offer_units",
+        ),
         Index(
             "uq_listing_waitlist_participant",
             "listing_id",
@@ -444,6 +550,10 @@ class WaitlistEntry(Entity):
     )
     offered_at: Mapped[datetime | None]
     offer_expires_at: Mapped[datetime | None]
+    # A purchase queue position: how many units the member wants, and how
+    # many of them an active offer holds.
+    units: Mapped[int | None]
+    offer_units: Mapped[int | None]
     interaction_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("listing_interaction.id")
     )

@@ -21,6 +21,7 @@ from campus.modules.identity import User
 from campus.modules.listings.models import (
     PERMANENT_KINDS,
     Audience,
+    CompletionMethod,
     Interaction,
     InteractionStatus,
     LessonOption,
@@ -29,6 +30,8 @@ from campus.modules.listings.models import (
     ListingEvent,
     ListingStatus,
     Meeting,
+    NoMeetingConfirmation,
+    PurchaseStage,
     Visibility,
     WaitlistEntry,
     WaitlistStatus,
@@ -39,6 +42,12 @@ from campus.modules.notifications import (
     LISTING_WAITLIST_CLEARED,
     LISTING_WAITLIST_JOINED,
     LISTING_WAITLIST_OPEN,
+    PURCHASE_CANCELLED,
+    PURCHASE_CONDITIONS_CHANGED,
+    PURCHASE_FIXED,
+    PURCHASE_REMINDER,
+    PURCHASE_WITHDRAWAL_DECIDED,
+    PURCHASE_WITHDRAWAL_REQUESTED,
     NotificationEvent,
     notify,
     register_validator,
@@ -112,8 +121,78 @@ EXCHANGE_OFFER_DUPLICATE = ProblemType(
     N_("You already offered an item."),
     N_("Wait for the author's decision."),
 )
+NO_MEETING_UNAVAILABLE = ProblemType(
+    "listing_no_meeting_unavailable",
+    409,
+    N_("This interaction cannot be completed without a meeting."),
+    N_(
+        "Only an accepted online lesson or a help interaction without an"
+        " agreed meeting can be completed this way."
+    ),
+)
+PURCHASE_DEADLINE_INVALID = ProblemType(
+    "listing_purchase_deadline_invalid",
+    422,
+    N_("Invalid purchase deadline"),
+    N_(
+        "The collection deadline must be in the future and within the listing lifetime."
+    ),
+)
+PURCHASE_VOLUME_INVALID = ProblemType(
+    "listing_purchase_volume_invalid",
+    422,
+    N_("Invalid purchase volume"),
+    N_("The minimum must not exceed the maximum, and both must be positive."),
+)
+PURCHASE_CLOSED = ProblemType(
+    "listing_purchase_closed",
+    409,
+    N_("The purchase is no longer collecting."),
+    N_("Only the composition exchange is available at this stage."),
+)
+PURCHASE_UNITS_UNAVAILABLE = ProblemType(
+    "listing_purchase_units_unavailable",
+    409,
+    N_("Not enough units left."),
+    N_("Only {available} units are available."),
+)
+PURCHASE_CAPACITY_CONFLICT = ProblemType(
+    "listing_purchase_capacity_conflict",
+    409,
+    N_("The maximum is below the taken volume."),
+    N_("The current volume is {taken} units."),
+)
+PURCHASE_APPROVAL_REQUIRED = ProblemType(
+    "listing_purchase_leave_requires_approval",
+    409,
+    N_("The composition is fixed."),
+    N_("Ask the organiser before leaving the purchase."),
+)
+PURCHASE_NOT_FIXED = ProblemType(
+    "listing_purchase_not_fixed",
+    409,
+    N_("The composition is not fixed yet."),
+    N_("Leave the purchase directly while it is collecting."),
+)
+PURCHASE_SHARE_EXISTS = ProblemType(
+    "listing_purchase_share_exists",
+    409,
+    N_("You already joined the purchase."),
+)
+PURCHASE_WITHDRAWAL_EXISTS = ProblemType(
+    "listing_purchase_withdrawal_exists",
+    409,
+    N_("You already asked to leave the purchase."),
+)
+PURCHASE_WITHDRAWAL_MISSING = ProblemType(
+    "listing_purchase_withdrawal_missing",
+    409,
+    N_("You have no pending request to leave."),
+)
 
 MEETING_PROPOSED = N_("A meeting time and place were proposed.")
+# Two participants must confirm; the first consent only records the intent.
+NO_MEETING_CONFIRMATIONS = 2
 MEETING_SCHEDULED = N_("The meeting is scheduled.")
 MEETING_RESCHEDULED = N_("The meeting has been rescheduled.")
 MEETING_REMINDER = N_("Your meeting starts soon.")
@@ -227,6 +306,12 @@ TYPE_POLICIES = {
     "skill": TypePolicy(author_response_deadline=True, capacity=None),
     # Applications are unlimited and stay pending; the author selects one.
     "help": TypePolicy(author_response_deadline=False),
+    # A purchase takes shares of units; the author collects them until the
+    # deadline, then the composition is fixed. The queue uses volumes.
+    "purchase": TypePolicy(
+        author_response_deadline=False,
+        initial_stage=PurchaseStage.COLLECTING,
+    ),
 }
 
 # Item kinds whose accepted reservation expires unless a meeting is scheduled.
@@ -311,6 +396,8 @@ async def active_offer(session: AsyncSession, listing_id: UUID) -> WaitlistEntry
 
 async def has_free_slot(session: AsyncSession, listing: Listing) -> bool:
     """Whether the listing has an unoccupied slot, by its type's capacity."""
+    if listing.kind == "purchase":
+        return await purchase_available_units(session, listing) > 0
     capacity = (
         listing.event_capacity
         if listing.kind == "event"
@@ -378,15 +465,30 @@ def record_waitlist(  # noqa: PLR0913, PLR0917 - event fields
     )
 
 
-async def join_waitlist(
-    session: AsyncSession, listing: Listing, user: User
+async def join_waitlist(  # noqa: PLR0912 - capacity and purchase rules
+    session: AsyncSession,
+    listing: Listing,
+    user: User,
+    units: int | None = None,
 ) -> WaitlistEntry:
     """Take the last place of the queue, when the listing has no free slot."""
     if listing.kind == "event" and (
         listing.event_starts_at is None or listing.event_starts_at <= clock.now()
     ):
         raise ProblemError(CONFLICT)
-    if TYPE_POLICIES[listing.kind].capacity is None:
+    if listing.kind == "purchase":
+        if purchase_collection_ended(listing):
+            raise ProblemError(PURCHASE_CLOSED)
+        if listing.purchase_stage not in (
+            PurchaseStage.COLLECTING,
+            PurchaseStage.FIXED,
+        ):
+            raise ProblemError(CONFLICT)
+        if units is None or units < 1:
+            raise ProblemError(PURCHASE_VOLUME_INVALID)
+        if await purchase_share_exists(session, listing.id, user.id):
+            raise ProblemError(PURCHASE_SHARE_EXISTS)
+    elif TYPE_POLICIES[listing.kind].capacity is None:
         raise ProblemError(WAITLIST_UNAVAILABLE)
     if await active_waitlist(session, listing.id, user.id) is not None:
         raise ProblemError(WAITLIST_DUPLICATE)
@@ -405,6 +507,13 @@ async def join_waitlist(
         free = (listing.remaining_places or 0) > len(
             await event_offers(session, listing)
         )
+    elif listing.kind == "purchase":
+        # While collecting, a free volume is taken directly; after fixation
+        # only freed units are offered through the queue.
+        free = (
+            listing.purchase_stage == PurchaseStage.COLLECTING
+            and await has_free_slot(session, listing)
+        )
     else:
         free = await has_free_slot(session, listing) and (
             await active_offer(session, listing.id) is None
@@ -412,7 +521,10 @@ async def join_waitlist(
     if free:
         raise ProblemError(WAITLIST_FREE)
     entry = WaitlistEntry(
-        listing_id=listing.id, participant_id=user.id, participant=user
+        listing_id=listing.id,
+        participant_id=user.id,
+        participant=user,
+        units=units if listing.kind == "purchase" else None,
     )
     session.add(entry)
     await session.flush()
@@ -541,6 +653,9 @@ async def offer_next(  # noqa: PLR0911 - early exits of the offer rule
     if listing.kind == "event":
         await offer_event_places(session, listing, offer_timeout, open_all_before)
         return None
+    if listing.kind == "purchase":
+        await offer_purchase_units(session, listing, offer_timeout, open_all_before)
+        return None
     if listing.status not in (ListingStatus.ACTIVE, ListingStatus.BUSY):
         return None
     if listing.expires_at is not None and listing.expires_at <= clock.now():
@@ -614,6 +729,8 @@ async def claim_offer(
     """
     if listing.kind == "event":
         return await accept_event_offer(session, listing, user, settings)
+    if listing.kind == "purchase":
+        return await claim_purchase_offer(session, listing, user)
     entry = await active_waitlist(session, listing.id, user.id)
     if entry is None or entry.status != WaitlistStatus.OFFERED:
         raise ProblemError(OFFER_MISSING)
@@ -770,6 +887,765 @@ async def expire_offered_place(session: AsyncSession, job: JobInfo) -> None:
         entry,
         offer_timeout=offer_timeout,
         open_all_before=open_all_before,
+    )
+
+
+def purchase_stage_of(listing: Listing) -> PurchaseStage | None:
+    """The current purchase stage; ``None`` for other listing kinds."""
+    if listing.purchase_stage is None:
+        return None
+    return PurchaseStage(listing.purchase_stage)
+
+
+def purchase_collection_ended(listing: Listing) -> bool:
+    """Whether the collection deadline passed before the deadline job ran."""
+    return (
+        listing.purchase_stage == PurchaseStage.COLLECTING
+        and listing.purchase_collection_deadline is not None
+        and listing.purchase_collection_deadline <= clock.now()
+    )
+
+
+async def purchase_offered_units(session: AsyncSession, listing: Listing) -> int:
+    """Units currently held by queue offers, which are not free."""
+    value = await session.scalar(
+        select(func.coalesce(func.sum(WaitlistEntry.offer_units), 0)).where(
+            WaitlistEntry.listing_id == listing.id,
+            WaitlistEntry.status == WaitlistStatus.OFFERED,
+        )
+    )
+    return int(value or 0)
+
+
+async def purchase_available_units(session: AsyncSession, listing: Listing) -> int:
+    """Unreserved volume a participant can take or queue for."""
+    limit = listing.purchase_limit
+    if limit is None:
+        return 0
+    taken = listing.purchase_taken_units or 0
+    return max(limit - taken - await purchase_offered_units(session, listing), 0)
+
+
+def validate_purchase(
+    price: Any,
+    min_units: int,
+    max_units: int,
+    deadline: datetime,
+    settings: Settings,
+) -> None:
+    """Reject a volume order and a deadline outside the listing lifetime."""
+    if price <= 0 or min_units < 1 or max_units < min_units:
+        raise ProblemError(PURCHASE_VOLUME_INVALID)
+    now = clock.now()
+    if deadline <= now or deadline > now + settings.listing_lifetime:
+        raise ProblemError(PURCHASE_DEADLINE_INVALID)
+
+
+async def schedule_purchase_deadlines(
+    session: AsyncSession, listing: Listing, settings: Settings
+) -> None:
+    deadline = listing.purchase_collection_deadline
+    if deadline is None:
+        return
+    await schedule_deadline(
+        session,
+        "listing.purchase_deadline",
+        deadline,
+        {"listing_id": str(listing.id)},
+        key=f"purchase-deadline:{listing.id}",
+    )
+    reminder_at = deadline - settings.listing_purchase_reminder_before
+    if reminder_at > clock.now():
+        await schedule_deadline(
+            session,
+            "listing.purchase_reminder",
+            reminder_at,
+            {"listing_id": str(listing.id)},
+            key=f"purchase-reminder:{listing.id}",
+        )
+
+
+async def cancel_purchase_deadlines(session: AsyncSession, listing_id: UUID) -> None:
+    await cancel_deadline(session, f"purchase-deadline:{listing_id}")
+    await cancel_deadline(session, f"purchase-reminder:{listing_id}")
+
+
+async def purchase_share_exists(
+    session: AsyncSession, listing_id: UUID, participant_id: UUID
+) -> bool:
+    """Whether the user already has a live share of this purchase."""
+    return (
+        await session.scalar(
+            select(Interaction.id).where(
+                Interaction.listing_id == listing_id,
+                Interaction.participant_id == participant_id,
+                Interaction.status.in_(
+                    (InteractionStatus.PENDING, InteractionStatus.ACCEPTED)
+                ),
+            )
+        )
+        is not None
+    )
+
+
+def purchase_share_details(listing: Listing, units: int) -> dict[str, Any]:
+    return {"units": units, "unit_price": str(listing.purchase_unit_price)}
+
+
+async def join_purchase(
+    session: AsyncSession, listing: Listing, user: User, units: int
+) -> Interaction:
+    """Take a share of a collecting purchase; the share is accepted at once."""
+    if listing.purchase_stage != PurchaseStage.COLLECTING:
+        raise ProblemError(PURCHASE_CLOSED)
+    if purchase_collection_ended(listing):
+        raise ProblemError(PURCHASE_CLOSED)
+    if await purchase_share_exists(session, listing.id, user.id):
+        raise ProblemError(PURCHASE_SHARE_EXISTS)
+    available = await purchase_available_units(session, listing)
+    if units > available:
+        raise ProblemError(PURCHASE_UNITS_UNAVAILABLE, available=available)
+    interaction = Interaction(
+        listing_id=listing.id,
+        participant_id=user.id,
+        participant=user,
+        slot=None,
+        status=InteractionStatus.ACCEPTED,
+        stage=PurchaseStage.COLLECTING,
+        units=units,
+        response_due_at=None,
+        # New rows start without relationships; validation reads them.
+        meeting=None,
+        options=[],
+    )
+    session.add(interaction)
+    await session.flush()
+    listing.purchase_taken_units += units
+    listing.version += 1
+    record(
+        session,
+        listing,
+        user.id,
+        "share_joined",
+        None,
+        interaction,
+        details=purchase_share_details(listing, units),
+    )
+    return interaction
+
+
+async def change_purchase_units(  # noqa: PLR0913 - share and offer context
+    session: AsyncSession,
+    listing: Listing,
+    interaction: Interaction,
+    units: int,
+    *,
+    offer_timeout: timedelta,
+    open_all_before: timedelta,
+) -> None:
+    """Change a share while collecting; freed units go to the queue."""
+    if listing.purchase_stage != PurchaseStage.COLLECTING:
+        raise ProblemError(PURCHASE_CLOSED)
+    if purchase_collection_ended(listing):
+        raise ProblemError(PURCHASE_CLOSED)
+    if interaction.status != InteractionStatus.ACCEPTED:
+        raise ProblemError(CONFLICT)
+    current = interaction.units or 0
+    limit = listing.purchase_limit or 0
+    available = limit - listing.purchase_taken_units + current
+    if units > available:
+        raise ProblemError(PURCHASE_UNITS_UNAVAILABLE, available=available)
+    interaction.units = units
+    listing.purchase_taken_units += units - current
+    listing.version += 1
+    record(
+        session,
+        listing,
+        interaction.participant_id,
+        "share_changed",
+        interaction.status,
+        interaction,
+        details={
+            "units": units,
+            "previous_units": current,
+            "unit_price": str(listing.purchase_unit_price),
+        },
+    )
+    if units < current:
+        await offer_next(
+            session,
+            listing,
+            offer_timeout=offer_timeout,
+            open_all_before=open_all_before,
+        )
+
+
+async def leave_purchase(
+    session: AsyncSession,
+    listing: Listing,
+    interaction: Interaction,
+    *,
+    offer_timeout: timedelta,
+    open_all_before: timedelta,
+) -> None:
+    """Leave a collecting purchase; after fixation the organiser decides."""
+    stage = purchase_stage_of(listing)
+    if stage == PurchaseStage.FIXED:
+        raise ProblemError(PURCHASE_APPROVAL_REQUIRED)
+    if stage != PurchaseStage.COLLECTING:
+        raise ProblemError(PURCHASE_CLOSED)
+    if purchase_collection_ended(listing):
+        raise ProblemError(PURCHASE_CLOSED)
+    if interaction.status != InteractionStatus.ACCEPTED:
+        raise ProblemError(CONFLICT)
+    units = interaction.units or 0
+    interaction.status = InteractionStatus.CANCELLED
+    interaction.stage = None
+    listing.purchase_taken_units = max(0, listing.purchase_taken_units - units)
+    listing.version += 1
+    record(
+        session,
+        listing,
+        interaction.participant_id,
+        "share_left",
+        InteractionStatus.ACCEPTED,
+        interaction,
+        details={"units": units},
+    )
+    await offer_next(
+        session,
+        listing,
+        offer_timeout=offer_timeout,
+        open_all_before=open_all_before,
+    )
+
+
+async def request_purchase_withdrawal(
+    session: AsyncSession,
+    listing: Listing,
+    interaction: Interaction,
+    reason: str | None,
+) -> None:
+    """Ask the organiser to leave a fixed composition."""
+    if purchase_stage_of(listing) != PurchaseStage.FIXED:
+        raise ProblemError(PURCHASE_NOT_FIXED)
+    if interaction.status != InteractionStatus.ACCEPTED:
+        raise ProblemError(CONFLICT)
+    if interaction.leave_requested_at is not None:
+        raise ProblemError(PURCHASE_WITHDRAWAL_EXISTS)
+    interaction.leave_requested_at = clock.now()
+    listing.version += 1
+    append_event(
+        session,
+        listing,
+        interaction.participant_id,
+        "leave_requested",
+        interaction.status,
+        interaction,
+        reason=reason,
+        details={"units": interaction.units or 0},
+    )
+    notify(
+        session,
+        {listing.author_id},
+        "listing.purchase.withdrawal_requested",
+        {
+            "listing_id": str(listing.id),
+            "interaction_id": str(interaction.id),
+            "units": interaction.units or 0,
+        },
+        message=PURCHASE_WITHDRAWAL_REQUESTED,
+    )
+
+
+async def cancel_purchase_withdrawal(
+    session: AsyncSession, interaction: Interaction
+) -> None:
+    if interaction.leave_requested_at is None:
+        raise ProblemError(PURCHASE_WITHDRAWAL_MISSING)
+    interaction.leave_requested_at = None
+    append_event(
+        session,
+        listing := await _listing_of(session, interaction),
+        interaction.participant_id,
+        "leave_cancelled",
+        interaction.status,
+        interaction,
+    )
+    listing.version += 1
+
+
+async def _listing_of(session: AsyncSession, interaction: Interaction) -> Listing:
+    listing = await session.get(Listing, interaction.listing_id)
+    assert listing is not None  # noqa: S101 - interaction rows keep their listing
+    return listing
+
+
+async def decide_purchase_withdrawal(  # noqa: PLR0913 - decision fields
+    session: AsyncSession,
+    listing: Listing,
+    interaction: Interaction,
+    actor_id: UUID,
+    *,
+    approve: bool,
+    reason: str | None,
+    offer_timeout: timedelta,
+    open_all_before: timedelta,
+) -> None:
+    """The organiser approves or rejects a request to leave a fixed purchase."""
+    if listing.author_id != actor_id:
+        raise ProblemError(FORBIDDEN)
+    if purchase_stage_of(listing) != PurchaseStage.FIXED:
+        raise ProblemError(PURCHASE_NOT_FIXED)
+    if interaction.leave_requested_at is None:
+        raise ProblemError(PURCHASE_WITHDRAWAL_MISSING)
+    interaction.leave_requested_at = None
+    listing.version += 1
+    if approve:
+        units = interaction.units or 0
+        interaction.status = InteractionStatus.CANCELLED
+        interaction.stage = None
+        listing.purchase_taken_units = max(0, listing.purchase_taken_units - units)
+        append_event(
+            session,
+            listing,
+            actor_id,
+            "leave_approved",
+            InteractionStatus.ACCEPTED,
+            interaction,
+            reason=reason,
+            details={"units": units},
+        )
+        notify(
+            session,
+            {interaction.participant_id},
+            "listing.purchase.withdrawal_decided",
+            {
+                "listing_id": str(listing.id),
+                "interaction_id": str(interaction.id),
+                "approved": True,
+            },
+            message=PURCHASE_WITHDRAWAL_DECIDED,
+        )
+        await offer_next(
+            session,
+            listing,
+            offer_timeout=offer_timeout,
+            open_all_before=open_all_before,
+        )
+    else:
+        append_event(
+            session,
+            listing,
+            actor_id,
+            "leave_rejected",
+            interaction.status,
+            interaction,
+            reason=reason,
+        )
+        notify(
+            session,
+            {interaction.participant_id},
+            "listing.purchase.withdrawal_decided",
+            {
+                "listing_id": str(listing.id),
+                "interaction_id": str(interaction.id),
+                "approved": False,
+            },
+            message=PURCHASE_WITHDRAWAL_DECIDED,
+        )
+
+
+async def update_purchase_conditions(  # noqa: PLR0913 - edited fields
+    session: AsyncSession,
+    listing: Listing,
+    *,
+    price: Any,
+    min_units: int,
+    max_units: int,
+    deadline: datetime,
+    settings: Settings,
+) -> None:
+    """Edit a collecting purchase, recalculating the amounts explicitly.
+
+    The amount is always units x price, so changing the price changes every
+    participant's amount at once; participants and the queue are notified.
+    """
+    if listing.purchase_stage != PurchaseStage.COLLECTING:
+        raise ProblemError(PURCHASE_CLOSED)
+    if purchase_collection_ended(listing):
+        raise ProblemError(PURCHASE_CLOSED)
+    validate_purchase(price, min_units, max_units, deadline, settings)
+    offered = await purchase_offered_units(session, listing)
+    committed = listing.purchase_taken_units + offered
+    if max_units < committed:
+        raise ProblemError(PURCHASE_CAPACITY_CONFLICT, taken=committed)
+    previous = {
+        "price_per_unit": str(listing.purchase_unit_price),
+        "min_units": listing.purchase_min_units,
+        "max_units": listing.purchase_max_units,
+        "collection_deadline": (
+            listing.purchase_collection_deadline.isoformat()
+            if listing.purchase_collection_deadline
+            else None
+        ),
+    }
+    listing.purchase_unit_price = price
+    listing.purchase_min_units = min_units
+    listing.purchase_max_units = max_units
+    listing.purchase_collection_deadline = deadline
+    listing.version += 1
+    record(
+        session,
+        listing,
+        listing.author_id,
+        "conditions_changed",
+        listing.status,
+        details={
+            "price_per_unit": str(price),
+            "min_units": min_units,
+            "max_units": max_units,
+            "collection_deadline": deadline.isoformat(),
+            "previous": previous,
+        },
+    )
+    await cancel_purchase_deadlines(session, listing.id)
+    await schedule_purchase_deadlines(session, listing, settings)
+    recipients = await purchase_participants(session, listing)
+    recipients |= {
+        entry.participant_id
+        for entry in await session.scalars(
+            select(WaitlistEntry).where(
+                WaitlistEntry.listing_id == listing.id,
+                WaitlistEntry.status.in_(
+                    (WaitlistStatus.WAITING, WaitlistStatus.OFFERED)
+                ),
+            )
+        )
+    }
+    notify(
+        session,
+        recipients,
+        "listing.purchase.conditions_changed",
+        {
+            "listing_id": str(listing.id),
+            "price_per_unit": str(price),
+            "min_units": min_units,
+            "max_units": max_units,
+            "collection_deadline": deadline.isoformat(),
+            "version": listing.version,
+        },
+        message=PURCHASE_CONDITIONS_CHANGED,
+    )
+
+
+async def purchase_participants(session: AsyncSession, listing: Listing) -> set[UUID]:
+    shares = await session.scalars(
+        select(Interaction).where(
+            Interaction.listing_id == listing.id,
+            Interaction.status == InteractionStatus.ACCEPTED,
+        )
+    )
+    return {share.participant_id for share in shares}
+
+
+async def expire_purchase_offers(session: AsyncSession, listing: Listing) -> None:
+    """Expire unconfirmed queue offers when the composition freezes.
+
+    An offer is not a share: only accepted units enter the fixed
+    composition. Leaving the offer alive would let it be claimed against a
+    composition that no longer has free units.
+    """
+    entries = list(
+        await session.scalars(
+            select(WaitlistEntry)
+            .where(
+                WaitlistEntry.listing_id == listing.id,
+                WaitlistEntry.status == WaitlistStatus.OFFERED,
+            )
+            .with_for_update()
+        )
+    )
+    for entry in entries:
+        previous = entry.status
+        entry.status = WaitlistStatus.EXPIRED
+        listing.version += 1
+        await cancel_deadline(session, offer_key(entry.id))
+        record_waitlist(session, listing, None, "offer_expired", entry, previous)
+        notify(
+            session,
+            {entry.participant_id},
+            "listing.offer_expired",
+            {"listing_id": str(listing.id), "entry_id": str(entry.id)},
+            message=LISTING_OFFER_EXPIRED,
+        )
+
+
+async def fix_purchase_composition(session: AsyncSession, listing: Listing) -> None:
+    """Freeze the composition when the collection deadline is met."""
+    if listing.purchase_stage != PurchaseStage.COLLECTING:
+        return
+    await expire_purchase_offers(session, listing)
+    shares = list(
+        await session.scalars(
+            select(Interaction).where(
+                Interaction.listing_id == listing.id,
+                Interaction.status == InteractionStatus.ACCEPTED,
+            )
+        )
+    )
+    listing.purchase_stage = PurchaseStage.FIXED
+    listing.purchase_fixed_units = listing.purchase_taken_units
+    listing.version += 1
+    for share in shares:
+        share.stage = PurchaseStage.FIXED
+        append_event(
+            session,
+            listing,
+            None,
+            "stage_changed",
+            share.status,
+            share,
+            details={"stage": PurchaseStage.FIXED},
+        )
+    append_event(
+        session,
+        listing,
+        None,
+        "composition_fixed",
+        listing.status,
+        details={
+            "units": listing.purchase_fixed_units,
+            "unit_price": str(listing.purchase_unit_price),
+        },
+    )
+    notify(
+        session,
+        {share.participant_id for share in shares},
+        "listing.purchase.fixed",
+        {
+            "listing_id": str(listing.id),
+            "units": listing.purchase_fixed_units,
+            "unit_price": str(listing.purchase_unit_price),
+        },
+        message=PURCHASE_FIXED,
+    )
+    await cancel_purchase_deadlines(session, listing.id)
+
+
+async def cancel_purchase(session: AsyncSession, listing: Listing, reason: str) -> None:
+    """Cancel a collecting purchase and every share in it."""
+    if listing.purchase_stage != PurchaseStage.COLLECTING:
+        raise ProblemError(PURCHASE_CLOSED)
+    shares = list(
+        await session.scalars(
+            select(Interaction).where(
+                Interaction.listing_id == listing.id,
+                Interaction.status == InteractionStatus.ACCEPTED,
+            )
+        )
+    )
+    recipients = {share.participant_id for share in shares}
+    for share in shares:
+        share.status = InteractionStatus.CANCELLED
+        share.stage = None
+        append_event(
+            session,
+            listing,
+            None,
+            "purchase_cancelled",
+            InteractionStatus.ACCEPTED,
+            share,
+            reason=reason,
+            details={"units": share.units or 0},
+        )
+    listing.purchase_taken_units = 0
+    listing.purchase_fixed_units = None
+    listing.purchase_stage = PurchaseStage.CANCELLED
+    listing.version += 1
+    await clear_waitlist(session, listing, reason)
+    change_listing(session, listing, ListingStatus.CANCELLED, None, "cancelled")
+    notify(
+        session,
+        recipients,
+        "listing.purchase.cancelled",
+        {"listing_id": str(listing.id), "reason": reason},
+        message=PURCHASE_CANCELLED,
+    )
+    await cancel_purchase_deadlines(session, listing.id)
+
+
+async def close_purchase_collection(session: AsyncSession, listing: Listing) -> None:
+    """Catch-up rule at the collection deadline: fix or cancel, once."""
+    if listing.purchase_stage != PurchaseStage.COLLECTING:
+        return
+    deadline = listing.purchase_collection_deadline
+    if deadline is not None and deadline > clock.now():
+        return
+    min_units = listing.purchase_min_units or 0
+    if listing.purchase_taken_units >= min_units and listing.purchase_taken_units > 0:
+        await fix_purchase_composition(session, listing)
+    else:
+        await cancel_purchase(session, listing, "min_units_not_reached")
+
+
+async def offer_purchase_units(
+    session: AsyncSession,
+    listing: Listing,
+    offer_timeout: timedelta,
+    open_all_before: timedelta,
+) -> None:
+    """Offer freed units to the queue in FIFO order, partially if needed."""
+    # Purchases never open places to everyone: they keep the queue.
+    if purchase_stage_of(listing) not in (
+        PurchaseStage.COLLECTING,
+        PurchaseStage.FIXED,
+    ):
+        return
+    if listing.status not in (ListingStatus.ACTIVE, ListingStatus.BUSY):
+        return
+    if listing.expires_at is not None and listing.expires_at <= clock.now():
+        return
+    free = await purchase_available_units(session, listing)
+    if free <= 0:
+        return
+    entries = list(
+        await session.scalars(
+            select(WaitlistEntry)
+            .where(
+                WaitlistEntry.listing_id == listing.id,
+                WaitlistEntry.status == WaitlistStatus.WAITING,
+            )
+            .order_by(WaitlistEntry.created_at, WaitlistEntry.id)
+            .with_for_update()
+        )
+    )
+    now = clock.now()
+    for entry in entries:
+        if free <= 0:
+            break
+        requested = entry.units or free
+        offered = min(requested, free)
+        previous = entry.status
+        entry.status = WaitlistStatus.OFFERED
+        entry.offer_slot = None
+        entry.offer_units = offered
+        entry.offered_at = now
+        entry.offer_expires_at = now + offer_timeout
+        listing.version += 1
+        record_waitlist(session, listing, None, "offered", entry, previous)
+        notify(
+            session,
+            {entry.participant_id},
+            "listing.offer",
+            {
+                "listing_id": str(listing.id),
+                "entry_id": str(entry.id),
+                "units": offered,
+                "offer_expires_at": entry.offer_expires_at.isoformat(),
+            },
+            message=LISTING_OFFER,
+        )
+        await schedule_deadline(
+            session,
+            "listing.offer",
+            entry.offer_expires_at,
+            {
+                "entry_id": str(entry.id),
+                "offer_timeout": int(offer_timeout.total_seconds()),
+                "open_all_before": int(open_all_before.total_seconds()),
+            },
+            key=offer_key(entry.id),
+        )
+        free -= offered
+
+
+async def claim_purchase_offer(
+    session: AsyncSession, listing: Listing, user: User
+) -> Interaction:
+    """Turn an offered volume into an accepted share."""
+    entry = await active_waitlist(session, listing.id, user.id)
+    if entry is None or entry.status != WaitlistStatus.OFFERED:
+        raise ProblemError(OFFER_MISSING)
+    if entry.offer_expires_at is None or entry.offer_expires_at <= clock.now():
+        raise ProblemError(OFFER_EXPIRED)
+    require_live(listing)
+    if purchase_collection_ended(listing):
+        raise ProblemError(PURCHASE_CLOSED)
+    if purchase_stage_of(listing) not in (
+        PurchaseStage.COLLECTING,
+        PurchaseStage.FIXED,
+    ):
+        raise ProblemError(CONFLICT)
+    if await purchase_share_exists(session, listing.id, user.id):
+        raise ProblemError(PURCHASE_SHARE_EXISTS)
+    units = entry.offer_units or entry.units or 0
+    limit = listing.purchase_limit or 0
+    if units < 1 or listing.purchase_taken_units + units > limit:
+        raise ProblemError(CONFLICT)
+    interaction = Interaction(
+        listing_id=listing.id,
+        participant_id=user.id,
+        participant=user,
+        slot=None,
+        status=InteractionStatus.ACCEPTED,
+        stage=listing.purchase_stage,
+        units=units,
+        response_due_at=None,
+        meeting=None,
+        options=[],
+    )
+    session.add(interaction)
+    await session.flush()
+    previous = entry.status
+    entry.status = WaitlistStatus.CLAIMED
+    entry.interaction_id = interaction.id
+    await cancel_deadline(session, offer_key(entry.id))
+    listing.purchase_taken_units += units
+    listing.version += 1
+    record_waitlist(session, listing, user.id, "offer_accepted", entry, previous)
+    record(
+        session,
+        listing,
+        user.id,
+        "share_joined",
+        None,
+        interaction,
+        details=purchase_share_details(listing, units),
+    )
+    return interaction
+
+
+@deadline_handlers.register("listing.purchase_deadline")
+async def expire_purchase_collection(session: AsyncSession, job: JobInfo) -> None:
+    listing = await locked(session, UUID(job.payload["listing_id"]))
+    if listing.purchase_stage != PurchaseStage.COLLECTING:
+        return
+    await close_purchase_collection(session, listing)
+
+
+@deadline_handlers.register("listing.purchase_reminder")
+async def remind_purchase_participants(session: AsyncSession, job: JobInfo) -> None:
+    listing = await locked(session, UUID(job.payload["listing_id"]))
+    if (
+        listing.purchase_stage != PurchaseStage.COLLECTING
+        or listing.status != ListingStatus.ACTIVE
+        or listing.purchase_collection_deadline is None
+        or listing.purchase_collection_deadline <= clock.now()
+    ):
+        return
+    recipients = await purchase_participants(session, listing)
+    if not recipients:
+        return
+    notify(
+        session,
+        recipients,
+        "listing.purchase.reminder",
+        {
+            "listing_id": str(listing.id),
+            "collection_deadline": listing.purchase_collection_deadline.isoformat(),
+        },
+        message=PURCHASE_REMINDER,
     )
 
 
@@ -1160,7 +2036,7 @@ async def claim_listing(  # noqa: PLR0913, PLR0917 - aggregate claim
     return False
 
 
-async def transition(  # noqa: PLR0912, PLR0913 - aggregate transition
+async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
     session: AsyncSession,
     listing: Listing,
     interaction: Interaction,
@@ -1168,6 +2044,9 @@ async def transition(  # noqa: PLR0912, PLR0913 - aggregate transition
     actor_id: UUID | None,
     *,
     settings: Settings | None = None,
+    completion_method: CompletionMethod | None = None,
+    action: str = "transition",
+    details: dict[str, Any] | None = None,
 ) -> None:
     expected = TRANSITIONS.get((InteractionStatus(interaction.status), target))
     if expected is None:
@@ -1183,13 +2062,25 @@ async def transition(  # noqa: PLR0912, PLR0913 - aggregate transition
         and listing.status != ListingStatus.ACTIVE
     ):
         raise ProblemError(CONFLICT)
-    allowed_id = {
-        "author": listing.author_id,
-        "participant": interaction.participant_id,
-        "system": None,
-    }[expected]
-    if actor_id != allowed_id:
-        raise ProblemError(FORBIDDEN)
+    # Purchase shares have their own endpoints: joining, changing units and
+    # leaving depend on the collection stage and the volume counter.
+    if listing.kind == "purchase":
+        raise ProblemError(CONFLICT)
+    settings = settings or get_settings()
+    completion = target == InteractionStatus.COMPLETED and completion_method is not None
+    if completion:
+        # A participant confirms the completion; the service-only transition
+        # stays available for the QR module, which passes no actor.
+        if actor_id not in (listing.author_id, interaction.participant_id):
+            raise ProblemError(FORBIDDEN)
+    else:
+        allowed_id = {
+            "author": listing.author_id,
+            "participant": interaction.participant_id,
+            "system": None,
+        }[expected]
+        if actor_id != allowed_id:
+            raise ProblemError(FORBIDDEN)
     if interaction.status == InteractionStatus.PENDING:
         require_live(listing)
         if (
@@ -1204,6 +2095,14 @@ async def transition(  # noqa: PLR0912, PLR0913 - aggregate transition
         if target == InteractionStatus.ACCEPTED
         else None
     )
+    if completion and completion_method is not None:
+        interaction.completion_method = completion_method
+        interaction.completed_at = clock.now()
+        interaction.completion_weight = (
+            settings.rating_weight_no_meeting
+            if completion_method == CompletionMethod.NO_MEETING
+            else settings.rating_weight_qr
+        )
     if previous == InteractionStatus.ACCEPTED:
         # Reminders and the reservation belong to an accepted interaction only.
         await cancel_meeting_reminders(session, interaction.id)
@@ -1246,11 +2145,17 @@ async def transition(  # noqa: PLR0912, PLR0913 - aggregate transition
         await clear_waitlist(session, listing, "listing_completed")
     elif not claimed:
         listing.version += 1
-    record(session, listing, actor_id, "transition", previous, interaction)
+    record(
+        session,
+        listing,
+        actor_id,
+        action,
+        previous,
+        interaction,
+        details=details,
+    )
     if target == InteractionStatus.ACCEPTED:
-        await schedule_reservation(
-            session, listing, interaction, settings or get_settings()
-        )
+        await schedule_reservation(session, listing, interaction, settings)
     if released:
         offer_timeout, open_all_before = offer_timing(settings)
         await offer_next(
@@ -1309,6 +2214,118 @@ def validate_lesson_slot(
     if location is None:
         raise ProblemError(MEETING_PLACE_INVALID)
     return time, validate_place(location, settings), False
+
+
+def no_meeting_time(listing: Listing, interaction: Interaction) -> datetime | None:
+    """The agreed moment of an interaction completed without a meeting.
+
+    An online lesson uses its scheduled time. Help without an agreed meeting
+    has no scheduled moment yet, so the first consent becomes the agreed
+    server moment and the second participant confirms exactly that.
+    """
+    if listing.kind == "skill" and interaction.meeting is not None:
+        return interaction.meeting.scheduled_at
+    return None
+
+
+def require_no_meeting(listing: Listing, interaction: Interaction) -> None:
+    """Reject every interaction that cannot be confirmed without a meeting."""
+    if interaction.status == InteractionStatus.COMPLETED:
+        if interaction.without_meeting:
+            return
+        raise ProblemError(NO_MEETING_UNAVAILABLE)
+    if interaction.status != InteractionStatus.ACCEPTED:
+        raise ProblemError(NO_MEETING_UNAVAILABLE)
+    if listing.kind == "skill":
+        meeting = interaction.meeting
+        if meeting is None or not meeting.online or meeting.scheduled_at is None:
+            raise ProblemError(NO_MEETING_UNAVAILABLE)
+    elif listing.kind == "help":
+        # A help request may be done without a meeting; once a meeting has
+        # been proposed or scheduled, only its QR confirmation can complete it.
+        if interaction.meeting is not None:
+            raise ProblemError(NO_MEETING_UNAVAILABLE)
+    else:
+        raise ProblemError(NO_MEETING_UNAVAILABLE)
+
+
+async def no_meeting_confirmations(
+    session: AsyncSession, interaction: Interaction
+) -> list[NoMeetingConfirmation]:
+    """Both consents of the interaction, earliest first."""
+    return list(
+        await session.scalars(
+            select(NoMeetingConfirmation)
+            .where(NoMeetingConfirmation.interaction_id == interaction.id)
+            .order_by(NoMeetingConfirmation.created_at, NoMeetingConfirmation.id)
+        )
+    )
+
+
+async def confirm_no_meeting(
+    session: AsyncSession,
+    listing: Listing,
+    interaction: Interaction,
+    actor_id: UUID,
+    *,
+    settings: Settings | None = None,
+) -> list[NoMeetingConfirmation]:
+    """Record one participant's consent, completing the interaction on the second.
+
+    The caller locks the listing row, so consents, cancellation and the
+    completion are serialized: two simultaneous consents complete exactly
+    once, and a cancelled interaction is never completed.
+    """
+    require_no_meeting(listing, interaction)
+    if actor_id not in (listing.author_id, interaction.participant_id):
+        raise ProblemError(FORBIDDEN)
+    if interaction.status == InteractionStatus.COMPLETED:
+        return await no_meeting_confirmations(session, interaction)
+    confirmations = await no_meeting_confirmations(session, interaction)
+    if any(item.participant_id == actor_id for item in confirmations):
+        return confirmations
+    agreed_at = (
+        confirmations[0].agreed_at
+        if confirmations
+        else no_meeting_time(listing, interaction) or clock.now()
+    )
+    confirmation = NoMeetingConfirmation(
+        interaction_id=interaction.id,
+        participant_id=actor_id,
+        agreed_at=agreed_at,
+    )
+    session.add(confirmation)
+    await session.flush()
+    confirmations.append(confirmation)
+    details: dict[str, Any] = {
+        "method": CompletionMethod.NO_MEETING.value,
+        "agreed_at": agreed_at.isoformat(),
+        "confirmed_by": [str(item.participant_id) for item in confirmations],
+    }
+    if len(confirmations) >= NO_MEETING_CONFIRMATIONS:
+        await transition(
+            session,
+            listing,
+            interaction,
+            InteractionStatus.COMPLETED,
+            actor_id,
+            settings=settings,
+            completion_method=CompletionMethod.NO_MEETING,
+            action="no_meeting_completed",
+            details=details,
+        )
+    else:
+        record(
+            session,
+            listing,
+            actor_id,
+            "no_meeting_confirmed",
+            interaction.status,
+            interaction,
+            details=details,
+        )
+    await session.flush()
+    return confirmations
 
 
 def record_meeting(  # noqa: PLR0913, PLR0917 - event fields

@@ -8,6 +8,7 @@ import json
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime
+from decimal import Decimal
 from typing import Annotated, Any, Self
 from uuid import UUID
 
@@ -52,6 +53,7 @@ from campus.modules.listings.models import (
     PERMANENT_KINDS,
     Audience,
     Category,
+    CompletionMethod,
     Favorite,
     Interaction,
     InteractionStatus,
@@ -63,6 +65,8 @@ from campus.modules.listings.models import (
     ListingStatus,
     Meeting,
     MeetingStatus,
+    NoMeetingConfirmation,
+    PurchaseStage,
     Skill,
     SkillDirection,
     Visibility,
@@ -84,20 +88,25 @@ from campus.modules.listings.service import (
     MEETING_STALE,
     MEETING_STATE,
     OFFER_PENDING,
+    PURCHASE_CLOSED,
     RATE_LIMIT,
     STALE,
     TYPE_POLICIES,
     accept_lesson_option,
     active_offer,
     active_waitlist,
+    cancel_purchase,
     change_listing,
     claim_offer,
     clear_waitlist,
+    confirm_no_meeting,
     decline_offer,
     extend_reservation,
     join_waitlist,
     leave_waitlist,
     locked,
+    no_meeting_confirmations,
+    no_meeting_time,
     offer_timing,
     propose_lesson_counter,
     rate_limit,
@@ -105,6 +114,7 @@ from campus.modules.listings.service import (
     record_meeting,
     reject_pending,
     require_live,
+    require_no_meeting,
     schedule_meeting_reminders,
     transition,
     validate_lesson_slot,
@@ -232,6 +242,15 @@ class ListingOutput(BaseModel):
     event_location: str | None = None
     event_capacity: int | None = None
     remaining_places: int | None = None
+    purchase_unit_price: Decimal | None = Field(
+        default=None, description="Price of one unit of a group purchase."
+    )
+    purchase_min_units: int | None = None
+    purchase_max_units: int | None = None
+    purchase_taken_units: int = 0
+    purchase_fixed_units: int | None = None
+    purchase_collection_deadline: Instant | None = None
+    purchase_stage: PurchaseStage | None = None
     favorite: bool = Field(
         default=False, description="Whether the current user bookmarked it."
     )
@@ -362,11 +381,57 @@ class InteractionOutput(BaseModel):
         default=None,
         description="The item a participant offers for an exchange; null otherwise.",
     )
+    units: int | None = Field(
+        default=None, description="Units taken in a group purchase; null otherwise."
+    )
+    leave_requested_at: Instant | None = Field(
+        default=None,
+        description="When a participant asked to leave a fixed purchase.",
+    )
     meeting: MeetingOutput | None
     options: list[LessonOptionOutput] = Field(
         default_factory=list,
         description="Time options of a skill lesson; empty for other types.",
     )
+    completion_method: CompletionMethod | None = Field(
+        default=None,
+        description="How the interaction was completed; null until completion.",
+    )
+    completed_at: Instant | None = None
+    completion_weight: float | None = Field(
+        default=None,
+        description="Weight of a review of the completed interaction.",
+    )
+    without_meeting: bool = Field(
+        default=False,
+        description="Whether the interaction was completed by mutual confirmation.",
+    )
+
+
+class NoMeetingConfirmationOutput(BaseModel):
+    """One participant's consent to complete the interaction without a meeting."""
+
+    participant_id: UUID
+    confirmed_at: Instant
+
+
+class NoMeetingOutput(BaseModel):
+    """Mutual confirmation state of an online lesson or help interaction."""
+
+    listing_id: UUID
+    interaction_id: UUID
+    status: InteractionStatus
+    method: CompletionMethod = CompletionMethod.NO_MEETING
+    agreed_at: Instant | None = Field(
+        description="Agreed server moment; null before the first consent of help."
+    )
+    confirmed_by_me: bool
+    confirmed_by_other: bool
+    confirmations: list[NoMeetingConfirmationOutput]
+    completed: bool
+    completed_at: Instant | None
+    completion_method: CompletionMethod | None
+    rating_weight: float | None
 
 
 class ExchangeOfferList(BaseModel):
@@ -382,6 +447,7 @@ class ParticipationListing(BaseModel):
     title: str
     status: ListingStatus
     city_timezone: str
+    purchase_unit_price: Decimal | None = None
 
 
 class ParticipationOutput(InteractionOutput):
@@ -469,6 +535,12 @@ class WaitlistEntryOutput(BaseModel):
     offered_at: Instant | None
     offer_expires_at: Instant | None
     interaction_id: UUID | None
+    units: int | None = Field(
+        default=None, description="Requested units of a purchase queue position."
+    )
+    offer_units: int | None = Field(
+        default=None, description="Units held by the active purchase offer."
+    )
     created_at: Instant
 
 
@@ -487,6 +559,8 @@ def waitlist_output(entry: WaitlistEntry, position: int | None) -> WaitlistEntry
         offered_at=entry.offered_at,
         offer_expires_at=entry.offer_expires_at,
         interaction_id=entry.interaction_id,
+        units=entry.units,
+        offer_units=entry.offer_units,
         created_at=entry.created_at,
     )
 
@@ -1365,6 +1439,12 @@ async def cancel_listing(
         raise ProblemError(FORBIDDEN)
     if listing.status != ListingStatus.DRAFT:
         require_live(listing)
+    if listing.kind == "purchase":
+        if listing.purchase_stage != PurchaseStage.COLLECTING:
+            raise ProblemError(PURCHASE_CLOSED)
+        await cancel_purchase(session, listing, "listing_cancelled")
+        await session.flush()
+        return ListingOutput.model_validate(listing)
     change_listing(
         session, listing, ListingStatus.CANCELLED, principal.user_id, "cancelled"
     )
@@ -1790,6 +1870,114 @@ async def transition_interaction(  # noqa: PLR0913, PLR0917 - route fields
     return InteractionOutput.model_validate(interaction)
 
 
+async def no_meeting_context(
+    session: DbSession,
+    listing_id: UUID,
+    interaction_id: UUID,
+    actor_id: UUID,
+    *,
+    lock: bool,
+) -> tuple[Listing, Interaction]:
+    """Load the interaction, its listing and check that the actor participates."""
+    listing = (
+        await locked(session, listing_id)
+        if lock
+        else await session.get(Listing, listing_id)
+    )
+    if listing is None:
+        raise ProblemError(NOT_FOUND)
+    interaction = await session.get(Interaction, interaction_id)
+    if interaction is None or interaction.listing_id != listing.id:
+        raise ProblemError(NOT_FOUND)
+    if actor_id not in (listing.author_id, interaction.participant_id):
+        raise ProblemError(FORBIDDEN)
+    return listing, interaction
+
+
+def no_meeting_output(
+    listing: Listing,
+    interaction: Interaction,
+    confirmations: list[NoMeetingConfirmation],
+    actor_id: UUID,
+) -> NoMeetingOutput:
+    other_id = (
+        interaction.participant_id
+        if actor_id == listing.author_id
+        else listing.author_id
+    )
+    confirmed = {item.participant_id for item in confirmations}
+    agreed_at = (
+        confirmations[0].agreed_at
+        if confirmations
+        else no_meeting_time(listing, interaction)
+    )
+    return NoMeetingOutput(
+        listing_id=listing.id,
+        interaction_id=interaction.id,
+        status=InteractionStatus(interaction.status),
+        agreed_at=agreed_at,
+        confirmed_by_me=actor_id in confirmed,
+        confirmed_by_other=other_id in confirmed,
+        confirmations=[
+            NoMeetingConfirmationOutput(
+                participant_id=item.participant_id,
+                confirmed_at=item.created_at,
+            )
+            for item in confirmations
+        ],
+        completed=interaction.status == InteractionStatus.COMPLETED,
+        completed_at=interaction.completed_at,
+        completion_method=(
+            CompletionMethod(interaction.completion_method)
+            if interaction.completion_method is not None
+            else None
+        ),
+        rating_weight=interaction.completion_weight,
+    )
+
+
+@router.get("/{listing_id}/interactions/{interaction_id}/no-meeting")
+async def no_meeting_state(
+    listing_id: UUID,
+    interaction_id: UUID,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> NoMeetingOutput:
+    """Both consents and the result of a no-meeting completion."""
+    listing, interaction = await no_meeting_context(
+        session, listing_id, interaction_id, principal.user_id, lock=False
+    )
+    require_no_meeting(listing, interaction)
+    return no_meeting_output(
+        listing,
+        interaction,
+        await no_meeting_confirmations(session, interaction),
+        principal.user_id,
+    )
+
+
+@router.post("/{listing_id}/interactions/{interaction_id}/no-meeting/confirmations")
+async def confirm_without_meeting(
+    listing_id: UUID,
+    interaction_id: UUID,
+    request: Request,
+    session: DbSession,
+    principal: ProfiledUser,
+) -> NoMeetingOutput:
+    """Confirm the interaction without a meeting; the second consent completes it."""
+    listing, interaction = await no_meeting_context(
+        session, listing_id, interaction_id, principal.user_id, lock=True
+    )
+    confirmations = await confirm_no_meeting(
+        session,
+        listing,
+        interaction,
+        principal.user_id,
+        settings=request.app.state.settings,
+    )
+    return no_meeting_output(listing, interaction, confirmations, principal.user_id)
+
+
 def other_participant(
     listing: Listing, interaction: Interaction, actor_id: UUID
 ) -> UUID:
@@ -2142,6 +2330,13 @@ async def interaction_events(  # noqa: PLR0913, PLR0917 - request dependencies
     )
 
 
+class WaitlistJoinInput(BaseModel):
+    """A purchase queue position holds the units the member wants."""
+
+    model_config = ConfigDict(extra="forbid")
+    units: int | None = Field(default=None, ge=1)
+
+
 def check_participant(listing: Listing, user: User) -> None:
     """Reject the author and roles that cannot respond to this audience."""
     if user.id == listing.author_id:
@@ -2160,6 +2355,7 @@ async def join_listing_waitlist(
     listing_id: UUID,
     session: DbSession,
     principal: ProfiledUser,
+    data: WaitlistJoinInput | None = None,
 ) -> WaitlistEntryOutput:
     """Take the last place of the queue; only occupied listings have one."""
     listing = await locked(session, listing_id)
@@ -2170,7 +2366,9 @@ async def join_listing_waitlist(
     require_live(listing)
     if listing.status not in (ListingStatus.ACTIVE, ListingStatus.BUSY):
         raise ProblemError(CONFLICT)
-    entry = await join_waitlist(session, listing, user)
+    entry = await join_waitlist(
+        session, listing, user, units=data.units if data is not None else None
+    )
     await session.flush()
     return await own_waitlist_output(session, entry)
 

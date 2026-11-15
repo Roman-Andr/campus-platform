@@ -18,6 +18,12 @@ class WaitlistEntryOutput {
     required this.offerExpiresAt,
     required this.interactionId,
 
+    /// Requested units of a purchase queue position.
+    this.units,
+
+    /// Units held by the active purchase offer.
+    this.offerUnits,
+
     /// RFC 3339 instant with an explicit offset; returned in UTC.
     required this.createdAt,
     this.additionalProperties = const {},
@@ -51,6 +57,16 @@ class WaitlistEntryOutput {
           ? null
           : DateTime.parse(json["offer_expires_at"] as String).toUtc(),
       interactionId: json["interaction_id"] as String?,
+      units: json.containsKey("units")
+          ? json["units"] == null
+                ? null
+                : _readJsonInteger(json["units"])
+          : null,
+      offerUnits: json.containsKey("offer_units")
+          ? json["offer_units"] == null
+                ? null
+                : _readJsonInteger(json["offer_units"])
+          : null,
       createdAt: DateTime.parse(json["created_at"] as String).toUtc(),
       additionalProperties: {
         for (final entry in json.entries)
@@ -79,6 +95,12 @@ class WaitlistEntryOutput {
 
   final String? interactionId;
 
+  /// Requested units of a purchase queue position.
+  final int? units;
+
+  /// Units held by the active purchase offer.
+  final int? offerUnits;
+
   /// RFC 3339 instant with an explicit offset; returned in UTC.
   final DateTime createdAt;
 
@@ -92,6 +114,8 @@ class WaitlistEntryOutput {
     "offered_at",
     "offer_expires_at",
     "interaction_id",
+    "units",
+    "offer_units",
     "created_at",
   };
 
@@ -109,6 +133,8 @@ class WaitlistEntryOutput {
     "offered_at": this.offeredAt?.toUtc().toIso8601String(),
     "offer_expires_at": this.offerExpiresAt?.toUtc().toIso8601String(),
     "interaction_id": this.interactionId,
+    if (this.units != null) "units": this.units,
+    if (this.offerUnits != null) "offer_units": this.offerUnits,
     "created_at": this.createdAt.toUtc().toIso8601String(),
   };
 }

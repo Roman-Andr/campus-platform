@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 01:29+0300\n"
+"POT-Creation-Date: 2026-11-15 03:10+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -17,12 +17,18 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
+msgid "A chat must have two different members."
+msgstr "В чате должно быть два разных участника."
+
 #, python-brace-format
 msgid "A lesson has from {min} to {max} time options."
 msgstr "В занятии должно быть от {min} до {max} вариантов времени."
 
 msgid "A meeting time and place were proposed."
 msgstr "Второй участник предложил время и место встречи."
+
+msgid "A participant asks to leave the purchase."
+msgstr "Участник просит выйти из закупки."
 
 msgid ""
 "A place in the queue is available for you. Confirm it before the timer "
@@ -31,8 +37,18 @@ msgstr ""
 "Для вас освободилось место в очереди. Подтвердите его до истечения "
 "таймера."
 
+msgid "Alumni and former employees can write only in existing chats."
+msgstr "Выпускники и бывшие сотрудники могут писать только в существующих чатах."
+
 msgid "An event or return deadline is approaching."
 msgstr "Приближается мероприятие или срок возврата."
+
+#, python-brace-format
+msgid "Another complaint reason already uses the code {code}."
+msgstr "Другой причиной жалобы уже используется код {code}."
+
+msgid "Ask the organiser before leaving the purchase."
+msgstr "Попросите организатора перед выходом из закупки."
 
 #, python-brace-format
 msgid "At most {max} skills."
@@ -62,8 +78,14 @@ msgstr "Канал недоступен"
 msgid "Chat not available"
 msgstr "Чат недоступен"
 
+msgid "Chat not found"
+msgstr "Чат не найден"
+
 msgid "Choose a listing category."
 msgstr "Выберите категорию объявления."
+
+msgid "Choose a published version of the community rules."
+msgstr "Выберите опубликованную версию правил сообщества."
 
 msgid "Client version missing"
 msgstr "Не указана версия клиента"
@@ -80,7 +102,7 @@ msgid "Current documents must be accepted"
 msgstr "Необходимо принять актуальные документы"
 
 msgid "Describe the item you offer."
-msgstr "Опишите вещь, которую вы предлагаете."
+msgstr "Опишите вещь, которую предлагаете."
 
 msgid "E-mail address already in use"
 msgstr "Адрес электронной почты уже используется"
@@ -142,6 +164,12 @@ msgstr "Неверное время встречи"
 msgid "Invalid offer"
 msgstr "Неверное предложение"
 
+msgid "Invalid purchase deadline"
+msgstr "Неверный дедлайн сбора закупки"
+
+msgid "Invalid purchase volume"
+msgstr "Неверный объём закупки"
+
 msgid "Invalid quiet hours"
 msgstr "Неверные параметры тихих часов"
 
@@ -154,8 +182,14 @@ msgstr "Недействительный токен обновления"
 msgid "Invalid request"
 msgstr "Неверные данные запроса"
 
+msgid "Invalid rules clause"
+msgstr "Неверный пункт правил"
+
 msgid "Invalid sign-in code"
 msgstr "Неверный код входа"
+
+msgid "Leave the purchase directly while it is collecting."
+msgstr "Выйти из закупки можно напрямую на этапе сбора."
 
 msgid "Leave the queue before joining it again."
 msgstr "Выйдите из очереди, чтобы встать в неё снова."
@@ -242,8 +276,25 @@ msgstr "Такого города-кампуса нет."
 msgid "No such skill tag."
 msgstr "Такого навыка нет в справочнике."
 
+msgid "Not enough units left."
+msgstr "Не хватает свободных единиц."
+
 msgid "Not found"
 msgstr "Не найдено"
+
+msgid ""
+"Only an accepted online lesson or a help interaction without an agreed "
+"meeting can be completed this way."
+msgstr ""
+"Так можно завершить только принятое онлайн-занятие или помощь без "
+"назначенной встречи."
+
+msgid "Only the composition exchange is available at this stage."
+msgstr "На этом этапе доступны только действия с составом закупки."
+
+#, python-brace-format
+msgid "Only {available} units are available."
+msgstr "Доступно только {available} ед."
 
 msgid "Photo unavailable"
 msgstr "Фото недоступно"
@@ -262,6 +313,10 @@ msgstr "История реального времени устарела"
 
 msgid "Realtime is unavailable"
 msgstr "Реальное время недоступно"
+
+#, python-brace-format
+msgid "Reload the complaint reason. Its current version is {version}."
+msgstr "Обновите причину жалобы. Её текущая версия: {version}."
 
 #, python-brace-format
 msgid "Reload the interaction. The current meeting version is {version}."
@@ -317,8 +372,38 @@ msgstr "Лимит мест не может быть меньше числа з�
 msgid "The channel name is not a Campus realtime channel."
 msgstr "Имя канала не является каналом реального времени Кампуса."
 
+msgid "The chat does not exist or you are not a member."
+msgstr "Чат не существует или вы не его участник."
+
 msgid "The client platform or version is not recognized."
 msgstr "Платформа или версия клиента не распознаны."
+
+msgid ""
+"The collection deadline must be in the future and within the listing "
+"lifetime."
+msgstr "Дедлайн сбора должен быть в будущем и не позже срока жизни объявления."
+
+msgid "The collection of the purchase ends soon."
+msgstr "Сбор закупки скоро завершится."
+
+msgid "The complaint reason code is already used"
+msgstr "Код причины жалобы уже используется"
+
+msgid "The complaint reason was edited"
+msgstr "Причина жалобы была изменена"
+
+msgid "The composition is fixed."
+msgstr "Состав закупки зафиксирован."
+
+msgid "The composition is not fixed yet."
+msgstr "Состав закупки ещё не зафиксирован."
+
+msgid "The conditions of the purchase have changed."
+msgstr "Условия закупки изменились."
+
+#, python-brace-format
+msgid "The current volume is {taken} units."
+msgstr "Текущий объём — {taken} ед."
 
 msgid "The event must start in the future and end after its start."
 msgstr "Мероприятие должно начинаться в будущем и заканчиваться после начала."
@@ -335,6 +420,9 @@ msgstr ""
 
 msgid "The interaction must be accepted and have a current meeting proposal."
 msgstr "Взаимодействие должно быть принято и иметь текущее предложение встречи."
+
+msgid "The listing and the interaction do not belong together."
+msgstr "Объявление и взаимодействие не относятся друг к другу."
 
 msgid "The listing is closed; you are no longer in its queue."
 msgstr "Объявление закрыто; вы больше не в его очереди."
@@ -356,6 +444,9 @@ msgstr ""
 msgid "The listing was edited."
 msgstr "Объявление было изменено."
 
+msgid "The maximum is below the taken volume."
+msgstr "Максимальный объём меньше уже занятого."
+
 msgid "The meeting cannot be changed."
 msgstr "Встречу нельзя изменить."
 
@@ -374,6 +465,17 @@ msgstr "Предложение встречи изменилось."
 msgid "The meeting time must be in the future."
 msgstr "Время встречи должно быть в будущем."
 
+msgid "The message identifier is already used."
+msgstr "Идентификатор сообщения уже использован."
+
+msgid "The message text is empty or too long."
+msgstr "Текст сообщения пуст или слишком длинный."
+
+msgid "The minimum must not exceed the maximum, and both must be positive."
+msgstr ""
+"Минимум не должен превышать максимум, и оба значения должны быть "
+"положительными."
+
 #, python-brace-format
 msgid "The name can be changed once in {days} days; see available_at."
 msgstr "Имя можно менять раз в {days} дней; ближайшая дата — в available_at."
@@ -388,6 +490,9 @@ msgstr "Тип уведомления {type} не поддерживается."
 msgid "The offer of a place has expired."
 msgstr "Срок предложения места истёк."
 
+msgid "The organiser has decided on your request to leave."
+msgstr "Организатор принял решение по вашему запросу на выход."
+
 msgid "The page cursor is invalid or belongs to another list; start over."
 msgstr "Курсор страницы неверен или относится к другому списку; начните сначала."
 
@@ -396,6 +501,15 @@ msgstr "Фото ещё обрабатывается, устарело или у
 
 msgid "The place is offered to another participant."
 msgstr "Место предложено другому участнику."
+
+msgid "The purchase composition is fixed."
+msgstr "Состав закупки зафиксирован."
+
+msgid "The purchase is cancelled."
+msgstr "Закупка отменена."
+
+msgid "The purchase is no longer collecting."
+msgstr "Закупка больше не на этапе сбора."
 
 msgid "The realtime server is temporarily unavailable. Try again later."
 msgstr "Сервер реального времени временно недоступен. Повторите попытку позже."
@@ -416,6 +530,9 @@ msgstr "Запрошенный ресурс не существует."
 msgid "The resource does not support this method."
 msgstr "Ресурс не поддерживает этот метод."
 
+msgid "The same client message identifier carries different content."
+msgstr "Один и тот же идентификатор сообщения клиента передан с другим содержимым."
+
 msgid "There is an update to your listing."
 msgstr "Появилось обновление вашего объявления."
 
@@ -431,6 +548,9 @@ msgstr "Это поле недопустимо."
 msgid "This field is required."
 msgstr "Обязательное поле."
 
+msgid "This interaction cannot be completed without a meeting."
+msgstr "Это взаимодействие нельзя завершить без встречи."
+
 msgid "This listing has no queue."
 msgstr "У этого объявления нет очереди."
 
@@ -444,6 +564,9 @@ msgstr ""
 
 msgid "Too many listing actions. Try again later."
 msgstr "Слишком много действий с объявлениями. Попробуйте позже."
+
+msgid "Too many messages. Try again later."
+msgstr "Слишком много сообщений. Попробуйте позже."
 
 msgid "Too many requests"
 msgstr "Слишком много запросов"
@@ -466,6 +589,12 @@ msgstr "Дождитесь решения автора."
 msgid "Wait for the offer timer to end or join the queue."
 msgstr "Дождитесь окончания таймера предложения или встаньте в очередь."
 
+msgid "You already asked to leave the purchase."
+msgstr "Вы уже попросили выйти из закупки."
+
+msgid "You already joined the purchase."
+msgstr "Вы уже участвуете в закупке."
+
 msgid "You already offered an item."
 msgstr "Вы уже предложили вещь."
 
@@ -486,6 +615,9 @@ msgstr "У вас новое уведомление."
 
 msgid "You have no offer of a place."
 msgstr "У вас нет предложения места."
+
+msgid "You have no pending request to leave."
+msgstr "У вас нет активного запроса на выход."
 
 msgid "Your Campus e-mail confirmation code"
 msgstr "Ваш код подтверждения почты в Кампус"

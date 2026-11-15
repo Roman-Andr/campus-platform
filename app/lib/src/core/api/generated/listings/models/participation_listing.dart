@@ -10,6 +10,7 @@ class ParticipationListing {
     required this.title,
     required this.status,
     required this.cityTimezone,
+    this.purchaseUnitPrice,
     this.additionalProperties = const {},
   });
 
@@ -20,6 +21,9 @@ class ParticipationListing {
         title: json["title"] as String,
         status: ListingStatus.fromJson(json["status"]),
         cityTimezone: json["city_timezone"] as String,
+        purchaseUnitPrice: json.containsKey("purchase_unit_price")
+            ? json["purchase_unit_price"] as String?
+            : null,
         additionalProperties: {
           for (final entry in json.entries)
             if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
@@ -36,12 +40,15 @@ class ParticipationListing {
 
   final String cityTimezone;
 
+  final String? purchaseUnitPrice;
+
   static const _knownKeys = <String>{
     "id",
     "kind",
     "title",
     "status",
     "city_timezone",
+    "purchase_unit_price",
   };
 
   final Map<String, Object?> additionalProperties;
@@ -54,5 +61,7 @@ class ParticipationListing {
     "title": this.title,
     "status": this.status.toJson(),
     "city_timezone": this.cityTimezone,
+    if (this.purchaseUnitPrice != null)
+      "purchase_unit_price": this.purchaseUnitPrice,
   };
 }
