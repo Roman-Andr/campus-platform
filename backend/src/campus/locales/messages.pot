@@ -14,6 +14,17 @@ msgstr ""
 msgid "A meeting time and place were proposed."
 msgstr ""
 
+msgid "A no-show can be marked only 24 hours after the agreed meeting time."
+msgstr ""
+
+msgid "A no-show cannot be marked here"
+msgstr ""
+
+msgid ""
+"A no-show is marked for a personal meeting of a giveaway, exchange, skill"
+" or help interaction, or for an event."
+msgstr ""
+
 msgid "A participant asks to leave the purchase."
 msgstr ""
 
@@ -139,6 +150,10 @@ msgstr ""
 msgid "Describe the item you offer."
 msgstr ""
 
+#, python-brace-format
+msgid "Describe the reason for the no-show in 1 to {max} characters."
+msgstr ""
+
 msgid "Device key conflict"
 msgstr ""
 
@@ -209,6 +224,9 @@ msgid "Invalid meeting place"
 msgstr ""
 
 msgid "Invalid meeting time"
+msgstr ""
+
+msgid "Invalid no-show reason"
 msgstr ""
 
 msgid "Invalid offer"
@@ -329,6 +347,9 @@ msgstr ""
 msgid "No such skill tag."
 msgstr ""
 
+msgid "No-show marking is closed"
+msgstr ""
+
 msgid "Not enough units left."
 msgstr ""
 
@@ -338,12 +359,24 @@ msgstr ""
 msgid "Not registered"
 msgstr ""
 
+msgid "Nothing to dispute"
+msgstr ""
+
+msgid "Only a participant registered for the event can vote."
+msgstr ""
+
 msgid "Only a participant registered for this event can be marked."
+msgstr ""
+
+msgid "Only a published event with an end time accepts votes."
 msgstr ""
 
 msgid ""
 "Only an accepted online lesson or a help interaction without an agreed "
 "meeting can be completed this way."
+msgstr ""
+
+msgid "Only an accepted or a marked 'did not take place' interaction replies."
 msgstr ""
 
 msgid "Only an event has attendance."
@@ -352,10 +385,19 @@ msgstr ""
 msgid "Only the composition exchange is available at this stage."
 msgstr ""
 
+msgid "Only the organiser and the registered participants see the event result."
+msgstr ""
+
+msgid "Only the organiser can dispute the no-show of their event."
+msgstr ""
+
 msgid "Only the organiser of this event can do this."
 msgstr ""
 
 msgid "Only the two participants of the interaction can confirm it."
+msgstr ""
+
+msgid "Only the two participants of the interaction can mark a no-show."
 msgstr ""
 
 msgid "Only the two participants of the interaction can use its code."
@@ -390,6 +432,9 @@ msgid "QR code cannot complete this stage"
 msgstr ""
 
 msgid "QR code expired"
+msgstr ""
+
+msgid "QR code formed after the no-show"
 msgstr ""
 
 msgid "QR code is from the future"
@@ -532,6 +577,12 @@ msgstr ""
 msgid "The device key is unknown, revoked or belongs to another user."
 msgstr ""
 
+msgid "The dispute is closed"
+msgstr ""
+
+msgid "The event cannot be judged"
+msgstr ""
+
 msgid "The event must start in the future and end after its start."
 msgstr ""
 
@@ -541,6 +592,9 @@ msgstr ""
 msgid ""
 "The help request must expire in the future and within the listing "
 "lifetime."
+msgstr ""
+
+msgid "The interaction cannot be marked"
 msgstr ""
 
 msgid ""
@@ -555,6 +609,11 @@ msgid "The interaction must be accepted and have a current meeting proposal."
 msgstr ""
 
 msgid "The interaction was completed by another method."
+msgstr ""
+
+msgid ""
+"The interaction was marked 'did not take place' before this QR code was "
+"formed; only a code formed earlier lifts the mark."
 msgstr ""
 
 msgid "The listing and the interaction do not belong together."
@@ -596,6 +655,9 @@ msgstr ""
 msgid "The meeting proposal has changed."
 msgstr ""
 
+msgid "The meeting time is still recent"
+msgstr ""
+
 msgid "The meeting time must be in the future."
 msgstr ""
 
@@ -613,6 +675,14 @@ msgstr ""
 
 #, python-brace-format
 msgid "The name can be changed once in {days} days; see available_at."
+msgstr ""
+
+msgid "The no-show can be disputed only within 7 days after it was charged."
+msgstr ""
+
+msgid ""
+"The no-show window has passed: after 7 days the interaction becomes 'did "
+"not take place' without a no-show."
 msgstr ""
 
 msgid "The notification settings were changed."
@@ -639,6 +709,9 @@ msgid "The organiser cancelled the purchase: {reason}"
 msgstr ""
 
 msgid "The organiser has decided on your request to leave."
+msgstr ""
+
+msgid "The organiser has no charged no-show at this event yet."
 msgstr ""
 
 msgid "The page cursor is invalid or belongs to another list; start over."
@@ -777,6 +850,12 @@ msgid "Use RFC 3339 with an explicit UTC offset."
 msgstr ""
 
 msgid "Use a wall time without a UTC offset."
+msgstr ""
+
+msgid "Vote that the event did not take place within 7 days after it ended."
+msgstr ""
+
+msgid "Voting is closed"
 msgstr ""
 
 msgid "Wait for the author's decision."

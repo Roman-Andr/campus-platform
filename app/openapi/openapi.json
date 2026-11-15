@@ -21554,6 +21554,785 @@
           }
         }
       }
+    },
+    "/api/v1/listings/{listing_id}/interactions/{interaction_id}/no-show": {
+      "post": {
+        "tags": [
+          "No-shows"
+        ],
+        "summary": "Mark Interaction No Show",
+        "description": "Mark that the meeting did not take place, or answer a mutual allegation.\n\nA participant may mark the other one no earlier than 24 hours after the\nagreed meeting and no later than 7 days, always with a reason. If both\nparticipants mark each other, one dispute is opened and neither no-show\ncounts until the moderator decides. A repeat by the same participant is a\nno-op.",
+        "operationId": "mark_interaction_no_show",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "interaction_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Interaction Id"
+            }
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoShowReasonInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoShowOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "No-shows"
+        ],
+        "summary": "Interaction No Show",
+        "description": "The current result of the interaction and the basis of every mark.",
+        "operationId": "interaction_no_show",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "interaction_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Interaction Id"
+            }
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoShowOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/listings/{listing_id}/event/no-show/votes": {
+      "post": {
+        "tags": [
+          "Event no-shows"
+        ],
+        "summary": "Vote Event",
+        "description": "Vote that an event did not take place.\n\nA registered participant may vote during the 7 days after the event.\nRepeating the vote changes nothing. At a third of the registrations,\nrounded up, the organiser receives a no-show and the automatic\nparticipant no-shows are lifted; the organiser can dispute it (#94).",
+        "operationId": "vote_event",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventNoShowOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/listings/{listing_id}/event/no-show/dispute": {
+      "post": {
+        "tags": [
+          "Event no-shows"
+        ],
+        "summary": "Dispute Event No Show Endpoint",
+        "description": "Dispute the organiser's no-show charged by the event vote.\n\nOnly the organiser may do this, within 7 days after the charge. The\nno-show stops counting until the moderator decides (#94); repeating the\nrequest returns the same open case.",
+        "operationId": "dispute_event_no_show_endpoint",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Unique per operation; a repeat with the same key within 24 hours returns the original response."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventNoShowOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/listings/{listing_id}/event/no-show": {
+      "get": {
+        "tags": [
+          "Event no-shows"
+        ],
+        "summary": "Event No Show",
+        "description": "Votes, the threshold and the marks of an event.",
+        "operationId": "event_no_show",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventNoShowOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -23062,6 +23841,15 @@
         "title": "DeviceKeyOutput",
         "description": "A registered key; it never contains private material."
       },
+      "DisputeStatus": {
+        "type": "string",
+        "enum": [
+          "open",
+          "resolved"
+        ],
+        "title": "DisputeStatus",
+        "description": "Open cases wait for a moderator decision (#94)."
+      },
       "DocumentKind": {
         "type": "string",
         "enum": [
@@ -23377,6 +24165,135 @@
           "capacity"
         ],
         "title": "EventInput"
+      },
+      "EventNoShowOutput": {
+        "properties": {
+          "listing_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Listing Id"
+          },
+          "organizer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Organizer Id"
+          },
+          "registered": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Registered"
+          },
+          "votes": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Votes"
+          },
+          "threshold": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Threshold",
+            "description": "ceil(registered / 3)."
+          },
+          "not_held": {
+            "type": "boolean",
+            "title": "Not Held",
+            "description": "Whether the organiser is already charged."
+          },
+          "organizer_mark": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NoShowMarkOutput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dispute": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NoShowDisputeOutput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dispute_deadline": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC.",
+            "title": "Dispute Deadline"
+          },
+          "participant_marks": {
+            "items": {
+              "$ref": "#/components/schemas/NoShowMarkOutput"
+            },
+            "type": "array",
+            "title": "Participant Marks"
+          },
+          "vote_opens_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC.",
+            "title": "Vote Opens At"
+          },
+          "vote_closes_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC.",
+            "title": "Vote Closes At"
+          },
+          "can_vote": {
+            "type": "boolean",
+            "title": "Can Vote"
+          },
+          "can_dispute": {
+            "type": "boolean",
+            "title": "Can Dispute",
+            "description": "Whether the requester may dispute the organiser's no-show now."
+          },
+          "voted": {
+            "type": "boolean",
+            "title": "Voted",
+            "description": "Whether the requester has already voted."
+          },
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC."
+          }
+        },
+        "type": "object",
+        "required": [
+          "listing_id",
+          "organizer_id",
+          "registered",
+          "votes",
+          "threshold",
+          "not_held",
+          "organizer_mark",
+          "dispute",
+          "dispute_deadline",
+          "participant_marks",
+          "vote_opens_at",
+          "vote_closes_at",
+          "can_vote",
+          "can_dispute",
+          "voted",
+          "server_time"
+        ],
+        "title": "EventNoShowOutput"
       },
       "EventOutput": {
         "properties": {
@@ -24996,6 +25913,258 @@
         "title": "NoMeetingOutput",
         "description": "Mutual confirmation state of an online lesson or help interaction."
       },
+      "NoShowDisputeOutput": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DisputeStatus"
+          },
+          "opened_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Opened At",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC."
+          },
+          "resolved_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC.",
+            "title": "Resolved At"
+          },
+          "resolution": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Resolution"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "opened_at",
+          "resolved_at",
+          "resolution"
+        ],
+        "title": "NoShowDisputeOutput"
+      },
+      "NoShowKind": {
+        "type": "string",
+        "enum": [
+          "personal",
+          "event_auto",
+          "event_vote"
+        ],
+        "title": "NoShowKind",
+        "description": "Where a no-show of one participant comes from.\n\n``PERSONAL`` is an allegation of one participant against the other about\nan agreed meeting; ``EVENT_AUTO`` is the automatic penalty of a\nregistered participant the organiser did not mark; ``EVENT_VOTE`` is the\npenalty of an event organiser after at least a third of the registered\nparticipants said the event did not take place."
+      },
+      "NoShowMarkOutput": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/NoShowKind"
+          },
+          "status": {
+            "$ref": "#/components/schemas/NoShowStatus"
+          },
+          "reporter_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "title": "Reporter Id",
+            "description": "Who marked the no-show; null for an automatic rule."
+          },
+          "subject_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Subject Id",
+            "description": "The participant the no-show is charged to."
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Reason"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC."
+          },
+          "disputed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC.",
+            "title": "Disputed At"
+          },
+          "removed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC.",
+            "title": "Removed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "reporter_id",
+          "subject_id",
+          "reason",
+          "created_at",
+          "disputed_at",
+          "removed_at"
+        ],
+        "title": "NoShowMarkOutput"
+      },
+      "NoShowOutput": {
+        "properties": {
+          "listing_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Listing Id"
+          },
+          "interaction_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Interaction Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InteractionStatus"
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "unmarked",
+              "marked",
+              "automatic",
+              "mutual_dispute",
+              "completed"
+            ],
+            "title": "Basis",
+            "description": "How the current state was reached: no mark yet, a participant's allegation, the automatic 7-day rule, mutual allegations under dispute, or a confirmed completion."
+          },
+          "marks": {
+            "items": {
+              "$ref": "#/components/schemas/NoShowMarkOutput"
+            },
+            "type": "array",
+            "title": "Marks"
+          },
+          "dispute": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NoShowDisputeOutput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "no_show_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the interaction became 'did not take place'.",
+            "title": "No Show At"
+          },
+          "mark_from": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "The first moment a no-show may be marked.",
+            "title": "Mark From"
+          },
+          "auto_after": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When an unmarked interaction becomes 'did not take place' without a no-show.",
+            "title": "Auto After"
+          },
+          "can_mark": {
+            "type": "boolean",
+            "title": "Can Mark",
+            "description": "Whether the requesting participant may mark a no-show now."
+          },
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC."
+          }
+        },
+        "type": "object",
+        "required": [
+          "listing_id",
+          "interaction_id",
+          "status",
+          "basis",
+          "marks",
+          "dispute",
+          "no_show_at",
+          "mark_from",
+          "auto_after",
+          "can_mark",
+          "server_time"
+        ],
+        "title": "NoShowOutput"
+      },
+      "NoShowReasonInput": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Reason",
+            "description": "Why the meeting did not take place. The configured limit is applied by the domain and reported as a problem."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "NoShowReasonInput"
+      },
+      "NoShowStatus": {
+        "type": "string",
+        "enum": [
+          "counted",
+          "disputed",
+          "removed"
+        ],
+        "title": "NoShowStatus",
+        "description": "Whether a no-show counts, is suspended by a dispute or was removed."
+      },
       "NotificationOutput": {
         "properties": {
           "id": {
@@ -26064,6 +27233,13 @@
               "event_attendance_not_registered",
               "event_attendance_unavailable",
               "event_capacity_conflict",
+              "event_no_show_dispute_closed",
+              "event_no_show_dispute_forbidden",
+              "event_no_show_dispute_unavailable",
+              "event_no_show_forbidden",
+              "event_no_show_not_registered",
+              "event_no_show_unavailable",
+              "event_no_show_vote_closed",
               "event_time_invalid",
               "exchange_offer_duplicate",
               "exchange_offer_invalid",
@@ -26109,6 +27285,12 @@
               "meeting_time_invalid",
               "method_not_allowed",
               "name_change_too_soon",
+              "no_show_closed",
+              "no_show_forbidden",
+              "no_show_reason_invalid",
+              "no_show_state_conflict",
+              "no_show_too_early",
+              "no_show_unavailable",
               "not_found",
               "notification_chat_forbidden",
               "notification_quiet_hours_invalid",
@@ -26117,6 +27299,7 @@
               "photo_unavailable",
               "profile_incomplete",
               "qr_acceptance_unknown",
+              "qr_after_no_show",
               "qr_already_completed",
               "qr_already_confirmed",
               "qr_before_acceptance",

@@ -135,6 +135,7 @@ async def test_interaction_service_matrix(
         ("accepted", "cancelled"): "participant",
         ("accepted", "completed"): "system",
         ("accepted", "no_show"): "system",
+        ("no_show", "completed"): "system",
     }
     role = edges.get((source, target))
     actor = {

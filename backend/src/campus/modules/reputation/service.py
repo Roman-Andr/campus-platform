@@ -33,11 +33,15 @@ from campus.modules.listings import (
     Listing,
     accepted_at,
     locked,
+    no_showed_at,
     transition,
 )
+from campus.modules.moderation import Dispute, DisputeStatus
 from campus.modules.reputation.models import (
     ConfirmationCode,
     DeviceKey,
+    NoShowMark,
+    NoShowStatus,
     QrMode,
     QrScan,
 )
@@ -137,6 +141,15 @@ QR_ALREADY_COMPLETED = ProblemType(
     409,
     N_("Interaction already completed"),
     N_("The interaction was completed by another method."),
+)
+QR_AFTER_NO_SHOW = ProblemType(
+    "qr_after_no_show",
+    409,
+    N_("QR code formed after the no-show"),
+    N_(
+        "The interaction was marked 'did not take place' before this QR code"
+        " was formed; only a code formed earlier lifts the mark."
+    ),
 )
 QR_ALREADY_CONFIRMED = ProblemType(
     "qr_already_confirmed",
@@ -244,6 +257,48 @@ CODE_CONFIRM_PROBLEMS = frozenset(
 )
 
 _BASE64URL = re.compile(r"[A-Za-z0-9_-]+={0,2}")
+
+
+async def _lift_no_show(
+    session: AsyncSession, interaction_id: UUID, now: datetime
+) -> list[UUID]:
+    """Remove every no-show mark of an interaction a valid QR just completed.
+
+    The dispute of mutual allegations becomes moot: the meeting did happen.
+    Marks stay as rows so the chronology and the audit trail keep the fact.
+    """
+    removed = list(
+        (
+            await session.execute(
+                update(NoShowMark)
+                .where(
+                    NoShowMark.interaction_id == interaction_id,
+                    NoShowMark.status != NoShowStatus.REMOVED,
+                )
+                .values(
+                    status=NoShowStatus.REMOVED.value,
+                    removed_at=now,
+                    updated_at=now,
+                )
+                .returning(NoShowMark.id)
+            )
+        ).scalars()
+    )
+    await session.execute(
+        update(Dispute)
+        .where(
+            Dispute.interaction_id == interaction_id,
+            Dispute.status == DisputeStatus.OPEN.value,
+        )
+        .values(
+            status=DisputeStatus.RESOLVED.value,
+            resolved_at=now,
+            resolution="late_qr",
+            version=Dispute.version + 1,
+            updated_at=now,
+        )
+    )
+    return removed
 
 
 def base64url_encode(value: bytes) -> str:
@@ -836,7 +891,7 @@ def qr_result(
     )
 
 
-async def confirm_with_qr(  # noqa: PLR0913, PLR0917 - request parts
+async def confirm_with_qr(  # noqa: PLR0912, PLR0913, PLR0917 - request parts
     session: AsyncSession,
     listing_id: UUID,
     interaction_id: UUID,
@@ -872,11 +927,20 @@ async def confirm_with_qr(  # noqa: PLR0913, PLR0917 - request parts
     if await _existing_scan(session, payload.nonce) is not None:
         raise ProblemError(QR_NONCE_REUSED)
     status = InteractionStatus(interaction.status)
+    late_mark: datetime | None = None
     if status == InteractionStatus.COMPLETED:
         if interaction.completion_method == CompletionMethod.QR.value:
             return qr_result(interaction, None, payload, scanner_id, now)
         raise ProblemError(QR_ALREADY_COMPLETED)
-    if status != InteractionStatus.ACCEPTED:
+    if status == InteractionStatus.NO_SHOW:
+        # #66: an online code formed before the no-show mark still confirms
+        # the meeting; the mark is not a terminal state.
+        late_mark = await no_showed_at(session, interaction.id)
+        if late_mark is None:
+            raise ProblemError(QR_NOT_ACCEPTED)
+        if payload.issued_at >= late_mark:
+            raise ProblemError(QR_AFTER_NO_SHOW)
+    elif status != InteractionStatus.ACCEPTED:
         raise ProblemError(QR_NOT_ACCEPTED)
 
     scan_id = await session.scalar(
@@ -914,6 +978,13 @@ async def confirm_with_qr(  # noqa: PLR0913, PLR0917 - request parts
         "issued_at": payload.issued_at.isoformat(),
         "received_at": now.isoformat(),
     }
+    action = "qr_completed"
+    if late_mark is not None:
+        details["no_show_at"] = late_mark.isoformat()
+        details["lifted_no_show_ids"] = [
+            str(value) for value in await _lift_no_show(session, interaction.id, now)
+        ]
+        action = "qr_completed_after_no_show"
     await transition(
         session,
         listing,
@@ -922,7 +993,7 @@ async def confirm_with_qr(  # noqa: PLR0913, PLR0917 - request parts
         scanner_id,
         settings=settings,
         completion_method=CompletionMethod.QR,
-        action="qr_completed",
+        action=action,
         details=details,
     )
     return qr_result(interaction, scan, payload, scanner_id, now)
@@ -1011,6 +1082,8 @@ async def complete_offline_qr(  # noqa: PLR0913, PLR0917 - submission parts
     received_at: datetime,
     digest: str,
     settings: Settings,
+    *,
+    no_show_at: datetime | None = None,
 ) -> QrResult:
     """Trusted completion of an offline code that already passed validation.
 
@@ -1019,7 +1092,10 @@ async def complete_offline_qr(  # noqa: PLR0913, PLR0917 - submission parts
     the key window, the participants and the time bounds; this function
     inserts the unique scan row, applies the shared ``transition`` and writes
     the journal/outbox in the caller's transaction. A concurrent repeat
-    resolves to the stored row instead of a second completion.
+    resolves to the stored row instead of a second completion. When
+    ``no_show_at`` names the mark the code was formed before, the marks are
+    lifted and the dispute of the mutual allegations is closed in the same
+    transaction.
     """
     scan_id = await session.scalar(
         insert(QrScan)
@@ -1075,6 +1151,14 @@ async def complete_offline_qr(  # noqa: PLR0913, PLR0917 - submission parts
         "issued_at": payload.issued_at.isoformat(),
         "received_at": received_at.isoformat(),
     }
+    action = "qr_completed"
+    if no_show_at is not None:
+        details["no_show_at"] = no_show_at.isoformat()
+        details["lifted_no_show_ids"] = [
+            str(value)
+            for value in await _lift_no_show(session, interaction.id, received_at)
+        ]
+        action = "qr_completed_after_no_show"
     await transition(
         session,
         listing,
@@ -1083,7 +1167,7 @@ async def complete_offline_qr(  # noqa: PLR0913, PLR0917 - submission parts
         scanner_id,
         settings=settings,
         completion_method=CompletionMethod.QR,
-        action="qr_completed",
+        action=action,
         details=details,
         offline_qr=True,
     )
@@ -1092,7 +1176,7 @@ async def complete_offline_qr(  # noqa: PLR0913, PLR0917 - submission parts
     )
 
 
-async def confirm_with_offline_qr(  # noqa: PLR0913, PLR0917 - request parts
+async def confirm_with_offline_qr(  # noqa: PLR0912, PLR0913, PLR0917 - request
     session: AsyncSession,
     listing_id: UUID,
     interaction_id: UUID,
@@ -1118,11 +1202,11 @@ async def confirm_with_offline_qr(  # noqa: PLR0913, PLR0917 - request parts
       payload reusing it conflicts; ``nonce`` stays single-use across
       devices and deliveries.
 
-    A non-accepted state is not bypassed by a valid signature. #66 owns the
-    no-show marker and will add its late branch: a code formed before the
-    no-show mark may call :func:`complete_offline_qr` after removing the
-    mark, while a code formed later must not. Intermediate scenario stages
-    (#214 for a loan) are refused here; only the final meeting completes.
+    A non-accepted state is not bypassed by a valid signature, with one
+    exception: a code formed before a no-show mark completes the interaction
+    and lifts the marks through :func:`complete_offline_qr`; a code formed
+    after the mark must not. Intermediate scenario stages (#214 for a loan)
+    are refused here; only the final meeting completes.
     """
     raw, payload = decode_offline_payload(payload_encoded)
     if payload.listing_id != listing_id or payload.interaction_id != interaction_id:
@@ -1162,9 +1246,35 @@ async def confirm_with_offline_qr(  # noqa: PLR0913, PLR0917 - request parts
             # response: that would let a changed payload reuse its id.
             raise ProblemError(QR_ALREADY_CONFIRMED)
         raise ProblemError(QR_ALREADY_COMPLETED)
+    if status == InteractionStatus.NO_SHOW:
+        # #66 late-QR contract: a code formed before the mark completes the
+        # interaction and lifts the mark; a code formed after it has no effect.
+        if listing.kind not in QR_COMPLETION_KINDS:
+            raise ProblemError(QR_UNAVAILABLE)
+        if interaction.stage is not None:
+            raise ProblemError(QR_STAGE_UNAVAILABLE)
+        accepted = await accepted_at(session, interaction.id)
+        if accepted is None:
+            raise ProblemError(QR_ACCEPTANCE_UNKNOWN)
+        _check_offline_time(payload, accepted, received_at, settings)
+        late_mark = await no_showed_at(session, interaction.id)
+        if late_mark is None:
+            raise ProblemError(QR_NOT_ACCEPTED)
+        if payload.issued_at >= late_mark:
+            raise ProblemError(QR_AFTER_NO_SHOW)
+        return await complete_offline_qr(
+            session,
+            listing,
+            interaction,
+            payload,
+            key,
+            scanner_id,
+            received_at,
+            digest,
+            settings,
+            no_show_at=late_mark,
+        )
     if status != InteractionStatus.ACCEPTED:
-        # No-show is handled by #66 together with its marker; a signature
-        # never overrides a pending, rejected, cancelled or no-show state.
         raise ProblemError(QR_NOT_ACCEPTED)
     if listing.kind not in QR_COMPLETION_KINDS:
         raise ProblemError(QR_UNAVAILABLE)
