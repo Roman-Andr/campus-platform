@@ -857,6 +857,70 @@ class AppLocalizationsEn extends AppLocalizations {
   String get meetingCancelConfirm => 'Cancel';
 
   @override
+  String get noMeetingTitle => 'Without a meeting';
+
+  @override
+  String get noMeetingBothConfirm =>
+      'Both participants confirm that the interaction took place without a meeting.';
+
+  @override
+  String get noMeetingOpen => 'Open confirmation';
+
+  @override
+  String get noMeetingIntro =>
+      'Confirm that the interaction took place without a meeting. It is completed after both participants agree.';
+
+  @override
+  String get noMeetingConfirm => 'Confirm without a meeting';
+
+  @override
+  String get noMeetingYourConsent => 'Your consent';
+
+  @override
+  String get noMeetingOtherConsent => 'The other participant\'s consent';
+
+  @override
+  String noMeetingConfirmedAt(String time) {
+    return 'Confirmed $time';
+  }
+
+  @override
+  String get noMeetingNotConfirmed => 'Not yet';
+
+  @override
+  String get noMeetingWaiting => 'Waiting for the other participant.';
+
+  @override
+  String get noMeetingRefresh => 'Refresh';
+
+  @override
+  String get noMeetingCompletedStatus => 'Completed without a meeting';
+
+  @override
+  String get noMeetingCompleted =>
+      'The interaction is completed without a meeting.';
+
+  @override
+  String noMeetingAgreedAt(String time) {
+    return 'Agreed time: $time';
+  }
+
+  @override
+  String noMeetingCompletedAt(String time) {
+    return 'Completed: $time';
+  }
+
+  @override
+  String get noMeetingSent => 'Consent sent.';
+
+  @override
+  String get noMeetingUnavailable =>
+      'This interaction cannot be completed without a meeting.';
+
+  @override
+  String get noMeetingForbidden => 'You cannot confirm this interaction.';
+
+  @override
   String get mySectionDrafts => 'Drafts';
 
   @override
