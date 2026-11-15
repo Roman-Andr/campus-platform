@@ -170,6 +170,16 @@ class ChatHistory extends _$ChatHistory {
     final current = state.value;
     if (owner == null || store == null || current == null) return;
     if (!_isCurrent(generation, owner)) return;
+    // A new attempt invalidates the previous failure banner. If this attempt
+    // fails again, _syncFromEvent restores the error after the request.
+    if (current.syncError != null) {
+      state = AsyncData(
+        ChatHistoryState(
+          messages: current.messages,
+          nextPage: current.nextPage,
+        ),
+      );
+    }
     final api = ref.read(chatApiProvider);
     final newest = current.messages.isEmpty
         ? null
@@ -193,16 +203,19 @@ class ChatHistory extends _$ChatHistory {
       cursor = page.nextPage;
     } while (cursor != null);
     if (!_isCurrent(generation, owner)) return;
-    final latest = state.value ?? current;
-    final messages = mergeMessages(latest.messages, loaded);
     await store.saveMessages(owner, chatId, loaded);
     if (!_isCurrent(generation, owner)) return;
+    // Another page or a delivered message may have landed while the rows
+    // were being saved. Re-read the state so this result extends it instead
+    // of publishing the snapshot captured before the await.
+    final latest = state.value ?? current;
     state = AsyncData(
       ChatHistoryState(
-        messages: messages,
+        messages: mergeMessages(latest.messages, loaded),
         // A request after the newest message never replaces the older
         // cursor; only the initial load adds one.
         nextPage: latest.nextPage ?? olderCursor,
+        syncError: latest.syncError,
       ),
     );
   }
@@ -239,12 +252,14 @@ class ChatHistory extends _$ChatHistory {
     }
     await store.saveMessages(owner, chatId, [message]);
     if (!_isCurrent(generation, owner)) return;
-    final messages = mergeMessages(current?.messages ?? const [], [message]);
+    // Keep an older page or a newer sync result that landed during the save;
+    // `current` is only the fallback when the provider was disposed.
+    final latest = state.value ?? current;
     state = AsyncData(
       ChatHistoryState(
-        messages: messages,
-        nextPage: current?.nextPage,
-        syncError: current?.syncError,
+        messages: mergeMessages(latest?.messages ?? const [], [message]),
+        nextPage: latest?.nextPage,
+        syncError: latest?.syncError,
       ),
     );
   }
