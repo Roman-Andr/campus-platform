@@ -1,3 +1,6 @@
+msgid "A chat must have two different members."
+msgstr ""
+
 #, python-brace-format
 msgid "A lesson has from {min} to {max} time options."
 msgstr ""
@@ -11,6 +14,9 @@ msgstr ""
 msgid ""
 "A place in the queue is available for you. Confirm it before the timer "
 "ends."
+msgstr ""
+
+msgid "Alumni and former employees can write only in existing chats."
 msgstr ""
 
 msgid "An event or return deadline is approaching."
@@ -49,6 +55,9 @@ msgid "Channel is not available"
 msgstr ""
 
 msgid "Chat not available"
+msgstr ""
+
+msgid "Chat not found"
 msgstr ""
 
 msgid "Choose a listing category."
@@ -338,6 +347,9 @@ msgstr ""
 msgid "The channel name is not a Campus realtime channel."
 msgstr ""
 
+msgid "The chat does not exist or you are not a member."
+msgstr ""
+
 msgid "The client platform or version is not recognized."
 msgstr ""
 
@@ -382,6 +394,9 @@ msgstr ""
 msgid "The interaction must be accepted and have a current meeting proposal."
 msgstr ""
 
+msgid "The listing and the interaction do not belong together."
+msgstr ""
+
 msgid "The listing is closed; you are no longer in its queue."
 msgstr ""
 
@@ -419,6 +434,12 @@ msgid "The meeting proposal has changed."
 msgstr ""
 
 msgid "The meeting time must be in the future."
+msgstr ""
+
+msgid "The message identifier is already used."
+msgstr ""
+
+msgid "The message text is empty or too long."
 msgstr ""
 
 msgid "The minimum must not exceed the maximum, and both must be positive."
@@ -476,6 +497,9 @@ msgstr ""
 msgid "The resource does not support this method."
 msgstr ""
 
+msgid "The same client message identifier carries different content."
+msgstr ""
+
 msgid "There is an update to your listing."
 msgstr ""
 
@@ -504,6 +528,9 @@ msgid ""
 msgstr ""
 
 msgid "Too many listing actions. Try again later."
+msgstr ""
+
+msgid "Too many messages. Try again later."
 msgstr ""
 
 msgid "Too many requests"

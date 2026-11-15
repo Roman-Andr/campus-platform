@@ -1,6 +1,6 @@
 """Each specification cell is an HTTP probe or an explicit feature skip."""
 
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import httpx2
 import pytest
@@ -249,6 +249,37 @@ async def continue_interaction(case: Case, actor: Account, owner: Account) -> No
     assert response.json()["status"] == "cancelled"
 
 
+async def messaging(case: Case, actor: Account, owner: Account) -> None:
+    """Chat permissions: everybody writes in an existing dialog; alumni only."""
+    chats = "/api/v1/chats"
+
+    async def create(account: Account) -> httpx2.Response:
+        return await account.auth.client.post(
+            chats,
+            json={"recipient_id": actor.tokens["user"]["id"]}
+            if account is owner
+            else {"recipient_id": owner.tokens["user"]["id"]},
+            headers={"Idempotency-Key": str(uuid4()), **account.headers},
+        )
+
+    if case.probe == "new_chat":
+        response = await create(actor)
+        assert_status(response, 201 if case.grant != Grant.EXISTING_CHAT else 403)
+        if response.status_code == 201:
+            assert response.json()["kind"] == "personal"
+        return
+
+    # The dialog exists already: the owner creates it, the actor writes.
+    created = await create(owner)
+    assert_status(created, 201)
+    response = await actor.auth.client.post(
+        f"{chats}/{created.json()['id']}/messages",
+        json={"client_id": str(uuid4()), "text": "matrix message"},
+        headers={"Idempotency-Key": str(uuid4()), **actor.headers},
+    )
+    assert_status(response, 201)
+
+
 async def audit_journal(case: Case, actor: Account, owner: Account) -> None:
     del owner
     response = await actor.auth.client.get("/api/v1/admin/audit", headers=actor.headers)
@@ -283,6 +314,7 @@ async def test_role_action(case: Case, actor: Account, owner: Account) -> None:
         "publish_respond": publish_respond,
         "student_feed": student_feed,
         "finish_review": continue_interaction,
+        "message": messaging,
         "audit_dashboard_export": audit_journal,
     }
     await probes[case.action](case, actor, owner)

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 02:57+0300\n"
+"POT-Creation-Date: 2026-11-15 03:10+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -16,6 +16,9 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
+
+msgid "A chat must have two different members."
+msgstr "В чате должно быть два разных участника."
 
 #, python-brace-format
 msgid "A lesson has from {min} to {max} time options."
@@ -33,6 +36,9 @@ msgid ""
 msgstr ""
 "Для вас освободилось место в очереди. Подтвердите его до истечения "
 "таймера."
+
+msgid "Alumni and former employees can write only in existing chats."
+msgstr "Выпускники и бывшие сотрудники могут писать только в существующих чатах."
 
 msgid "An event or return deadline is approaching."
 msgstr "Приближается мероприятие или срок возврата."
@@ -71,6 +77,9 @@ msgstr "Канал недоступен"
 
 msgid "Chat not available"
 msgstr "Чат недоступен"
+
+msgid "Chat not found"
+msgstr "Чат не найден"
 
 msgid "Choose a listing category."
 msgstr "Выберите категорию объявления."
@@ -363,6 +372,9 @@ msgstr "Лимит мест не может быть меньше числа з�
 msgid "The channel name is not a Campus realtime channel."
 msgstr "Имя канала не является каналом реального времени Кампуса."
 
+msgid "The chat does not exist or you are not a member."
+msgstr "Чат не существует или вы не его участник."
+
 msgid "The client platform or version is not recognized."
 msgstr "Платформа или версия клиента не распознаны."
 
@@ -409,6 +421,9 @@ msgstr ""
 msgid "The interaction must be accepted and have a current meeting proposal."
 msgstr "Взаимодействие должно быть принято и иметь текущее предложение встречи."
 
+msgid "The listing and the interaction do not belong together."
+msgstr "Объявление и взаимодействие не относятся друг к другу."
+
 msgid "The listing is closed; you are no longer in its queue."
 msgstr "Объявление закрыто; вы больше не в его очереди."
 
@@ -449,6 +464,12 @@ msgstr "Предложение встречи изменилось."
 
 msgid "The meeting time must be in the future."
 msgstr "Время встречи должно быть в будущем."
+
+msgid "The message identifier is already used."
+msgstr "Идентификатор сообщения уже использован."
+
+msgid "The message text is empty or too long."
+msgstr "Текст сообщения пуст или слишком длинный."
 
 msgid "The minimum must not exceed the maximum, and both must be positive."
 msgstr ""
@@ -509,6 +530,9 @@ msgstr "Запрошенный ресурс не существует."
 msgid "The resource does not support this method."
 msgstr "Ресурс не поддерживает этот метод."
 
+msgid "The same client message identifier carries different content."
+msgstr "Один и тот же идентификатор сообщения клиента передан с другим содержимым."
+
 msgid "There is an update to your listing."
 msgstr "Появилось обновление вашего объявления."
 
@@ -540,6 +564,9 @@ msgstr ""
 
 msgid "Too many listing actions. Try again later."
 msgstr "Слишком много действий с объявлениями. Попробуйте позже."
+
+msgid "Too many messages. Try again later."
+msgstr "Слишком много сообщений. Попробуйте позже."
 
 msgid "Too many requests"
 msgstr "Слишком много запросов"

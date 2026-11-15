@@ -9,9 +9,9 @@ class PurchaseEditPricePerUnit {
   );
 
   factory PurchaseEditPricePerUnit.fromJson(Object? json) {
-    final hasNumber = _matches40(json);
-    final hasString = _matches41(json);
-    final hasNull = _matches42(json);
+    final hasNumber = _matches50(json);
+    final hasString = _matches51(json);
+    final hasNull = _matches52(json);
     if (!(hasNumber || hasString || hasNull)) {
       throw const FormatException(
         "No matching PurchaseEditPricePerUnit variant.",
@@ -60,10 +60,10 @@ class PurchaseEditPricePerUnit {
   Object? toJson() => _copyJson(_json);
 }
 
-bool _matches40(Object? value) =>
+bool _matches50(Object? value) =>
     (value is! num || (value > 0.0)) && (((value is num && value.isFinite)));
-bool _matches41(Object? value) => ((value is String));
-bool _matches42(Object? value) => ((value == null));
+bool _matches51(Object? value) => ((value is String));
+bool _matches52(Object? value) => ((value == null));
 Object? _copyJson(Object? value) {
   return switch (value) {
     Map<String, Object?> map => map.map(
