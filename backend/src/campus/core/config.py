@@ -482,6 +482,37 @@ class Settings(BaseSettings):
         ge=1,
         description="Most hidden message versions cleaned in one cleanup run.",
     )
+    # Ephemeral chat activity (specification, 5.1.1, module 6): typing and the
+    # open-chat flag live in Redis only and expire without a heartbeat. The
+    # intervals are configuration, not constants of the client or the server.
+    chat_typing_ttl: timedelta = Field(
+        default=timedelta(seconds=5),
+        gt=timedelta(0),
+        le=timedelta(minutes=5),
+        description=(
+            "How long a typing ping keeps the indicator visible; the client"
+            " repeats the ping while typing and the server erases the state"
+            " without one."
+        ),
+    )
+    chat_presence_ttl: timedelta = Field(
+        default=timedelta(seconds=60),
+        gt=timedelta(0),
+        le=timedelta(hours=1),
+        description=(
+            "How long an open-chat heartbeat keeps the flag visible; closing"
+            " the chat removes it at once and a lost device expires it."
+        ),
+    )
+    chat_presence_heartbeat: timedelta = Field(
+        default=timedelta(seconds=15),
+        gt=timedelta(0),
+        description=(
+            "Interval advertised to clients for the open-chat heartbeat; it"
+            " must be shorter than chat_presence_ttl so one lost heartbeat"
+            " does not hide a live chat."
+        ),
+    )
 
     meeting_place_max_length: int = Field(default=200, ge=1)
     return_reminder_before: timedelta = Field(
@@ -846,6 +877,13 @@ class Settings(BaseSettings):
     def _check_lesson_options(self) -> Self:
         if self.lesson_options_min > self.lesson_options_max:
             msg = "lesson_options_min exceeds lesson_options_max"
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def _check_chat_presence(self) -> Self:
+        if self.chat_presence_heartbeat >= self.chat_presence_ttl:
+            msg = "chat_presence_heartbeat must be shorter than chat_presence_ttl"
             raise ValueError(msg)
         return self
 

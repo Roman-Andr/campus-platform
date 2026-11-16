@@ -23,20 +23,26 @@ from campus.modules.chat.models import (
     ChatMessageSnapshot,
     ChatMessageSnapshotPhoto,
     ChatMessageVersion,
+    ChatReadState,
 )
 from campus.modules.chat.retention import purge_message_versions
 from campus.modules.chat.service import (
     MESSAGE_TOPIC,
+    PRESENCE_TOPIC,
+    READ_TOPIC,
+    chat_read_states,
     check_link,
     create_personal_chat,
     delete_message,
     edit_message,
     leave_chat,
+    mark_chat_read,
     message_evidence,
     post_message,
     require_membership,
     snapshot_message,
     snapshot_photos,
+    unread_messages,
 )
 
 __all__ = [
@@ -44,6 +50,8 @@ __all__ = [
     "GROUP_CHAT_KINDS",
     "MESSAGE_TOPIC",
     "PERSONAL_KIND",
+    "PRESENCE_TOPIC",
+    "READ_TOPIC",
     "Chat",
     "ChatMember",
     "ChatMessage",
@@ -53,11 +61,14 @@ __all__ = [
     "ChatMessageSnapshot",
     "ChatMessageSnapshotPhoto",
     "ChatMessageVersion",
+    "ChatReadState",
+    "chat_read_states",
     "check_link",
     "create_personal_chat",
     "delete_message",
     "edit_message",
     "leave_chat",
+    "mark_chat_read",
     "message_evidence",
     "post_message",
     "purge_message_versions",
@@ -66,4 +77,5 @@ __all__ = [
     "snapshot_message",
     "snapshot_photos",
     "sync_group_chat",
+    "unread_messages",
 ]

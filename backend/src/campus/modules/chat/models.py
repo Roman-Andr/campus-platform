@@ -143,6 +143,38 @@ class ChatMember(Base):
     left_at: Mapped[datetime | None]
 
 
+class ChatReadState(Base):
+    """How far one member has read a chat, and the unread count from it.
+
+    The cursor is a message ``sequence`` of the same chat and only grows:
+    every mark takes ``GREATEST(stored, requested)`` in one statement, so
+    two devices of one member converge on the maximum without a lock, and a
+    delayed request of a second device never moves the marker back. A row
+    appears with the first mark; without one the cursor is zero.
+
+    The unread count is derived, not stored: messages of other members after
+    the cursor that are still visible. An own message and a deleted message
+    are never unread, and the count cannot be negative.
+    """
+
+    __tablename__ = "chat_read_state"
+    __table_args__ = (
+        CheckConstraint(
+            "last_read_sequence >= 0", name="last_read_sequence_non_negative"
+        ),
+        Index("ix_chat_read_state_user_id", "user_id"),
+    )
+
+    chat_id: Mapped[UUID] = mapped_column(
+        ForeignKey("chat.id", ondelete="CASCADE"), primary_key=True
+    )
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("identity_user.id", ondelete="CASCADE"), primary_key=True
+    )
+    last_read_sequence: Mapped[int] = mapped_column(BigInteger, default=0)
+    updated_at: Mapped[datetime] = mapped_column(default=clock.now)
+
+
 class ChatMessageDedup(Base):
     """Client UUID and server sequence of a chat, unique for good.
 

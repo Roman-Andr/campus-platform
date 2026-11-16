@@ -170,6 +170,9 @@ msgstr ""
 msgid "Channel is not available"
 msgstr ""
 
+msgid "Chat activity is unavailable"
+msgstr ""
+
 msgid "Chat not available"
 msgstr ""
 
@@ -756,6 +759,9 @@ msgid "The dispute window has closed"
 msgstr ""
 
 msgid "The disputed interaction is no longer in a state this action applies to."
+msgstr ""
+
+msgid "The ephemeral chat state is temporarily unavailable. Try again later."
 msgstr ""
 
 msgid "The event cannot be judged"

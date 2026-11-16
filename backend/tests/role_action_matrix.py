@@ -148,7 +148,7 @@ LIVE = {
         "respond_students",
     ),
     "finish_review": ("continue", "review"),
-    "message": ("existing_chat", "new_chat"),
+    "message": ("existing_chat", "new_chat", "read_receipt", "typing"),
     "audit_dashboard_export": ("audit",),
     "student_feed": (
         "feed_students",
