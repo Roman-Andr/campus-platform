@@ -44,6 +44,8 @@ import 'models/page_participation_output.dart'
 import 'models/page_waitlist_entry_output.dart'
     as models
     show PageWaitlistEntryOutput;
+import 'models/payment_decision_input.dart' as models show PaymentDecisionInput;
+import 'models/payment_state_output.dart' as models show PaymentStateOutput;
 import 'models/publication_input.dart' as models show PublicationInput;
 import 'models/purchase_composition.dart' as models show PurchaseComposition;
 import 'models/purchase_edit.dart' as models show PurchaseEdit;
@@ -2266,6 +2268,181 @@ class ListingsClient {
       cancelToken: cancelToken,
     );
     return models.PurchaseShareOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// My Payment State
+  ///
+  /// The participant's payment mark of their own share.
+  Future<models.PaymentStateOutput> myPaymentState({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/shares/me/payment",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.PaymentStateOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Claim My Payment
+  ///
+  /// Mark the share paid; the organiser confirms or rejects it.
+  ///
+  /// The mark is accepted only while the composition is fixed and the share
+  /// is still accepted. A repeated call without an answer changes nothing.
+  Future<models.PaymentStateOutput> claimMyPayment({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 201),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/shares/me/payment/claims",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.PaymentStateOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Share Payment State
+  ///
+  /// The organiser reads the payment mark of one share.
+  Future<models.PaymentStateOutput> sharePaymentState({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required String interactionId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(interactionId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/shares/" +
+          Uri.encodeComponent(interactionId) +
+          "/payment",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.PaymentStateOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Decide Share Payment
+  ///
+  /// The organiser confirms or rejects the active payment mark.
+  Future<models.PaymentStateOutput> decideSharePayment({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String listingId,
+    required String interactionId,
+    required models.PaymentDecisionInput body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(listingId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(interactionId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/listings/" +
+          Uri.encodeComponent(listingId) +
+          "/shares/" +
+          Uri.encodeComponent(interactionId) +
+          "/payment/decision",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.PaymentStateOutput.fromJson(
       response.data as Map<String, Object?>,
     );
   }

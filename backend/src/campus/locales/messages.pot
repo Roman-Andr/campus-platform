@@ -1,10 +1,27 @@
 msgid "A cancellation reason is required."
 msgstr ""
 
+msgid "A cancelled purchase keeps the payment mark for the moderator's decision."
+msgstr ""
+
 msgid "A chat must have two different members."
 msgstr ""
 
+msgid "A decided dispute cannot be decided again."
+msgstr ""
+
 msgid "A deleted message cannot be edited."
+msgstr ""
+
+msgid "A dispute about your interaction was opened."
+msgstr ""
+
+msgid ""
+"A dispute is opened about a no-show mark against you, a 'not returned' "
+"mark of your loan, or an unanswered payment mark."
+msgstr ""
+
+msgid "A dispute is opened within 7 days after the disputed event."
 msgstr ""
 
 msgid "A graduate or a former employee has no roles."
@@ -48,6 +65,17 @@ msgid ""
 msgstr ""
 
 msgid "A participant asks to leave the purchase."
+msgstr ""
+
+msgid "A participant marked their share of the purchase as paid."
+msgstr ""
+
+msgid "A payment cannot be marked here"
+msgstr ""
+
+msgid ""
+"A payment is marked for a fixed purchase share with a positive number of "
+"units."
 msgstr ""
 
 msgid "A photo must be ready, belong to this chat and not be attached yet."
@@ -154,6 +182,9 @@ msgstr ""
 msgid "Choose a published version of the community rules."
 msgstr ""
 
+msgid "Choose an action that applies to this kind of dispute."
+msgstr ""
+
 msgid "Client version missing"
 msgstr ""
 
@@ -198,6 +229,10 @@ msgid "Confirmation code rejected"
 msgstr ""
 
 msgid "Current documents must be accepted"
+msgstr ""
+
+#, python-brace-format
+msgid "Describe the decision in 1 to {max} characters."
 msgstr ""
 
 msgid "Describe the item you offer."
@@ -265,6 +300,9 @@ msgid "Invalid consent decision"
 msgstr ""
 
 msgid "Invalid cursor"
+msgstr ""
+
+msgid "Invalid decision reason"
 msgstr ""
 
 msgid "Invalid help deadline"
@@ -444,6 +482,9 @@ msgid ""
 "marked 'not returned'."
 msgstr ""
 
+msgid "Only a participant of the interaction or the event can open its dispute."
+msgstr ""
+
 msgid "Only a participant registered for the event can vote."
 msgstr ""
 
@@ -480,6 +521,11 @@ msgid "Only the organiser of this event can do this."
 msgstr ""
 
 msgid "Only the owner of the lent item can mark it 'not returned'."
+msgstr ""
+
+msgid ""
+"Only the participant marks their share paid; only the organiser answers "
+"it."
 msgstr ""
 
 msgid "Only the two participants of the interaction can confirm it."
@@ -557,11 +603,19 @@ msgid "Reload the complaint reason. Its current version is {version}."
 msgstr ""
 
 #, python-brace-format
+msgid "Reload the dispute. Its current version is {version}."
+msgstr ""
+
+#, python-brace-format
 msgid "Reload the interaction. The current meeting version is {version}."
 msgstr ""
 
 #, python-brace-format
 msgid "Reload the listing. Its current version is {version}."
+msgstr ""
+
+#, python-brace-format
+msgid "Reload the payment mark. Its current version is {version}."
 msgstr ""
 
 #, python-brace-format
@@ -625,6 +679,9 @@ msgstr ""
 msgid "The X-Client-Platform and X-Client-Version headers are required."
 msgstr ""
 
+msgid "The action does not fit the subject"
+msgstr ""
+
 msgid "The addressee answers a review once."
 msgstr ""
 
@@ -677,7 +734,28 @@ msgstr ""
 msgid "The device key is unknown, revoked or belongs to another user."
 msgstr ""
 
+msgid "The dispute cannot be decided"
+msgstr ""
+
+msgid "The dispute cannot be opened yet"
+msgstr ""
+
+msgid "The dispute is already decided"
+msgstr ""
+
 msgid "The dispute is closed"
+msgstr ""
+
+msgid "The dispute kind does not fit"
+msgstr ""
+
+msgid "The dispute was decided by someone else"
+msgstr ""
+
+msgid "The dispute window has closed"
+msgstr ""
+
+msgid "The disputed interaction is no longer in a state this action applies to."
 msgstr ""
 
 msgid "The event cannot be judged"
@@ -805,6 +883,15 @@ msgstr ""
 msgid "The minimum must not exceed the maximum, and both must be positive."
 msgstr ""
 
+msgid "The moderator decided the dispute."
+msgstr ""
+
+msgid "The moderator decided the payment dispute."
+msgstr ""
+
+msgid "The moderator decides the payment dispute before either side answers."
+msgstr ""
+
 #, python-brace-format
 msgid "The name can be changed once in {days} days; see available_at."
 msgstr ""
@@ -840,10 +927,24 @@ msgstr ""
 msgid "The organiser cancelled the purchase: {reason}"
 msgstr ""
 
+msgid "The organiser confirmed your payment."
+msgstr ""
+
+msgid "The organiser has already confirmed this share as paid."
+msgstr ""
+
 msgid "The organiser has decided on your request to leave."
 msgstr ""
 
 msgid "The organiser has no charged no-show at this event yet."
+msgstr ""
+
+msgid "The organiser rejected your payment mark."
+msgstr ""
+
+msgid ""
+"The organiser still has the configured wait to answer the payment mark "
+"before the dispute opens."
 msgstr ""
 
 msgid ""
@@ -859,6 +960,15 @@ msgstr ""
 msgid "The page cursor is invalid or belongs to another list; start over."
 msgstr ""
 
+msgid "The payment is already confirmed"
+msgstr ""
+
+msgid "The payment is under dispute"
+msgstr ""
+
+msgid "The payment mark was changed"
+msgstr ""
+
 msgid "The photo is not processed yet, has expired or is used by a listing."
 msgstr ""
 
@@ -869,6 +979,9 @@ msgid "The place is offered to another participant."
 msgstr ""
 
 msgid "The purchase composition is fixed."
+msgstr ""
+
+msgid "The purchase is cancelled"
 msgstr ""
 
 msgid "The purchase is cancelled."
@@ -889,6 +1002,9 @@ msgid "The reply text is from 1 to {max} characters."
 msgstr ""
 
 msgid "The request body is not valid JSON."
+msgstr ""
+
+msgid "The requested kind does not match the disputed event and its participants."
 msgstr ""
 
 msgid ""

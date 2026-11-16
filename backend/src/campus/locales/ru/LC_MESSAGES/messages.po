@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 02:22+0300\n"
+"POT-Creation-Date: 2026-11-16 03:33+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -20,11 +20,30 @@ msgstr ""
 msgid "A cancellation reason is required."
 msgstr "Нужна причина отмены."
 
+msgid "A cancelled purchase keeps the payment mark for the moderator's decision."
+msgstr "Отменённая закупка сохраняет отметку об оплате для решения модератора."
+
 msgid "A chat must have two different members."
 msgstr "В чате должно быть два разных участника."
 
+msgid "A decided dispute cannot be decided again."
+msgstr "По решённому спору нельзя принять решение повторно."
+
 msgid "A deleted message cannot be edited."
 msgstr "Удалённое сообщение нельзя изменить."
+
+msgid "A dispute about your interaction was opened."
+msgstr "Открыт спор о вашем взаимодействии."
+
+msgid ""
+"A dispute is opened about a no-show mark against you, a 'not returned' "
+"mark of your loan, or an unanswered payment mark."
+msgstr ""
+"Спор открывается из-за отметки о вашей неявке, отметки «не возвращено» по"
+" вашему займу или неотвеченной отметки об оплате."
+
+msgid "A dispute is opened within 7 days after the disputed event."
+msgstr "Спор открывается в течение 7 дней после спорного события."
 
 msgid "A graduate or a former employee has no roles."
 msgstr "У выпускника и бывшего сотрудника ролей нет."
@@ -33,7 +52,7 @@ msgid ""
 "A group chat member leaves by cancelling participation in the event or "
 "the purchase."
 msgstr ""
-"Участник выходит из группового чата, отменяя участие в мероприятии или "
+"Участник группового чата выходит, отменяя участие в мероприятии или "
 "закупке."
 
 msgid "A headman has a single scope; both cannot be given."
@@ -76,6 +95,19 @@ msgstr ""
 
 msgid "A participant asks to leave the purchase."
 msgstr "Участник просит выйти из закупки."
+
+msgid "A participant marked their share of the purchase as paid."
+msgstr "Участник отметил свою долю закупки как оплаченную."
+
+msgid "A payment cannot be marked here"
+msgstr "Здесь нельзя отметить оплату."
+
+msgid ""
+"A payment is marked for a fixed purchase share with a positive number of "
+"units."
+msgstr ""
+"Отметка об оплате ставится по зафиксированной доле закупки с "
+"положительным числом единиц."
 
 msgid "A photo must be ready, belong to this chat and not be attached yet."
 msgstr ""
@@ -191,6 +223,9 @@ msgstr "Выберите категорию объявления."
 msgid "Choose a published version of the community rules."
 msgstr "Выберите опубликованную версию правил сообщества."
 
+msgid "Choose an action that applies to this kind of dispute."
+msgstr "Выберите действие, подходящее для этого вида спора."
+
 msgid "Client version missing"
 msgstr "Не указана версия клиента"
 
@@ -243,6 +278,10 @@ msgstr "Код подтверждения отклонён"
 msgid "Current documents must be accepted"
 msgstr "Необходимо принять актуальные документы"
 
+#, python-brace-format
+msgid "Describe the decision in 1 to {max} characters."
+msgstr "Опишите решение: от 1 до {max} символов."
+
 msgid "Describe the item you offer."
 msgstr "Опишите вещь, которую предлагаете."
 
@@ -275,7 +314,7 @@ msgid "Forbidden"
 msgstr "Доступ запрещён"
 
 msgid "Group membership is managed by the listing."
-msgstr "Состав группового чата определяется объявлением."
+msgstr "Состав группы определяется объявлением."
 
 msgid "Has an invalid format."
 msgstr "Неверный формат."
@@ -309,6 +348,9 @@ msgstr "Недопустимое решение по согласию"
 
 msgid "Invalid cursor"
 msgstr "Неверный курсор"
+
+msgid "Invalid decision reason"
+msgstr "Некорректное обоснование решения."
 
 msgid "Invalid help deadline"
 msgstr "Неверный срок актуальности запроса"
@@ -489,6 +531,9 @@ msgstr ""
 "Отметить «не возвращено» можно только для займа, вещь которого выдана и "
 "ещё не возвращена."
 
+msgid "Only a participant of the interaction or the event can open its dispute."
+msgstr "Открыть спор может только участник взаимодействия или мероприятия."
+
 msgid "Only a participant registered for the event can vote."
 msgstr "Голосовать может только записавшийся на мероприятие участник."
 
@@ -532,6 +577,13 @@ msgstr "Это может сделать только организатор м�
 
 msgid "Only the owner of the lent item can mark it 'not returned'."
 msgstr "Только владелец одолженной вещи может отметить её как «не возвращено»."
+
+msgid ""
+"Only the participant marks their share paid; only the organiser answers "
+"it."
+msgstr ""
+"Только участник отмечает свою долю оплаченной; отвечает на отметку только"
+" организатор."
 
 msgid "Only the two participants of the interaction can confirm it."
 msgstr "Подтвердить взаимодействие могут только два его участника."
@@ -608,12 +660,20 @@ msgid "Reload the complaint reason. Its current version is {version}."
 msgstr "Обновите причину жалобы. Её текущая версия: {version}."
 
 #, python-brace-format
+msgid "Reload the dispute. Its current version is {version}."
+msgstr "Обновите спор. Его текущая версия: {version}."
+
+#, python-brace-format
 msgid "Reload the interaction. The current meeting version is {version}."
 msgstr "Обновите взаимодействие. Текущая версия встречи: {version}."
 
 #, python-brace-format
 msgid "Reload the listing. Its current version is {version}."
 msgstr "Обновите объявление. Его текущая версия: {version}."
+
+#, python-brace-format
+msgid "Reload the payment mark. Its current version is {version}."
+msgstr "Обновите отметку об оплате. Её текущая версия: {version}."
 
 #, python-brace-format
 msgid "Reload the settings. Their current version is {version}."
@@ -676,6 +736,9 @@ msgstr "Время QR-кода слишком опережает серверн�
 msgid "The X-Client-Platform and X-Client-Version headers are required."
 msgstr "Нужны заголовки X-Client-Platform и X-Client-Version."
 
+msgid "The action does not fit the subject"
+msgstr "Действие не подходит к предмету спора."
+
 msgid "The addressee answers a review once."
 msgstr "Адресат отвечает на отзыв один раз."
 
@@ -728,8 +791,31 @@ msgstr "Текущий объём — {taken} ед."
 msgid "The device key is unknown, revoked or belongs to another user."
 msgstr "Ключ устройства неизвестен, отозван или принадлежит другому пользователю."
 
+msgid "The dispute cannot be decided"
+msgstr "Спор нельзя решить."
+
+msgid "The dispute cannot be opened yet"
+msgstr "Спор пока нельзя открыть."
+
+msgid "The dispute is already decided"
+msgstr "Спор уже решён."
+
 msgid "The dispute is closed"
 msgstr "Оспаривание закрыто."
+
+msgid "The dispute kind does not fit"
+msgstr "Вид спора не подходит."
+
+msgid "The dispute was decided by someone else"
+msgstr "Спор решил кто-то другой."
+
+msgid "The dispute window has closed"
+msgstr "Срок открытия спора истёк."
+
+msgid "The disputed interaction is no longer in a state this action applies to."
+msgstr ""
+"Спорное взаимодействие уже не в том состоянии, к которому применимо это "
+"действие."
 
 msgid "The event cannot be judged"
 msgstr "Нельзя оценить мероприятие."
@@ -866,6 +952,15 @@ msgstr ""
 "Минимум не должен превышать максимум, и оба значения должны быть "
 "положительными."
 
+msgid "The moderator decided the dispute."
+msgstr "Модератор принял решение по спору."
+
+msgid "The moderator decided the payment dispute."
+msgstr "Модератор принял решение по спору об оплате."
+
+msgid "The moderator decides the payment dispute before either side answers."
+msgstr "Спор об оплате решает модератор, пока ни одна из сторон не ответила."
+
 #, python-brace-format
 msgid "The name can be changed once in {days} days; see available_at."
 msgstr "Имя можно менять раз в {days} дней; ближайшая дата — в available_at."
@@ -903,11 +998,27 @@ msgstr "Онлайн-QR-код старше допустимого срока."
 msgid "The organiser cancelled the purchase: {reason}"
 msgstr "Организатор отменил закупку: {reason}"
 
+msgid "The organiser confirmed your payment."
+msgstr "Организатор подтвердил вашу оплату."
+
+msgid "The organiser has already confirmed this share as paid."
+msgstr "Организатор уже подтвердил оплату этой доли."
+
 msgid "The organiser has decided on your request to leave."
 msgstr "Организатор принял решение по вашему запросу на выход."
 
 msgid "The organiser has no charged no-show at this event yet."
 msgstr "У организатора пока нет начисленной неявки на мероприятии."
+
+msgid "The organiser rejected your payment mark."
+msgstr "Организатор отклонил вашу отметку об оплате."
+
+msgid ""
+"The organiser still has the configured wait to answer the payment mark "
+"before the dispute opens."
+msgstr ""
+"У организатора ещё есть настроенный срок, чтобы ответить на отметку об "
+"оплате до открытия спора."
 
 msgid ""
 "The owner can mark the item 'not returned' only after the configured wait"
@@ -926,6 +1037,15 @@ msgstr ""
 msgid "The page cursor is invalid or belongs to another list; start over."
 msgstr "Курсор страницы неверен или относится к другому списку; начните сначала."
 
+msgid "The payment is already confirmed"
+msgstr "Оплата уже подтверждена."
+
+msgid "The payment is under dispute"
+msgstr "Оплата оспаривается"
+
+msgid "The payment mark was changed"
+msgstr "Отметка об оплате изменилась."
+
 msgid "The photo is not processed yet, has expired or is used by a listing."
 msgstr "Фото ещё обрабатывается, устарело или уже прикреплено к объявлению."
 
@@ -937,6 +1057,9 @@ msgstr "Место предложено другому участнику."
 
 msgid "The purchase composition is fixed."
 msgstr "Состав закупки зафиксирован."
+
+msgid "The purchase is cancelled"
+msgstr "Закупка отменена."
 
 msgid "The purchase is cancelled."
 msgstr "Закупка отменена."
@@ -957,6 +1080,9 @@ msgstr "Текст ответа должен быть от 1 до {max} симв
 
 msgid "The request body is not valid JSON."
 msgstr "Тело запроса — некорректный JSON."
+
+msgid "The requested kind does not match the disputed event and its participants."
+msgstr "Запрошенный вид не соответствует спорному событию и его участникам."
 
 msgid ""
 "The requested position is no longer in realtime history. Reload the "

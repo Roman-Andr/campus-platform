@@ -5,8 +5,8 @@ import '../../listings/models/completion_method.dart';
 sealed class OfflineQrScanOutputCompletionMethod {
   factory OfflineQrScanOutputCompletionMethod.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches87(json)) "CompletionMethod",
-      if (_matches88(json)) "Null",
+      if (_matches103(json)) "CompletionMethod",
+      if (_matches104(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -43,8 +43,8 @@ class OfflineQrScanOutputCompletionMethodNull
   Object? toJson() => value;
 }
 
-bool _matches87(Object? value) => (_matches24(value));
-bool _matches24(Object? value) =>
-    (const <Object?>["qr", "no_meeting"].contains(value)) &&
+bool _matches103(Object? value) => (_matches27(value));
+bool _matches27(Object? value) =>
+    (const <Object?>["qr", "no_meeting", "moderator"].contains(value)) &&
     ((value is String));
-bool _matches88(Object? value) => ((value == null));
+bool _matches104(Object? value) => ((value == null));

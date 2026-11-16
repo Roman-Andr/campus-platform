@@ -6,8 +6,8 @@ import 'cancellation_actor.dart';
 sealed class InteractionOutputCancelledBy {
   factory InteractionOutputCancelledBy.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches49(json)) "CancellationActor",
-      if (_matches51(json)) "Null",
+      if (_matches65(json)) "CancellationActor",
+      if (_matches67(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -43,8 +43,8 @@ class InteractionOutputCancelledByNull implements InteractionOutputCancelledBy {
   Object? toJson() => value;
 }
 
-bool _matches49(Object? value) => (_matches50(value));
-bool _matches50(Object? value) =>
+bool _matches65(Object? value) => (_matches66(value));
+bool _matches66(Object? value) =>
     (const <Object?>["author", "participant", "system"].contains(value)) &&
     ((value is String));
-bool _matches51(Object? value) => ((value == null));
+bool _matches67(Object? value) => ((value == null));

@@ -50,6 +50,7 @@ from campus.modules.reputation.models import (
 )
 from campus.modules.reputation.no_show import (
     EVENT_NO_SHOW_TOPIC,
+    LOAN_NOT_RETURNED_REASON,
     NO_SHOW_TOPIC,
     PERSONAL_NO_SHOW_TOPIC,
     EventNoShowState,
@@ -120,6 +121,7 @@ from campus.modules.reputation.service import (
 __all__ = [
     "EVENT_NO_SHOW_TOPIC",
     "FEW_REVIEWS_LIMIT",
+    "LOAN_NOT_RETURNED_REASON",
     "NO_SHOW_TOPIC",
     "PERSONAL_NO_SHOW_TOPIC",
     "PROFILE_AGGREGATE_TOPIC",

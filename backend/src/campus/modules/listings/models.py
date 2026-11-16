@@ -67,10 +67,16 @@ class MeetingStatus(StrEnum):
 
 
 class CompletionMethod(StrEnum):
-    """How an accepted interaction reached the completed status."""
+    """How an accepted interaction reached the completed status.
+
+    ``moderator`` is a dispute decision (#94): the participants did not
+    confirm a meeting, but the moderator found that the interaction took
+    place. Its review weight is the "without a meeting" one.
+    """
 
     QR = "qr"
     NO_MEETING = "no_meeting"
+    MODERATOR = "moderator"
 
 
 class CancellationActor(StrEnum):
@@ -110,6 +116,20 @@ class PurchaseStage(StrEnum):
     COLLECTING = "collecting"
     FIXED = "fixed"
     CANCELLED = "cancelled"
+
+
+class PaymentClaimStatus(StrEnum):
+    """Two-sided payment mark of a fixed purchase share.
+
+    A participant claims "I paid"; the organiser confirms or rejects it.
+    A claim without an answer for the configured wait becomes disputable
+    and is suspended while the moderator decides (#94).
+    """
+
+    CLAIMED = "claimed"
+    DISPUTED = "disputed"
+    CONFIRMED = "confirmed"
+    REJECTED = "rejected"
 
 
 class LoanStage(StrEnum):
@@ -381,7 +401,8 @@ class Interaction(Entity):
             postgresql_where=text("status = 'accepted' AND executor"),
         ),
         CheckConstraint(
-            "completion_method IS NULL OR completion_method IN ('qr','no_meeting')",
+            "completion_method IS NULL OR "
+            "completion_method IN ('qr','no_meeting','moderator')",
             name="completion_method",
         ),
         CheckConstraint(
@@ -482,6 +503,62 @@ class Interaction(Entity):
         cascade="all, delete-orphan",
         order_by="LessonOption.position",
     )
+
+
+class PaymentClaim(Entity):
+    """One two-sided payment mark of a fixed group purchase share.
+
+    The participant claims the share was paid; the organiser answers with
+    a confirmation or a rejection. Only the latest attempt per share is
+    active: a rejected claim may be repeated, a confirmed one stays as the
+    evidence the share was paid. While a moderator decides a payment
+    dispute (#94) the claim is ``disputed`` and neither side may answer it,
+    so the obligation cannot disappear through a parallel cancellation.
+    """
+
+    __tablename__ = "listing_payment_claim"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('claimed','disputed','confirmed','rejected')",
+            name="status",
+        ),
+        CheckConstraint("version > 0", name="version_positive"),
+        CheckConstraint(
+            "(responded_at IS NULL) = (responded_by_id IS NULL)",
+            name="response_complete",
+        ),
+        CheckConstraint(
+            "(status IN ('confirmed','rejected')) = (responded_at IS NOT NULL)",
+            name="response_required",
+        ),
+        Index(
+            "uq_listing_payment_claim_active",
+            "interaction_id",
+            unique=True,
+            postgresql_where=text("status IN ('claimed','disputed')"),
+        ),
+        Index(
+            "uq_listing_payment_claim_confirmed",
+            "interaction_id",
+            unique=True,
+            postgresql_where=text("status = 'confirmed'"),
+        ),
+        Index("ix_listing_payment_claim_listing", "listing_id", "created_at"),
+    )
+
+    listing_id: Mapped[UUID] = mapped_column(
+        ForeignKey("listing.id", ondelete="CASCADE")
+    )
+    interaction_id: Mapped[UUID] = mapped_column(
+        ForeignKey("listing_interaction.id", ondelete="CASCADE")
+    )
+    participant_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
+    status: Mapped[str] = mapped_column(String(16), default=PaymentClaimStatus.CLAIMED)
+    claimed_at: Mapped[datetime] = mapped_column(default=clock.now)
+    responded_at: Mapped[datetime | None]
+    responded_by_id: Mapped[UUID | None] = mapped_column(ForeignKey("identity_user.id"))
+    # Optimistic concurrency of the organiser answer and the dispute.
+    version: Mapped[int] = mapped_column(default=1)
 
 
 class Meeting(Entity):

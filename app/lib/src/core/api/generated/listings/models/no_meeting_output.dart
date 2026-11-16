@@ -13,6 +13,10 @@ class NoMeetingOutput {
     required this.status,
 
     /// How an accepted interaction reached the completed status.
+    ///
+    /// ``moderator`` is a dispute decision (#94): the participants did not
+    /// confirm a meeting, but the moderator found that the interaction took
+    /// place. Its review weight is the "without a meeting" one.
     this.method = CompletionMethod.noMeeting,
 
     /// Agreed server moment; null before the first consent of help.
@@ -83,6 +87,10 @@ class NoMeetingOutput {
   final InteractionStatus status;
 
   /// How an accepted interaction reached the completed status.
+  ///
+  /// ``moderator`` is a dispute decision (#94): the participants did not
+  /// confirm a meeting, but the moderator found that the interaction took
+  /// place. Its review weight is the "without a meeting" one.
   final CompletionMethod method;
 
   /// Agreed server moment; null before the first consent of help.

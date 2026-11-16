@@ -5,8 +5,8 @@ import '../../listings/models/completion_method.dart';
 sealed class CodeConfirmOutputCompletionMethod {
   factory CodeConfirmOutputCompletionMethod.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches23(json)) "CompletionMethod",
-      if (_matches25(json)) "Null",
+      if (_matches26(json)) "CompletionMethod",
+      if (_matches28(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -43,8 +43,8 @@ class CodeConfirmOutputCompletionMethodNull
   Object? toJson() => value;
 }
 
-bool _matches23(Object? value) => (_matches24(value));
-bool _matches24(Object? value) =>
-    (const <Object?>["qr", "no_meeting"].contains(value)) &&
+bool _matches26(Object? value) => (_matches27(value));
+bool _matches27(Object? value) =>
+    (const <Object?>["qr", "no_meeting", "moderator"].contains(value)) &&
     ((value is String));
-bool _matches25(Object? value) => ((value == null));
+bool _matches28(Object? value) => ((value == null));

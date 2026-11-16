@@ -594,6 +594,35 @@ class Settings(BaseSettings):
             " with a mutual allegation."
         ),
     )
+    # Payment marks of a fixed group purchase share (#54) and the dispute
+    # about an unanswered mark (#94). The participant may open the dispute
+    # only after the wait, and only within the window counted from the mark.
+    payment_dispute_after: timedelta = Field(
+        default=timedelta(hours=24),
+        ge=timedelta(0),
+        description=(
+            "How long after a payment mark the organiser may still answer it"
+            " before the participant may open a dispute."
+        ),
+    )
+    payment_dispute_window: timedelta = Field(
+        default=timedelta(days=7),
+        gt=timedelta(0),
+        description=("How long after a payment mark its dispute can be opened."),
+    )
+    dispute_reason_max_length: int = Field(
+        default=1000,
+        ge=1,
+        description="Longest reason of a moderator decision, in characters.",
+    )
+    dispute_target_time: timedelta = Field(
+        default=timedelta(hours=24),
+        gt=timedelta(0),
+        description=(
+            "Target time of a dispute decision (appendix 4); the queue marks"
+            " a case overdue after it."
+        ),
+    )
     event_no_show_after: timedelta = Field(
         default=timedelta(hours=24),
         ge=timedelta(0),

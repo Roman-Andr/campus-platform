@@ -49,8 +49,8 @@ class QuoteOutput implements MessageOutputReplyTo {
 sealed class MessageOutputReplyTo {
   factory MessageOutputReplyTo.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches14(json)) "QuoteOutput",
-      if (_matches15(json)) "Null",
+      if (_matches17(json)) "QuoteOutput",
+      if (_matches18(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -75,27 +75,27 @@ class MessageOutputReplyToNull implements MessageOutputReplyTo {
   Object? toJson() => value;
 }
 
-bool _matches14(Object? value) => (_matches17(value));
-bool _matches17(Object? value) =>
+bool _matches17(Object? value) => (_matches20(value));
+bool _matches20(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("id")) &&
     (value is! Map<String, Object?> || value.containsKey("sender_id")) &&
     (value is! Map<String, Object?> || value.containsKey("text")) &&
     (value is! Map<String, Object?> || value.containsKey("created_at")) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("id") ||
-        _matches18(value["id"])) &&
+        _matches21(value["id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("sender_id") ||
-        _matches19(value["sender_id"])) &&
+        _matches22(value["sender_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("text") ||
-        _matches20(value["text"])) &&
+        _matches23(value["text"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("created_at") ||
-        _matches21(value["created_at"])) &&
+        _matches24(value["created_at"])) &&
     ((value is Map<String, Object?>));
-bool _matches18(Object? value) => ((value is String));
-bool _matches19(Object? value) => ((value is String));
-bool _matches20(Object? value) => ((value is String));
 bool _matches21(Object? value) => ((value is String));
-bool _matches15(Object? value) => ((value == null));
+bool _matches22(Object? value) => ((value is String));
+bool _matches23(Object? value) => ((value is String));
+bool _matches24(Object? value) => ((value is String));
+bool _matches18(Object? value) => ((value == null));

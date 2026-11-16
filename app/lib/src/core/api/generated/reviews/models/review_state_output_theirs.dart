@@ -155,8 +155,8 @@ class ReviewOutput implements ReviewStateOutputMine, ReviewStateOutputTheirs {
 sealed class ReviewStateOutputMine {
   factory ReviewStateOutputMine.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches123(json)) "ReviewOutput",
-      if (_matches142(json)) "Null",
+      if (_matches151(json)) "ReviewOutput",
+      if (_matches170(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -185,8 +185,8 @@ class ReviewStateOutputMineNull implements ReviewStateOutputMine {
 sealed class ReviewStateOutputTheirs {
   factory ReviewStateOutputTheirs.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches143(json)) "ReviewOutput",
-      if (_matches144(json)) "Null",
+      if (_matches171(json)) "ReviewOutput",
+      if (_matches172(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -211,8 +211,8 @@ class ReviewStateOutputTheirsNull implements ReviewStateOutputTheirs {
   Object? toJson() => value;
 }
 
-bool _matches123(Object? value) => (_matches124(value));
-bool _matches124(Object? value) =>
+bool _matches151(Object? value) => (_matches152(value));
+bool _matches152(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("id")) &&
     (value is! Map<String, Object?> || value.containsKey("interaction_id")) &&
     (value is! Map<String, Object?> || value.containsKey("listing_id")) &&
@@ -231,77 +231,77 @@ bool _matches124(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("reply")) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("id") ||
-        _matches125(value["id"])) &&
+        _matches153(value["id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("interaction_id") ||
-        _matches126(value["interaction_id"])) &&
+        _matches154(value["interaction_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("listing_id") ||
-        _matches127(value["listing_id"])) &&
+        _matches155(value["listing_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("kind") ||
-        _matches128(value["kind"])) &&
+        _matches156(value["kind"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("author_id") ||
-        _matches129(value["author_id"])) &&
+        _matches157(value["author_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("author_name") ||
-        _matches130(value["author_name"])) &&
+        _matches158(value["author_name"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("subject_id") ||
-        _matches131(value["subject_id"])) &&
+        _matches159(value["subject_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("rating") ||
-        _matches132(value["rating"])) &&
+        _matches160(value["rating"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("tags") ||
-        _matches133(value["tags"])) &&
+        _matches161(value["tags"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("text") ||
-        _matches134(value["text"])) &&
+        _matches162(value["text"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("created_at") ||
-        _matches135(value["created_at"])) &&
+        _matches163(value["created_at"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("updated_at") ||
-        _matches136(value["updated_at"])) &&
+        _matches164(value["updated_at"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("reveal_at") ||
-        _matches137(value["reveal_at"])) &&
+        _matches165(value["reveal_at"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("published_at") ||
-        _matches138(value["published_at"])) &&
+        _matches166(value["published_at"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("hidden") ||
-        _matches139(value["hidden"])) &&
+        _matches167(value["hidden"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("reply") ||
-        _matches140(value["reply"])) &&
+        _matches168(value["reply"])) &&
     ((value is Map<String, Object?>));
-bool _matches125(Object? value) => ((value is String));
-bool _matches126(Object? value) => ((value is String));
-bool _matches127(Object? value) => ((value is String));
-bool _matches128(Object? value) => ((value is String));
-bool _matches129(Object? value) => ((value is String));
-bool _matches130(Object? value) => ((value is String));
-bool _matches131(Object? value) => ((value is String));
-bool _matches132(Object? value) =>
+bool _matches153(Object? value) => ((value is String));
+bool _matches154(Object? value) => ((value is String));
+bool _matches155(Object? value) => ((value is String));
+bool _matches156(Object? value) => ((value is String));
+bool _matches157(Object? value) => ((value is String));
+bool _matches158(Object? value) => ((value is String));
+bool _matches159(Object? value) => ((value is String));
+bool _matches160(Object? value) =>
     ((value is num &&
     (value is int || (value.isFinite && value == value.truncateToDouble()))));
-bool _matches133(Object? value) =>
-    (value is! List<Object?> || value.skip(0).every(_matches141)) &&
+bool _matches161(Object? value) =>
+    (value is! List<Object?> || value.skip(0).every(_matches169)) &&
     ((value is List<Object?>));
-bool _matches141(Object? value) => ((value is String));
-bool _matches134(Object? value) => ((value is String) || (value == null));
-bool _matches135(Object? value) => ((value is String));
-bool _matches136(Object? value) => ((value is String));
-bool _matches137(Object? value) => ((value is String));
-bool _matches138(Object? value) => ((value is String) || (value == null));
-bool _matches139(Object? value) => ((value is bool));
-bool _matches140(Object? value) =>
-    ([if (_matches95(value)) 1, if (_matches104(value)) 1].length == 1);
-bool _matches95(Object? value) => (_matches96(value));
-bool _matches96(Object? value) =>
+bool _matches169(Object? value) => ((value is String));
+bool _matches162(Object? value) => ((value is String) || (value == null));
+bool _matches163(Object? value) => ((value is String));
+bool _matches164(Object? value) => ((value is String));
+bool _matches165(Object? value) => ((value is String));
+bool _matches166(Object? value) => ((value is String) || (value == null));
+bool _matches167(Object? value) => ((value is bool));
+bool _matches168(Object? value) =>
+    ([if (_matches111(value)) 1, if (_matches120(value)) 1].length == 1);
+bool _matches111(Object? value) => (_matches112(value));
+bool _matches112(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("id")) &&
     (value is! Map<String, Object?> || value.containsKey("review_id")) &&
     (value is! Map<String, Object?> || value.containsKey("author_id")) &&
@@ -311,37 +311,37 @@ bool _matches96(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("updated_at")) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("id") ||
-        _matches97(value["id"])) &&
+        _matches113(value["id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("review_id") ||
-        _matches98(value["review_id"])) &&
+        _matches114(value["review_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("author_id") ||
-        _matches99(value["author_id"])) &&
+        _matches115(value["author_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("author_name") ||
-        _matches100(value["author_name"])) &&
+        _matches116(value["author_name"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("text") ||
-        _matches101(value["text"])) &&
+        _matches117(value["text"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("created_at") ||
-        _matches102(value["created_at"])) &&
+        _matches118(value["created_at"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("updated_at") ||
-        _matches103(value["updated_at"])) &&
+        _matches119(value["updated_at"])) &&
     ((value is Map<String, Object?>));
-bool _matches97(Object? value) => ((value is String));
-bool _matches98(Object? value) => ((value is String));
-bool _matches99(Object? value) => ((value is String));
-bool _matches100(Object? value) => ((value is String));
-bool _matches101(Object? value) => ((value is String));
-bool _matches102(Object? value) => ((value is String));
-bool _matches103(Object? value) => ((value is String));
-bool _matches104(Object? value) => ((value == null));
-bool _matches142(Object? value) => ((value == null));
-bool _matches143(Object? value) => (_matches124(value));
-bool _matches144(Object? value) => ((value == null));
+bool _matches113(Object? value) => ((value is String));
+bool _matches114(Object? value) => ((value is String));
+bool _matches115(Object? value) => ((value is String));
+bool _matches116(Object? value) => ((value is String));
+bool _matches117(Object? value) => ((value is String));
+bool _matches118(Object? value) => ((value is String));
+bool _matches119(Object? value) => ((value is String));
+bool _matches120(Object? value) => ((value == null));
+bool _matches170(Object? value) => ((value == null));
+bool _matches171(Object? value) => (_matches152(value));
+bool _matches172(Object? value) => ((value == null));
 int _readJsonInteger(Object? value) {
   if (value is int) {
     return value;

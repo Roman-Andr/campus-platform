@@ -116,8 +116,8 @@ class MessageOutput implements ChatOutputLastMessage {
 sealed class ChatOutputLastMessage {
   factory ChatOutputLastMessage.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches1(json)) "MessageOutput",
-      if (_matches22(json)) "Null",
+      if (_matches4(json)) "MessageOutput",
+      if (_matches25(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -142,8 +142,8 @@ class ChatOutputLastMessageNull implements ChatOutputLastMessage {
   Object? toJson() => value;
 }
 
-bool _matches1(Object? value) => (_matches2(value));
-bool _matches2(Object? value) =>
+bool _matches4(Object? value) => (_matches5(value));
+bool _matches5(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("id")) &&
     (value is! Map<String, Object?> || value.containsKey("chat_id")) &&
     (value is! Map<String, Object?> || value.containsKey("sender_id")) &&
@@ -153,82 +153,82 @@ bool _matches2(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("created_at")) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("id") ||
-        _matches3(value["id"])) &&
+        _matches6(value["id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("chat_id") ||
-        _matches4(value["chat_id"])) &&
+        _matches7(value["chat_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("sender_id") ||
-        _matches5(value["sender_id"])) &&
+        _matches8(value["sender_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("client_id") ||
-        _matches6(value["client_id"])) &&
+        _matches9(value["client_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("sequence") ||
-        _matches7(value["sequence"])) &&
+        _matches10(value["sequence"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("text") ||
-        _matches8(value["text"])) &&
+        _matches11(value["text"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("reply_to_id") ||
-        _matches9(value["reply_to_id"])) &&
+        _matches12(value["reply_to_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("reply_to") ||
-        _matches10(value["reply_to"])) &&
+        _matches13(value["reply_to"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("version") ||
-        _matches11(value["version"])) &&
+        _matches14(value["version"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("photo_ids") ||
-        _matches12(value["photo_ids"])) &&
+        _matches15(value["photo_ids"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("created_at") ||
-        _matches13(value["created_at"])) &&
+        _matches16(value["created_at"])) &&
     ((value is Map<String, Object?>));
-bool _matches3(Object? value) => ((value is String));
-bool _matches4(Object? value) => ((value is String));
-bool _matches5(Object? value) => ((value is String));
 bool _matches6(Object? value) => ((value is String));
-bool _matches7(Object? value) =>
+bool _matches7(Object? value) => ((value is String));
+bool _matches8(Object? value) => ((value is String));
+bool _matches9(Object? value) => ((value is String));
+bool _matches10(Object? value) =>
     ((value is num &&
     (value is int || (value.isFinite && value == value.truncateToDouble()))));
-bool _matches8(Object? value) => ((value is String));
-bool _matches9(Object? value) => ((value is String) || (value == null));
-bool _matches10(Object? value) =>
-    ([if (_matches14(value)) 1, if (_matches15(value)) 1].length == 1);
-bool _matches14(Object? value) => (_matches17(value));
-bool _matches17(Object? value) =>
+bool _matches11(Object? value) => ((value is String));
+bool _matches12(Object? value) => ((value is String) || (value == null));
+bool _matches13(Object? value) =>
+    ([if (_matches17(value)) 1, if (_matches18(value)) 1].length == 1);
+bool _matches17(Object? value) => (_matches20(value));
+bool _matches20(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("id")) &&
     (value is! Map<String, Object?> || value.containsKey("sender_id")) &&
     (value is! Map<String, Object?> || value.containsKey("text")) &&
     (value is! Map<String, Object?> || value.containsKey("created_at")) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("id") ||
-        _matches18(value["id"])) &&
+        _matches21(value["id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("sender_id") ||
-        _matches19(value["sender_id"])) &&
+        _matches22(value["sender_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("text") ||
-        _matches20(value["text"])) &&
+        _matches23(value["text"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("created_at") ||
-        _matches21(value["created_at"])) &&
+        _matches24(value["created_at"])) &&
     ((value is Map<String, Object?>));
-bool _matches18(Object? value) => ((value is String));
-bool _matches19(Object? value) => ((value is String));
-bool _matches20(Object? value) => ((value is String));
 bool _matches21(Object? value) => ((value is String));
-bool _matches15(Object? value) => ((value == null));
-bool _matches11(Object? value) =>
+bool _matches22(Object? value) => ((value is String));
+bool _matches23(Object? value) => ((value is String));
+bool _matches24(Object? value) => ((value is String));
+bool _matches18(Object? value) => ((value == null));
+bool _matches14(Object? value) =>
     ((value is num &&
     (value is int || (value.isFinite && value == value.truncateToDouble()))));
-bool _matches12(Object? value) =>
-    (value is! List<Object?> || value.skip(0).every(_matches16)) &&
+bool _matches15(Object? value) =>
+    (value is! List<Object?> || value.skip(0).every(_matches19)) &&
     ((value is List<Object?>));
+bool _matches19(Object? value) => ((value is String));
 bool _matches16(Object? value) => ((value is String));
-bool _matches13(Object? value) => ((value is String));
-bool _matches22(Object? value) => ((value == null));
+bool _matches25(Object? value) => ((value == null));
 int _readJsonInteger(Object? value) {
   if (value is int) {
     return value;

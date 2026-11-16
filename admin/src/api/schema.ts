@@ -176,6 +176,69 @@ export interface paths {
     patch: operations['admin_update_complaint_reason'];
     trace?: never;
   };
+  '/api/v1/admin/disputes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Admin List Disputes
+     * @description The panel queue, oldest first by default; overdue cases are marked.
+     */
+    get: operations['admin_list_disputes'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/disputes/{dispute_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Admin Get Dispute
+     * @description One case with its parties, subject, chronology and resolution.
+     */
+    get: operations['admin_get_dispute'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/disputes/{dispute_id}/decision': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Admin Decide Dispute
+     * @description Decide one case; a stale version or a second decision is refused.
+     *
+     *     The own-case mark of the audit journal is derived from the parties of
+     *     the case, so a moderator deciding their own case is recorded as such.
+     */
+    post: operations['admin_decide_dispute'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/health': {
     parameters: {
       query?: never;
@@ -591,6 +654,54 @@ export interface paths {
      * @description Active reasons for a new complaint in the request language.
      */
     get: operations['list_complaint_reasons'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/disputes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List My Disputes
+     * @description The caller's cases, newest first by default.
+     */
+    get: operations['list_my_disputes'];
+    put?: never;
+    /**
+     * Open My Dispute
+     * @description Open one case about a disputed event.
+     *
+     *     A repeated opening of the same event returns the existing case with 200
+     *     and never creates a second one. The seven-day window is counted from the
+     *     disputed event (the mark or the payment mark), not from the interaction.
+     */
+    post: operations['open_my_dispute'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/disputes/{dispute_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get My Dispute
+     * @description One case of the caller with its chronology and current subject.
+     */
+    get: operations['get_my_dispute'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1590,6 +1701,89 @@ export interface paths {
      * @description The organiser approves or rejects a participant's withdrawal request.
      */
     post: operations['decide_my_purchase_withdrawal'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{listing_id}/shares/me/payment': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * My Payment State
+     * @description The participant's payment mark of their own share.
+     */
+    get: operations['my_payment_state'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{listing_id}/shares/me/payment/claims': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Claim My Payment
+     * @description Mark the share paid; the organiser confirms or rejects it.
+     *
+     *     The mark is accepted only while the composition is fixed and the share
+     *     is still accepted. A repeated call without an answer changes nothing.
+     */
+    post: operations['claim_my_payment'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{listing_id}/shares/{interaction_id}/payment': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Share Payment State
+     * @description The organiser reads the payment mark of one share.
+     */
+    get: operations['share_payment_state'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{listing_id}/shares/{interaction_id}/payment/decision': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Decide Share Payment
+     * @description The organiser confirms or rejects the active payment mark.
+     */
+    post: operations['decide_share_payment'];
     delete?: never;
     options?: never;
     head?: never;
@@ -2819,6 +3013,62 @@ export interface components {
        */
       verified_at: string;
     };
+    /**
+     * AdminDisputeSummaryOut
+     * @description A queue row with the target-time marker of the panel.
+     */
+    AdminDisputeSummaryOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      kind: components['schemas']['DisputeKind'];
+      status: components['schemas']['DisputeStatus'];
+      /**
+       * Listing Id
+       * Format: uuid
+       */
+      listing_id: string;
+      /** Interaction Id */
+      interaction_id: string | null;
+      /** Opened By Id */
+      opened_by_id: string | null;
+      /**
+       * Event At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      event_at: string;
+      /**
+       * Opened At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      opened_at: string;
+      /** Resolved At */
+      resolved_at: string | null;
+      action: components['schemas']['DisputeAction'] | null;
+      /** Version */
+      version: number;
+      /**
+       * Author Id
+       * Format: uuid
+       * @description The author of the listing of the case.
+       */
+      author_id: string;
+      /**
+       * Participant Id
+       * @description The other participant of an interaction case; null for an event.
+       */
+      participant_id: string | null;
+      /**
+       * Overdue
+       * @description Whether the case waits longer than the configured target time.
+       * @default false
+       */
+      overdue: boolean;
+    };
     /** AttendanceCodeInput */
     AttendanceCodeInput: {
       /**
@@ -3514,9 +3764,13 @@ export interface components {
     /**
      * CompletionMethod
      * @description How an accepted interaction reached the completed status.
+     *
+     *     ``moderator`` is a dispute decision (#94): the participants did not
+     *     confirm a meeting, but the moderator found that the interaction took
+     *     place. Its review weight is the "without a meeting" one.
      * @enum {string}
      */
-    CompletionMethod: 'qr' | 'no_meeting';
+    CompletionMethod: 'qr' | 'no_meeting' | 'moderator';
     /** ConfirmAddressInput */
     ConfirmAddressInput: {
       /**
@@ -3584,11 +3838,281 @@ export interface components {
       revoked_at: string | null;
     };
     /**
+     * DisputeAction
+     * @description The outcome of a moderator decision.
+     *
+     *     ``keep`` leaves the disputed facts in force; ``lift_no_show`` removes
+     *     the no-show marks while the interaction stays "did not take place";
+     *     ``complete`` closes the interaction as completed; the payment actions
+     *     answer the suspended payment mark. ``late_qr`` and ``legacy`` are
+     *     system resolutions: a QR code formed before the mark, and a case
+     *     created before #94 existed.
+     * @enum {string}
+     */
+    DisputeAction:
+      | 'keep'
+      | 'lift_no_show'
+      | 'complete'
+      | 'confirm_payment'
+      | 'reject_payment'
+      | 'late_qr'
+      | 'legacy';
+    /**
+     * DisputeDecisionInput
+     * @description One moderator decision; the version rejects a stale one.
+     */
+    DisputeDecisionInput: {
+      /** Version */
+      version: number;
+      action: components['schemas']['DisputeAction'];
+      /**
+       * Reason
+       * @description The justification recorded in the journal and the audit.
+       */
+      reason: string;
+    };
+    /**
+     * DisputeDetailOut
+     * @description A case with its parties, subject, chronology and resolution.
+     */
+    DisputeDetailOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      kind: components['schemas']['DisputeKind'];
+      status: components['schemas']['DisputeStatus'];
+      /**
+       * Listing Id
+       * Format: uuid
+       */
+      listing_id: string;
+      /** Interaction Id */
+      interaction_id: string | null;
+      /** Opened By Id */
+      opened_by_id: string | null;
+      /**
+       * Event At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      event_at: string;
+      /**
+       * Opened At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      opened_at: string;
+      /** Resolved At */
+      resolved_at: string | null;
+      action: components['schemas']['DisputeAction'] | null;
+      /** Version */
+      version: number;
+      /**
+       * Author Id
+       * Format: uuid
+       * @description The author of the listing of the case.
+       */
+      author_id: string;
+      /**
+       * Participant Id
+       * @description The other participant of an interaction case; null for an event.
+       */
+      participant_id: string | null;
+      /** Statement */
+      statement: string | null;
+      /** Resolution */
+      resolution: string | null;
+      /** Resolved By Id */
+      resolved_by_id: string | null;
+      /** Participants */
+      participants: string[];
+      /** Marks */
+      marks: components['schemas']['DisputeMarkOut'][];
+      payment: components['schemas']['DisputePaymentOut'] | null;
+      /** History */
+      history: components['schemas']['DisputeEventOut'][];
+    };
+    /**
+     * DisputeEventOut
+     * @description One row of the interaction or event chronology of the case.
+     */
+    DisputeEventOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Action */
+      action: string;
+      /** Actor Id */
+      actor_id: string | null;
+      /** Previous Status */
+      previous_status: string | null;
+      /** Status */
+      status: string;
+      /** Reason */
+      reason: string | null;
+      /** Details */
+      details: {
+        [key: string]: unknown;
+      } | null;
+      /** Via Assistant */
+      via_assistant: boolean;
+      /** Offline Qr */
+      offline_qr: boolean;
+      /**
+       * Created At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      created_at: string;
+    };
+    /**
+     * DisputeKind
+     * @description The disputed subject of a case.
+     *
+     *     ``not_returned`` is the borrower disputing the owner's "not returned"
+     *     mark of a loan; ``payment`` is an unconfirmed payment mark of a group
+     *     purchase share (#54, #94).
+     * @enum {string}
+     */
+    DisputeKind: 'no_show' | 'not_returned' | 'payment';
+    /**
+     * DisputeMarkOut
+     * @description A no-show mark of a case; kept as history after a decision.
+     */
+    DisputeMarkOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Kind */
+      kind: string;
+      /** Status */
+      status: string;
+      /** Reporter Id */
+      reporter_id: string | null;
+      /**
+       * Subject Id
+       * Format: uuid
+       */
+      subject_id: string;
+      /** Reason */
+      reason: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      created_at: string;
+      /** Disputed At */
+      disputed_at: string | null;
+      /** Removed At */
+      removed_at: string | null;
+    };
+    /**
+     * DisputeOpenInput
+     * @description A participant opens a case about a disputed event.
+     */
+    DisputeOpenInput: {
+      kind: components['schemas']['DisputeKind'];
+      /**
+       * Listing Id
+       * Format: uuid
+       */
+      listing_id: string;
+      /** Interaction Id */
+      interaction_id?: string | null;
+      /**
+       * Reason
+       * @description The participant's account of the case; the configured limit is applied by the domain and reported as a problem.
+       */
+      reason: string;
+    };
+    /**
+     * DisputePaymentOut
+     * @description The suspended payment mark of a payment case.
+     */
+    DisputePaymentOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Status */
+      status: string;
+      /**
+       * Claimed At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      claimed_at: string;
+      /** Responded At */
+      responded_at: string | null;
+      /** Responded By Id */
+      responded_by_id: string | null;
+      /** Version */
+      version: number;
+    };
+    /**
      * DisputeStatus
      * @description Open cases wait for a moderator decision (#94).
      * @enum {string}
      */
     DisputeStatus: 'open' | 'resolved';
+    /**
+     * DisputeSummaryOut
+     * @description One case in a queue or a party's list.
+     */
+    DisputeSummaryOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      kind: components['schemas']['DisputeKind'];
+      status: components['schemas']['DisputeStatus'];
+      /**
+       * Listing Id
+       * Format: uuid
+       */
+      listing_id: string;
+      /** Interaction Id */
+      interaction_id: string | null;
+      /** Opened By Id */
+      opened_by_id: string | null;
+      /**
+       * Event At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      event_at: string;
+      /**
+       * Opened At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      opened_at: string;
+      /** Resolved At */
+      resolved_at: string | null;
+      action: components['schemas']['DisputeAction'] | null;
+      /** Version */
+      version: number;
+      /**
+       * Author Id
+       * Format: uuid
+       * @description The author of the listing of the case.
+       */
+      author_id: string;
+      /**
+       * Participant Id
+       * @description The other participant of an interaction case; null for an event.
+       */
+      participant_id: string | null;
+    };
     /**
      * DocumentKind
      * @enum {string}
@@ -4972,6 +5496,16 @@ export interface components {
        */
       server_time: string;
     };
+    /** Page[AdminDisputeSummaryOut] */
+    Page_AdminDisputeSummaryOut_: {
+      /** Items */
+      items: components['schemas']['AdminDisputeSummaryOut'][];
+      /**
+       * Next Page
+       * @description Cursor of the next page; null on the last page.
+       */
+      next_page: string | null;
+    };
     /** Page[AuditRecordOut] */
     Page_AuditRecordOut_: {
       /** Items */
@@ -5016,6 +5550,16 @@ export interface components {
     Page_ComplaintReasonOut_: {
       /** Items */
       items: components['schemas']['ComplaintReasonOut'][];
+      /**
+       * Next Page
+       * @description Cursor of the next page; null on the last page.
+       */
+      next_page: string | null;
+    };
+    /** Page[DisputeSummaryOut] */
+    Page_DisputeSummaryOut_: {
+      /** Items */
+      items: components['schemas']['DisputeSummaryOut'][];
       /**
        * Next Page
        * @description Cursor of the next page; null on the last page.
@@ -5248,6 +5792,94 @@ export interface components {
       created_at: string;
       listing: components['schemas']['ParticipationListing'];
     };
+    /**
+     * PaymentClaimOutput
+     * @description One payment mark of a share.
+     */
+    PaymentClaimOutput: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      status: components['schemas']['PaymentClaimStatus'];
+      /**
+       * Claimed At
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      claimed_at: string;
+      /** Responded At */
+      responded_at: string | null;
+      /** Responded By Id */
+      responded_by_id: string | null;
+      /** Version */
+      version: number;
+    };
+    /**
+     * PaymentClaimStatus
+     * @description Two-sided payment mark of a fixed purchase share.
+     *
+     *     A participant claims "I paid"; the organiser confirms or rejects it.
+     *     A claim without an answer for the configured wait becomes disputable
+     *     and is suspended while the moderator decides (#94).
+     * @enum {string}
+     */
+    PaymentClaimStatus: 'claimed' | 'disputed' | 'confirmed' | 'rejected';
+    /**
+     * PaymentDecisionInput
+     * @description The organiser's answer to the active payment mark.
+     */
+    PaymentDecisionInput: {
+      /** Approve */
+      approve: boolean;
+      /** Version */
+      version: number;
+    };
+    /**
+     * PaymentStateOutput
+     * @description The payment mark of a share and the actions its viewer may take.
+     */
+    PaymentStateOutput: {
+      /**
+       * Listing Id
+       * Format: uuid
+       */
+      listing_id: string;
+      /**
+       * Interaction Id
+       * Format: uuid
+       */
+      interaction_id: string;
+      /** Units */
+      units: number;
+      /** Unit Price */
+      unit_price: string;
+      /** Amount */
+      amount: string;
+      /** @description The newest mark; null when the participant has not marked one. */
+      status: components['schemas']['PaymentClaimStatus'] | null;
+      claim: components['schemas']['PaymentClaimOutput'] | null;
+      /** Can Claim */
+      can_claim: boolean;
+      /** Can Respond */
+      can_respond: boolean;
+      /** Can Dispute */
+      can_dispute: boolean;
+      /**
+       * Dispute Available At
+       * @description When an unanswered mark becomes disputable; null if it cannot.
+       */
+      dispute_available_at: string | null;
+      /** Dispute Closes At */
+      dispute_closes_at: string | null;
+      /**
+       * Server Time
+       * Format: date-time
+       * @description RFC 3339 instant with an explicit offset; returned in UTC.
+       */
+      server_time: string;
+    };
     /** PhotoOrder */
     PhotoOrder: {
       /** File Ids */
@@ -5343,6 +5975,16 @@ export interface components {
         | 'consent_invalid'
         | 'consent_required'
         | 'device_key_conflict'
+        | 'dispute_action_invalid'
+        | 'dispute_closed'
+        | 'dispute_forbidden'
+        | 'dispute_kind_invalid'
+        | 'dispute_reason_invalid'
+        | 'dispute_resolved'
+        | 'dispute_state_conflict'
+        | 'dispute_too_early'
+        | 'dispute_unavailable'
+        | 'dispute_version_conflict'
         | 'email_conflict'
         | 'email_kind_invalid'
         | 'email_not_found'
@@ -5427,6 +6069,12 @@ export interface components {
         | 'notification_type_unknown'
         | 'photo_unavailable'
         | 'profile_incomplete'
+        | 'purchase_payment_cancelled'
+        | 'purchase_payment_confirmed'
+        | 'purchase_payment_disputed'
+        | 'purchase_payment_forbidden'
+        | 'purchase_payment_unavailable'
+        | 'purchase_payment_version_conflict'
         | 'qr_acceptance_unknown'
         | 'qr_after_no_show'
         | 'qr_already_completed'
@@ -7795,6 +8443,316 @@ export interface operations {
       };
     };
   };
+  admin_list_disputes: {
+    parameters: {
+      query?: {
+        status?: components['schemas']['DisputeStatus'] | null;
+        kind?: components['schemas']['DisputeKind'] | null;
+        listing_id?: string | null;
+        order_by?: 'opened_at' | '-opened_at';
+        /** @description Number of items; the default (20) and the maximum (100) are set in the server configuration. */
+        size?: number | null;
+        /** @description `next_page` of the previous page. */
+        cursor?: string | null;
+      };
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Page_AdminDisputeSummaryOut_'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  admin_get_dispute: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path: {
+        dispute_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DisputeDetailOut'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  admin_decide_dispute: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        dispute_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DisputeDecisionInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DisputeDetailOut'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
   get_health: {
     parameters: {
       query?: never;
@@ -9740,6 +10698,316 @@ export interface operations {
         };
       };
       /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  list_my_disputes: {
+    parameters: {
+      query?: {
+        /** @description Only open or only decided cases. */
+        status?: components['schemas']['DisputeStatus'] | null;
+        kind?: components['schemas']['DisputeKind'] | null;
+        listing_id?: string | null;
+        interaction_id?: string | null;
+        order_by?: 'opened_at' | '-opened_at';
+        /** @description Number of items; the default (20) and the maximum (100) are set in the server configuration. */
+        size?: number | null;
+        /** @description `next_page` of the previous page. */
+        cursor?: string | null;
+      };
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Page_DisputeSummaryOut_'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  open_my_dispute: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DisputeOpenInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DisputeDetailOut'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  get_my_dispute: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path: {
+        dispute_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DisputeDetailOut'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unprocessable Content */
       422: {
         headers: {
           [name: string]: unknown;
@@ -16361,6 +17629,448 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['PurchaseShareOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  my_payment_state: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path: {
+        listing_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PaymentStateOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  claim_my_payment: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PaymentStateOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  share_payment_state: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path: {
+        listing_id: string;
+        interaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PaymentStateOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  decide_share_payment: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        listing_id: string;
+        interaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PaymentDecisionInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PaymentStateOutput'];
         };
       };
       /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */

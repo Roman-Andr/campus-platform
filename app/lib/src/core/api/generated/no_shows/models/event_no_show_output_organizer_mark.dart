@@ -134,8 +134,8 @@ class NoShowMarkOutput implements EventNoShowOutputOrganizerMark {
 sealed class EventNoShowOutputOrganizerMark {
   factory EventNoShowOutputOrganizerMark.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches26(json)) "NoShowMarkOutput",
-      if (_matches39(json)) "Null",
+      if (_matches42(json)) "NoShowMarkOutput",
+      if (_matches55(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -161,8 +161,8 @@ class EventNoShowOutputOrganizerMarkNull
   Object? toJson() => value;
 }
 
-bool _matches26(Object? value) => (_matches27(value));
-bool _matches27(Object? value) =>
+bool _matches42(Object? value) => (_matches43(value));
+bool _matches43(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("id")) &&
     (value is! Map<String, Object?> || value.containsKey("kind")) &&
     (value is! Map<String, Object?> || value.containsKey("status")) &&
@@ -174,45 +174,45 @@ bool _matches27(Object? value) =>
     (value is! Map<String, Object?> || value.containsKey("removed_at")) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("id") ||
-        _matches28(value["id"])) &&
+        _matches44(value["id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("kind") ||
-        _matches29(value["kind"])) &&
+        _matches45(value["kind"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("status") ||
-        _matches30(value["status"])) &&
+        _matches46(value["status"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("reporter_id") ||
-        _matches31(value["reporter_id"])) &&
+        _matches47(value["reporter_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("subject_id") ||
-        _matches32(value["subject_id"])) &&
+        _matches48(value["subject_id"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("reason") ||
-        _matches33(value["reason"])) &&
+        _matches49(value["reason"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("created_at") ||
-        _matches34(value["created_at"])) &&
+        _matches50(value["created_at"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("disputed_at") ||
-        _matches35(value["disputed_at"])) &&
+        _matches51(value["disputed_at"])) &&
     (value is! Map<String, Object?> ||
         !value.containsKey("removed_at") ||
-        _matches36(value["removed_at"])) &&
+        _matches52(value["removed_at"])) &&
     ((value is Map<String, Object?>));
-bool _matches28(Object? value) => ((value is String));
-bool _matches29(Object? value) => (_matches37(value));
-bool _matches37(Object? value) =>
+bool _matches44(Object? value) => ((value is String));
+bool _matches45(Object? value) => (_matches53(value));
+bool _matches53(Object? value) =>
     (const <Object?>["personal", "event_auto", "event_vote"].contains(value)) &&
     ((value is String));
-bool _matches30(Object? value) => (_matches38(value));
-bool _matches38(Object? value) =>
+bool _matches46(Object? value) => (_matches54(value));
+bool _matches54(Object? value) =>
     (const <Object?>["counted", "disputed", "removed"].contains(value)) &&
     ((value is String));
-bool _matches31(Object? value) => ((value is String) || (value == null));
-bool _matches32(Object? value) => ((value is String));
-bool _matches33(Object? value) => ((value is String) || (value == null));
-bool _matches34(Object? value) => ((value is String));
-bool _matches35(Object? value) => ((value is String) || (value == null));
-bool _matches36(Object? value) => ((value is String) || (value == null));
-bool _matches39(Object? value) => ((value == null));
+bool _matches47(Object? value) => ((value is String) || (value == null));
+bool _matches48(Object? value) => ((value is String));
+bool _matches49(Object? value) => ((value is String) || (value == null));
+bool _matches50(Object? value) => ((value is String));
+bool _matches51(Object? value) => ((value is String) || (value == null));
+bool _matches52(Object? value) => ((value is String) || (value == null));
+bool _matches55(Object? value) => ((value == null));

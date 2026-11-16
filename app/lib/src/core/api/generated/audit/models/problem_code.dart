@@ -33,6 +33,16 @@ enum ProblemCodeValue {
   consentInvalid("consent_invalid"),
   consentRequired("consent_required"),
   deviceKeyConflict("device_key_conflict"),
+  disputeActionInvalid("dispute_action_invalid"),
+  disputeClosed("dispute_closed"),
+  disputeForbidden("dispute_forbidden"),
+  disputeKindInvalid("dispute_kind_invalid"),
+  disputeReasonInvalid("dispute_reason_invalid"),
+  disputeResolved("dispute_resolved"),
+  disputeStateConflict("dispute_state_conflict"),
+  disputeTooEarly("dispute_too_early"),
+  disputeUnavailable("dispute_unavailable"),
+  disputeVersionConflict("dispute_version_conflict"),
   emailConflict("email_conflict"),
   emailKindInvalid("email_kind_invalid"),
   emailNotFound("email_not_found"),
@@ -119,6 +129,12 @@ enum ProblemCodeValue {
   notificationTypeUnknown("notification_type_unknown"),
   photoUnavailable("photo_unavailable"),
   profileIncomplete("profile_incomplete"),
+  purchasePaymentCancelled("purchase_payment_cancelled"),
+  purchasePaymentConfirmed("purchase_payment_confirmed"),
+  purchasePaymentDisputed("purchase_payment_disputed"),
+  purchasePaymentForbidden("purchase_payment_forbidden"),
+  purchasePaymentUnavailable("purchase_payment_unavailable"),
+  purchasePaymentVersionConflict("purchase_payment_version_conflict"),
   qrAcceptanceUnknown("qr_acceptance_unknown"),
   qrAfterNoShow("qr_after_no_show"),
   qrAlreadyCompleted("qr_already_completed"),
@@ -260,6 +276,34 @@ sealed class ProblemCode {
   );
   static const deviceKeyConflict = ProblemCodeKnown(
     ProblemCodeValue.deviceKeyConflict,
+  );
+  static const disputeActionInvalid = ProblemCodeKnown(
+    ProblemCodeValue.disputeActionInvalid,
+  );
+  static const disputeClosed = ProblemCodeKnown(ProblemCodeValue.disputeClosed);
+  static const disputeForbidden = ProblemCodeKnown(
+    ProblemCodeValue.disputeForbidden,
+  );
+  static const disputeKindInvalid = ProblemCodeKnown(
+    ProblemCodeValue.disputeKindInvalid,
+  );
+  static const disputeReasonInvalid = ProblemCodeKnown(
+    ProblemCodeValue.disputeReasonInvalid,
+  );
+  static const disputeResolved = ProblemCodeKnown(
+    ProblemCodeValue.disputeResolved,
+  );
+  static const disputeStateConflict = ProblemCodeKnown(
+    ProblemCodeValue.disputeStateConflict,
+  );
+  static const disputeTooEarly = ProblemCodeKnown(
+    ProblemCodeValue.disputeTooEarly,
+  );
+  static const disputeUnavailable = ProblemCodeKnown(
+    ProblemCodeValue.disputeUnavailable,
+  );
+  static const disputeVersionConflict = ProblemCodeKnown(
+    ProblemCodeValue.disputeVersionConflict,
   );
   static const emailConflict = ProblemCodeKnown(ProblemCodeValue.emailConflict);
   static const emailKindInvalid = ProblemCodeKnown(
@@ -494,6 +538,24 @@ sealed class ProblemCode {
   );
   static const profileIncomplete = ProblemCodeKnown(
     ProblemCodeValue.profileIncomplete,
+  );
+  static const purchasePaymentCancelled = ProblemCodeKnown(
+    ProblemCodeValue.purchasePaymentCancelled,
+  );
+  static const purchasePaymentConfirmed = ProblemCodeKnown(
+    ProblemCodeValue.purchasePaymentConfirmed,
+  );
+  static const purchasePaymentDisputed = ProblemCodeKnown(
+    ProblemCodeValue.purchasePaymentDisputed,
+  );
+  static const purchasePaymentForbidden = ProblemCodeKnown(
+    ProblemCodeValue.purchasePaymentForbidden,
+  );
+  static const purchasePaymentUnavailable = ProblemCodeKnown(
+    ProblemCodeValue.purchasePaymentUnavailable,
+  );
+  static const purchasePaymentVersionConflict = ProblemCodeKnown(
+    ProblemCodeValue.purchasePaymentVersionConflict,
   );
   static const qrAcceptanceUnknown = ProblemCodeKnown(
     ProblemCodeValue.qrAcceptanceUnknown,

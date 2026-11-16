@@ -6,8 +6,8 @@ import 'completion_method.dart';
 sealed class PurchaseShareOutputCompletionMethod {
   factory PurchaseShareOutputCompletionMethod.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches109(json)) "CompletionMethod",
-      if (_matches110(json)) "Null",
+      if (_matches137(json)) "CompletionMethod",
+      if (_matches138(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -44,8 +44,8 @@ class PurchaseShareOutputCompletionMethodNull
   Object? toJson() => value;
 }
 
-bool _matches109(Object? value) => (_matches24(value));
-bool _matches24(Object? value) =>
-    (const <Object?>["qr", "no_meeting"].contains(value)) &&
+bool _matches137(Object? value) => (_matches27(value));
+bool _matches27(Object? value) =>
+    (const <Object?>["qr", "no_meeting", "moderator"].contains(value)) &&
     ((value is String));
-bool _matches110(Object? value) => ((value == null));
+bool _matches138(Object? value) => ((value == null));

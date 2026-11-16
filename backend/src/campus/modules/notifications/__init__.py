@@ -11,6 +11,8 @@ from campus.modules.notifications.delivery import (
     replay_notification_events,
 )
 from campus.modules.notifications.events import (
+    DISPUTE_OPENED,
+    DISPUTE_RESOLVED,
     IMPORTANT_TYPES,
     LISTING_CANCELLED,
     LISTING_CHANGED,
@@ -19,6 +21,10 @@ from campus.modules.notifications.events import (
     LISTING_WAITLIST_CLEARED,
     LISTING_WAITLIST_JOINED,
     LISTING_WAITLIST_OPEN,
+    PAYMENT_CLAIMED,
+    PAYMENT_CONFIRMED,
+    PAYMENT_DECIDED,
+    PAYMENT_REJECTED,
     PURCHASE_CANCELLED,
     PURCHASE_CANCELLED_BY_AUTHOR,
     PURCHASE_CONDITIONS_CHANGED,
@@ -48,6 +54,8 @@ from campus.modules.notifications.preferences import (
 from campus.modules.notifications.reminders import cancel_reminders, schedule_reminders
 
 __all__ = [
+    "DISPUTE_OPENED",
+    "DISPUTE_RESOLVED",
     "IMPORTANT_TYPES",
     "LISTING_CANCELLED",
     "LISTING_CHANGED",
@@ -56,6 +64,10 @@ __all__ = [
     "LISTING_WAITLIST_CLEARED",
     "LISTING_WAITLIST_JOINED",
     "LISTING_WAITLIST_OPEN",
+    "PAYMENT_CLAIMED",
+    "PAYMENT_CONFIRMED",
+    "PAYMENT_DECIDED",
+    "PAYMENT_REJECTED",
     "PURCHASE_CANCELLED",
     "PURCHASE_CANCELLED_BY_AUTHOR",
     "PURCHASE_CONDITIONS_CHANGED",

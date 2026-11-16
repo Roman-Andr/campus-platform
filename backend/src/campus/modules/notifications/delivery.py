@@ -38,6 +38,7 @@ NOTIFICATION_TYPES = frozenset(
         "listing.purchase.reminder",
         "listing.purchase.withdrawal_requested",
         "listing.purchase.withdrawal_decided",
+        "listing.purchase.payment",
         "listing.meeting.proposed",
         "listing.meeting.scheduled",
         "listing.meeting.rescheduled",

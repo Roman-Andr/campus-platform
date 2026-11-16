@@ -1,6 +1,6 @@
 """Public listing API and aggregate persistence."""
 
-from campus.modules.listings import purchase_api  # noqa: F401 - route registration
+from campus.modules.listings import payment_api, purchase_api  # noqa: F401
 from campus.modules.listings.api import (
     Preview,
     attach_previews,
@@ -29,12 +29,23 @@ from campus.modules.listings.models import (
     Meeting,
     MeetingStatus,
     NoMeetingConfirmation,
+    PaymentClaim,
+    PaymentClaimStatus,
     PurchaseStage,
     Skill,
     SkillDirection,
     Visibility,
     WaitlistEntry,
     WaitlistStatus,
+)
+from campus.modules.listings.payments import (
+    PaymentState,
+    claim_payment,
+    latest_claim,
+    payment_state,
+    resolve_payment_claim,
+    respond_payment,
+    suspend_payment_claim,
 )
 from campus.modules.listings.retention import (
     ArchivePurger,
@@ -132,6 +143,9 @@ __all__ = [
     "Meeting",
     "MeetingStatus",
     "NoMeetingConfirmation",
+    "PaymentClaim",
+    "PaymentClaimStatus",
+    "PaymentState",
     "Preview",
     "PurchaseStage",
     "Skill",
@@ -152,6 +166,7 @@ __all__ = [
     "change_listing",
     "change_stage",
     "claim_offer",
+    "claim_payment",
     "clear_waitlist",
     "close_purchase_collection",
     "confirm_no_meeting",
@@ -163,6 +178,7 @@ __all__ = [
     "hide",
     "join_purchase",
     "join_waitlist",
+    "latest_claim",
     "leave_purchase",
     "leave_waitlist",
     "loan_period_days",
@@ -172,6 +188,7 @@ __all__ = [
     "no_showed_at",
     "offer_next",
     "offer_timing",
+    "payment_state",
     "propose_lesson_counter",
     "purchase_stage_of",
     "readable",
@@ -180,9 +197,12 @@ __all__ = [
     "register_preview_loader",
     "related_between",
     "require_no_meeting",
+    "resolve_payment_claim",
+    "respond_payment",
     "return_reminder_key",
     "router",
     "schedule_return_reminder",
+    "suspend_payment_claim",
     "transition",
     "user_for",
     "validate_lesson_slot",
