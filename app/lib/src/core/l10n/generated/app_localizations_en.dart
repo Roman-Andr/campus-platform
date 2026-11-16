@@ -3056,4 +3056,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timelineLoanNotReturned => 'Item marked as not returned';
+
+  @override
+  String get settingsPalette => 'Palette';
+
+  @override
+  String get paletteLavender => 'Lavender';
+
+  @override
+  String get paletteSage => 'Sage';
+
+  @override
+  String get paletteSky => 'Sky';
+
+  @override
+  String get palettePeach => 'Peach';
 }

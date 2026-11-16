@@ -978,43 +978,96 @@
   "listingExtended": "Срок объявления продлён.",
   "@listingExtended": {},
   "listingCancel": "Отменить объявление",
-  "@listingCancel": {"description": "Owner action that cancels a listing."},
+  "@listingCancel": {
+    "description": "Owner action that cancels a listing."
+  },
   "listingCancelTitle": "Отменить объявление?",
-  "@listingCancelTitle": {"description": "Title of the cancellation dialog."},
+  "@listingCancelTitle": {
+    "description": "Title of the cancellation dialog."
+  },
   "listingCancelBody": "Объявление закроется, а принятые заявки и брони будут отменены.",
-  "@listingCancelBody": {"description": "Explains what cancelling a listing does."},
+  "@listingCancelBody": {
+    "description": "Explains what cancelling a listing does."
+  },
   "listingCancelAcceptedWarning": "Принятых взаимодействий: {count}. Участники получат уведомление с причиной.",
-  "@listingCancelAcceptedWarning": {"description": "The listing has accepted interactions; participants will be notified.", "placeholders": {"count": {"type": "int"}}},
+  "@listingCancelAcceptedWarning": {
+    "description": "The listing has accepted interactions; participants will be notified.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "listingCancelReason": "Причина отмены",
-  "@listingCancelReason": {"description": "Label of the cancellation reason field."},
+  "@listingCancelReason": {
+    "description": "Label of the cancellation reason field."
+  },
   "listingCancelReasonRequired": "Укажите причину: объявление уже принято.",
-  "@listingCancelReasonRequired": {"description": "The reason is required after acceptance."},
+  "@listingCancelReasonRequired": {
+    "description": "The reason is required after acceptance."
+  },
   "listingCancelReasonMissing": "Укажите причину отмены.",
-  "@listingCancelReasonMissing": {"description": "Validation error for an empty required reason."},
+  "@listingCancelReasonMissing": {
+    "description": "Validation error for an empty required reason."
+  },
   "listingCancelReasonTooLong": "Причина длиннее {max} символов.",
-  "@listingCancelReasonTooLong": {"description": "The cancellation reason exceeds the server limit.", "placeholders": {"max": {"type": "int"}}},
+  "@listingCancelReasonTooLong": {
+    "description": "The cancellation reason exceeds the server limit.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "listingCancelReasonInvalid": "Проверьте причину отмены.",
-  "@listingCancelReasonInvalid": {"description": "The server rejected the cancellation reason."},
+  "@listingCancelReasonInvalid": {
+    "description": "The server rejected the cancellation reason."
+  },
   "listingCancelConfirm": "Отменить объявление",
-  "@listingCancelConfirm": {"description": "Confirm button of the cancellation dialog."},
+  "@listingCancelConfirm": {
+    "description": "Confirm button of the cancellation dialog."
+  },
   "listingCancelKeep": "Оставить",
-  "@listingCancelKeep": {"description": "Dismisses the cancellation dialog."},
+  "@listingCancelKeep": {
+    "description": "Dismisses the cancellation dialog."
+  },
   "listingCancelled": "Объявление отменено.",
-  "@listingCancelled": {"description": "Confirmation after cancelling a listing."},
+  "@listingCancelled": {
+    "description": "Confirmation after cancelling a listing."
+  },
   "listingCancelledByAuthor": "Автор отменил: {reason}",
-  "@listingCancelledByAuthor": {"description": "A participant sees why the author cancelled.", "placeholders": {"reason": {"type": "String"}}},
+  "@listingCancelledByAuthor": {
+    "description": "A participant sees why the author cancelled.",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "interactionCancelTitle": "Отменить взаимодействие?",
-  "@interactionCancelTitle": {"description": "Title of the participant cancellation warning."},
+  "@interactionCancelTitle": {
+    "description": "Title of the participant cancellation warning."
+  },
   "interactionCancelBody": "Заявка или бронь будут отменены.",
-  "@interactionCancelBody": {"description": "Explains what cancelling an interaction does."},
+  "@interactionCancelBody": {
+    "description": "Explains what cancelling an interaction does."
+  },
   "interactionLateCancellation": "Это поздняя отмена: она будет учтена как поздняя.",
-  "@interactionLateCancellation": {"description": "Warning before a late cancellation."},
+  "@interactionLateCancellation": {
+    "description": "Warning before a late cancellation."
+  },
   "interactionCancellationApproval": "Организатор должен подтвердить выход.",
-  "@interactionCancellationApproval": {"description": "A fixed purchase share needs the organiser's approval."},
+  "@interactionCancellationApproval": {
+    "description": "A fixed purchase share needs the organiser's approval."
+  },
   "interactionCancelKeep": "Оставить",
-  "@interactionCancelKeep": {"description": "Dismisses the late cancellation warning."},
+  "@interactionCancelKeep": {
+    "description": "Dismisses the late cancellation warning."
+  },
   "interactionCancelConfirm": "Всё равно отменить",
-  "@interactionCancelConfirm": {"description": "Confirms the late cancellation anyway."},
+  "@interactionCancelConfirm": {
+    "description": "Confirms the late cancellation anyway."
+  },
   "meetingTitle": "Встреча",
   "meetingNotScheduled": "Встреча ещё не назначена",
   "meetingCurrent": "Действующая встреча",
@@ -1911,386 +1964,905 @@
       }
     }
   },
-
   "listingKindSkill": "Навык",
-  "@listingKindSkill": {"description": "Название вида объявления: навык."},
+  "@listingKindSkill": {
+    "description": "Название вида объявления: навык."
+  },
   "skillDirection": "Направление",
-  "@skillDirection": {"description": "Поле направления объявления о навыке."},
+  "@skillDirection": {
+    "description": "Поле направления объявления о навыке."
+  },
   "skillCreateTitle": "Новое объявление о навыке",
-  "@skillCreateTitle": {"description": "Заголовок формы создания объявления о навыке."},
+  "@skillCreateTitle": {
+    "description": "Заголовок формы создания объявления о навыке."
+  },
   "skillDirectionTeach": "Могу научить",
-  "@skillDirectionTeach": {"description": "Автор предлагает научить навыку."},
+  "@skillDirectionTeach": {
+    "description": "Автор предлагает научить навыку."
+  },
   "skillDirectionLearn": "Хочу научиться",
-  "@skillDirectionLearn": {"description": "Автор ищет того, кто научит навыку."},
+  "@skillDirectionLearn": {
+    "description": "Автор ищет того, кто научит навыку."
+  },
   "skillDirectionRequired": "Выберите, чему вы можете научить или хотите научиться.",
-  "@skillDirectionRequired": {"description": "Направление навыка не выбрано."},
+  "@skillDirectionRequired": {
+    "description": "Направление навыка не выбрано."
+  },
   "skillPublished": "Объявление о навыке опубликовано.",
-  "@skillPublished": {"description": "Объявление о навыке успешно создано."},
+  "@skillPublished": {
+    "description": "Объявление о навыке успешно создано."
+  },
   "lessonOptionsTitle": "Варианты времени",
-  "@lessonOptionsTitle": {"description": "Заголовок списка вариантов времени занятия."},
+  "@lessonOptionsTitle": {
+    "description": "Заголовок списка вариантов времени занятия."
+  },
   "lessonPropose": "Предложить занятие",
-  "@lessonPropose": {"description": "Участник предлагает занятие с вариантами времени."},
+  "@lessonPropose": {
+    "description": "Участник предлагает занятие с вариантами времени."
+  },
   "lessonProposeTitle": "Время занятия",
-  "@lessonProposeTitle": {"description": "Заголовок формы предложения занятия."},
+  "@lessonProposeTitle": {
+    "description": "Заголовок формы предложения занятия."
+  },
   "lessonRepeat": "Ещё занятие",
-  "@lessonRepeat": {"description": "Создаёт следующее занятие с тем же участником."},
+  "@lessonRepeat": {
+    "description": "Создаёт следующее занятие с тем же участником."
+  },
   "lessonRepeatTitle": "Ещё занятие с {name}",
-  "@lessonRepeatTitle": {"description": "Заголовок формы повторного занятия.", "placeholders": {"name": {"type": "String"}}},
+  "@lessonRepeatTitle": {
+    "description": "Заголовок формы повторного занятия.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "lessonCounterpart": "С кем: {name}",
-  "@lessonCounterpart": {"description": "Вторая сторона повторного занятия.", "placeholders": {"name": {"type": "String"}}},
+  "@lessonCounterpart": {
+    "description": "Вторая сторона повторного занятия.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "lessonOptionsHint": "Выберите от {min} до {max} вариантов времени.",
-  "@lessonOptionsHint": {"description": "Подсказка о числе вариантов времени.", "placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}},
+  "@lessonOptionsHint": {
+    "description": "Подсказка о числе вариантов времени.",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "lessonOptionNumber": "Вариант {number}",
-  "@lessonOptionNumber": {"description": "Номер варианта времени занятия.", "placeholders": {"number": {"type": "int"}}},
+  "@lessonOptionNumber": {
+    "description": "Номер варианта времени занятия.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "lessonAddOption": "Добавить вариант времени",
-  "@lessonAddOption": {"description": "Добавляет ещё один вариант времени."},
+  "@lessonAddOption": {
+    "description": "Добавляет ещё один вариант времени."
+  },
   "lessonRemoveOption": "Удалить вариант",
-  "@lessonRemoveOption": {"description": "Удаляет вариант времени из формы."},
+  "@lessonRemoveOption": {
+    "description": "Удаляет вариант времени из формы."
+  },
   "lessonOptionsTooFew": "Добавьте хотя бы {min} варианта времени.",
-  "@lessonOptionsTooFew": {"description": "Вариантов времени меньше допустимого.", "placeholders": {"min": {"type": "int"}}},
+  "@lessonOptionsTooFew": {
+    "description": "Вариантов времени меньше допустимого.",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
   "lessonOptionsTooMany": "Можно добавить не больше {max} вариантов времени.",
-  "@lessonOptionsTooMany": {"description": "Достигнут предел вариантов времени.", "placeholders": {"max": {"type": "int"}}},
+  "@lessonOptionsTooMany": {
+    "description": "Достигнут предел вариантов времени.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "lessonOptionsInvalid": "У занятия должно быть от {min} до {max} вариантов времени в будущем.",
-  "@lessonOptionsInvalid": {"description": "Сервер отклонил число или значения вариантов времени.", "placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}},
+  "@lessonOptionsInvalid": {
+    "description": "Сервер отклонил число или значения вариантов времени.",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "lessonConflict": "На занятие уже ответили. Обновите объявление.",
-  "@lessonConflict": {"description": "Занятие уже обработано, вариант времени недоступен."},
+  "@lessonConflict": {
+    "description": "Занятие уже обработано, вариант времени недоступен."
+  },
   "lessonForbidden": "Отвечать на занятие могут только автор и участник.",
-  "@lessonForbidden": {"description": "Нет прав на действие с занятием."},
+  "@lessonForbidden": {
+    "description": "Нет прав на действие с занятием."
+  },
   "lessonOnline": "Онлайн",
-  "@lessonOnline": {"description": "Занятие проходит онлайн."},
+  "@lessonOnline": {
+    "description": "Занятие проходит онлайн."
+  },
   "lessonOffline": "Очно",
-  "@lessonOffline": {"description": "Занятие проходит очно."},
+  "@lessonOffline": {
+    "description": "Занятие проходит очно."
+  },
   "lessonOnlineSwitch": "Онлайн-встреча",
-  "@lessonOnlineSwitch": {"description": "Переключатель онлайн-формата занятия."},
+  "@lessonOnlineSwitch": {
+    "description": "Переключатель онлайн-формата занятия."
+  },
   "lessonPlaceLabel": "Место занятия",
-  "@lessonPlaceLabel": {"description": "Поле места очного занятия."},
+  "@lessonPlaceLabel": {
+    "description": "Поле места очного занятия."
+  },
   "lessonOptionProposed": "Ждёт ответа",
-  "@lessonOptionProposed": {"description": "Вариант времени ожидает ответа."},
+  "@lessonOptionProposed": {
+    "description": "Вариант времени ожидает ответа."
+  },
   "lessonOptionSelected": "Выбран",
-  "@lessonOptionSelected": {"description": "Выбранный вариант времени занятия."},
+  "@lessonOptionSelected": {
+    "description": "Выбранный вариант времени занятия."
+  },
   "lessonOptionDeclined": "Отклонён",
-  "@lessonOptionDeclined": {"description": "Отклонённый вариант времени занятия."},
+  "@lessonOptionDeclined": {
+    "description": "Отклонённый вариант времени занятия."
+  },
   "lessonOptionByYou": "Ваш вариант",
-  "@lessonOptionByYou": {"description": "Вариант времени предложен текущим пользователем."},
+  "@lessonOptionByYou": {
+    "description": "Вариант времени предложен текущим пользователем."
+  },
   "lessonOptionByParticipant": "Вариант участника",
-  "@lessonOptionByParticipant": {"description": "Вариант времени предложен участником."},
+  "@lessonOptionByParticipant": {
+    "description": "Вариант времени предложен участником."
+  },
   "lessonOptionByAuthor": "Вариант автора",
-  "@lessonOptionByAuthor": {"description": "Вариант времени предложен автором объявления."},
+  "@lessonOptionByAuthor": {
+    "description": "Вариант времени предложен автором объявления."
+  },
   "lessonAccept": "Выбрать это время",
-  "@lessonAccept": {"description": "Выбирает вариант времени занятия."},
+  "@lessonAccept": {
+    "description": "Выбирает вариант времени занятия."
+  },
   "lessonCounter": "Предложить другое время",
-  "@lessonCounter": {"description": "Автор предлагает встречное время занятия."},
+  "@lessonCounter": {
+    "description": "Автор предлагает встречное время занятия."
+  },
   "lessonCounterTitle": "Другое время",
-  "@lessonCounterTitle": {"description": "Заголовок формы встречного предложения."},
+  "@lessonCounterTitle": {
+    "description": "Заголовок формы встречного предложения."
+  },
   "lessonSend": "Отправить",
-  "@lessonSend": {"description": "Отправляет варианты времени занятия."},
+  "@lessonSend": {
+    "description": "Отправляет варианты времени занятия."
+  },
   "lessonSent": "Занятие предложено.",
-  "@lessonSent": {"description": "Заявка на занятие отправлена."},
+  "@lessonSent": {
+    "description": "Заявка на занятие отправлена."
+  },
   "lessonCounterSent": "Предложено другое время.",
-  "@lessonCounterSent": {"description": "Встречное время занятия отправлено."},
+  "@lessonCounterSent": {
+    "description": "Встречное время занятия отправлено."
+  },
   "lessonAccepted": "Занятие назначено.",
-  "@lessonAccepted": {"description": "Вариант времени выбран и встреча назначена."},
+  "@lessonAccepted": {
+    "description": "Вариант времени выбран и встреча назначена."
+  },
   "lessonRepeated": "Ещё одно занятие предложено.",
-  "@lessonRepeated": {"description": "Следующее занятие создано."},
+  "@lessonRepeated": {
+    "description": "Следующее занятие создано."
+  },
   "lessonNoOptions": "Вариантов времени нет.",
-  "@lessonNoOptions": {"description": "У занятия нет вариантов времени."},
+  "@lessonNoOptions": {
+    "description": "У занятия нет вариантов времени."
+  },
   "lessonAwaitingAnswer": "Ждём ответа автора",
-  "@lessonAwaitingAnswer": {"description": "Участник ждёт ответа на предложенные варианты."},
+  "@lessonAwaitingAnswer": {
+    "description": "Участник ждёт ответа на предложенные варианты."
+  },
   "lessonAwaitingYourAnswer": "Ждёт вашего ответа",
-  "@lessonAwaitingYourAnswer": {"description": "Автор должен ответить на варианты участника."},
+  "@lessonAwaitingYourAnswer": {
+    "description": "Автор должен ответить на варианты участника."
+  },
   "lessonAwaitingParticipant": "Ждём ответа участника",
-  "@lessonAwaitingParticipant": {"description": "Автор ждёт ответа участника на свои варианты."},
+  "@lessonAwaitingParticipant": {
+    "description": "Автор ждёт ответа участника на свои варианты."
+  },
   "lessonResponseDue": "Ответить нужно до {time}",
-  "@lessonResponseDue": {"description": "Срок ответа автора на заявку.", "placeholders": {"time": {"type": "String"}}},
+  "@lessonResponseDue": {
+    "description": "Срок ответа автора на заявку.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "meetingOnline": "Онлайн-встреча",
-  "@meetingOnline": {"description": "Встреча проходит онлайн, без места."},
-
+  "@meetingOnline": {
+    "description": "Встреча проходит онлайн, без места."
+  },
   "listingKindHelp": "Помощь",
-  "@listingKindHelp": {"description": "Listing kind name: help request."},
+  "@listingKindHelp": {
+    "description": "Listing kind name: help request."
+  },
   "feedCreateHelp": "Попросить помощь",
-  "@feedCreateHelp": {"description": "Entry point to a new help request."},
+  "@feedCreateHelp": {
+    "description": "Entry point to a new help request."
+  },
   "helpCreateTitle": "Новый запрос о помощи",
-  "@helpCreateTitle": {"description": "Title of the help request form."},
+  "@helpCreateTitle": {
+    "description": "Title of the help request form."
+  },
   "helpPublished": "Запрос о помощи опубликован.",
-  "@helpPublished": {"description": "The help request was created."},
+  "@helpPublished": {
+    "description": "The help request was created."
+  },
   "helpDeadline": "Актуален до",
-  "@helpDeadline": {"description": "Field of the help request relevance deadline."},
+  "@helpDeadline": {
+    "description": "Field of the help request relevance deadline."
+  },
   "helpDeadlinePast": "Выберите срок в будущем.",
-  "@helpDeadlinePast": {"description": "The relevance deadline is in the past."},
+  "@helpDeadlinePast": {
+    "description": "The relevance deadline is in the past."
+  },
   "helpDeadlineInvalid": "Срок должен быть в будущем и не позже срока жизни объявления.",
-  "@helpDeadlineInvalid": {"description": "The server rejected the relevance deadline."},
+  "@helpDeadlineInvalid": {
+    "description": "The server rejected the relevance deadline."
+  },
   "helpRespond": "Откликнуться",
-  "@helpRespond": {"description": "Applies to a help request."},
+  "@helpRespond": {
+    "description": "Applies to a help request."
+  },
   "helpResponded": "Отклик отправлен.",
-  "@helpResponded": {"description": "The application to a help request was sent."},
+  "@helpResponded": {
+    "description": "The application to a help request was sent."
+  },
   "helpApplicationPending": "Отклик ждёт решения автора.",
-  "@helpApplicationPending": {"description": "The application is pending while the request is active."},
+  "@helpApplicationPending": {
+    "description": "The application is pending while the request is active."
+  },
   "helpReserve": "Резерв",
-  "@helpReserve": {"description": "An application kept in reserve behind the selected executor."},
+  "@helpReserve": {
+    "description": "An application kept in reserve behind the selected executor."
+  },
   "helpReserveNotice": "Исполнитель уже выбран; вы остаётесь в резерве.",
-  "@helpReserveNotice": {"description": "The respondent is kept in reserve because an executor was chosen."},
+  "@helpReserveNotice": {
+    "description": "The respondent is kept in reserve because an executor was chosen."
+  },
   "helpExecutor": "Исполнитель",
-  "@helpExecutor": {"description": "The selected executor of a help request."},
+  "@helpExecutor": {
+    "description": "The selected executor of a help request."
+  },
   "helpYouAreExecutor": "Вы исполнитель.",
-  "@helpYouAreExecutor": {"description": "The current user was selected as the executor."},
+  "@helpYouAreExecutor": {
+    "description": "The current user was selected as the executor."
+  },
   "helpSelectExecutor": "Выбрать исполнителя",
-  "@helpSelectExecutor": {"description": "The author selects one application as the executor."},
+  "@helpSelectExecutor": {
+    "description": "The author selects one application as the executor."
+  },
   "helpSelected": "Исполнитель выбран.",
-  "@helpSelected": {"description": "The author selected an executor."},
+  "@helpSelected": {
+    "description": "The author selected an executor."
+  },
   "helpConflict": "Запрос уже изменился. Обновите объявление.",
-  "@helpConflict": {"description": "The help request changed after it was loaded."},
+  "@helpConflict": {
+    "description": "The help request changed after it was loaded."
+  },
   "helpForbidden": "Вы не можете действовать по этому запросу.",
-  "@helpForbidden": {"description": "The user may not act on this help request."},
+  "@helpForbidden": {
+    "description": "The user may not act on this help request."
+  },
   "helpIncoming": "Отклики",
-  "@helpIncoming": {"description": "Heading of the applications to a help request."},
+  "@helpIncoming": {
+    "description": "Heading of the applications to a help request."
+  },
   "helpDeadlineHint": "Не позже срока жизни объявления ({days} дн.).",
-  "@helpDeadlineHint": {"description": "Hint about the earliest acceptable deadline.", "placeholders": {"days": {"type": "int"}}},
+  "@helpDeadlineHint": {
+    "description": "Hint about the earliest acceptable deadline.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "helpDeadlineTooLate": "Срок не может быть больше срока жизни объявления ({days} дн.).",
-  "@helpDeadlineTooLate": {"description": "The deadline exceeds the listing lifetime.", "placeholders": {"days": {"type": "int"}}},
+  "@helpDeadlineTooLate": {
+    "description": "The deadline exceeds the listing lifetime.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "helpRelevantUntil": "Актуален до {date}",
-  "@helpRelevantUntil": {"description": "Relevance deadline shown on a help request.", "placeholders": {"date": {"type": "String"}}},
-
+  "@helpRelevantUntil": {
+    "description": "Relevance deadline shown on a help request.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "chatsTitle": "Диалоги",
-  "@chatsTitle": {"description":  "Заголовок списка личных диалогов."},
+  "@chatsTitle": {
+    "description": "Заголовок списка личных диалогов."
+  },
   "chatsEmpty": "Диалогов пока нет. Напишите автору объявления.",
-  "@chatsEmpty": {"description":  "Пустой список личных диалогов."},
+  "@chatsEmpty": {
+    "description": "Пустой список личных диалогов."
+  },
   "chatsNoMessages": "Сообщений пока нет",
-  "@chatsNoMessages": {"description":  "В диалоге ещё нет сообщений."},
+  "@chatsNoMessages": {
+    "description": "В диалоге ещё нет сообщений."
+  },
   "chatsUnnamed": "Диалог",
-  "@chatsUnnamed": {"description":  "Имя собеседника не удалось определить."},
+  "@chatsUnnamed": {
+    "description": "Имя собеседника не удалось определить."
+  },
   "chatTitle": "Чат",
-  "@chatTitle": {"description":  "Заголовок личного чата без имени собеседника."},
+  "@chatTitle": {
+    "description": "Заголовок личного чата без имени собеседника."
+  },
   "chatEmpty": "Сообщений пока нет. Напишите первым.",
-  "@chatEmpty": {"description":  "Пустая история личного чата."},
+  "@chatEmpty": {
+    "description": "Пустая история личного чата."
+  },
   "chatInputHint": "Сообщение",
-  "@chatInputHint": {"description":  "Подсказка поля ввода сообщения."},
+  "@chatInputHint": {
+    "description": "Подсказка поля ввода сообщения."
+  },
   "chatSend": "Отправить",
-  "@chatSend": {"description":  "Кнопка отправки сообщения."},
+  "@chatSend": {
+    "description": "Кнопка отправки сообщения."
+  },
   "chatMessageEmpty": "Введите сообщение.",
-  "@chatMessageEmpty": {"description":  "Текст сообщения пуст."},
+  "@chatMessageEmpty": {
+    "description": "Текст сообщения пуст."
+  },
   "chatMessageTooLong": "Сообщение длиннее {max} символов.",
-  "@chatMessageTooLong": {"description":  "Текст сообщения превышает допустимую длину.", "placeholders":  {"max":  {"type":  "int"}}},
+  "@chatMessageTooLong": {
+    "description": "Текст сообщения превышает допустимую длину.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "chatMessageSending": "Отправляется…",
-  "@chatMessageSending": {"description":  "Сообщение отправляется на сервер."},
+  "@chatMessageSending": {
+    "description": "Сообщение отправляется на сервер."
+  },
   "chatMessageWaiting": "Ждёт отправки",
-  "@chatMessageWaiting": {"description":  "Сообщение в очереди ждёт сети."},
+  "@chatMessageWaiting": {
+    "description": "Сообщение в очереди ждёт сети."
+  },
   "chatMessageFailed": "Не отправлено",
-  "@chatMessageFailed": {"description":  "Сообщение не отправлено из-за ошибки."},
+  "@chatMessageFailed": {
+    "description": "Сообщение не отправлено из-за ошибки."
+  },
   "chatMessageRetry": "Повторить",
-  "@chatMessageRetry": {"description":  "Повторить отправку сообщения."},
+  "@chatMessageRetry": {
+    "description": "Повторить отправку сообщения."
+  },
   "chatMessageDiscard": "Удалить",
-  "@chatMessageDiscard": {"description":  "Удаляет неотправленное сообщение из очереди."},
+  "@chatMessageDiscard": {
+    "description": "Удаляет неотправленное сообщение из очереди."
+  },
   "chatLoadMoreFailed": "Не удалось загрузить ещё диалоги.",
-  "@chatLoadMoreFailed": {"description":  "The next page of dialogs failed to load."},
+  "@chatLoadMoreFailed": {
+    "description": "The next page of dialogs failed to load."
+  },
   "chatLoadOlderFailed": "Не удалось загрузить более ранние сообщения.",
-  "@chatLoadOlderFailed": {"description":  "The previous page of the chat history failed to load."},
+  "@chatLoadOlderFailed": {
+    "description": "The previous page of the chat history failed to load."
+  },
   "chatSyncFailed": "Не удалось обновить чат.",
-  "@chatSyncFailed": {"description":  "A realtime update failed to load the missed messages."},
+  "@chatSyncFailed": {
+    "description": "A realtime update failed to load the missed messages."
+  },
   "chatLoadOlder": "Показать ранее",
-  "@chatLoadOlder": {"description":  "Загрузить предыдущую страницу истории."},
+  "@chatLoadOlder": {
+    "description": "Загрузить предыдущую страницу истории."
+  },
   "chatStart": "Написать сообщение",
-  "@chatStart": {"description":  "Открыть личный диалог с автором объявления."},
+  "@chatStart": {
+    "description": "Открыть личный диалог с автором объявления."
+  },
   "chatNotFound": "Диалог недоступен",
-  "@chatNotFound": {"description":  "Диалог не существует или недоступен."},
+  "@chatNotFound": {
+    "description": "Диалог не существует или недоступен."
+  },
   "chatForbiddenAlumni": "Выпускники могут писать только в существующие диалоги.",
-  "@chatForbiddenAlumni": {"description":  "Выпускник не может создать новый диалог."},
+  "@chatForbiddenAlumni": {
+    "description": "Выпускник не может создать новый диалог."
+  },
   "chatFailureConflict": "Это сообщение уже отправлено с другим текстом.",
-  "@chatFailureConflict": {"description":  "Один идентификатор сообщения использован с другим текстом."},
+  "@chatFailureConflict": {
+    "description": "Один идентификатор сообщения использован с другим текстом."
+  },
   "chatFailureInvalid": "Сообщение не отправлено: проверьте текст.",
-  "@chatFailureInvalid": {"description":  "Сервер отклонил текст сообщения."},
+  "@chatFailureInvalid": {
+    "description": "Сервер отклонил текст сообщения."
+  },
   "chatFailureRateLimited": "Слишком много сообщений. Попробуйте позже.",
-  "@chatFailureRateLimited": {"description":  "Превышен лимит отправки сообщений."},
+  "@chatFailureRateLimited": {
+    "description": "Превышен лимит отправки сообщений."
+  },
   "chatFailureNetwork": "Нет сети. Сообщение отправится, когда связь вернётся.",
-  "@chatFailureNetwork": {"description":  "Сообщение ждёт восстановления сети."},
+  "@chatFailureNetwork": {
+    "description": "Сообщение ждёт восстановления сети."
+  },
   "chatFailureForbidden": "Вы не можете писать в этот диалог.",
-  "@chatFailureForbidden": {"description":  "Действие в диалоге запрещено."},
+  "@chatFailureForbidden": {
+    "description": "Действие в диалоге запрещено."
+  },
   "chatFailureUnauthorized": "Сессия истекла. Войдите снова.",
-  "@chatFailureUnauthorized": {"description":  "Сессия завершена, сообщение не отправлено."},
+  "@chatFailureUnauthorized": {
+    "description": "Сессия завершена, сообщение не отправлено."
+  },
   "chatFailureServer": "Сообщение не отправлено: сервер недоступен.",
-  "@chatFailureServer": {"description":  "Временная ошибка сервера при отправке."},
+  "@chatFailureServer": {
+    "description": "Временная ошибка сервера при отправке."
+  },
   "chatFailureUnexpected": "Сообщение не отправлено. Попробуйте ещё раз.",
-  "@chatFailureUnexpected": {"description":  "Неизвестная ошибка отправки."},
+  "@chatFailureUnexpected": {
+    "description": "Неизвестная ошибка отправки."
+  },
   "chatSearchTitle": "Поиск по диалогам",
-  "@chatSearchTitle": {"description":  "Заголовок экрана поиска по сообщениям."},
+  "@chatSearchTitle": {
+    "description": "Заголовок экрана поиска по сообщениям."
+  },
   "chatSearchHint": "Слово или фраза",
-  "@chatSearchHint": {"description":  "Подсказка поля поиска по диалогам."},
+  "@chatSearchHint": {
+    "description": "Подсказка поля поиска по диалогам."
+  },
   "chatSearchClear": "Очистить поиск",
-  "@chatSearchClear": {"description":  "Очищает запрос и результаты поиска по диалогам."},
+  "@chatSearchClear": {
+    "description": "Очищает запрос и результаты поиска по диалогам."
+  },
   "chatSearchPrompt": "Введите слово или фразу, чтобы найти сообщения в своих диалогах.",
-  "@chatSearchPrompt": {"description":  "Начальное состояние поиска до запроса."},
+  "@chatSearchPrompt": {
+    "description": "Начальное состояние поиска до запроса."
+  },
   "chatSearchEmpty": "По запросу «{query}» ничего не найдено.",
-  "@chatSearchEmpty": {"description":  "Поиск не нашёл сообщений.", "placeholders":  {"query":  {"type":  "String"}}},
+  "@chatSearchEmpty": {
+    "description": "Поиск не нашёл сообщений.",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "chatSearchFailed": "Не удалось выполнить поиск. Попробуйте ещё раз.",
-  "@chatSearchFailed": {"description":  "Первая страница поиска завершилась ошибкой."},
+  "@chatSearchFailed": {
+    "description": "Первая страница поиска завершилась ошибкой."
+  },
   "chatSearchNetwork": "Нет сети. Проверьте подключение и повторите поиск.",
-  "@chatSearchNetwork": {"description":  "Поиск не удался, потому что устройство без сети."},
+  "@chatSearchNetwork": {
+    "description": "Поиск не удался, потому что устройство без сети."
+  },
   "chatSearchTooLong": "Запрос слишком длинный. Сократите его.",
-  "@chatSearchTooLong": {"description":  "Сервер отклонил слишком длинный запрос поиска."},
+  "@chatSearchTooLong": {
+    "description": "Сервер отклонил слишком длинный запрос поиска."
+  },
   "chatSearchLoadMore": "Загрузить ещё",
-  "@chatSearchLoadMore": {"description":  "Загружает следующую страницу результатов поиска."},
+  "@chatSearchLoadMore": {
+    "description": "Загружает следующую страницу результатов поиска."
+  },
   "chatSearchLoadMoreFailed": "Не удалось загрузить ещё результаты.",
-  "@chatSearchLoadMoreFailed": {"description":  "Следующая страница результатов поиска не загрузилась."},
+  "@chatSearchLoadMoreFailed": {
+    "description": "Следующая страница результатов поиска не загрузилась."
+  },
   "chatSearchMessageUnavailable": "Найденное сообщение больше недоступно.",
-  "@chatSearchMessageUnavailable": {"description":  "Контекст найденного сообщения не удалось загрузить."},
+  "@chatSearchMessageUnavailable": {
+    "description": "Контекст найденного сообщения не удалось загрузить."
+  },
   "profileChats": "Мои диалоги",
-  "@profileChats": {"description":  "Переход к личным диалогам из профиля."},
+  "@profileChats": {
+    "description": "Переход к личным диалогам из профиля."
+  },
   "listingKindPurchase": "Совместная закупка",
-  "@listingKindPurchase": {"description": "Listing kind name: group purchase."},
+  "@listingKindPurchase": {
+    "description": "Listing kind name: group purchase."
+  },
   "purchaseCreateTitle": "Новая закупка",
-  "@purchaseCreateTitle": {"description": "Title of the group purchase form."},
+  "@purchaseCreateTitle": {
+    "description": "Title of the group purchase form."
+  },
   "purchasePublished": "Закупка опубликована.",
-  "@purchasePublished": {"description": "The group purchase was created."},
+  "@purchasePublished": {
+    "description": "The group purchase was created."
+  },
   "purchasePrice": "Цена за единицу",
-  "@purchasePrice": {"description": "Field of the unit price of a group purchase."},
+  "@purchasePrice": {
+    "description": "Field of the unit price of a group purchase."
+  },
   "purchasePriceInvalid": "Укажите положительную цену не более чем с двумя знаками после запятой.",
-  "@purchasePriceInvalid": {"description": "The unit price is invalid."},
+  "@purchasePriceInvalid": {
+    "description": "The unit price is invalid."
+  },
   "purchaseMinUnits": "Минимальный объём",
-  "@purchaseMinUnits": {"description": "Field of the minimum volume of a purchase."},
+  "@purchaseMinUnits": {
+    "description": "Field of the minimum volume of a purchase."
+  },
   "purchaseMaxUnits": "Максимальный объём",
-  "@purchaseMaxUnits": {"description": "Field of the maximum volume of a purchase."},
+  "@purchaseMaxUnits": {
+    "description": "Field of the maximum volume of a purchase."
+  },
   "purchaseMinInvalid": "Объём должен быть не меньше 1.",
-  "@purchaseMinInvalid": {"description": "The minimum volume is invalid."},
+  "@purchaseMinInvalid": {
+    "description": "The minimum volume is invalid."
+  },
   "purchaseMaxBelowMin": "Максимум не может быть меньше минимума ({min}).",
-  "@purchaseMaxBelowMin": {"description": "The maximum volume is below the minimum.", "placeholders": {"min": {"type": "int"}}},
+  "@purchaseMaxBelowMin": {
+    "description": "The maximum volume is below the minimum.",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
   "purchaseCollectionDeadline": "Сбор до",
-  "@purchaseCollectionDeadline": {"description": "Field of the collection deadline."},
+  "@purchaseCollectionDeadline": {
+    "description": "Field of the collection deadline."
+  },
   "purchaseDeadlinePast": "Выберите срок сбора в будущем.",
-  "@purchaseDeadlinePast": {"description": "The collection deadline is in the past."},
+  "@purchaseDeadlinePast": {
+    "description": "The collection deadline is in the past."
+  },
   "purchaseDeadlineTooLate": "Срок сбора не может быть позже {days} дн.",
-  "@purchaseDeadlineTooLate": {"description": "The collection deadline exceeds the listing lifetime.", "placeholders": {"days": {"type": "int"}}},
+  "@purchaseDeadlineTooLate": {
+    "description": "The collection deadline exceeds the listing lifetime.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "purchaseStageCollecting": "Идёт сбор",
-  "@purchaseStageCollecting": {"description": "The purchase is collecting shares."},
+  "@purchaseStageCollecting": {
+    "description": "The purchase is collecting shares."
+  },
   "purchaseStageFixed": "Состав зафиксирован",
-  "@purchaseStageFixed": {"description": "The purchase composition is fixed."},
+  "@purchaseStageFixed": {
+    "description": "The purchase composition is fixed."
+  },
   "purchaseStageCancelled": "Закупка отменена",
-  "@purchaseStageCancelled": {"description": "The purchase was cancelled."},
+  "@purchaseStageCancelled": {
+    "description": "The purchase was cancelled."
+  },
   "purchaseUnitPriceValue": "Цена за единицу: {price}",
-  "@purchaseUnitPriceValue": {"description": "Unit price on a purchase card.", "placeholders": {"price": {"type": "String"}}},
+  "@purchaseUnitPriceValue": {
+    "description": "Unit price on a purchase card.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "purchaseCollected": "Набрано {taken} из {limit} ед.",
-  "@purchaseCollected": {"description": "Collected volume of a purchase.", "placeholders": {"taken": {"type": "int"}, "limit": {"type": "int"}}},
+  "@purchaseCollected": {
+    "description": "Collected volume of a purchase.",
+    "placeholders": {
+      "taken": {
+        "type": "int"
+      },
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
   "purchaseMinimumValue": "Минимум для закупки: {min} ед.",
-  "@purchaseMinimumValue": {"description": "Minimum volume of a purchase.", "placeholders": {"min": {"type": "int"}}},
+  "@purchaseMinimumValue": {
+    "description": "Minimum volume of a purchase.",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
   "purchaseFixedUnitsValue": "Зафиксировано: {units} ед.",
-  "@purchaseFixedUnitsValue": {"description": "Fixed volume of a purchase.", "placeholders": {"units": {"type": "int"}}},
+  "@purchaseFixedUnitsValue": {
+    "description": "Fixed volume of a purchase.",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
   "purchaseCollectionDeadlineValue": "Сбор до {date}",
-  "@purchaseCollectionDeadlineValue": {"description": "Collection deadline on a purchase card.", "placeholders": {"date": {"type": "String"}}},
+  "@purchaseCollectionDeadlineValue": {
+    "description": "Collection deadline on a purchase card.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "purchaseShareTitle": "Ваша доля",
-  "@purchaseShareTitle": {"description": "Heading of the own share of a purchase."},
+  "@purchaseShareTitle": {
+    "description": "Heading of the own share of a purchase."
+  },
   "purchaseShareAvailable": "Свободно: {available} ед.",
-  "@purchaseShareAvailable": {"description": "Free volume available to take.", "placeholders": {"available": {"type": "int"}}},
+  "@purchaseShareAvailable": {
+    "description": "Free volume available to take.",
+    "placeholders": {
+      "available": {
+        "type": "int"
+      }
+    }
+  },
   "purchaseShareInput": "Сколько единиц",
-  "@purchaseShareInput": {"description": "Field of the number of units in a share."},
+  "@purchaseShareInput": {
+    "description": "Field of the number of units in a share."
+  },
   "purchaseShareAmount": "Сумма: {amount}",
-  "@purchaseShareAmount": {"description": "Amount of a purchase share.", "placeholders": {"amount": {"type": "String"}}},
+  "@purchaseShareAmount": {
+    "description": "Amount of a purchase share.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "purchaseNewAmount": "Новая сумма: {amount}",
-  "@purchaseNewAmount": {"description": "Amount the changed share would cost.", "placeholders": {"amount": {"type": "String"}}},
+  "@purchaseNewAmount": {
+    "description": "Amount the changed share would cost.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "purchaseShareJoin": "Записаться",
-  "@purchaseShareJoin": {"description": "Takes a share of a purchase."},
+  "@purchaseShareJoin": {
+    "description": "Takes a share of a purchase."
+  },
   "purchaseShareJoined": "Вы записались в закупку.",
-  "@purchaseShareJoined": {"description": "The share was taken."},
+  "@purchaseShareJoined": {
+    "description": "The share was taken."
+  },
   "purchaseShareChange": "Изменить долю",
-  "@purchaseShareChange": {"description": "Changes the number of units of a share."},
+  "@purchaseShareChange": {
+    "description": "Changes the number of units of a share."
+  },
   "purchaseShareChanged": "Доля изменена.",
-  "@purchaseShareChanged": {"description": "The share was changed."},
+  "@purchaseShareChanged": {
+    "description": "The share was changed."
+  },
   "purchaseShareLeave": "Выйти из закупки",
-  "@purchaseShareLeave": {"description": "Leaves a purchase while collecting."},
+  "@purchaseShareLeave": {
+    "description": "Leaves a purchase while collecting."
+  },
   "purchaseShareLeft": "Вы вышли из закупки.",
-  "@purchaseShareLeft": {"description": "The participant left the purchase."},
+  "@purchaseShareLeft": {
+    "description": "The participant left the purchase."
+  },
   "purchaseShareUnits": "Доля: {units} ед.",
-  "@purchaseShareUnits": {"description": "Number of units in a share.", "placeholders": {"units": {"type": "int"}}},
+  "@purchaseShareUnits": {
+    "description": "Number of units in a share.",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
   "purchaseShareNoUnits": "Свободных единиц не осталось.",
-  "@purchaseShareNoUnits": {"description": "No free volume is left in the purchase."},
+  "@purchaseShareNoUnits": {
+    "description": "No free volume is left in the purchase."
+  },
   "purchaseUnitsPositive": "Укажите хотя бы одну единицу.",
-  "@purchaseUnitsPositive": {"description": "The share must contain at least one unit."},
+  "@purchaseUnitsPositive": {
+    "description": "The share must contain at least one unit."
+  },
   "purchaseUnitsUnavailable": "Доступно только {available} ед.",
-  "@purchaseUnitsUnavailable": {"description": "The requested share exceeds the free volume.", "placeholders": {"available": {"type": "int"}}},
+  "@purchaseUnitsUnavailable": {
+    "description": "The requested share exceeds the free volume.",
+    "placeholders": {
+      "available": {
+        "type": "int"
+      }
+    }
+  },
   "purchaseLeaveApprovalRequired": "После фиксации состава выход только с согласия организатора.",
-  "@purchaseLeaveApprovalRequired": {"description": "A fixed purchase requires the organiser's approval to leave."},
+  "@purchaseLeaveApprovalRequired": {
+    "description": "A fixed purchase requires the organiser's approval to leave."
+  },
   "purchaseLeaveRequest": "Запросить выход",
-  "@purchaseLeaveRequest": {"description": "Asks the organiser to leave a fixed purchase."},
+  "@purchaseLeaveRequest": {
+    "description": "Asks the organiser to leave a fixed purchase."
+  },
   "purchaseLeaveRequestSent": "Запрос на выход отправлен организатору.",
-  "@purchaseLeaveRequestSent": {"description": "The leave request was sent."},
+  "@purchaseLeaveRequestSent": {
+    "description": "The leave request was sent."
+  },
   "purchaseLeaveRequestPending": "Запрос на выход ждёт решения организатора.",
-  "@purchaseLeaveRequestPending": {"description": "The leave request is pending."},
+  "@purchaseLeaveRequestPending": {
+    "description": "The leave request is pending."
+  },
   "purchaseLeaveCancel": "Отменить запрос",
-  "@purchaseLeaveCancel": {"description": "Cancels the leave request of the participant."},
+  "@purchaseLeaveCancel": {
+    "description": "Cancels the leave request of the participant."
+  },
   "purchaseLeaveRequestCancelled": "Запрос на выход отменён.",
-  "@purchaseLeaveRequestCancelled": {"description": "The leave request was cancelled."},
+  "@purchaseLeaveRequestCancelled": {
+    "description": "The leave request was cancelled."
+  },
   "purchaseCompositionTitle": "Состав закупки",
-  "@purchaseCompositionTitle": {"description": "Heading of the purchase composition for the organiser."},
+  "@purchaseCompositionTitle": {
+    "description": "Heading of the purchase composition for the organiser."
+  },
   "purchaseCompositionEmpty": "Пока никто не записался.",
-  "@purchaseCompositionEmpty": {"description": "No shares have been taken yet."},
+  "@purchaseCompositionEmpty": {
+    "description": "No shares have been taken yet."
+  },
   "purchaseCompositionTotal": "Итого: {units} ед. на {amount}",
-  "@purchaseCompositionTotal": {"description": "Total volume and amount of a purchase.", "placeholders": {"units": {"type": "int"}, "amount": {"type": "String"}}},
+  "@purchaseCompositionTotal": {
+    "description": "Total volume and amount of a purchase.",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "purchaseLeaveRequestedBy": "Просит выйти",
-  "@purchaseLeaveRequestedBy": {"description": "A participant asked to leave a fixed purchase."},
+  "@purchaseLeaveRequestedBy": {
+    "description": "A participant asked to leave a fixed purchase."
+  },
   "purchaseLeaveApprove": "Разрешить выход",
-  "@purchaseLeaveApprove": {"description": "The organiser approves leaving."},
+  "@purchaseLeaveApprove": {
+    "description": "The organiser approves leaving."
+  },
   "purchaseLeaveReject": "Отклонить",
-  "@purchaseLeaveReject": {"description": "The organiser rejects the leave request."},
+  "@purchaseLeaveReject": {
+    "description": "The organiser rejects the leave request."
+  },
   "purchaseLeaveApproved": "Выход разрешён.",
-  "@purchaseLeaveApproved": {"description": "The leave request was approved."},
+  "@purchaseLeaveApproved": {
+    "description": "The leave request was approved."
+  },
   "purchaseLeaveRejected": "Запрос на выход отклонён.",
-  "@purchaseLeaveRejected": {"description": "The leave request was rejected."},
+  "@purchaseLeaveRejected": {
+    "description": "The leave request was rejected."
+  },
   "purchaseShareExists": "Вы уже участвуете в этой закупке.",
-  "@purchaseShareExists": {"description": "The account already holds a share."},
+  "@purchaseShareExists": {
+    "description": "The account already holds a share."
+  },
   "purchaseVolumeInvalid": "Проверьте цену и объёмы закупки.",
-  "@purchaseVolumeInvalid": {"description": "The server rejected the price or volume bounds."},
+  "@purchaseVolumeInvalid": {
+    "description": "The server rejected the price or volume bounds."
+  },
   "purchaseDeadlineInvalid": "Срок сбора должен быть в будущем и не позже срока жизни объявления.",
-  "@purchaseDeadlineInvalid": {"description": "The server rejected the collection deadline."},
+  "@purchaseDeadlineInvalid": {
+    "description": "The server rejected the collection deadline."
+  },
   "purchaseLeaveRequestMissing": "Запроса на выход нет.",
-  "@purchaseLeaveRequestMissing": {"description": "There is no leave request to act on."},
+  "@purchaseLeaveRequestMissing": {
+    "description": "There is no leave request to act on."
+  },
   "purchaseNotFixed": "Состав закупки ещё не зафиксирован.",
-  "@purchaseNotFixed": {"description": "The purchase is not fixed yet."},
+  "@purchaseNotFixed": {
+    "description": "The purchase is not fixed yet."
+  },
   "purchaseCapacityConflict": "Объём закупки уже изменился. Обновите карточку.",
-  "@purchaseCapacityConflict": {"description": "The purchase volume conflicts with new conditions."},
+  "@purchaseCapacityConflict": {
+    "description": "The purchase volume conflicts with new conditions."
+  },
   "purchaseCollectionClosed": "Сбор завершён.",
-  "@purchaseCollectionClosed": {"description": "The purchase no longer collects shares."},
+  "@purchaseCollectionClosed": {
+    "description": "The purchase no longer collects shares."
+  },
   "purchaseManageShare": "Доля меняется в карточке закупки.",
-  "@purchaseManageShare": {"description": "A purchase share is managed on the listing card."},
-
+  "@purchaseManageShare": {
+    "description": "A purchase share is managed on the listing card."
+  },
   "profilePrivacy": "Приватность",
-  "@profilePrivacy": {"description": "Section of the own profile with privacy links."},
+  "@profilePrivacy": {
+    "description": "Section of the own profile with privacy links."
+  },
   "messagePolicyTitle": "Кто может мне писать",
-  "@messagePolicyTitle": {"description": "Title of the incoming message policy screen."},
+  "@messagePolicyTitle": {
+    "description": "Title of the incoming message policy screen."
+  },
   "messagePolicyIntro": "Настройка действует на всех ваших устройствах.",
-  "@messagePolicyIntro": {"description": "Explains that the policy is stored on the server."},
+  "@messagePolicyIntro": {
+    "description": "Explains that the policy is stored on the server."
+  },
   "messagePolicyAll": "Все пользователи",
-  "@messagePolicyAll": {"description": "Policy: anybody may start a personal chat."},
+  "@messagePolicyAll": {
+    "description": "Policy: anybody may start a personal chat."
+  },
   "messagePolicyAllHint": "Любой студент или сотрудник может начать с вами личный диалог.",
-  "@messagePolicyAllHint": {"description": "Explanation of the everyone policy."},
+  "@messagePolicyAllHint": {
+    "description": "Explanation of the everyone policy."
+  },
   "messagePolicyRelated": "Только по объявлениям и взаимодействиям",
-  "@messagePolicyRelated": {"description": "Policy: only related users may start a personal chat."},
+  "@messagePolicyRelated": {
+    "description": "Policy: only related users may start a personal chat."
+  },
   "messagePolicyRelatedHint": "Писать могут только те, с кем у вас есть общее объявление или начатое взаимодействие.",
-  "@messagePolicyRelatedHint": {"description": "Explanation of the related-only policy."},
+  "@messagePolicyRelatedHint": {
+    "description": "Explanation of the related-only policy."
+  },
   "blockedUsersTitle": "Чёрный список",
-  "@blockedUsersTitle": {"description": "Title of the blacklist screen."},
+  "@blockedUsersTitle": {
+    "description": "Title of the blacklist screen."
+  },
   "blockedUsersEmpty": "В чёрном списке пока никого нет.",
-  "@blockedUsersEmpty": {"description": "Empty state of the blacklist."},
+  "@blockedUsersEmpty": {
+    "description": "Empty state of the blacklist."
+  },
   "blockedUsersBlockedAt": "В чёрном списке с {date}",
-  "@blockedUsersBlockedAt": {"description": "When a user was blocked.", "placeholders": {"date": {"type": "String"}}},
+  "@blockedUsersBlockedAt": {
+    "description": "When a user was blocked.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "blockedUsersMore": "Загрузить ещё",
-  "@blockedUsersMore": {"description": "Loads the next blacklist page."},
+  "@blockedUsersMore": {
+    "description": "Loads the next blacklist page."
+  },
   "blockedUsersUnblock": "Разблокировать",
-  "@blockedUsersUnblock": {"description": "Action that removes a block."},
+  "@blockedUsersUnblock": {
+    "description": "Action that removes a block."
+  },
   "chatBlock": "Заблокировать",
-  "@chatBlock": {"description": "Action that blocks the other chat participant."},
+  "@chatBlock": {
+    "description": "Action that blocks the other chat participant."
+  },
   "chatUnblock": "Разблокировать",
-  "@chatUnblock": {"description": "Action that unblocks the other chat participant."},
+  "@chatUnblock": {
+    "description": "Action that unblocks the other chat participant."
+  },
   "chatBlockTitle": "Заблокировать пользователя?",
-  "@chatBlockTitle": {"description": "Title of the block confirmation dialog."},
+  "@chatBlockTitle": {
+    "description": "Title of the block confirmation dialog."
+  },
   "chatBlockExplanation": "Новые личные сообщения и отклики в обе стороны станут недоступны. Начатые взаимодействия и история диалога сохранятся.",
-  "@chatBlockExplanation": {"description": "Explains what blocking does and does not do."},
+  "@chatBlockExplanation": {
+    "description": "Explains what blocking does and does not do."
+  },
   "chatBlockCancel": "Отмена",
-  "@chatBlockCancel": {"description": "Cancels the block confirmation dialog."},
+  "@chatBlockCancel": {
+    "description": "Cancels the block confirmation dialog."
+  },
   "chatBlocked": "Пользователь заблокирован.",
-  "@chatBlocked": {"description": "Confirmation after a successful block."},
+  "@chatBlocked": {
+    "description": "Confirmation after a successful block."
+  },
   "chatUnblocked": "Пользователь разблокирован.",
-  "@chatUnblocked": {"description": "Confirmation after a successful unblock."},
+  "@chatUnblocked": {
+    "description": "Confirmation after a successful unblock."
+  },
   "chatBlockedNotice": "Вы заблокировали этого пользователя. Новые сообщения недоступны.",
-  "@chatBlockedNotice": {"description": "Shown instead of the composer after blocking the participant."},
+  "@chatBlockedNotice": {
+    "description": "Shown instead of the composer after blocking the participant."
+  },
   "chatUnavailable": "Личные сообщения с этим пользователем недоступны.",
-  "@chatUnavailable": {"description": "Neutral refusal for an unavailable personal dialog; never names a block."},
+  "@chatUnavailable": {
+    "description": "Neutral refusal for an unavailable personal dialog; never names a block."
+  },
   "chatMessageEdited": "изменено",
   "chatReply": "Ответить",
   "chatReplyCancel": "Отменить ответ",
@@ -2315,51 +2887,118 @@
   "chatPhotoFix": "Уберите или повторите неудачные фото.",
   "chatPhotosUnavailable": "Фото недоступны.",
   "chatYou": "Вы",
-  "@chatMessageEdited": {"description": "Метка изменённого сообщения рядом со временем."},
-  "@chatReply": {"description": "Пункт меню: ответить с цитатой."},
-  "@chatReplyCancel": {"description": "Убрать выбранную цитату."},
-  "@chatQuoteDeleted": {"description": "Цитата удалённого сообщения: текст скрыт."},
-  "@chatEdit": {"description": "Пункт меню: редактировать своё сообщение."},
-  "@chatDelete": {"description": "Пункт меню и кнопка подтверждения: удалить своё сообщение."},
-  "@chatEditTitle": {"description": "Заголовок диалога редактирования."},
-  "@chatDeleteTitle": {"description": "Заголовок подтверждения удаления."},
-  "@chatDeleteExplanation": {"description": "Поясняет, что текст исчезает, а скрытая копия остаётся для жалоб."},
-  "@chatCancel": {"description": "Отмена диалога."},
-  "@chatSave": {"description": "Сохранить изменения сообщения."},
-  "@chatEditFailed": {"description": "Не удалось изменить сообщение."},
-  "@chatDeleteFailed": {"description": "Не удалось удалить сообщение."},
-  "@chatMessageDeleted": {"description": "Сервер сообщил, что сообщение уже удалено."},
-  "@chatMessageUnavailable": {"description": "Сообщение больше не видно (404)."},
-  "@chatActionForbidden": {"description": "Серверный отказ из-за изменившихся прав (403)."},
-  "@chatPhotoInvalid": {"description": "Фото не обработано, отклонено или принадлежит другому чату."},
-  "@chatPhotoExpired": {"description": "Срок загрузки фото истёк."},
-  "@chatPhotoAdd": {"description": "Кнопка прикрепления фото к сообщению."},
-  "@chatPhotoFailed": {"description": "Ошибка загрузки фото."},
-  "@chatPhotoWait": {"description": "Отправка ждёт завершения обработки фото."},
-  "@chatPhotoFix": {"description": "Просит убрать или повторить неудачные фото."},
-  "@chatPhotosUnavailable": {"description": "Подписанные ссылки на фото не получены."},
-  "@chatYou": {"description": "Подпись автора своей цитаты."}
-,
+  "@chatMessageEdited": {
+    "description": "Метка изменённого сообщения рядом со временем."
+  },
+  "@chatReply": {
+    "description": "Пункт меню: ответить с цитатой."
+  },
+  "@chatReplyCancel": {
+    "description": "Убрать выбранную цитату."
+  },
+  "@chatQuoteDeleted": {
+    "description": "Цитата удалённого сообщения: текст скрыт."
+  },
+  "@chatEdit": {
+    "description": "Пункт меню: редактировать своё сообщение."
+  },
+  "@chatDelete": {
+    "description": "Пункт меню и кнопка подтверждения: удалить своё сообщение."
+  },
+  "@chatEditTitle": {
+    "description": "Заголовок диалога редактирования."
+  },
+  "@chatDeleteTitle": {
+    "description": "Заголовок подтверждения удаления."
+  },
+  "@chatDeleteExplanation": {
+    "description": "Поясняет, что текст исчезает, а скрытая копия остаётся для жалоб."
+  },
+  "@chatCancel": {
+    "description": "Отмена диалога."
+  },
+  "@chatSave": {
+    "description": "Сохранить изменения сообщения."
+  },
+  "@chatEditFailed": {
+    "description": "Не удалось изменить сообщение."
+  },
+  "@chatDeleteFailed": {
+    "description": "Не удалось удалить сообщение."
+  },
+  "@chatMessageDeleted": {
+    "description": "Сервер сообщил, что сообщение уже удалено."
+  },
+  "@chatMessageUnavailable": {
+    "description": "Сообщение больше не видно (404)."
+  },
+  "@chatActionForbidden": {
+    "description": "Серверный отказ из-за изменившихся прав (403)."
+  },
+  "@chatPhotoInvalid": {
+    "description": "Фото не обработано, отклонено или принадлежит другому чату."
+  },
+  "@chatPhotoExpired": {
+    "description": "Срок загрузки фото истёк."
+  },
+  "@chatPhotoAdd": {
+    "description": "Кнопка прикрепления фото к сообщению."
+  },
+  "@chatPhotoFailed": {
+    "description": "Ошибка загрузки фото."
+  },
+  "@chatPhotoWait": {
+    "description": "Отправка ждёт завершения обработки фото."
+  },
+  "@chatPhotoFix": {
+    "description": "Просит убрать или повторить неудачные фото."
+  },
+  "@chatPhotosUnavailable": {
+    "description": "Подписанные ссылки на фото не получены."
+  },
+  "@chatYou": {
+    "description": "Подпись автора своей цитаты."
+  },
   "attendanceTitle": "Отметка на мероприятии",
-  "@attendanceTitle": {"description": "Заголовок экрана отметки на мероприятии."},
+  "@attendanceTitle": {
+    "description": "Заголовок экрана отметки на мероприятии."
+  },
   "attendanceManageAction": "Отметка участников",
-  "@attendanceManageAction": {"description": "Кнопка организатора: открыть отметку участников."},
+  "@attendanceManageAction": {
+    "description": "Кнопка организатора: открыть отметку участников."
+  },
   "attendanceOpenAction": "Отметка на мероприятии",
-  "@attendanceOpenAction": {"description": "Кнопка участника: открыть экран своей отметки."},
+  "@attendanceOpenAction": {
+    "description": "Кнопка участника: открыть экран своей отметки."
+  },
   "attendanceUnavailable": "У этого мероприятия нет отметки.",
-  "@attendanceUnavailable": {"description": "Отметка есть только у мероприятий."},
+  "@attendanceUnavailable": {
+    "description": "Отметка есть только у мероприятий."
+  },
   "attendanceModeTitle": "Режим отметки",
-  "@attendanceModeTitle": {"description": "Заголовок выбора режима отметки организатором."},
+  "@attendanceModeTitle": {
+    "description": "Заголовок выбора режима отметки организатором."
+  },
   "attendanceModeSelf": "Участники отмечаются сами",
-  "@attendanceModeSelf": {"description": "Режим: участник вводит код организатора."},
+  "@attendanceModeSelf": {
+    "description": "Режим: участник вводит код организатора."
+  },
   "attendanceModeScan": "Организатор отмечает участников",
-  "@attendanceModeScan": {"description": "Режим: организатор вводит личные коды участников."},
+  "@attendanceModeScan": {
+    "description": "Режим: организатор вводит личные коды участников."
+  },
   "attendanceModeSelfHint": "Покажите код участникам: они введут его в приложении.",
-  "@attendanceModeSelfHint": {"description": "Пояснение режима самоотметки организатору."},
+  "@attendanceModeSelfHint": {
+    "description": "Пояснение режима самоотметки организатору."
+  },
   "attendanceModeScanHint": "Участник показывает личный код, вы отмечаете его.",
-  "@attendanceModeScanHint": {"description": "Пояснение режима отметки организатором."},
+  "@attendanceModeScanHint": {
+    "description": "Пояснение режима отметки организатором."
+  },
   "attendanceModeMissing": "Организатор ещё не выбрал режим отметки.",
-  "@attendanceModeMissing": {"description": "У мероприятия нет режима отметки."},
+  "@attendanceModeMissing": {
+    "description": "У мероприятия нет режима отметки."
+  },
   "attendanceWindowBefore": "Отметка откроется {time}.",
   "@attendanceWindowBefore": {
     "description": "Окно отметки ещё не открылось; время в поясе города события.",
@@ -2379,15 +3018,25 @@
     }
   },
   "attendanceWindowAfter": "Отметка закрыта: мероприятие закончилось.",
-  "@attendanceWindowAfter": {"description": "Окно отметки закрылось."},
+  "@attendanceWindowAfter": {
+    "description": "Окно отметки закрылось."
+  },
   "attendanceCodeTitle": "Код организатора",
-  "@attendanceCodeTitle": {"description": "Заголовок обновляемого кода организатора."},
+  "@attendanceCodeTitle": {
+    "description": "Заголовок обновляемого кода организатора."
+  },
   "attendanceCodeHint": "Покажите этот код участникам: он обновляется автоматически.",
-  "@attendanceCodeHint": {"description": "Пояснение к коду организатора."},
+  "@attendanceCodeHint": {
+    "description": "Пояснение к коду организатора."
+  },
   "attendanceParticipantCodeTitle": "Ваш код",
-  "@attendanceParticipantCodeTitle": {"description": "Заголовок личного кода участника."},
+  "@attendanceParticipantCodeTitle": {
+    "description": "Заголовок личного кода участника."
+  },
   "attendanceParticipantCodeHint": "Покажите этот код организатору. Он обновляется автоматически.",
-  "@attendanceParticipantCodeHint": {"description": "Пояснение к личному коду участника."},
+  "@attendanceParticipantCodeHint": {
+    "description": "Пояснение к личному коду участника."
+  },
   "attendanceCodeExpires": "Код обновится через {seconds} с.",
   "@attendanceCodeExpires": {
     "description": "Обратный отсчёт до обновления кода отметки.",
@@ -2398,29 +3047,53 @@
     }
   },
   "attendanceCodeCopy": "Скопировать код",
-  "@attendanceCodeCopy": {"description": "Кнопка копирования кода отметки."},
+  "@attendanceCodeCopy": {
+    "description": "Кнопка копирования кода отметки."
+  },
   "attendanceCodeRefresh": "Показать новый код",
-  "@attendanceCodeRefresh": {"description": "Кнопка досрочного обновления кода отметки."},
+  "@attendanceCodeRefresh": {
+    "description": "Кнопка досрочного обновления кода отметки."
+  },
   "attendanceCodeCopied": "Код скопирован.",
-  "@attendanceCodeCopied": {"description": "Код отметки скопирован в буфер обмена."},
+  "@attendanceCodeCopied": {
+    "description": "Код отметки скопирован в буфер обмена."
+  },
   "attendanceCodeRequired": "Введите код.",
-  "@attendanceCodeRequired": {"description": "Поле кода отметки не заполнено."},
+  "@attendanceCodeRequired": {
+    "description": "Поле кода отметки не заполнено."
+  },
   "attendanceOrganizerCodeLabel": "Код организатора",
-  "@attendanceOrganizerCodeLabel": {"description": "Поле ввода кода организатора участником."},
+  "@attendanceOrganizerCodeLabel": {
+    "description": "Поле ввода кода организатора участником."
+  },
   "attendanceParticipantCodeLabel": "Личный код участника",
-  "@attendanceParticipantCodeLabel": {"description": "Поле ввода личного кода участника организатором."},
+  "@attendanceParticipantCodeLabel": {
+    "description": "Поле ввода личного кода участника организатором."
+  },
   "attendanceSelfHint": "Введите код, который показывает организатор.",
-  "@attendanceSelfHint": {"description": "Пояснение самоотметки участнику."},
+  "@attendanceSelfHint": {
+    "description": "Пояснение самоотметки участнику."
+  },
   "attendanceScanHint": "Введите личный код участника.",
-  "@attendanceScanHint": {"description": "Пояснение отметки организатором."},
+  "@attendanceScanHint": {
+    "description": "Пояснение отметки организатором."
+  },
   "attendanceSubmitSelf": "Отметить меня",
-  "@attendanceSubmitSelf": {"description": "Кнопка самоотметки участника."},
+  "@attendanceSubmitSelf": {
+    "description": "Кнопка самоотметки участника."
+  },
   "attendanceSubmitScan": "Отметить участника",
-  "@attendanceSubmitScan": {"description": "Кнопка отметки участника организатором."},
+  "@attendanceSubmitScan": {
+    "description": "Кнопка отметки участника организатором."
+  },
   "attendanceSelfMarked": "Вы отмечены на мероприятии.",
-  "@attendanceSelfMarked": {"description": "Участник отмечен на мероприятии."},
+  "@attendanceSelfMarked": {
+    "description": "Участник отмечен на мероприятии."
+  },
   "attendanceSelfAlreadyMarked": "Вы уже отмечены на мероприятии.",
-  "@attendanceSelfAlreadyMarked": {"description": "Повторная самоотметка не добавила вторую."},
+  "@attendanceSelfAlreadyMarked": {
+    "description": "Повторная самоотметка не добавила вторую."
+  },
   "attendanceScanMarked": "{name}: отметка поставлена.",
   "@attendanceScanMarked": {
     "description": "Организатор отметил участника.",
@@ -2440,7 +3113,9 @@
     }
   },
   "attendanceListTitle": "Отметившиеся",
-  "@attendanceListTitle": {"description": "Заголовок списка отметившихся организатору."},
+  "@attendanceListTitle": {
+    "description": "Заголовок списка отметившихся организатору."
+  },
   "attendanceListCount": "Отмечено: {count}",
   "@attendanceListCount": {
     "description": "Сколько участников отмечено сейчас.",
@@ -2451,111 +3126,227 @@
     }
   },
   "attendanceListEmpty": "Пока никто не отмечен.",
-  "@attendanceListEmpty": {"description": "Список отметившихся пуст."},
+  "@attendanceListEmpty": {
+    "description": "Список отметившихся пуст."
+  },
   "attendanceRefreshList": "Обновить список",
-  "@attendanceRefreshList": {"description": "Кнопка обновления списка отметившихся."},
+  "@attendanceRefreshList": {
+    "description": "Кнопка обновления списка отметившихся."
+  },
   "attendanceRemoved": "отметка снята",
-  "@attendanceRemoved": {"description": "Подпись снятой отметки в списке организатора."},
+  "@attendanceRemoved": {
+    "description": "Подпись снятой отметки в списке организатора."
+  },
   "attendanceRemovedDone": "Отметка снята.",
-  "@attendanceRemovedDone": {"description": "Организатор снял отметку."},
+  "@attendanceRemovedDone": {
+    "description": "Организатор снял отметку."
+  },
   "attendanceRemove": "Снять отметку",
-  "@attendanceRemove": {"description": "Кнопка снятия отметки организатором."},
+  "@attendanceRemove": {
+    "description": "Кнопка снятия отметки организатором."
+  },
   "attendanceNoLongerRegistered": "запись отменена",
-  "@attendanceNoLongerRegistered": {"description": "Участник отменил запись, но отметка осталась."},
+  "@attendanceNoLongerRegistered": {
+    "description": "Участник отменил запись, но отметка осталась."
+  },
   "attendanceMethodSelf": "Самоотметка",
-  "@attendanceMethodSelf": {"description": "Способ отметки: участник отметился сам."},
+  "@attendanceMethodSelf": {
+    "description": "Способ отметки: участник отметился сам."
+  },
   "attendanceMethodScan": "Сканирование",
-  "@attendanceMethodScan": {"description": "Способ отметки: организатор сканировал код."},
+  "@attendanceMethodScan": {
+    "description": "Способ отметки: организатор сканировал код."
+  },
   "attendanceForbidden": "Это может только организатор мероприятия.",
-  "@attendanceForbidden": {"description": "Сервер отказал: действие только для организатора."},
+  "@attendanceForbidden": {
+    "description": "Сервер отказал: действие только для организатора."
+  },
   "attendanceNotRegistered": "Отметиться может только записавшийся участник.",
-  "@attendanceNotRegistered": {"description": "Сервер отказал: нет принятой записи на мероприятие."},
+  "@attendanceNotRegistered": {
+    "description": "Сервер отказал: нет принятой записи на мероприятие."
+  },
   "attendanceModeConflict": "Мероприятие переключилось на другой режим отметки.",
-  "@attendanceModeConflict": {"description": "Код относится к другому режиму отметки."},
+  "@attendanceModeConflict": {
+    "description": "Код относится к другому режиму отметки."
+  },
   "attendanceCodeInvalid": "Код не подходит для этого мероприятия.",
-  "@attendanceCodeInvalid": {"description": "Код повреждён или относится к другому мероприятию."},
+  "@attendanceCodeInvalid": {
+    "description": "Код повреждён или относится к другому мероприятию."
+  },
   "attendanceCodeExpired": "Код устарел. Попросите показать новый.",
-  "@attendanceCodeExpired": {"description": "Срок действия кода отметки истёк."},
+  "@attendanceCodeExpired": {
+    "description": "Срок действия кода отметки истёк."
+  },
   "attendanceNotFound": "У этого участника нет отметки.",
-  "@attendanceNotFound": {"description": "Отметку нечего снимать."},
+  "@attendanceNotFound": {
+    "description": "Отметку нечего снимать."
+  },
   "qrConfirmationTitle": "Подтверждение встречи по QR",
-  "@qrConfirmationTitle": {"description": "Заголовок карточки запуска подтверждения встречи по QR-коду."},
+  "@qrConfirmationTitle": {
+    "description": "Заголовок карточки запуска подтверждения встречи по QR-коду."
+  },
   "qrConfirmationHint": "Один участник показывает код, второй сканирует его.",
-  "@qrConfirmationHint": {"description": "Поясняет, как завершить встречу показом и сканированием кода."},
+  "@qrConfirmationHint": {
+    "description": "Поясняет, как завершить встречу показом и сканированием кода."
+  },
   "qrShowOpen": "Показать QR-код",
-  "@qrShowOpen": {"description": "Кнопка открытия экрана с QR-кодом."},
+  "@qrShowOpen": {
+    "description": "Кнопка открытия экрана с QR-кодом."
+  },
   "qrScanOpen": "Сканировать QR-код",
-  "@qrScanOpen": {"description": "Кнопка открытия сканера QR-кода."},
+  "@qrScanOpen": {
+    "description": "Кнопка открытия сканера QR-кода."
+  },
   "qrPresenterTitle": "QR-код встречи",
-  "@qrPresenterTitle": {"description": "Заголовок экрана показа QR-кода."},
+  "@qrPresenterTitle": {
+    "description": "Заголовок экрана показа QR-кода."
+  },
   "qrPresenterIntro": "Покажите этот код второму участнику: он подтвердит встречу сканированием. Код обновляется автоматически.",
-  "@qrPresenterIntro": {"description": "Пояснение на экране показа QR-кода."},
+  "@qrPresenterIntro": {
+    "description": "Пояснение на экране показа QR-кода."
+  },
   "qrPresenterValidUntil": "Код действует до {time}",
-  "@qrPresenterValidUntil": {"description": "До какого времени сервер принимает показанный код; время в поясе города.", "placeholders": {"time": {"type": "String"}}},
+  "@qrPresenterValidUntil": {
+    "description": "До какого времени сервер принимает показанный код; время в поясе города.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "qrPresenterRefresh": "Обновить код",
-  "@qrPresenterRefresh": {"description": "Кнопка обновления QR-кода."},
+  "@qrPresenterRefresh": {
+    "description": "Кнопка обновления QR-кода."
+  },
   "qrPresenterCompleted": "Встреча подтверждена по QR-коду.",
-  "@qrPresenterCompleted": {"description": "Взаимодействие уже завершено по QR-коду."},
+  "@qrPresenterCompleted": {
+    "description": "Взаимодействие уже завершено по QR-коду."
+  },
   "qrPresenterAlreadyCompleted": "Взаимодействие уже завершено другим способом.",
-  "@qrPresenterAlreadyCompleted": {"description": "Завершать по QR-коду нечего."},
+  "@qrPresenterAlreadyCompleted": {
+    "description": "Завершать по QR-коду нечего."
+  },
   "qrPresenterNotAccepted": "Подтвердить можно только принятое взаимодействие.",
-  "@qrPresenterNotAccepted": {"description": "Взаимодействие не в состоянии «принято»."},
+  "@qrPresenterNotAccepted": {
+    "description": "Взаимодействие не в состоянии «принято»."
+  },
   "qrPresenterUnavailable": "Это взаимодействие нельзя завершить по QR-коду.",
-  "@qrPresenterUnavailable": {"description": "Тип или этап взаимодействия не поддерживает подтверждение встречи по QR-коду."},
+  "@qrPresenterUnavailable": {
+    "description": "Тип или этап взаимодействия не поддерживает подтверждение встречи по QR-коду."
+  },
   "qrScannerTitle": "Сканирование QR-кода",
-  "@qrScannerTitle": {"description": "Заголовок экрана сканирования."},
+  "@qrScannerTitle": {
+    "description": "Заголовок экрана сканирования."
+  },
   "qrScannerIntro": "Наведите камеру на QR-код, который показывает второй участник.",
-  "@qrScannerIntro": {"description": "Подсказка над камерой."},
+  "@qrScannerIntro": {
+    "description": "Подсказка над камерой."
+  },
   "qrScannerSending": "Подтверждаем встречу…",
-  "@qrScannerSending": {"description": "Запрос подтверждения отправлен на сервер."},
+  "@qrScannerSending": {
+    "description": "Запрос подтверждения отправлен на сервер."
+  },
   "qrScannerSuccess": "Встреча подтверждена",
-  "@qrScannerSuccess": {"description": "Сервер завершил взаимодействие по отсканированному коду."},
+  "@qrScannerSuccess": {
+    "description": "Сервер завершил взаимодействие по отсканированному коду."
+  },
   "qrScannerAlreadyConfirmed": "Встреча уже подтверждена по QR-коду.",
-  "@qrScannerAlreadyConfirmed": {"description": "Взаимодействие уже завершено по QR-коду до открытия сканера."},
+  "@qrScannerAlreadyConfirmed": {
+    "description": "Взаимодействие уже завершено по QR-коду до открытия сканера."
+  },
   "qrScannerAlreadyCompleted": "Взаимодействие уже завершено другим способом.",
-  "@qrScannerAlreadyCompleted": {"description": "Сканирование не требуется."},
+  "@qrScannerAlreadyCompleted": {
+    "description": "Сканирование не требуется."
+  },
   "qrScannerNotAccepted": "Взаимодействие не принято и не может быть подтверждено.",
-  "@qrScannerNotAccepted": {"description": "Сканирование невозможно из-за статуса взаимодействия."},
+  "@qrScannerNotAccepted": {
+    "description": "Сканирование невозможно из-за статуса взаимодействия."
+  },
   "qrScannerUnavailable": "Это взаимодействие нельзя подтвердить по QR-коду.",
-  "@qrScannerUnavailable": {"description": "Тип или этап взаимодействия не поддерживает подтверждение по QR-коду."},
+  "@qrScannerUnavailable": {
+    "description": "Тип или этап взаимодействия не поддерживает подтверждение по QR-коду."
+  },
   "qrScannerScanAgain": "Сканировать другой код",
-  "@qrScannerScanAgain": {"description": "Кнопка возврата к камере после ошибки."},
+  "@qrScannerScanAgain": {
+    "description": "Кнопка возврата к камере после ошибки."
+  },
   "qrScannerCameraDenied": "Нет доступа к камере. Разрешите камеру в настройках приложения.",
-  "@qrScannerCameraDenied": {"description": "Пользователь запретил доступ к камере."},
+  "@qrScannerCameraDenied": {
+    "description": "Пользователь запретил доступ к камере."
+  },
   "qrScannerCameraError": "Не удалось включить камеру.",
-  "@qrScannerCameraError": {"description": "Камера недоступна или занята другим приложением."},
+  "@qrScannerCameraError": {
+    "description": "Камера недоступна или занята другим приложением."
+  },
   "qrScannerCameraUnsupported": "Сканирование камерой недоступно на этом устройстве.",
-  "@qrScannerCameraUnsupported": {"description": "Платформа не поддерживает сканирование камерой."},
+  "@qrScannerCameraUnsupported": {
+    "description": "Платформа не поддерживает сканирование камерой."
+  },
   "qrScannerMalformed": "Это не код подтверждения встречи.",
-  "@qrScannerMalformed": {"description": "Отсканированный QR-код не является кодом Кампуса."},
+  "@qrScannerMalformed": {
+    "description": "Отсканированный QR-код не является кодом Кампуса."
+  },
   "qrScannerWrongInteraction": "Код относится к другому взаимодействию.",
-  "@qrScannerWrongInteraction": {"description": "QR-код другого объявления или взаимодействия."},
+  "@qrScannerWrongInteraction": {
+    "description": "QR-код другого объявления или взаимодействия."
+  },
   "qrScannerOwnCode": "Это ваш код: покажите его второму участнику, а сканировать должен он.",
-  "@qrScannerOwnCode": {"description": "Показывающий участник пытается отсканировать свой код."},
+  "@qrScannerOwnCode": {
+    "description": "Показывающий участник пытается отсканировать свой код."
+  },
   "qrScannerExpired": "Срок действия кода истёк. Попросите показать новый.",
-  "@qrScannerExpired": {"description": "Сервер отклонил код по времени."},
+  "@qrScannerExpired": {
+    "description": "Сервер отклонил код по времени."
+  },
   "qrScannerNotYetValid": "Время кода опережает сервер. Попросите обновить код.",
-  "@qrScannerNotYetValid": {"description": "Код сформирован с часами, ушедшими вперёд."},
+  "@qrScannerNotYetValid": {
+    "description": "Код сформирован с часами, ушедшими вперёд."
+  },
   "qrScannerBeforeAcceptance": "Код сформирован до принятия взаимодействия. Попросите показать новый.",
-  "@qrScannerBeforeAcceptance": {"description": "Код старше принятия взаимодействия."},
+  "@qrScannerBeforeAcceptance": {
+    "description": "Код старше принятия взаимодействия."
+  },
   "qrScannerUnknownKey": "Ключ устройства не подходит. Попросите обновить код на устройстве показывающего.",
-  "@qrScannerUnknownKey": {"description": "Ключ, которым подписан код, отозван или неизвестен серверу."},
+  "@qrScannerUnknownKey": {
+    "description": "Ключ, которым подписан код, отозван или неизвестен серверу."
+  },
   "qrScannerUsed": "Этот код уже использован. Попросите показать новый.",
-  "@qrScannerUsed": {"description": "Одноразовый код уже применён или взаимодействие завершено."},
+  "@qrScannerUsed": {
+    "description": "Одноразовый код уже применён или взаимодействие завершено."
+  },
   "qrScannerNotParticipant": "Вы не участник этого взаимодействия и не можете его подтвердить.",
-  "@qrScannerNotParticipant": {"description": "Отказ сервера постороннему."},
+  "@qrScannerNotParticipant": {
+    "description": "Отказ сервера постороннему."
+  },
   "qrScannerSameParticipant": "Показывающий не может подтвердить собственный код.",
-  "@qrScannerSameParticipant": {"description": "Отказ сервера показывающему."},
+  "@qrScannerSameParticipant": {
+    "description": "Отказ сервера показывающему."
+  },
   "qrScannerStageUnavailable": "Сейчас подтверждается другой этап взаимодействия.",
-  "@qrScannerStageUnavailable": {"description": "Этапное взаимодействие завершается своим действием."},
+  "@qrScannerStageUnavailable": {
+    "description": "Этапное взаимодействие завершается своим действием."
+  },
   "qrScannerAfterNoShow": "Взаимодействие отмечено как несостоявшееся, этот код не подходит.",
-  "@qrScannerAfterNoShow": {"description": "Код сформирован после отметки о неявке."},
+  "@qrScannerAfterNoShow": {
+    "description": "Код сформирован после отметки о неявке."
+  },
   "qrKeyConflict": "Ключ устройства уже занят другой сессией. Попробуйте ещё раз.",
-  "@qrKeyConflict": {"description": "Сервер нашёл этот публичный ключ у другой сессии устройства."},
+  "@qrKeyConflict": {
+    "description": "Сервер нашёл этот публичный ключ у другой сессии устройства."
+  },
   "qrDone": "Готово",
-  "@qrDone": {"description": "Кнопка закрытия экрана результата."},
+  "@qrDone": {
+    "description": "Кнопка закрытия экрана результата."
+  },
   "qrCompletedAt": "Завершено {time}",
-  "@qrCompletedAt": {"description": "Время завершения взаимодействия; время в поясе города.", "placeholders": {"time": {"type": "String"}}},
+  "@qrCompletedAt": {
+    "description": "Время завершения взаимодействия; время в поясе города.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "noShowSummaryTitle": "Встреча не состоялась",
   "@noShowSummaryTitle": {
     "description": "Заголовок карточки «не состоялось» у взаимодействия."
@@ -2939,133 +3730,333 @@
     "description": "Сервер отказал: вещь займа передана, неявка недоступна."
   },
   "listingKindLoan": "Одолжу",
-  "@listingKindLoan": {"description": "Listing kind name: loan."},
+  "@listingKindLoan": {
+    "description": "Listing kind name: loan."
+  },
   "loanCreateTitle": "Создать «Одолжу»",
-  "@loanCreateTitle": {"description": "Entry point and title of a new loan listing."},
+  "@loanCreateTitle": {
+    "description": "Entry point and title of a new loan listing."
+  },
   "loanPeriodLabel": "Срок возврата, дней",
-  "@loanPeriodLabel": {"description": "Label of the loan period field, in days."},
+  "@loanPeriodLabel": {
+    "description": "Label of the loan period field, in days."
+  },
   "loanPeriodHint": "От 1 до {max} дней",
-  "@loanPeriodHint": {"description": "Allowed loan period range.", "placeholders": {"max": {"type": "int"}}},
+  "@loanPeriodHint": {
+    "description": "Allowed loan period range.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "loanPeriodInvalid": "Срок возврата — от 1 до {max} дней",
-  "@loanPeriodInvalid": {"description": "A loan period outside the configured range was entered.", "placeholders": {"max": {"type": "int"}}},
+  "@loanPeriodInvalid": {
+    "description": "A loan period outside the configured range was entered.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "loanPeriodShort": "{days} дн.",
-  "@loanPeriodShort": {"description": "Loan period on a compact card.", "placeholders": {"days": {"type": "int"}}},
+  "@loanPeriodShort": {
+    "description": "Loan period on a compact card.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "loanPeriodValue": "Срок возврата: {days} дн. после выдачи",
-  "@loanPeriodValue": {"description": "Loan period on the listing card.", "placeholders": {"days": {"type": "int"}}},
+  "@loanPeriodValue": {
+    "description": "Loan period on the listing card.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "loanPeriodFixed": "Срок возврата задан при публикации: {days} дн.",
-  "@loanPeriodFixed": {"description": "Read-only loan period of a draft being edited.", "placeholders": {"days": {"type": "int"}}},
+  "@loanPeriodFixed": {
+    "description": "Read-only loan period of a draft being edited.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "loanCardTitle": "«Одолжу»",
-  "@loanCardTitle": {"description": "Title of the loan card of an interaction."},
+  "@loanCardTitle": {
+    "description": "Title of the loan card of an interaction."
+  },
   "loanStepAccepted": "Принято",
-  "@loanStepAccepted": {"description": "First step of a loan."},
+  "@loanStepAccepted": {
+    "description": "First step of a loan."
+  },
   "loanStepIssued": "Выдано",
-  "@loanStepIssued": {"description": "Second step of a loan."},
+  "@loanStepIssued": {
+    "description": "Second step of a loan."
+  },
   "loanStepReturned": "Возвращено",
-  "@loanStepReturned": {"description": "Third step of a loan."},
+  "@loanStepReturned": {
+    "description": "Third step of a loan."
+  },
   "loanReturnDue": "Вернуть до {time}",
-  "@loanReturnDue": {"description": "Return deadline of a loan in the city zone.", "placeholders": {"time": {"type": "String"}}},
+  "@loanReturnDue": {
+    "description": "Return deadline of a loan in the city zone.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "loanOverdueChip": "Просрочено",
-  "@loanOverdueChip": {"description": "The loan is past its return deadline."},
+  "@loanOverdueChip": {
+    "description": "The loan is past its return deadline."
+  },
   "loanShowHandover": "Показать QR выдачи",
-  "@loanShowHandover": {"description": "The owner shows the handover code."},
+  "@loanShowHandover": {
+    "description": "The owner shows the handover code."
+  },
   "loanScanHandover": "Сканировать QR выдачи",
-  "@loanScanHandover": {"description": "The borrower scans the handover code."},
+  "@loanScanHandover": {
+    "description": "The borrower scans the handover code."
+  },
   "loanShowReturn": "Показать QR возврата",
-  "@loanShowReturn": {"description": "The borrower shows the return code."},
+  "@loanShowReturn": {
+    "description": "The borrower shows the return code."
+  },
   "loanScanReturn": "Сканировать QR возврата",
-  "@loanScanReturn": {"description": "The owner scans the return code."},
+  "@loanScanReturn": {
+    "description": "The owner scans the return code."
+  },
   "loanHandoverHint": "Владелец показывает код выдачи, заёмщик сканирует.",
-  "@loanHandoverHint": {"description": "Who does what at the handover."},
+  "@loanHandoverHint": {
+    "description": "Who does what at the handover."
+  },
   "loanReturnHint": "Заёмщик показывает код возврата, владелец сканирует.",
-  "@loanReturnHint": {"description": "Who does what at the return."},
+  "@loanReturnHint": {
+    "description": "Who does what at the return."
+  },
   "loanNotReturned": "Вещь не возвращена",
-  "@loanNotReturned": {"description": "The owner marks the item as not returned."},
+  "@loanNotReturned": {
+    "description": "The owner marks the item as not returned."
+  },
   "loanNotReturnedUntil": "Доступно с {time}",
-  "@loanNotReturnedUntil": {"description": "When the owner may mark the item not returned.", "placeholders": {"time": {"type": "String"}}},
+  "@loanNotReturnedUntil": {
+    "description": "When the owner may mark the item not returned.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "loanNotReturnedConfirmTitle": "Отметить «не возвращено»?",
-  "@loanNotReturnedConfirmTitle": {"description": "Confirmation of the not-returned mark."},
+  "@loanNotReturnedConfirmTitle": {
+    "description": "Confirmation of the not-returned mark."
+  },
   "loanNotReturnedConfirmBody": "Заёмщику будет засчитана неявка, и он сможет её оспорить. Вещь остаётся занятой, пока спор не решится.",
-  "@loanNotReturnedConfirmBody": {"description": "Consequences of the not-returned mark."},
+  "@loanNotReturnedConfirmBody": {
+    "description": "Consequences of the not-returned mark."
+  },
   "loanNotReturnedConfirm": "Отметить",
-  "@loanNotReturnedConfirm": {"description": "Confirm the not-returned mark."},
+  "@loanNotReturnedConfirm": {
+    "description": "Confirm the not-returned mark."
+  },
   "loanNotReturnedKeep": "Отмена",
-  "@loanNotReturnedKeep": {"description": "Dismiss the not-returned confirmation."},
+  "@loanNotReturnedKeep": {
+    "description": "Dismiss the not-returned confirmation."
+  },
   "loanNotReturnedMarked": "Владелец отметил, что вещь не возвращена.",
-  "@loanNotReturnedMarked": {"description": "The borrower sees the owner's mark."},
+  "@loanNotReturnedMarked": {
+    "description": "The borrower sees the owner's mark."
+  },
   "loanBorrowerNoShow": "Заёмщик не вернул вещь в срок: засчитана неявка.",
-  "@loanBorrowerNoShow": {"description": "The owner sees the recorded no-show."},
+  "@loanBorrowerNoShow": {
+    "description": "The owner sees the recorded no-show."
+  },
   "loanDisputeOpen": "Неявка оспорена: решение примет модератор.",
-  "@loanDisputeOpen": {"description": "A dispute is open."},
+  "@loanDisputeOpen": {
+    "description": "A dispute is open."
+  },
   "loanDisputeWaiting": "Заёмщик может оспорить неявку в течение окна спора.",
-  "@loanDisputeWaiting": {"description": "The borrower has not answered the mark yet."},
+  "@loanDisputeWaiting": {
+    "description": "The borrower has not answered the mark yet."
+  },
   "loanDispute": "Оспорить неявку",
-  "@loanDispute": {"description": "The borrower answers the mark."},
+  "@loanDispute": {
+    "description": "The borrower answers the mark."
+  },
   "loanDisputeTitle": "Оспаривание неявки",
-  "@loanDisputeTitle": {"description": "Title of the dispute dialog."},
+  "@loanDisputeTitle": {
+    "description": "Title of the dispute dialog."
+  },
   "loanDisputeReason": "Причина",
-  "@loanDisputeReason": {"description": "Reason field of the dispute dialog."},
+  "@loanDisputeReason": {
+    "description": "Reason field of the dispute dialog."
+  },
   "loanDisputeReasonRequired": "Опишите причину",
-  "@loanDisputeReasonRequired": {"description": "The dispute reason is empty."},
+  "@loanDisputeReasonRequired": {
+    "description": "The dispute reason is empty."
+  },
   "loanDisputeReasonInvalid": "Причина — не длиннее {max} символов",
-  "@loanDisputeReasonInvalid": {"description": "The dispute reason is too long.", "placeholders": {"max": {"type": "int"}}},
+  "@loanDisputeReasonInvalid": {
+    "description": "The dispute reason is too long.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "loanDisputeSend": "Отправить",
-  "@loanDisputeSend": {"description": "Send the dispute."},
+  "@loanDisputeSend": {
+    "description": "Send the dispute."
+  },
   "loanDisputeKeep": "Отмена",
-  "@loanDisputeKeep": {"description": "Dismiss the dispute dialog."},
+  "@loanDisputeKeep": {
+    "description": "Dismiss the dispute dialog."
+  },
   "loanDisputeClosed": "Окно оспаривания уже закрыто.",
-  "@loanDisputeClosed": {"description": "The server refused a late dispute."},
+  "@loanDisputeClosed": {
+    "description": "The server refused a late dispute."
+  },
   "loanDisputeForbidden": "Оспорить неявку может только её участник.",
-  "@loanDisputeForbidden": {"description": "The server refused a stranger."},
+  "@loanDisputeForbidden": {
+    "description": "The server refused a stranger."
+  },
   "loanNoShowUnavailable": "Оспорить эту неявку нельзя.",
-  "@loanNoShowUnavailable": {"description": "The server refused the answer."},
+  "@loanNoShowUnavailable": {
+    "description": "The server refused the answer."
+  },
   "loanQrAlreadyReturned": "Вещь уже возвращена.",
-  "@loanQrAlreadyReturned": {"description": "The loan is completed at the return QR screen."},
+  "@loanQrAlreadyReturned": {
+    "description": "The loan is completed at the return QR screen."
+  },
   "loanQrHandoverUnavailable": "Выдача уже подтверждена или заём закрыт.",
-  "@loanQrHandoverUnavailable": {"description": "The handover step cannot run now."},
+  "@loanQrHandoverUnavailable": {
+    "description": "The handover step cannot run now."
+  },
   "loanQrReturnUnavailable": "Возврат возможен только после выдачи.",
-  "@loanQrReturnUnavailable": {"description": "The return step cannot run before the handover."},
+  "@loanQrReturnUnavailable": {
+    "description": "The return step cannot run before the handover."
+  },
   "loanNotReturnedTooEarly": "Отметить «не возвращено» можно с {time}.",
-  "@loanNotReturnedTooEarly": {"description": "The server named the first allowed moment.", "placeholders": {"time": {"type": "String"}}},
+  "@loanNotReturnedTooEarly": {
+    "description": "The server named the first allowed moment.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "loanNotReturnedLater": "Отметить «не возвращено» пока нельзя.",
-  "@loanNotReturnedLater": {"description": "The not-returned wait has not passed."},
+  "@loanNotReturnedLater": {
+    "description": "The not-returned wait has not passed."
+  },
   "loanNotReturnedForbidden": "Отметить «не возвращено» может только владелец.",
-  "@loanNotReturnedForbidden": {"description": "The server refused a non-owner."},
+  "@loanNotReturnedForbidden": {
+    "description": "The server refused a non-owner."
+  },
   "loanNotReturnedUnavailable": "Отметить «не возвращено» можно только для выданной вещи.",
-  "@loanNotReturnedUnavailable": {"description": "The loan is not in the issued stage."},
+  "@loanNotReturnedUnavailable": {
+    "description": "The loan is not in the issued stage."
+  },
   "loanReturnedAt": "Возвращено {time}",
-  "@loanReturnedAt": {"description": "When the item was returned; the time is in the city zone.", "placeholders": {"time": {"type": "String"}}},
+  "@loanReturnedAt": {
+    "description": "When the item was returned; the time is in the city zone.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "loanQrHandoverPresenterTitle": "QR-код выдачи",
-  "@loanQrHandoverPresenterTitle": {"description": "Title of the handover presenter screen."},
+  "@loanQrHandoverPresenterTitle": {
+    "description": "Title of the handover presenter screen."
+  },
   "loanQrHandoverPresenterIntro": "Покажите этот код заёмщику: он подтвердит получение вещи.",
-  "@loanQrHandoverPresenterIntro": {"description": "Explanation on the handover presenter screen."},
+  "@loanQrHandoverPresenterIntro": {
+    "description": "Explanation on the handover presenter screen."
+  },
   "loanQrReturnPresenterTitle": "QR-код возврата",
-  "@loanQrReturnPresenterTitle": {"description": "Title of the return presenter screen."},
+  "@loanQrReturnPresenterTitle": {
+    "description": "Title of the return presenter screen."
+  },
   "loanQrReturnPresenterIntro": "Покажите этот код владельцу: он подтвердит возврат вещи.",
-  "@loanQrReturnPresenterIntro": {"description": "Explanation on the return presenter screen."},
+  "@loanQrReturnPresenterIntro": {
+    "description": "Explanation on the return presenter screen."
+  },
   "loanQrHandoverScanTitle": "Сканирование выдачи",
-  "@loanQrHandoverScanTitle": {"description": "Title of the handover scanner screen."},
+  "@loanQrHandoverScanTitle": {
+    "description": "Title of the handover scanner screen."
+  },
   "loanQrHandoverScanIntro": "Наведите камеру на QR-код, который показывает владелец.",
-  "@loanQrHandoverScanIntro": {"description": "Hint above the handover camera."},
+  "@loanQrHandoverScanIntro": {
+    "description": "Hint above the handover camera."
+  },
   "loanQrReturnScanTitle": "Сканирование возврата",
-  "@loanQrReturnScanTitle": {"description": "Title of the return scanner screen."},
+  "@loanQrReturnScanTitle": {
+    "description": "Title of the return scanner screen."
+  },
   "loanQrReturnScanIntro": "Наведите камеру на QR-код, который показывает заёмщик.",
-  "@loanQrReturnScanIntro": {"description": "Hint above the return camera."},
+  "@loanQrReturnScanIntro": {
+    "description": "Hint above the return camera."
+  },
   "loanQrHandoverDone": "Выдача подтверждена.",
-  "@loanQrHandoverDone": {"description": "The scanned handover is applied."},
+  "@loanQrHandoverDone": {
+    "description": "The scanned handover is applied."
+  },
   "loanQrReturnDone": "Возврат подтверждён, заём завершён.",
-  "@loanQrReturnDone": {"description": "The scanned return completes the loan."},
+  "@loanQrReturnDone": {
+    "description": "The scanned return completes the loan."
+  },
   "qrScannerLoanNotHandedOver": "Сначала подтвердите выдачу вещи.",
-  "@qrScannerLoanNotHandedOver": {"description": "The server refused a return before the handover."},
+  "@qrScannerLoanNotHandedOver": {
+    "description": "The server refused a return before the handover."
+  },
   "qrScannerLoanAlreadyIssued": "Выдача уже подтверждена. Для возврата покажите или отсканируйте код возврата.",
-  "@qrScannerLoanAlreadyIssued": {"description": "The server refused a repeated handover."},
+  "@qrScannerLoanAlreadyIssued": {
+    "description": "The server refused a repeated handover."
+  },
   "qrScannerLoanReturnMarked": "Владелец отметил вещь не возвращённой; исход решит спор.",
-  "@qrScannerLoanReturnMarked": {"description": "The server refused a return after the not-returned mark."},
+  "@qrScannerLoanReturnMarked": {
+    "description": "The server refused a return after the not-returned mark."
+  },
   "qrScannerLoanActionRequired": "Займ подтверждается отдельно выдачей и возвратом.",
-  "@qrScannerLoanActionRequired": {"description": "The plain QR endpoint refused a loan."},
+  "@qrScannerLoanActionRequired": {
+    "description": "The plain QR endpoint refused a loan."
+  },
   "timelineLoanHandedOver": "Выдача вещи подтверждена",
-  "@timelineLoanHandedOver": {"description": "Journal event of a confirmed handover."},
+  "@timelineLoanHandedOver": {
+    "description": "Journal event of a confirmed handover."
+  },
   "timelineLoanReturned": "Возврат вещи подтверждён",
-  "@timelineLoanReturned": {"description": "Journal event of a confirmed return."},
+  "@timelineLoanReturned": {
+    "description": "Journal event of a confirmed return."
+  },
   "timelineLoanNotReturned": "Вещь отмечена не возвращённой",
-  "@timelineLoanNotReturned": {"description": "Journal event of the owner's not-returned mark."}
+  "@timelineLoanNotReturned": {
+    "description": "Journal event of the owner's not-returned mark."
+  },
+  "settingsPalette": "Палитра",
+  "@settingsPalette": {
+    "description": "Appearance palette label."
+  },
+  "paletteLavender": "Лаванда",
+  "@paletteLavender": {
+    "description": "Appearance palette label."
+  },
+  "paletteSage": "Шалфей",
+  "@paletteSage": {
+    "description": "Appearance palette label."
+  },
+  "paletteSky": "Небо",
+  "@paletteSky": {
+    "description": "Appearance palette label."
+  },
+  "palettePeach": "Персик",
+  "@palettePeach": {
+    "description": "Appearance palette label."
+  }
 }

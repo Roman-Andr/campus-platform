@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../../core/auth/auth_service.dart';
 import '../../../core/auth/auth_session.dart';
+import '../../../core/design_system/foundations/palette.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/router/app_router.dart';
 import '../application/settings_controller.dart';
@@ -60,6 +61,29 @@ class SettingsScreen extends ConsumerWidget {
                     key: ValueKey(mode),
                     value: mode,
                     title: Text(_themeLabel(l10n, mode)),
+                  ),
+              ],
+            ),
+          ),
+          const Divider(),
+          _SectionHeader(l10n.settingsPalette),
+          RadioGroup<PaletteId>(
+            groupValue: settings.paletteId,
+            onChanged: (value) {
+              if (value != null) unawaited(controller.setPalette(value));
+            },
+            child: Column(
+              children: [
+                for (final palette in PaletteId.values)
+                  RadioListTile<PaletteId>(
+                    key: ValueKey(palette),
+                    value: palette,
+                    title: Text(switch (palette) {
+                      PaletteId.lavender => l10n.paletteLavender,
+                      PaletteId.sage => l10n.paletteSage,
+                      PaletteId.sky => l10n.paletteSky,
+                      PaletteId.peach => l10n.palettePeach,
+                    }),
                   ),
               ],
             ),

@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/database/app_database.dart';
+import '../../../core/design_system/foundations/palette.dart';
 import '../domain/app_settings.dart';
 
 part 'settings_repository.g.dart';
@@ -20,6 +21,7 @@ class DriftSettingsRepository implements SettingsRepository {
   final AppDatabase _db;
 
   static const _languageKey = 'settings.language';
+  static const _paletteKey = 'settings.palette_id';
   static const _themeModeKey = 'settings.theme_mode';
 
   @override
@@ -27,6 +29,7 @@ class DriftSettingsRepository implements SettingsRepository {
     final rows = await _db.select(_db.preferences).get();
     final values = {for (final row in rows) row.key: row.value};
     return AppSettings(
+      paletteId: PaletteId.parse(values[_paletteKey]),
       language:
           _byName(AppLanguage.values, values[_languageKey]) ??
           AppLanguage.system,
@@ -38,6 +41,10 @@ class DriftSettingsRepository implements SettingsRepository {
   @override
   Future<void> save(AppSettings settings) => _db.batch((batch) {
     batch.insertAllOnConflictUpdate(_db.preferences, [
+      PreferencesCompanion.insert(
+        key: _paletteKey,
+        value: settings.paletteId.name,
+      ),
       PreferencesCompanion.insert(
         key: _languageKey,
         value: settings.language.name,

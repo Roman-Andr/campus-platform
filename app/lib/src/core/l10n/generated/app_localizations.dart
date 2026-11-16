@@ -5371,6 +5371,36 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Вещь отмечена не возвращённой'**
   String get timelineLoanNotReturned;
+
+  /// Appearance palette label.
+  ///
+  /// In ru, this message translates to:
+  /// **'Палитра'**
+  String get settingsPalette;
+
+  /// Appearance palette label.
+  ///
+  /// In ru, this message translates to:
+  /// **'Лаванда'**
+  String get paletteLavender;
+
+  /// Appearance palette label.
+  ///
+  /// In ru, this message translates to:
+  /// **'Шалфей'**
+  String get paletteSage;
+
+  /// Appearance palette label.
+  ///
+  /// In ru, this message translates to:
+  /// **'Небо'**
+  String get paletteSky;
+
+  /// Appearance palette label.
+  ///
+  /// In ru, this message translates to:
+  /// **'Персик'**
+  String get palettePeach;
 }
 
 class _AppLocalizationsDelegate

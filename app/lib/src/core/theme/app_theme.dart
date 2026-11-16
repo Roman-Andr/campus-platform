@@ -1,17 +1,13 @@
 import 'package:material_ui/material_ui.dart';
 
-/// Material 3 light and dark themes generated from the brand seed color.
+import '../design_system/foundations/palette.dart';
+import '../design_system/theme/campus_theme.dart';
+
+/// Compatibility entry point for existing screens and tests.
 abstract final class AppTheme {
-  static const _seedColor = Color(0xFF1E5AA8);
-
-  static ThemeData get light => _build(Brightness.light);
-
-  static ThemeData get dark => _build(Brightness.dark);
-
-  static ThemeData _build(Brightness brightness) => ThemeData(
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: _seedColor,
-      brightness: brightness,
-    ),
-  );
+  static ThemeData get light =>
+      forPalette(PaletteId.lavender, Brightness.light);
+  static ThemeData get dark => forPalette(PaletteId.lavender, Brightness.dark);
+  static ThemeData forPalette(PaletteId palette, Brightness brightness) =>
+      CampusTheme.build(palette, brightness);
 }
