@@ -65,6 +65,25 @@ from campus.modules.notifications import (
 )
 from campus.modules.university import AccountType
 
+# Listing kinds whose accepted participation opens one group chat.
+GROUP_CHAT_KINDS = frozenset({"event", "purchase"})
+
+
+async def sync_group_chat(session: AsyncSession, listing: Listing) -> None:
+    """Re-derive the group chat membership from the listing state.
+
+    The import is local: the chat module reads listings through their public
+    interface, so the reverse edge must not exist at import time. The chat is
+    written in the same transaction as the participation change, so a
+    rollback creates neither a chat nor a membership.
+    """
+    if listing.kind not in GROUP_CHAT_KINDS:
+        return
+    from campus.modules.chat import sync_group_chat as project  # noqa: PLC0415
+
+    await project(session, listing)
+
+
 FORBIDDEN = ProblemType("listing_forbidden", 403, N_("This action is not allowed."))
 CONFLICT = ProblemType("listing_conflict", 409, N_("The listing state has changed."))
 STALE = ProblemType(
@@ -1267,6 +1286,7 @@ async def join_purchase(
         interaction,
         details=purchase_share_details(listing, units),
     )
+    await sync_group_chat(session, listing)
     return interaction
 
 
@@ -1358,6 +1378,7 @@ async def leave_purchase(
         offer_timeout=offer_timeout,
         open_all_before=open_all_before,
     )
+    await sync_group_chat(session, listing)
 
 
 async def request_purchase_withdrawal(
@@ -1481,6 +1502,7 @@ async def decide_purchase_withdrawal(  # noqa: PLR0913 - decision fields
             offer_timeout=offer_timeout,
             open_all_before=open_all_before,
         )
+        await sync_group_chat(session, listing)
     else:
         append_event(
             session,
@@ -1747,6 +1769,7 @@ async def cancel_purchase(
     )
     refresh_profile_aggregates(session, recipients | {listing.author_id})
     await cancel_purchase_deadlines(session, listing.id)
+    await sync_group_chat(session, listing)
 
 
 async def cancel_listing_by_author(
@@ -1823,6 +1846,7 @@ async def cancel_listing_by_author(
     )
     await reject_pending(session, listing, "listing_cancelled")
     await clear_waitlist(session, listing, "listing_cancelled")
+    await sync_group_chat(session, listing)
     await session.flush()
 
 
@@ -1964,6 +1988,7 @@ async def claim_purchase_offer(
         interaction,
         details=purchase_share_details(listing, units),
     )
+    await sync_group_chat(session, listing)
     return interaction
 
 
@@ -2699,6 +2724,7 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
         refresh_profile_aggregates(
             session, {listing.author_id, interaction.participant_id}
         )
+    await sync_group_chat(session, listing)
     await session.flush()
 
 
@@ -3354,6 +3380,7 @@ async def register_event(
         session, listing, user.id, "transition", InteractionStatus.PENDING, interaction
     )
     await schedule_meeting_reminders(session, settings, listing, interaction, meeting)
+    await sync_group_chat(session, listing)
     return interaction
 
 

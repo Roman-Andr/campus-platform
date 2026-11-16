@@ -32,6 +32,7 @@ from campus.core.outbox import add_message
 from campus.core.web import ProblemError, ProblemType
 from campus.core.web.problems import NOT_FOUND
 from campus.modules.chat.models import (
+    GROUP_CHATS,
     PERSONAL_KIND,
     Chat,
     ChatMember,
@@ -69,6 +70,15 @@ CHAT_FORBIDDEN = ProblemType(
     403,
     N_("This action is not allowed."),
     N_("Personal messaging with this user is not available."),
+)
+CHAT_GROUP_MANAGED = ProblemType(
+    "chat_group_managed",
+    409,
+    N_("Group membership is managed by the listing."),
+    N_(
+        "A group chat member leaves by cancelling participation in the event"
+        " or the purchase."
+    ),
 )
 CHAT_SELF = ProblemType("chat_self", 422, N_("A chat must have two different members."))
 CHAT_LINK_INVALID = ProblemType(
@@ -407,11 +417,16 @@ async def ensure_member(session: AsyncSession, chat: Chat, user_id: UUID) -> Cha
 
 
 async def leave_chat(session: AsyncSession, chat_id: UUID, user_id: UUID) -> bool:
-    """Leave a chat; the last active member starts the retention clock.
+    """Leave a personal chat; the last active member starts its retention.
 
     The membership row stays, so the same dialog and its history are
     restored by a later creation. Repeating the request is a no-op and
     returns ``False``. A user without any membership row gets 404.
+
+    A group chat is not left directly: its membership is derived from the
+    accepted participation, so the domain operation that ends the
+    participation is the only way out. A removed participant has no access
+    to the group and gets the same 404 as an outsider.
     """
     chat = await session.scalar(
         select(Chat).where(Chat.id == chat_id).with_for_update(of=Chat)
@@ -421,8 +436,14 @@ async def leave_chat(session: AsyncSession, chat_id: UUID, user_id: UUID) -> boo
         .where(ChatMember.chat_id == chat_id, ChatMember.user_id == user_id)
         .with_for_update()
     )
-    if chat is None or member is None:
+    if (
+        chat is None
+        or member is None
+        or (chat.kind in GROUP_CHATS and member.left_at is not None)
+    ):
         raise ProblemError(CHAT_NOT_FOUND)
+    if chat.kind in GROUP_CHATS:
+        raise ProblemError(CHAT_GROUP_MANAGED)
     if member.left_at is not None:
         return False
     now = clock.now()
@@ -672,13 +693,15 @@ async def post_message(  # noqa: PLR0913 - message fields
     message and create cannot wait on each other's locks.
     """
     chat = await require_membership(session, chat_id, sender_id)
-    # A personal block changes only a personal dialog. A future group chat is
-    # shared by both members and keeps their messages visible, as the
-    # specification requires, so it is not filtered by the pair policy.
+    # A personal block changes only a personal dialog. A group chat is
+    # shared by the organiser and the accepted participants and keeps their
+    # messages visible, as the specification requires, so it is not filtered
+    # by the pair policy.
     if chat.kind == PERSONAL_KIND:
         recipient_id = (
             chat.user_high_id if chat.user_low_id == sender_id else chat.user_low_id
         )
+        assert recipient_id is not None  # noqa: S101 - a personal chat has a pair
         await serialize_contact_pair(session, sender_id, recipient_id)
         # Recheck membership under the row lock: a concurrent leave may have
         # committed while this request waited for the pair.

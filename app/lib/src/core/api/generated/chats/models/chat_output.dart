@@ -10,6 +10,12 @@ class ChatOutput {
     required this.listingId,
     required this.interactionId,
 
+    /// Title of the linked listing, if the chat has one.
+    this.listingTitle,
+
+    /// Author of the listing; set for the group chats of events and purchases only.
+    this.organizerId,
+
     /// RFC 3339 instant with an explicit offset; returned in UTC.
     required this.createdAt,
 
@@ -32,6 +38,12 @@ class ChatOutput {
       kind: json["kind"] as String,
       listingId: json["listing_id"] as String?,
       interactionId: json["interaction_id"] as String?,
+      listingTitle: json.containsKey("listing_title")
+          ? json["listing_title"] as String?
+          : null,
+      organizerId: json.containsKey("organizer_id")
+          ? json["organizer_id"] as String?
+          : null,
       createdAt: DateTime.parse(json["created_at"] as String).toUtc(),
       updatedAt: DateTime.parse(json["updated_at"] as String).toUtc(),
       participants: (json["participants"] as List<Object?>)
@@ -59,6 +71,12 @@ class ChatOutput {
 
   final String? interactionId;
 
+  /// Title of the linked listing, if the chat has one.
+  final String? listingTitle;
+
+  /// Author of the listing; set for the group chats of events and purchases only.
+  final String? organizerId;
+
   /// RFC 3339 instant with an explicit offset; returned in UTC.
   final DateTime createdAt;
 
@@ -74,6 +92,8 @@ class ChatOutput {
     "kind",
     "listing_id",
     "interaction_id",
+    "listing_title",
+    "organizer_id",
     "created_at",
     "updated_at",
     "participants",
@@ -89,6 +109,8 @@ class ChatOutput {
     "kind": this.kind,
     "listing_id": this.listingId,
     "interaction_id": this.interactionId,
+    if (this.listingTitle != null) "listing_title": this.listingTitle,
+    if (this.organizerId != null) "organizer_id": this.organizerId,
     "created_at": this.createdAt.toUtc().toIso8601String(),
     "updated_at": this.updatedAt.toUtc().toIso8601String(),
     "participants": this.participants.map((item) => item.toJson()).toList(),

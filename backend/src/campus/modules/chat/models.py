@@ -42,23 +42,41 @@ from campus.core import clock
 from campus.core.db import Base, Entity
 
 PERSONAL_KIND = "personal"
+GROUP_CHAT_KINDS = ("event", "purchase")
+GROUP_CHATS = frozenset(GROUP_CHAT_KINDS)
 
 
 class Chat(Entity):
-    """A personal dialog of two users, optionally linked to a listing.
+    """A chat: a personal dialog or the group of an event or a purchase.
 
-    ``user_low_id`` and ``user_high_id`` order the pair canonically, so the
-    partial unique indexes cannot be fooled by reversed arguments. The
-    ``last_sequence`` counter is incremented under the row lock of the same
-    transaction that stores a message: concurrent sends of one chat are
+    A personal chat has two members ordered canonically in ``user_low_id``
+    and ``user_high_id``, so the partial unique indexes cannot be fooled by
+    reversed arguments. A group chat has no pair: it names the listing that
+    owns it, and one listing has one group chat. Its members are the
+    organiser and the participants whose interaction is accepted; the chat
+    domain re-derives them from that state instead of trusting an event.
+
+    The ``last_sequence`` counter is incremented under the row lock of the
+    same transaction that stores a message: concurrent sends of one chat are
     therefore committed in sequence order, and the number, not the device
     time, defines the order clients see.
     """
 
     __tablename__ = "chat"
     __table_args__ = (
-        CheckConstraint("kind IN ('personal')", name="kind"),
-        CheckConstraint("user_low_id <> user_high_id", name="distinct_members"),
+        CheckConstraint("kind IN ('personal','event','purchase')", name="kind"),
+        CheckConstraint(
+            "(kind = 'personal' AND user_low_id IS NOT NULL "
+            "AND user_high_id IS NOT NULL AND user_low_id <> user_high_id) OR "
+            "(kind IN ('event','purchase') AND user_low_id IS NULL "
+            "AND user_high_id IS NULL)",
+            name="members_by_kind",
+        ),
+        CheckConstraint(
+            "(kind IN ('event','purchase') AND listing_id IS NOT NULL "
+            "AND interaction_id IS NULL) OR kind = 'personal'",
+            name="group_listing",
+        ),
         CheckConstraint("last_sequence >= 0", name="last_sequence_non_negative"),
         Index(
             "ix_chat_empty_since",
@@ -86,12 +104,18 @@ class Chat(Entity):
             unique=True,
             postgresql_where=text("interaction_id IS NOT NULL"),
         ),
+        Index(
+            "uq_chat_listing_group",
+            "listing_id",
+            unique=True,
+            postgresql_where=text("kind IN ('event','purchase')"),
+        ),
     )
 
     kind: Mapped[str] = mapped_column(String(16), default=PERSONAL_KIND)
-    # The member with the smaller UUID; see the class docstring.
-    user_low_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
-    user_high_id: Mapped[UUID] = mapped_column(ForeignKey("identity_user.id"))
+    # The member with the smaller UUID; NULL for a group chat.
+    user_low_id: Mapped[UUID | None] = mapped_column(ForeignKey("identity_user.id"))
+    user_high_id: Mapped[UUID | None] = mapped_column(ForeignKey("identity_user.id"))
     listing_id: Mapped[UUID | None] = mapped_column(ForeignKey("listing.id"))
     interaction_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("listing_interaction.id")

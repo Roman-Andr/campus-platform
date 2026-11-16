@@ -17911,7 +17911,7 @@
           "Chats"
         ],
         "summary": "List Chats",
-        "description": "List the current user's dialogs, the most recently active first.",
+        "description": "List the current user's chats, the most recently active first.\n\n``kind`` selects one chat kind, for example the group chats of events\nonly. Every returned chat has an active membership; a left group is not\nlisted after the participation ended.",
         "operationId": "list_chats",
         "security": [
           {
@@ -17933,6 +17933,20 @@
               "type": "string",
               "default": "-updated_at",
               "title": "Order By"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "personal",
+                "event",
+                "purchase"
+              ],
+              "type": "string",
+              "title": "Kind"
             }
           },
           {
@@ -18271,7 +18285,7 @@
           "Chats"
         ],
         "summary": "Read Chat",
-        "description": "One dialog of the current user; somebody else's chat is ``404``.",
+        "description": "One chat of the current user; somebody else's chat is ``404``.",
         "operationId": "read_chat",
         "security": [
           {
@@ -18321,6 +18335,163 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ChatOutput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid, expired or revoked authentication (unauthorized).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "426": {
+            "description": "The client version is too old (client_update_required).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error (internal_error).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/chats/{chat_id}/members": {
+      "get": {
+        "tags": [
+          "Chats"
+        ],
+        "summary": "List Chat Members",
+        "description": "Composition of a chat: active members and the organiser of a group.\n\nA removed participant is not a member any more and cannot read the\ncomposition: the membership check runs before the query.",
+        "operationId": "list_chat_members",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "chat_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Chat Id"
+            }
+          },
+          {
+            "name": "X-Client-Platform",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ClientPlatform",
+              "description": "Client application."
+            },
+            "description": "Client application."
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Client version, e.g. 1.4.0.",
+              "examples": [
+                "1.0.0"
+              ],
+              "title": "X-Client-Version"
+            },
+            "description": "Client version, e.g. 1.4.0."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MemberOutput"
+                  },
+                  "title": "Response List Chat Members"
                 }
               }
             }
@@ -18804,7 +18975,7 @@
           "Chats"
         ],
         "summary": "Leave",
-        "description": "Leave a dialog; the last member starts the one-year retention clock.\n\nThe membership row and the history stay, so creating the same dialog\nagain restores them and cancels a pending cleanup. Repeating the request\nis a no-op and also returns ``204``.",
+        "description": "Leave a personal dialog; its history starts the retention clock.\n\nThe membership row and the history stay, so creating the same dialog\nagain restores them and cancels a pending cleanup. Repeating the request\nis a no-op and also returns ``204``.\n\nA group chat is not left here: its membership follows the accepted\nparticipation, so cancelling the participation is the only way out and\nan active member gets ``409``.",
         "operationId": "leave",
         "security": [
           {
@@ -25216,6 +25387,23 @@
             "format": "uuid",
             "title": "Interaction Id"
           },
+          "listing_title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Listing Title",
+            "description": "Title of the linked listing, if the chat has one."
+          },
+          "organizer_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "title": "Organizer Id",
+            "description": "Author of the listing; set for the group chats of events and purchases only."
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -27699,6 +27887,49 @@
         "title": "MeetingStatus",
         "description": "The current proposal of a meeting: pending or already in force."
       },
+      "MemberOutput": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "first_name": {
+            "type": "string",
+            "title": "First Name"
+          },
+          "last_name": {
+            "type": "string",
+            "title": "Last Name"
+          },
+          "account_type": {
+            "type": "string",
+            "title": "Account Type"
+          },
+          "joined_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Joined At",
+            "description": "RFC 3339 instant with an explicit offset; returned in UTC."
+          },
+          "is_organizer": {
+            "type": "boolean",
+            "title": "Is Organizer",
+            "description": "The author of the event or the purchase of a group chat.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "first_name",
+          "last_name",
+          "account_type",
+          "joined_at"
+        ],
+        "title": "MemberOutput",
+        "description": "An active member of a chat and the role that grants access."
+      },
       "MessageEditInput": {
         "properties": {
           "text": {
@@ -29402,6 +29633,7 @@
               "bad_request",
               "block_self",
               "chat_forbidden",
+              "chat_group_managed",
               "chat_link_invalid",
               "chat_message_conflict",
               "chat_message_deleted",

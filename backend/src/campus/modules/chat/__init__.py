@@ -1,4 +1,4 @@
-"""Personal chats with reliable, ordered and deduplicated delivery.
+"""Personal and group chats with reliable, ordered and deduplicated delivery.
 
 Public interface of the module. Other modules import only this package,
 never its submodules (enforced by import-linter).
@@ -9,7 +9,10 @@ never its submodules (enforced by import-linter).
 from campus.modules.chat import consumers as _consumers  # noqa: F401
 from campus.modules.chat import retention as _retention  # noqa: F401
 from campus.modules.chat.api import router
+from campus.modules.chat.groups import sync_group_chat
 from campus.modules.chat.models import (
+    GROUP_CHAT_KINDS,
+    GROUP_CHATS,
     PERSONAL_KIND,
     Chat,
     ChatMember,
@@ -37,6 +40,8 @@ from campus.modules.chat.service import (
 )
 
 __all__ = [
+    "GROUP_CHATS",
+    "GROUP_CHAT_KINDS",
     "MESSAGE_TOPIC",
     "PERSONAL_KIND",
     "Chat",
@@ -60,4 +65,5 @@ __all__ = [
     "router",
     "snapshot_message",
     "snapshot_photos",
+    "sync_group_chat",
 ]
