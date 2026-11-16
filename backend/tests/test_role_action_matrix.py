@@ -320,12 +320,28 @@ async def messaging(case: Case, actor: Account, owner: Account) -> None:
     # The dialog exists already: the owner creates it, the actor writes.
     created = await create(owner)
     assert_status(created, 201)
+    chat_id = created.json()["id"]
+    if case.probe == "typing":
+        typing = await actor.auth.client.post(
+            f"{chats}/{chat_id}/presence",
+            json={"typing": True, "open": True},
+            headers={"Idempotency-Key": str(uuid4()), **actor.headers},
+        )
+        assert_status(typing, 200)
+        return
     response = await actor.auth.client.post(
-        f"{chats}/{created.json()['id']}/messages",
+        f"{chats}/{chat_id}/messages",
         json={"client_id": str(uuid4()), "text": "matrix message"},
         headers={"Idempotency-Key": str(uuid4()), **actor.headers},
     )
     assert_status(response, 201)
+    if case.probe == "read_receipt":
+        marked = await actor.auth.client.post(
+            f"{chats}/{chat_id}/read",
+            json={"through_id": response.json()["id"]},
+            headers={"Idempotency-Key": str(uuid4()), **actor.headers},
+        )
+        assert_status(marked, 200)
 
 
 async def administrate(case: Case, actor: Account, owner: Account) -> None:

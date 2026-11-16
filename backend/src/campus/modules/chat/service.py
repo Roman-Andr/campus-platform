@@ -43,6 +43,7 @@ from campus.modules.chat.models import (
     ChatMessageSnapshot,
     ChatMessageSnapshotPhoto,
     ChatMessageVersion,
+    ChatReadState,
 )
 from campus.modules.files import File
 from campus.modules.identity import User, serialize_contact_pair
@@ -57,6 +58,8 @@ from campus.modules.realtime import grant_chat_access, revoke_chat_access
 from campus.modules.university import AccountType
 
 MESSAGE_TOPIC = "chat.message"
+READ_TOPIC = "chat.read"
+PRESENCE_TOPIC = "chat.presence"
 ACTIVE_ACCOUNT_TYPES = (AccountType.STUDENT, AccountType.EMPLOYEE)
 
 CHAT_NOT_FOUND = ProblemType(
@@ -351,6 +354,139 @@ async def require_membership(
     if chat is None:
         raise ProblemError(CHAT_NOT_FOUND)
     return chat
+
+
+async def unread_messages(
+    session: AsyncSession, *, chat_id: UUID, user_id: UUID, after_sequence: int
+) -> int:
+    """Visible messages of other members after the cursor.
+
+    The count is derived from the cursor, never stored, so it cannot drift
+    from the read position. An own message is read by definition and a
+    deleted one is not shown at all, so neither is counted.
+    """
+    count = await session.scalar(
+        select(func.count())
+        .select_from(ChatMessageHistory)
+        .where(
+            ChatMessageHistory.chat_id == chat_id,
+            ChatMessageHistory.sequence > after_sequence,
+            ChatMessageHistory.sender_id != user_id,
+            ChatMessageHistory.deleted_at.is_(None),
+        )
+    )
+    return int(count or 0)
+
+
+async def chat_read_states(
+    session: AsyncSession, *, chat_ids: Sequence[UUID], user_id: UUID
+) -> dict[UUID, tuple[int, int]]:
+    """Cursor and unread count of ``user_id`` for every chat of ``chat_ids``.
+
+    Two queries per page: the stored cursors and one grouped count. A chat
+    without a stored row has the cursor zero, so its whole visible history
+    from other members is unread.
+    """
+    if not chat_ids:
+        return {}
+    cursors = dict.fromkeys(chat_ids, 0)
+    rows = await session.execute(
+        select(ChatReadState.chat_id, ChatReadState.last_read_sequence).where(
+            ChatReadState.user_id == user_id,
+            ChatReadState.chat_id.in_(chat_ids),
+        )
+    )
+    cursors.update((row.chat_id, int(row.last_read_sequence)) for row in rows)
+    cursors_query = (
+        select(ChatReadState.chat_id, ChatReadState.last_read_sequence)
+        .where(
+            ChatReadState.user_id == user_id,
+            ChatReadState.chat_id.in_(chat_ids),
+        )
+        .subquery()
+    )
+    unread = {
+        row.chat_id: int(row.total)
+        for row in await session.execute(
+            select(
+                ChatMessageHistory.chat_id,
+                func.count().label("total"),
+            )
+            .select_from(ChatMessageHistory)
+            .outerjoin(
+                cursors_query, cursors_query.c.chat_id == ChatMessageHistory.chat_id
+            )
+            .where(
+                ChatMessageHistory.chat_id.in_(chat_ids),
+                ChatMessageHistory.sequence
+                > func.coalesce(cursors_query.c.last_read_sequence, 0),
+                ChatMessageHistory.sender_id != user_id,
+                ChatMessageHistory.deleted_at.is_(None),
+            )
+            .group_by(ChatMessageHistory.chat_id)
+        )
+    }
+    return {chat_id: (cursors[chat_id], unread.get(chat_id, 0)) for chat_id in chat_ids}
+
+
+async def mark_chat_read(
+    session: AsyncSession, *, chat_id: UUID, user_id: UUID, through_id: UUID
+) -> tuple[int, int]:
+    """Move the caller's cursor to ``through_id`` and return its unread count.
+
+    Only a member may move their own cursor, and the message must belong to
+    the same chat: a message of another chat and a nonexistent one both hide
+    as ``404``. The upsert takes the maximum in one statement, so a delayed
+    request of a second device cannot move the cursor back and two parallel
+    marks converge on the larger position without a lock. The committed
+    position is announced to the member's other devices through the outbox.
+    """
+    await require_membership(session, chat_id, user_id)
+    sequence = await session.scalar(
+        select(ChatMessageHistory.sequence).where(
+            ChatMessageHistory.id == through_id,
+            ChatMessageHistory.chat_id == chat_id,
+        )
+    )
+    if sequence is None:
+        raise ProblemError(NOT_FOUND)
+    now = clock.now()
+    statement = insert(ChatReadState).values(
+        chat_id=chat_id,
+        user_id=user_id,
+        last_read_sequence=sequence,
+        updated_at=now,
+    )
+    cursor = await session.scalar(
+        statement.on_conflict_do_update(
+            index_elements=[ChatReadState.chat_id, ChatReadState.user_id],
+            set_={
+                "last_read_sequence": func.greatest(
+                    ChatReadState.last_read_sequence,
+                    statement.excluded.last_read_sequence,
+                ),
+                "updated_at": statement.excluded.updated_at,
+            },
+        ).returning(ChatReadState.last_read_sequence)
+    )
+    if cursor is None:  # pragma: no cover - INSERT RETURNING always returns
+        msg = "the read cursor was not stored"
+        raise RuntimeError(msg)
+    unread = await unread_messages(
+        session, chat_id=chat_id, user_id=user_id, after_sequence=int(cursor)
+    )
+    add_message(
+        session,
+        READ_TOPIC,
+        {
+            "chat_id": str(chat_id),
+            "user_id": str(user_id),
+            "last_read_sequence": int(cursor),
+            "unread_count": unread,
+            "occurred_at": now.isoformat(),
+        },
+    )
+    return int(cursor), unread
 
 
 async def find_pair_chat(  # noqa: PLR0913

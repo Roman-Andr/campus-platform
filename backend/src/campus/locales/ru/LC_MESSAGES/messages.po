@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: campus 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 03:33+0300\n"
+"POT-Creation-Date: 2026-11-16 03:59+0300\n"
 "PO-Revision-Date: 2026-11-14 02:41+0300\n"
 "Last-Translator: \n"
 "Language: ru\n"
@@ -210,6 +210,9 @@ msgstr "Нельзя удалить последний корпоративны�
 
 msgid "Channel is not available"
 msgstr "Канал недоступен"
+
+msgid "Chat activity is unavailable"
+msgstr "Состояние чата недоступно"
 
 msgid "Chat not available"
 msgstr "Чат недоступен"
@@ -816,6 +819,11 @@ msgid "The disputed interaction is no longer in a state this action applies to."
 msgstr ""
 "Спорное взаимодействие уже не в том состоянии, к которому применимо это "
 "действие."
+
+msgid "The ephemeral chat state is temporarily unavailable. Try again later."
+msgstr ""
+"Временное состояние чата сейчас недоступно. "
+"Повторите попытку позже."
 
 msgid "The event cannot be judged"
 msgstr "Нельзя оценить мероприятие."

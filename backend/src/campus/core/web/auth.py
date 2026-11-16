@@ -95,6 +95,9 @@ async def current_user(
 
 CurrentUser = Annotated[Principal, Depends(current_user)]
 
+# The Redis client of the request, shared with revocation and rate limits.
+RedisClient = Annotated[Redis, Depends(redis_client)]
+
 
 async def revoke_access(request: Request, session_id: UUID) -> None:
     settings: Settings = request.app.state.settings

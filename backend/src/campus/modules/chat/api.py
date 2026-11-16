@@ -5,7 +5,7 @@ from typing import Annotated, Literal, cast
 from uuid import UUID, uuid4
 
 from fastapi import Query, Request, Response
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import distinct_on
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,6 +22,7 @@ from campus.core.web import (
     PageQuery,
     Problem,
     ProblemError,
+    RedisClient,
     api_router,
     paginate,
     sort_by,
@@ -36,13 +37,18 @@ from campus.modules.chat.models import (
     ChatMessageArchive,
     ChatMessageHistory,
 )
+from campus.modules.chat.presence import close as close_presence
+from campus.modules.chat.presence import heartbeat as presence_heartbeat
+from campus.modules.chat.presence import read_presence
 from campus.modules.chat.service import (
     CHAT_PHOTO_EXPIRED,
     CHAT_SEARCH_INVALID,
+    chat_read_states,
     create_personal_chat,
     delete_message,
     edit_message,
     leave_chat,
+    mark_chat_read,
     message_evidence,
     message_photos,
     message_snippet,
@@ -168,6 +174,26 @@ class MemberOutput(ParticipantOutput):
     )
 
 
+class ChatReadOutput(BaseModel):
+    """Where the member's read cursor is and how much is left after it.
+
+    The cursor is the sequence of the last message the member marked read;
+    it only grows. The unread count is derived by the server from visible
+    messages of other members after the cursor, so two devices of one member
+    show the same number after a cold start.
+    """
+
+    last_read_sequence: int = Field(
+        ge=0, description="Sequence of the last message marked read."
+    )
+    unread_count: int = Field(
+        ge=0,
+        description=(
+            "Visible messages of other members after the cursor; never negative."
+        ),
+    )
+
+
 class ChatOutput(BaseModel):
     id: UUID
     kind: str
@@ -188,6 +214,80 @@ class ChatOutput(BaseModel):
     updated_at: Instant
     participants: list[ParticipantOutput]
     last_message: MessageOutput | None = None
+    read_state: ChatReadOutput = Field(
+        default_factory=lambda: ChatReadOutput(last_read_sequence=0, unread_count=0),
+        description="Read cursor and unread count of the current member.",
+    )
+
+
+class ReadReceiptInput(BaseModel):
+    """Mark one visible message of the chat and everything before it read."""
+
+    model_config = ConfigDict(extra="forbid")
+    through_id: UUID = Field(
+        description=(
+            "Message of the same chat to mark read; a message of another chat"
+            " and a nonexistent one are rejected."
+        )
+    )
+
+
+class ReadReceiptOutput(ChatReadOutput):
+    chat_id: UUID
+
+
+class PresenceHeartbeatInput(BaseModel):
+    """One heartbeat of this device; omitted flags keep their current value."""
+
+    model_config = ConfigDict(extra="forbid")
+    typing: bool | None = Field(
+        default=None,
+        description=(
+            "Composing state; repeat the heartbeat before chat_typing_ttl"
+            " ends, otherwise the indicator disappears."
+        ),
+    )
+    open: bool | None = Field(
+        default=None,
+        description=(
+            "The chat is open on this device. False closes it, which also"
+            " stops typing; omitted keeps the current flag."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _at_least_one(self) -> PresenceHeartbeatInput:
+        if self.typing is None and self.open is None:
+            msg = "at least one of typing and open is required"
+            raise ValueError(msg)
+        return self
+
+
+class PresenceStateOutput(BaseModel):
+    """The caller's own ephemeral state and when it needs the next beat."""
+
+    chat_id: UUID
+    typing: bool
+    open: bool
+    typing_expires_at: Instant | None
+    open_expires_at: Instant | None
+    heartbeat_interval_seconds: int = Field(
+        ge=1, description="Send the next open-chat heartbeat after this interval."
+    )
+
+
+class PresenceItemOutput(BaseModel):
+    """Activity of another member; the caller's own state is not repeated."""
+
+    user_id: UUID
+    typing: bool
+    open: bool
+
+
+class PresenceOutput(BaseModel):
+    chat_id: UUID
+    items: list[PresenceItemOutput]
+    heartbeat_interval_seconds: int = Field(ge=1)
 
 
 class ChatSearchResult(BaseModel):
@@ -287,10 +387,11 @@ async def hydrate_messages(
     ]
 
 
-def chat_output(
+def chat_output(  # noqa: PLR0913 - one field per part of the answer
     chat: Chat,
     participants: list[ParticipantOutput],
     last_message: MessageOutput | None,
+    read_state: ChatReadOutput,
     *,
     listing_title: str | None = None,
     organizer: UUID | None = None,
@@ -306,6 +407,7 @@ def chat_output(
         updated_at=chat.updated_at,
         participants=participants,
         last_message=last_message,
+        read_state=read_state,
     )
 
 
@@ -314,13 +416,14 @@ async def search_results(
     messages: list[MessageOutput],
     query: str,
     snippet_length: int,
+    reader_id: UUID,
 ) -> list[ChatSearchResult]:
     """Attach the dialog of each hit and build a bounded excerpt."""
     if not messages:
         return []
     chat_ids = list(dict.fromkeys(message.chat_id for message in messages))
     chats = list(await session.scalars(select(Chat).where(Chat.id.in_(chat_ids))))
-    by_id = {chat.id: chat for chat in await hydrate(session, chats)}
+    by_id = {chat.id: chat for chat in await hydrate(session, chats, reader_id)}
     return [
         ChatSearchResult(
             chat=by_id[message.chat_id],
@@ -345,18 +448,25 @@ async def listing_details(
     return {row.id: (row.title, row.author_id) for row in rows}
 
 
-async def hydrate(session: AsyncSession, chats: list[Chat]) -> list[ChatOutput]:
-    """Attach participants and the last message to ``chats`` with three queries.
+async def hydrate(
+    session: AsyncSession, chats: list[Chat], reader_id: UUID
+) -> list[ChatOutput]:
+    """Attach participants, the last message and the read state to ``chats``.
 
     A group chat shows its active members only: a participant who left the
     event or the purchase is not part of the composition any more, even
     though the row keeps their history beyond the retention window. A
     personal dialog keeps the other member visible after they left, so the
     remaining one still sees whom the dialog is with.
+
+    ``reader_id`` is the current member: the read cursor and the unread count
+    are per member, so the same chat row produces a different counter for
+    each device session only through this member.
     """
     if not chats:
         return []
     ids = [chat.id for chat in chats]
+    read_states = await chat_read_states(session, chat_ids=ids, user_id=reader_id)
     by_id = {chat.id: chat for chat in chats}
     members: dict[UUID, list[ParticipantOutput]] = defaultdict(list)
     rows = await session.execute(
@@ -392,11 +502,13 @@ async def hydrate(session: AsyncSession, chats: list[Chat]) -> list[ChatOutput]:
     outputs: list[ChatOutput] = []
     for chat in chats:
         detail = details.get(chat.listing_id) if chat.listing_id is not None else None
+        cursor, unread = read_states.get(chat.id, (0, 0))
         outputs.append(
             chat_output(
                 chat,
                 members.get(chat.id, []),
                 latest.get(chat.id),
+                ChatReadOutput(last_read_sequence=cursor, unread_count=unread),
                 listing_title=detail[0] if detail is not None else None,
                 organizer=(
                     detail[1]
@@ -478,7 +590,7 @@ async def create_chat(
     )
     if not created:
         response.status_code = 200
-    return (await hydrate(session, [chat]))[0]
+    return (await hydrate(session, [chat], principal.user_id))[0]
 
 
 @router.get("")
@@ -521,7 +633,9 @@ async def list_chats(  # noqa: PLR0913, PLR0917 - query fields
     )
     return Page[ChatOutput](
         items=await hydrate(
-            session, [await session.get_one(Chat, item.id) for item in result.items]
+            session,
+            [await session.get_one(Chat, item.id) for item in result.items],
+            principal.user_id,
         ),
         next_page=result.next_page,
     )
@@ -593,6 +707,7 @@ async def search_chats(
             await hydrate_messages(session, result.items),
             query,
             settings.chat_search_snippet_length,
+            principal.user_id,
         ),
         next_page=result.next_page,
     )
@@ -604,7 +719,7 @@ async def read_chat(
 ) -> ChatOutput:
     """One chat of the current user; somebody else's chat is ``404``."""
     chat = await require_membership(session, chat_id, principal.user_id)
-    return (await hydrate(session, [chat]))[0]
+    return (await hydrate(session, [chat], principal.user_id))[0]
 
 
 @router.get("/{chat_id}/members")
@@ -897,3 +1012,127 @@ async def send_message(  # noqa: PLR0913, PLR0917
     if not created:
         response.status_code = 200
     return (await hydrate_messages(session, [message_output(message)]))[0]
+
+
+@router.post("/{chat_id}/read")
+async def mark_read(
+    chat_id: UUID, data: ReadReceiptInput, session: DbSession, principal: CurrentUser
+) -> ReadReceiptOutput:
+    """Move the caller's read cursor to a message of this chat.
+
+    Only an active member may move their own cursor. A message of another
+    chat and a nonexistent message are rejected with the same ``404``. The
+    stored cursor only grows, so a delayed mark from a second device cannot
+    move it back; the answer reports the unread count after the mark. The
+    committed position is published to the member's other devices through
+    the outbox, and a missed publication is recovered by reading the chat.
+    """
+    cursor, unread = await mark_chat_read(
+        session,
+        chat_id=chat_id,
+        user_id=principal.user_id,
+        through_id=data.through_id,
+    )
+    return ReadReceiptOutput(
+        chat_id=chat_id, last_read_sequence=cursor, unread_count=unread
+    )
+
+
+@router.get("/{chat_id}/presence")
+async def read_chat_presence(  # noqa: PLR0913, PLR0917 - request dependencies
+    chat_id: UUID,
+    request: Request,
+    response: Response,
+    session: DbSession,
+    principal: CurrentUser,
+    redis: RedisClient,
+) -> PresenceOutput:
+    """Who of the other members is typing and has the chat open right now.
+
+    Both indicators are ephemeral and expire with their configured TTL; a
+    participant who is not an active member any more is dropped even before
+    the TTL, so a removed member cannot keep broadcasting presence. Only a
+    member sees this state, and the caller's own flags are not repeated.
+    """
+    response.headers["Cache-Control"] = "private, no-store"
+    settings = request.app.state.settings
+    items = await read_presence(
+        session,
+        redis,
+        chat_id=chat_id,
+        user_id=principal.user_id,
+        settings=settings,
+    )
+    return PresenceOutput(
+        chat_id=chat_id,
+        items=[
+            PresenceItemOutput(user_id=item.user_id, typing=item.typing, open=item.open)
+            for item in items
+        ],
+        heartbeat_interval_seconds=_heartbeat_seconds(settings),
+    )
+
+
+@router.post("/{chat_id}/presence")
+async def chat_presence_heartbeat(  # noqa: PLR0913, PLR0917 - request dependencies
+    chat_id: UUID,
+    data: PresenceHeartbeatInput,
+    request: Request,
+    session: DbSession,
+    principal: CurrentUser,
+    redis: RedisClient,
+) -> PresenceStateOutput:
+    """One heartbeat of this device: refresh typing and/or the open flag.
+
+    The membership is checked on every heartbeat, so a removed member cannot
+    publish activity. Omitting a flag keeps its current value; closing the
+    chat (``open: false``) also stops typing of this device. The state lives
+    in Redis and expires after the configured TTL, so a lost device stops
+    being visible without a close request.
+    """
+    settings = request.app.state.settings
+    state = await presence_heartbeat(
+        session,
+        redis,
+        chat_id=chat_id,
+        user_id=principal.user_id,
+        session_id=principal.session_id,
+        typing=data.typing,
+        open_=data.open,
+        settings=settings,
+    )
+    return PresenceStateOutput(
+        chat_id=chat_id,
+        typing=state.typing,
+        open=state.open,
+        typing_expires_at=state.typing_expires_at,
+        open_expires_at=state.open_expires_at,
+        heartbeat_interval_seconds=_heartbeat_seconds(settings),
+    )
+
+
+@router.delete("/{chat_id}/presence", status_code=204)
+async def close_chat_presence(
+    chat_id: UUID,
+    session: DbSession,
+    principal: CurrentUser,
+    redis: RedisClient,
+) -> Response:
+    """Close the chat on this device: drop its typing and open flag now.
+
+    Repeating the request is harmless. Another open device of the same
+    member keeps its own flag; only this device session is closed.
+    """
+    await close_presence(
+        session,
+        redis,
+        chat_id=chat_id,
+        user_id=principal.user_id,
+        session_id=principal.session_id,
+    )
+    return Response(status_code=204)
+
+
+def _heartbeat_seconds(settings: Settings) -> int:
+    """Advertised heartbeat interval, at least one second for the client."""
+    return max(1, int(settings.chat_presence_heartbeat.total_seconds()))

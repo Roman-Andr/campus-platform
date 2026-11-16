@@ -190,3 +190,21 @@ def test_trusted_proxies_are_normalized(
     monkeypatch.setenv("CAMPUS_TRUSTED_PROXIES", value)
 
     assert Settings().trusted_proxies == expected
+
+
+def test_chat_presence_defaults() -> None:
+    settings = Settings()
+
+    assert settings.chat_typing_ttl == timedelta(seconds=5)
+    assert settings.chat_presence_ttl == timedelta(seconds=60)
+    assert settings.chat_presence_heartbeat == timedelta(seconds=15)
+
+
+def test_chat_presence_heartbeat_must_be_shorter_than_ttl(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("CAMPUS_CHAT_PRESENCE_TTL", "PT5S")
+    monkeypatch.setenv("CAMPUS_CHAT_PRESENCE_HEARTBEAT", "PT5S")
+
+    with pytest.raises(ValidationError, match="chat_presence_heartbeat"):
+        Settings()
