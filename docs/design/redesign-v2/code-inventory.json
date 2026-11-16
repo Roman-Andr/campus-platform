@@ -1,0 +1,219 @@
+{
+  "revision": "2cb85e6681bd9debf839455d95c47af2d4de0389",
+  "date": "2026-11-16",
+  "publicScreenClasses": [
+    {
+      "class": "AccountEmailsScreen",
+      "file": "app/lib/src/features/account_emails/presentation/account_emails_screen.dart",
+      "line": 13
+    },
+    {
+      "class": "SignInCodeScreen",
+      "file": "app/lib/src/features/auth/presentation/sign_in_code_screen.dart",
+      "line": 19
+    },
+    {
+      "class": "SignInEmailScreen",
+      "file": "app/lib/src/features/auth/presentation/sign_in_email_screen.dart",
+      "line": 13
+    },
+    {
+      "class": "SignInNameScreen",
+      "file": "app/lib/src/features/auth/presentation/sign_in_name_screen.dart",
+      "line": 16
+    },
+    {
+      "class": "ChatScreen",
+      "file": "app/lib/src/features/chat/presentation/chat_screen.dart",
+      "line": 35
+    },
+    {
+      "class": "ChatSearchScreen",
+      "file": "app/lib/src/features/chat/presentation/chat_search_screen.dart",
+      "line": 23
+    },
+    {
+      "class": "ChatsScreen",
+      "file": "app/lib/src/features/chat/presentation/chats_screen.dart",
+      "line": 19
+    },
+    {
+      "class": "ConsentsScreen",
+      "file": "app/lib/src/features/consents/presentation/consents_screen.dart",
+      "line": 16
+    },
+    {
+      "class": "HomeScreen",
+      "file": "app/lib/src/features/home/presentation/home_screen.dart",
+      "line": 14
+    },
+    {
+      "class": "EventAttendanceScreen",
+      "file": "app/lib/src/features/listings/presentation/attendance_screen.dart",
+      "line": 29
+    },
+    {
+      "class": "OrganizerAttendanceScreen",
+      "file": "app/lib/src/features/listings/presentation/attendance_screen.dart",
+      "line": 131
+    },
+    {
+      "class": "ParticipantAttendanceScreen",
+      "file": "app/lib/src/features/listings/presentation/attendance_screen.dart",
+      "line": 399
+    },
+    {
+      "class": "EventNoShowScreen",
+      "file": "app/lib/src/features/listings/presentation/event_no_show_screen.dart",
+      "line": 69
+    },
+    {
+      "class": "CreateEventScreen",
+      "file": "app/lib/src/features/listings/presentation/event_screen.dart",
+      "line": 39
+    },
+    {
+      "class": "EventEditScreen",
+      "file": "app/lib/src/features/listings/presentation/event_screen.dart",
+      "line": 328
+    },
+    {
+      "class": "CreateHelpScreen",
+      "file": "app/lib/src/features/listings/presentation/help_screen.dart",
+      "line": 19
+    },
+    {
+      "class": "InteractionTimelineScreen",
+      "file": "app/lib/src/features/listings/presentation/interaction_timeline_screen.dart",
+      "line": 44
+    },
+    {
+      "class": "LessonFormScreen",
+      "file": "app/lib/src/features/listings/presentation/lesson_widgets.dart",
+      "line": 385
+    },
+    {
+      "class": "ListingScreen",
+      "file": "app/lib/src/features/listings/presentation/listings_screens.dart",
+      "line": 541
+    },
+    {
+      "class": "CreateListingScreen",
+      "file": "app/lib/src/features/listings/presentation/listings_screens.dart",
+      "line": 734
+    },
+    {
+      "class": "MeetingScreen",
+      "file": "app/lib/src/features/listings/presentation/meeting_screen.dart",
+      "line": 255
+    },
+    {
+      "class": "MyListingsScreen",
+      "file": "app/lib/src/features/listings/presentation/my_screens.dart",
+      "line": 49
+    },
+    {
+      "class": "FavoritesScreen",
+      "file": "app/lib/src/features/listings/presentation/my_screens.dart",
+      "line": 304
+    },
+    {
+      "class": "NoMeetingScreen",
+      "file": "app/lib/src/features/listings/presentation/no_meeting_screen.dart",
+      "line": 83
+    },
+    {
+      "class": "NoShowScreen",
+      "file": "app/lib/src/features/listings/presentation/no_show_screen.dart",
+      "line": 137
+    },
+    {
+      "class": "PlaceOfferScreen",
+      "file": "app/lib/src/features/listings/presentation/place_offer_screen.dart",
+      "line": 16
+    },
+    {
+      "class": "CreatePublicationScreen",
+      "file": "app/lib/src/features/listings/presentation/publication_screen.dart",
+      "line": 17
+    },
+    {
+      "class": "CreatePurchaseScreen",
+      "file": "app/lib/src/features/listings/presentation/purchase_screen.dart",
+      "line": 90
+    },
+    {
+      "class": "CreateSkillScreen",
+      "file": "app/lib/src/features/listings/presentation/skill_screen.dart",
+      "line": 14
+    },
+    {
+      "class": "NotificationsScreen",
+      "file": "app/lib/src/features/notifications/presentation/notifications_screen.dart",
+      "line": 22
+    },
+    {
+      "class": "BlockedUsersScreen",
+      "file": "app/lib/src/features/privacy/presentation/blocked_users_screen.dart",
+      "line": 21
+    },
+    {
+      "class": "MessagePolicyScreen",
+      "file": "app/lib/src/features/privacy/presentation/message_policy_screen.dart",
+      "line": 19
+    },
+    {
+      "class": "ProfileFormScreen",
+      "file": "app/lib/src/features/profile/presentation/profile_form_screen.dart",
+      "line": 22
+    },
+    {
+      "class": "ProfileScreen",
+      "file": "app/lib/src/features/profile/presentation/profile_screen.dart",
+      "line": 17
+    },
+    {
+      "class": "ProfilePhotoStepScreen",
+      "file": "app/lib/src/features/profile/presentation/profile_steps.dart",
+      "line": 12
+    },
+    {
+      "class": "ProfileSkillsStepScreen",
+      "file": "app/lib/src/features/profile/presentation/profile_steps.dart",
+      "line": 42
+    },
+    {
+      "class": "SkillsScreen",
+      "file": "app/lib/src/features/profile/presentation/profile_steps.dart",
+      "line": 68
+    },
+    {
+      "class": "QrPresenterScreen",
+      "file": "app/lib/src/features/qr/presentation/qr_presenter_screen.dart",
+      "line": 44
+    },
+    {
+      "class": "QrScannerScreen",
+      "file": "app/lib/src/features/qr/presentation/qr_scanner_screen.dart",
+      "line": 40
+    },
+    {
+      "class": "DevicesScreen",
+      "file": "app/lib/src/features/sessions/presentation/devices_screen.dart",
+      "line": 11
+    },
+    {
+      "class": "SettingsScreen",
+      "file": "app/lib/src/features/settings/presentation/settings_screen.dart",
+      "line": 15
+    },
+    {
+      "class": "UpdateRequiredScreen",
+      "file": "app/lib/src/features/update/presentation/update_required_screen.dart",
+      "line": 13
+    }
+  ],
+  "router": "app/lib/src/core/router/app_router.dart",
+  "spec": "docs/paperwork/ТЗ/sections/05-requirements.typ",
+  "scope": "Flutter student/community client; admin surfaces recorded separately"
+}

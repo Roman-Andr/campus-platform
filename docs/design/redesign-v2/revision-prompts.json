@@ -1,0 +1,35 @@
+{
+  "tool": "Built-in image_gen edit",
+  "edits": [
+    {
+      "slug": "14-qr",
+      "issue": 402,
+      "prompt": "Edit ONLY the timer label in the LEFT phone: replace 'Действует ещё 04:57' with exact Russian 'Обновится через 00:27'. This indicates QR rotation, not a five-minute lifetime. Preserve all other screens, text, geometry, QR illustrative pattern, colors, icons and layout unchanged. No new elements."
+    },
+    {
+      "slug": "19-privacy-skills",
+      "issue": 389,
+      "prompt": "Make exactly TWO UX corrections, preserving the three-phone board and all other content/style. 1) MIDDLE phone: for the Общежитие field visibility value, replace unsupported 'Только в общежитии' with 'Участникам моих взаимодействий' in a readable two-line selector; this is one supported privacy choice alongside 'Всем студентам'. In the message-policy supporting text do not imply merely sharing an unrelated chat grants contact; use 'Тем, с кем есть общее объявление или взаимодействие'. 2) RIGHT phone already has two blocked users, so REMOVE the contradictory empty-state illustration/headline 'Здесь будут заблокированные пользователи'. Replace that entire lower area with a small calm explanatory card: 'Заблокированные пользователи не могут писать вам. Вы можете снять блокировку в любой момент.' Keep the two user rows and unblock actions. Preserve left skills editor entirely and maintain typography/palette."
+    },
+    {
+      "slug": "23-reputation",
+      "issue": 404,
+      "prompt": "Correct ONLY the product explanation text in RIGHT dark phone and timing note LEFT. Preserve board geometry, typography, colors, review cards, stars, avatars and all other layouts. RIGHT: replace the third item currently saying 'Без встреч'/'Отзывы о несостоявшихся встречах на репутацию не влияют.' with exact heading 'Без очной встречи' and body 'Онлайн-занятия и помощь подтверждаются обоими участниками. Такие отзывы имеют меньший вес.' Use a small video or two-person confirmation icon rather than crossed-out no-show icon. Do NOT conflate remote completion with a missed meeting. In first explanation make completed interactions require confirmed completion without implying both sides must have already posted. LEFT bottom note exact concise 'Взаимные отзывы раскрываются одновременно или по истечении срока. Отзывы о мероприятиях публикуются сразу.' Do not invent a fixed deadline. Keep all other text unchanged."
+    },
+    {
+      "slug": "24-moderation",
+      "issue": 405,
+      "prompt": "Correct ONLY RIGHT dark phone so it represents ONE coherent eligible-appeal state. Keep header, decision summary and primary 'Подать апелляцию'. REMOVE contradictory bottom 'Апелляция исчерпана' block and all claims it was already reviewed or that account always has full access. Replace lower block with calm card heading 'Одна апелляция' and body 'Если вы не согласны с решением, можно подать апелляцию. Её рассмотрит другой модератор или администратор.' Replace fixed 'в течение 3 дней ...' sublabel with 'Доступность и срок указаны в решении'. Do not invent legal timelines, sanctions, or account permissions. Preserve LEFT and MIDDLE phones pixel composition, text, colors, evidence context and the overall three-phone board."
+    },
+    {
+      "slug": "21-account",
+      "issue": 389,
+      "prompt": "Precise edit of existing three-phone UI board, preserve visual layout, sizing, typography, colors, icons and RIGHT account deletion phone. Correct only product copy in LEFT and MIDDLE phones. LEFT verification step currently says 'Перейдите по ссылке из письма': replace with 'Введите код из письма', matching the existing one-time code flow. MIDDLE 'Дополнительные согласия' currently invents analytics and research consent: REMOVE both rows 'Расширенная аналитика' and 'Участие в исследованиях' and their descriptions. Replace them with ONE unchecked optional consent card heading 'Уведомления через внешние сервисы' and body 'Согласие на передачу текста уведомлений через внешние сервисы. Можно изменить в любое время.' Do not add analytics, research, marketing or AI consent. Keep access to document versions/history and primary Save button. All names and dates remain illustrative. Do not change remaining UI or imply mandatory agreement to optional notification transfer."
+    },
+    {
+      "slug": "25-edge-states",
+      "issue": 406,
+      "prompt": "Precise correction of THREE control/copy details only; preserve the entire three-phone UI board and all other text, photos, colors, layout. LEFT phone Help tile subtitle replace with 'Попросить о помощи' to match supported request creation. MIDDLE offline feed has an unscoped disabled bottom button 'Забронировать' with no selected listing: replace that area with a quiet informational notice 'Бронирование доступно при подключении' with small offline icon, not a button. RIGHT alumni-restricted account bottom navigation: central plus/Create must be visibly DISABLED, muted grey with a small lock indicator, because alumni cannot create new listings. Keep accessible normal 'Мои дела' and profile; do not introduce new enabled publish/participation actions. Preserve existing explanatory restriction text and reverify action. Do not add new features or alter the visual brand."
+    }
+  ]
+}
