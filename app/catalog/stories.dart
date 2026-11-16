@@ -4,10 +4,11 @@ import 'package:campus/src/core/l10n/l10n.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:widgetbook/widgetbook.dart';
 
-String fixture(BuildContext context, String en, String ru) =>
-    Localizations.localeOf(context).languageCode == 'ru' ? ru : en;
+import 'pattern_stories.dart';
+import 'story_support.dart';
 
 final catalogStories = <WidgetbookNode>[
+  patternStories,
   WidgetbookComponent(
     name: 'Controls',
     useCases: [
@@ -161,22 +162,6 @@ final catalogStories = <WidgetbookNode>[
     ],
   ),
 ];
-
-class StoryPage extends StatelessWidget {
-  const StoryPage({required this.children, super.key});
-  final List<Widget> children;
-  @override
-  Widget build(BuildContext context) => ListView(
-    padding: CampusSpace.page,
-    children: [
-      for (final child in children)
-        Padding(
-          padding: const EdgeInsets.only(bottom: CampusSpace.md),
-          child: child,
-        ),
-    ],
-  );
-}
 
 class FieldStory extends StatefulWidget {
   const FieldStory({super.key});
