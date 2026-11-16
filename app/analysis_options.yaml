@@ -15,6 +15,7 @@ analyzer:
     missing_required_param: error
     missing_return: error
   exclude:
+    - tool/ui_compat/**
     - "**/*.g.dart"
     - lib/src/core/l10n/generated/**
     - lib/src/core/api/generated/**
