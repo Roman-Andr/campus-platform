@@ -29,7 +29,6 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-import structlog
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
 from sqlalchemy import select
@@ -42,8 +41,6 @@ from campus.core.outbox import add_message
 from campus.core.web import ProblemError, ProblemType
 from campus.modules.chat.models import ChatMember
 from campus.modules.chat.service import PRESENCE_TOPIC, require_membership
-
-logger = structlog.get_logger(__name__)
 
 PRESENCE_UNAVAILABLE = ProblemType(
     "chat_presence_unavailable",

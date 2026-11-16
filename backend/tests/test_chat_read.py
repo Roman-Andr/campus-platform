@@ -17,7 +17,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from campus.core.outbox import OutboxMessage, process_outbox
-from campus.modules.chat import ChatReadState
+from campus.modules.chat import ChatReadState, chat_read_states
 from tests.test_chat import (
     account,
     bearer,
@@ -315,3 +315,7 @@ async def test_unread_ignores_deleted_messages_and_survives_reconnect(
     history_page = await history(bob, chat_id)
     assert history_page.status_code == 200
     assert [item["text"] for item in history_page.json()["items"]] == ["two"]
+
+
+async def test_read_state_of_an_empty_page_is_empty(chat_auth: Auth) -> None:
+    assert await chat_read_states(chat_auth.db, chat_ids=[], user_id=uuid4()) == {}
