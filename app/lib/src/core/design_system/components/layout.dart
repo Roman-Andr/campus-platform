@@ -79,3 +79,13 @@ Future<T?> showCampusSheet<T>({
     child: SingleChildScrollView(child: builder(context)),
   ),
 );
+
+/// Native dialog with the same accessibility policy as other modal feedback.
+Future<T?> showCampusDialog<T>({
+  required BuildContext context,
+  required WidgetBuilder builder,
+}) => showDialog<T>(
+  context: context,
+  animationStyle: CampusMotion.modalStyle(context),
+  builder: builder,
+);

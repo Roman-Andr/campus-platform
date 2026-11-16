@@ -4,11 +4,13 @@ import 'package:campus/src/core/l10n/l10n.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:widgetbook/widgetbook.dart';
 
+import 'motion_stories.dart';
 import 'pattern_stories.dart';
 import 'story_support.dart';
 
 final catalogStories = <WidgetbookNode>[
   patternStories,
+  motionStories,
   WidgetbookComponent(
     name: 'Controls',
     useCases: [
@@ -87,7 +89,7 @@ final catalogStories = <WidgetbookNode>[
               child: Text(context.l10n.settingsTitle),
             ),
             OutlinedButton(
-              onPressed: () => showDialog<void>(
+              onPressed: () => showCampusDialog<void>(
                 context: context,
                 builder: (ctx) => AlertDialog(
                   title: Text(ctx.l10n.settingsTitle),

@@ -8,6 +8,7 @@ environment:
   flutter: ">=3.50.0"
 
 dependencies:
+  animations: 3.0.0
   cached_network_image: ^4.0.7
   centrifuge: ^0.21.0
   clock: ^1.1.3
