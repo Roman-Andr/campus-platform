@@ -15,6 +15,7 @@ abstract final class CampusGeometry {
   static const controlRadius = 12.0;
   static const cardRadius = 20.0;
   static const sheetRadius = 28.0;
+  static const photoWidth = 136.0;
   static const target = 48.0;
   static const focusWidth = 2.0;
   static const raised = 1.0;
