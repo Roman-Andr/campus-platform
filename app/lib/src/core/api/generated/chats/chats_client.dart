@@ -23,6 +23,13 @@ import 'models/page_chat_search_result.dart'
     as models
     show PageChatSearchResult;
 import 'models/page_message_output.dart' as models show PageMessageOutput;
+import 'models/presence_heartbeat_input.dart'
+    as models
+    show PresenceHeartbeatInput;
+import 'models/presence_output.dart' as models show PresenceOutput;
+import 'models/presence_state_output.dart' as models show PresenceStateOutput;
+import 'models/read_receipt_input.dart' as models show ReadReceiptInput;
+import 'models/read_receipt_output.dart' as models show ReadReceiptOutput;
 
 class ChatsClient {
   ChatsClient(this._transport);
@@ -645,5 +652,183 @@ class ChatsClient {
       cancelToken: cancelToken,
     );
     return models.MessageOutput.fromJson(response.data as Map<String, Object?>);
+  }
+
+  /// Mark Read
+  ///
+  /// Move the caller's read cursor to a message of this chat.
+  ///
+  /// Only an active member may move their own cursor. A message of another
+  /// chat and a nonexistent message are rejected with the same ``404``. The
+  /// stored cursor only grows, so a delayed mark from a second device cannot
+  /// move it back; the answer reports the unread count after the mark. The
+  /// committed position is published to the member's other devices through
+  /// the outbox, and a missed publication is recovered by reading the chat.
+  Future<models.ReadReceiptOutput> markRead({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String chatId,
+    required models.ReadReceiptInput body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(chatId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/chats/" + Uri.encodeComponent(chatId) + "/read",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.ReadReceiptOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Read Chat Presence
+  ///
+  /// Who of the other members is typing and has the chat open right now.
+  ///
+  /// Both indicators are ephemeral and expire with their configured TTL; a
+  /// participant who is not an active member any more is dropped even before
+  /// the TTL, so a removed member cannot keep broadcasting presence. Only a
+  /// member sees this state, and the caller's own flags are not repeated.
+  Future<models.PresenceOutput> readChatPresence({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String chatId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(chatId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "GET",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/chats/" + Uri.encodeComponent(chatId) + "/presence",
+      options: _options,
+      cancelToken: cancelToken,
+    );
+    return models.PresenceOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Chat Presence Heartbeat
+  ///
+  /// One heartbeat of this device: refresh typing and/or the open flag.
+  ///
+  /// The membership is checked on every heartbeat, so a removed member cannot
+  /// publish activity. Omitting a flag keeps its current value; closing the
+  /// chat (``open: false``) also stops typing of this device. The state lives
+  /// in Redis and expires after the configured TTL, so a lost device stops
+  /// being visible without a close request.
+  Future<models.PresenceStateOutput> chatPresenceHeartbeat({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String chatId,
+    required models.PresenceHeartbeatInput body,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(chatId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "POST",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      contentType: "application/json",
+      headers: {
+        for (final entry
+            in (options?.headers ?? const <String, Object?>{}).entries)
+          if (entry.key.toLowerCase() != 'content-type') entry.key: entry.value,
+        'Accept': "application/json",
+      },
+      validateStatus: (status) => status != null && (status == 200),
+    );
+    final response = await _transport.request<dynamic>(
+      "/api/v1/chats/" + Uri.encodeComponent(chatId) + "/presence",
+      options: _options,
+      data: convert.jsonEncode(body),
+      cancelToken: cancelToken,
+    );
+    return models.PresenceStateOutput.fromJson(
+      response.data as Map<String, Object?>,
+    );
+  }
+
+  /// Close Chat Presence
+  ///
+  /// Close the chat on this device: drop its typing and open flag now.
+  ///
+  /// Repeating the request is harmless. Another open device of the same
+  /// member keeps its own flag; only this device session is closed.
+  Future<void> closeChatPresence({
+    Map<String, Object?> extra = const {
+      "openapi.security": [
+        {"HTTPBearer": []},
+      ],
+      "openapi.securitySchemes": {
+        "HTTPBearer": {"type": "http", "scheme": "bearer"},
+      },
+    },
+    CancelToken? cancelToken,
+    Options? options,
+    required String chatId,
+  }) async {
+    if (const {'', '.', '..'}.contains(Uri.encodeComponent(chatId))) {
+      throw ArgumentError('Invalid path segment.');
+    }
+    final _options = (options ?? Options()).copyWith(
+      method: "DELETE",
+      responseType: ResponseType.json,
+      extra: {...?options?.extra, ...extra},
+      headers: {...?options?.headers, 'Accept': "application/json"},
+      validateStatus: (status) => status != null && (status == 204),
+    );
+    await _transport.request<dynamic>(
+      "/api/v1/chats/" + Uri.encodeComponent(chatId) + "/presence",
+      options: _options,
+      cancelToken: cancelToken,
+    );
   }
 }

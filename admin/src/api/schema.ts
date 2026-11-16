@@ -2372,6 +2372,75 @@ export interface paths {
     patch: operations['edit_message_view'];
     trace?: never;
   };
+  '/api/v1/chats/{chat_id}/read': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Mark Read
+     * @description Move the caller's read cursor to a message of this chat.
+     *
+     *     Only an active member may move their own cursor. A message of another
+     *     chat and a nonexistent message are rejected with the same ``404``. The
+     *     stored cursor only grows, so a delayed mark from a second device cannot
+     *     move it back; the answer reports the unread count after the mark. The
+     *     committed position is published to the member's other devices through
+     *     the outbox, and a missed publication is recovered by reading the chat.
+     */
+    post: operations['mark_read'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/chats/{chat_id}/presence': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Read Chat Presence
+     * @description Who of the other members is typing and has the chat open right now.
+     *
+     *     Both indicators are ephemeral and expire with their configured TTL; a
+     *     participant who is not an active member any more is dropped even before
+     *     the TTL, so a removed member cannot keep broadcasting presence. Only a
+     *     member sees this state, and the caller's own flags are not repeated.
+     */
+    get: operations['read_chat_presence'];
+    put?: never;
+    /**
+     * Chat Presence Heartbeat
+     * @description One heartbeat of this device: refresh typing and/or the open flag.
+     *
+     *     The membership is checked on every heartbeat, so a removed member cannot
+     *     publish activity. Omitting a flag keeps its current value; closing the
+     *     chat (``open: false``) also stops typing of this device. The state lives
+     *     in Redis and expires after the configured TTL, so a lost device stops
+     *     being visible without a close request.
+     */
+    post: operations['chat_presence_heartbeat'];
+    /**
+     * Close Chat Presence
+     * @description Close the chat on this device: drop its typing and open flag now.
+     *
+     *     Repeating the request is harmless. Another open device of the same
+     *     member keeps its own flag; only this device session is closed.
+     */
+    delete: operations['close_chat_presence'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/me/device-key': {
     parameters: {
       query?: never;
@@ -3462,6 +3531,8 @@ export interface components {
       /** Participants */
       participants: components['schemas']['ParticipantOutput'][];
       last_message?: components['schemas']['MessageOutput'] | null;
+      /** @description Read cursor and unread count of the current member. */
+      read_state?: components['schemas']['ChatReadOutput'];
     };
     /** ChatPhotoOutput */
     ChatPhotoOutput: {
@@ -3485,6 +3556,27 @@ export interface components {
     ChatPhotosOutput: {
       /** Items */
       items: components['schemas']['ChatPhotoOutput'][];
+    };
+    /**
+     * ChatReadOutput
+     * @description Where the member's read cursor is and how much is left after it.
+     *
+     *     The cursor is the sequence of the last message the member marked read;
+     *     it only grows. The unread count is derived by the server from visible
+     *     messages of other members after the cursor, so two devices of one member
+     *     show the same number after a cold start.
+     */
+    ChatReadOutput: {
+      /**
+       * Last Read Sequence
+       * @description Sequence of the last message marked read.
+       */
+      last_read_sequence: number;
+      /**
+       * Unread Count
+       * @description Visible messages of other members after the cursor; never negative.
+       */
+      unread_count: number;
     };
     /**
      * ChatSearchResult
@@ -5916,6 +6008,73 @@ export interface components {
       offset: number;
     };
     /**
+     * PresenceHeartbeatInput
+     * @description One heartbeat of this device; omitted flags keep their current value.
+     */
+    PresenceHeartbeatInput: {
+      /**
+       * Typing
+       * @description Composing state; repeat the heartbeat before chat_typing_ttl ends, otherwise the indicator disappears.
+       */
+      typing?: boolean | null;
+      /**
+       * Open
+       * @description The chat is open on this device. False closes it, which also stops typing; omitted keeps the current flag.
+       */
+      open?: boolean | null;
+    };
+    /**
+     * PresenceItemOutput
+     * @description Activity of another member; the caller's own state is not repeated.
+     */
+    PresenceItemOutput: {
+      /**
+       * User Id
+       * Format: uuid
+       */
+      user_id: string;
+      /** Typing */
+      typing: boolean;
+      /** Open */
+      open: boolean;
+    };
+    /** PresenceOutput */
+    PresenceOutput: {
+      /**
+       * Chat Id
+       * Format: uuid
+       */
+      chat_id: string;
+      /** Items */
+      items: components['schemas']['PresenceItemOutput'][];
+      /** Heartbeat Interval Seconds */
+      heartbeat_interval_seconds: number;
+    };
+    /**
+     * PresenceStateOutput
+     * @description The caller's own ephemeral state and when it needs the next beat.
+     */
+    PresenceStateOutput: {
+      /**
+       * Chat Id
+       * Format: uuid
+       */
+      chat_id: string;
+      /** Typing */
+      typing: boolean;
+      /** Open */
+      open: boolean;
+      /** Typing Expires At */
+      typing_expires_at: string | null;
+      /** Open Expires At */
+      open_expires_at: string | null;
+      /**
+       * Heartbeat Interval Seconds
+       * @description Send the next open-chat heartbeat after this interval.
+       */
+      heartbeat_interval_seconds: number;
+    };
+    /**
      * Problem
      * @description Error response (RFC 9457 Problem Details).
      */
@@ -5954,6 +6113,7 @@ export interface components {
         | 'chat_not_found'
         | 'chat_photo_expired'
         | 'chat_photo_invalid'
+        | 'chat_presence_unavailable'
         | 'chat_rate_limited'
         | 'chat_search_invalid'
         | 'chat_self'
@@ -6663,6 +6823,36 @@ export interface components {
        * @description Mark this notification and earlier ones read.
        */
       through_id: string;
+    };
+    /**
+     * ReadReceiptInput
+     * @description Mark one visible message of the chat and everything before it read.
+     */
+    ReadReceiptInput: {
+      /**
+       * Through Id
+       * Format: uuid
+       * @description Message of the same chat to mark read; a message of another chat and a nonexistent one are rejected.
+       */
+      through_id: string;
+    };
+    /** ReadReceiptOutput */
+    ReadReceiptOutput: {
+      /**
+       * Last Read Sequence
+       * @description Sequence of the last message marked read.
+       */
+      last_read_sequence: number;
+      /**
+       * Unread Count
+       * @description Visible messages of other members after the cursor; never negative.
+       */
+      unread_count: number;
+      /**
+       * Chat Id
+       * Format: uuid
+       */
+      chat_id: string;
     };
     /** RecoverInput */
     RecoverInput: {
@@ -21620,6 +21810,450 @@ export interface operations {
         content: {
           'application/json': components['schemas']['MessageOutput'];
         };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  mark_read: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        chat_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ReadReceiptInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ReadReceiptOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  read_chat_presence: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+      };
+      path: {
+        chat_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PresenceOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  chat_presence_heartbeat: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        chat_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PresenceHeartbeatInput'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PresenceStateOutput'];
+        };
+      };
+      /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid, expired or revoked authentication (unauthorized). */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Current mandatory documents must be accepted (consent_required); errors list document kinds and version IDs. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Invalid request (validation_failed) or Idempotency-Key used for a different request (idempotency_key_reused). */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The client version is too old (client_update_required). */
+      426: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Internal error (internal_error). */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  close_chat_presence: {
+    parameters: {
+      query?: never;
+      header: {
+        /** @description Client application. */
+        'X-Client-Platform': components['schemas']['ClientPlatform'];
+        /** @description Client version, e.g. 1.4.0. */
+        'X-Client-Version': string;
+        /** @description Unique per operation; a repeat with the same key within 24 hours returns the original response. */
+        'Idempotency-Key': string;
+      };
+      path: {
+        chat_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Bad request: client headers or Idempotency-Key missing or invalid (client_version_missing, client_version_invalid, idempotency_key_missing, idempotency_key_invalid, ...). */
       400: {
