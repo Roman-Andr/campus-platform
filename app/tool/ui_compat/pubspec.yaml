@@ -1,0 +1,17 @@
+name: campus_ui_compat
+publish_to: none
+environment:
+  sdk: ^3.14.0
+  flutter: '>=3.50.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  material_ui: 1.11.0
+  widgetbook: 3.25.0
+  animations: 3.0.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

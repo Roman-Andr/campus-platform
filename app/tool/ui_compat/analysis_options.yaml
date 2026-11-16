@@ -1,0 +1,4 @@
+# The spike is independent of the app's lint package resolution.
+analyzer:
+  errors:
+    unused_import: error
