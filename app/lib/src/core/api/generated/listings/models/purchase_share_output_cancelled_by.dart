@@ -6,8 +6,8 @@ import 'cancellation_actor.dart';
 sealed class PurchaseShareOutputCancelledBy {
   factory PurchaseShareOutputCancelledBy.fromJson(Object? json) {
     final matches = <String>[
-      if (_matches105(json)) "CancellationActor",
-      if (_matches106(json)) "Null",
+      if (_matches133(json)) "CancellationActor",
+      if (_matches134(json)) "Null",
     ];
     if (matches.length != 1) {
       throw FormatException(
@@ -44,8 +44,8 @@ class PurchaseShareOutputCancelledByNull
   Object? toJson() => value;
 }
 
-bool _matches105(Object? value) => (_matches50(value));
-bool _matches50(Object? value) =>
+bool _matches133(Object? value) => (_matches66(value));
+bool _matches66(Object? value) =>
     (const <Object?>["author", "participant", "system"].contains(value)) &&
     ((value is String));
-bool _matches106(Object? value) => ((value == null));
+bool _matches134(Object? value) => ((value == null));

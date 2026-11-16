@@ -2542,6 +2542,7 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
     reason: str | None = None,
     offline_qr: bool = False,
     allow_no_show_by_participant: bool = False,
+    moderator: bool = False,
 ) -> None:
     expected = TRANSITIONS.get((InteractionStatus(interaction.status), target))
     if expected is None:
@@ -2566,7 +2567,11 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
     if completion:
         # A participant confirms the completion. A service-only transition
         # without a completion method uses the role table below instead.
-        if actor_id not in (listing.author_id, interaction.participant_id):
+        if moderator:
+            # The dispute decision (#94) completes an interaction neither
+            # participant confirmed; the decision itself is checked there.
+            pass
+        elif actor_id not in (listing.author_id, interaction.participant_id):
             raise ProblemError(FORBIDDEN)
     elif (
         target == InteractionStatus.NO_SHOW
@@ -2622,9 +2627,9 @@ async def transition(  # noqa: PLR0912, PLR0913, PLR0915 - aggregate transition
         interaction.completion_method = completion_method
         interaction.completed_at = clock.now()
         interaction.completion_weight = (
-            settings.rating_weight_no_meeting
-            if completion_method == CompletionMethod.NO_MEETING
-            else settings.rating_weight_qr
+            settings.rating_weight_qr
+            if completion_method == CompletionMethod.QR
+            else settings.rating_weight_no_meeting
         )
     if previous == InteractionStatus.ACCEPTED:
         # Reminders and the reservation belong to an accepted interaction only.

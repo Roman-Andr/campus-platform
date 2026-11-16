@@ -100,6 +100,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:  # noqa: PLR0915
     app.include_router(identity.profile_router, prefix=API_PREFIX)
     app.include_router(identity.skills_router, prefix=API_PREFIX)
     app.include_router(moderation.router, prefix=API_PREFIX)
+    app.include_router(moderation.disputes_router, prefix=API_PREFIX)
     app.include_router(identity.sessions_router, prefix=API_PREFIX)
     app.include_router(identity.email_router, prefix=API_PREFIX)
     app.include_router(listings.router, prefix=API_PREFIX)

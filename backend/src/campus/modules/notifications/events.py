@@ -25,9 +25,17 @@ PURCHASE_CANCELLED_BY_AUTHOR = N_("The organiser cancelled the purchase: {reason
 PURCHASE_REMINDER = N_("The collection of the purchase ends soon.")
 PURCHASE_WITHDRAWAL_REQUESTED = N_("A participant asks to leave the purchase.")
 PURCHASE_WITHDRAWAL_DECIDED = N_("The organiser has decided on your request to leave.")
+PAYMENT_CLAIMED = N_("A participant marked their share of the purchase as paid.")
+PAYMENT_CONFIRMED = N_("The organiser confirmed your payment.")
+PAYMENT_REJECTED = N_("The organiser rejected your payment mark.")
+PAYMENT_DECIDED = N_("The moderator decided the payment dispute.")
+DISPUTE_OPENED = N_("A dispute about your interaction was opened.")
+DISPUTE_RESOLVED = N_("The moderator decided the dispute.")
 
 # Important notifications are not grouped and pass through quiet hours (#88).
-IMPORTANT_TYPES = frozenset({"listing.offer"})
+IMPORTANT_TYPES = frozenset(
+    {"listing.offer", "listing.purchase.payment", "moderation.decided"}
+)
 
 
 def notify(  # noqa: PLR0913 - public producer contract

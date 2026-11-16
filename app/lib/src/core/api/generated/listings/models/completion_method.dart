@@ -2,7 +2,8 @@
 
 enum CompletionMethodValue {
   qr("qr"),
-  noMeeting("no_meeting");
+  noMeeting("no_meeting"),
+  moderator("moderator");
 
   const CompletionMethodValue(this.value);
   final String value;
@@ -13,6 +14,9 @@ sealed class CompletionMethod {
   static const qr = CompletionMethodKnown(CompletionMethodValue.qr);
   static const noMeeting = CompletionMethodKnown(
     CompletionMethodValue.noMeeting,
+  );
+  static const moderator = CompletionMethodKnown(
+    CompletionMethodValue.moderator,
   );
   factory CompletionMethod.fromJson(Object? json) {
     if (!(json is String)) {

@@ -38,7 +38,7 @@ from campus.modules.listings import (
     no_showed_at,
     transition,
 )
-from campus.modules.moderation import Dispute, DisputeStatus
+from campus.modules.moderation import Dispute, DisputeAction, DisputeStatus
 from campus.modules.reputation.models import (
     ConfirmationCode,
     DeviceKey,
@@ -326,6 +326,7 @@ async def _lift_no_show(
         .values(
             status=DisputeStatus.RESOLVED.value,
             resolved_at=now,
+            action=DisputeAction.LATE_QR.value,
             resolution="late_qr",
             version=Dispute.version + 1,
             updated_at=now,

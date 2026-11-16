@@ -317,8 +317,14 @@ async def interaction_no_show_marks(
 
 
 async def dispute_of(session: AsyncSession, interaction_id: UUID) -> Dispute | None:
+    """The no-show case of one interaction, not a payment case on it."""
     return await session.scalar(
-        select(Dispute).where(Dispute.interaction_id == interaction_id)
+        select(Dispute).where(
+            Dispute.interaction_id == interaction_id,
+            Dispute.kind.in_(
+                (DisputeKind.NO_SHOW.value, DisputeKind.NOT_RETURNED.value)
+            ),
+        )
     )
 
 
@@ -458,23 +464,37 @@ async def _suspend_marks(
     )
 
 
-async def _open_dispute(
-    session: AsyncSession, listing: Listing, interaction: Interaction, now: datetime
+async def _open_dispute(  # noqa: PLR0913 - the parts of a case
+    session: AsyncSession,
+    listing: Listing,
+    interaction: Interaction,
+    now: datetime,
+    *,
+    kind: DisputeKind = DisputeKind.NO_SHOW,
+    opened_by_id: UUID | None = None,
+    event_at: datetime | None = None,
+    statement: str | None = None,
 ) -> Dispute:
     """Create the one dispute of the interaction, or return the existing one."""
     dispute_id = await session.scalar(
         insert(Dispute)
         .values(
-            kind=DisputeKind.NO_SHOW.value,
+            kind=kind.value,
             status=DisputeStatus.OPEN.value,
             listing_id=listing.id,
             interaction_id=interaction.id,
+            opened_by_id=opened_by_id,
+            event_at=event_at or now,
             opened_at=now,
+            statement=statement,
             version=1,
             created_at=now,
             updated_at=now,
         )
-        .on_conflict_do_nothing(index_elements=["interaction_id"])
+        .on_conflict_do_nothing(
+            index_elements=["interaction_id"],
+            index_where=text("kind IN ('no_show','not_returned')"),
+        )
         .returning(Dispute.id)
     )
     if dispute_id is not None:
@@ -553,6 +573,25 @@ async def _answer_marks(  # noqa: PLR0913, PLR0917 - the parts of a mark
     now: datetime,
 ) -> None:
     """Record a mutual allegation and open the single dispute atomically."""
+    prior = await interaction_no_show_marks(session, interaction.id)
+    kind = (
+        DisputeKind.NOT_RETURNED
+        if any(
+            mark.kind == NoShowKind.PERSONAL
+            and mark.status != NoShowStatus.REMOVED
+            and mark.reason == LOAN_NOT_RETURNED_REASON
+            for mark in prior
+        )
+        else DisputeKind.NO_SHOW
+    )
+    event_at = min(
+        (
+            mark.created_at
+            for mark in prior
+            if mark.kind == NoShowKind.PERSONAL and mark.status != NoShowStatus.REMOVED
+        ),
+        default=now,
+    )
     mark = NoShowMark(
         listing_id=listing.id,
         interaction_id=interaction.id,
@@ -570,7 +609,16 @@ async def _answer_marks(  # noqa: PLR0913, PLR0917 - the parts of a mark
     session.add(mark)
     await session.flush()
     await _suspend_marks(session, interaction.id, now)
-    dispute = await _open_dispute(session, listing, interaction, now)
+    dispute = await _open_dispute(
+        session,
+        listing,
+        interaction,
+        now,
+        kind=kind,
+        opened_by_id=actor_id,
+        event_at=event_at,
+        statement=reason,
+    )
     # Both allegations stop counting while the dispute is open.
     queue_profile_refresh(session, {listing.author_id, interaction.participant_id})
     listing.version += 1
@@ -1036,7 +1084,11 @@ async def event_dispute_of(session: AsyncSession, listing_id: UUID) -> Dispute |
 
 
 async def _open_event_dispute(
-    session: AsyncSession, listing: Listing, now: datetime
+    session: AsyncSession,
+    listing: Listing,
+    mark: NoShowMark,
+    actor_id: UUID,
+    now: datetime,
 ) -> Dispute:
     """Create the one event dispute, or return the existing one."""
     dispute_id = await session.scalar(
@@ -1046,7 +1098,10 @@ async def _open_event_dispute(
             status=DisputeStatus.OPEN.value,
             listing_id=listing.id,
             interaction_id=None,
+            opened_by_id=actor_id,
+            event_at=mark.created_at,
             opened_at=now,
+            statement=None,
             version=1,
             created_at=now,
             updated_at=now,
@@ -1116,7 +1171,7 @@ async def dispute_event_no_show(
     )
     if suspended is None:  # pragma: no cover - the listing lock serializes
         raise ProblemError(EVENT_DISPUTE_UNAVAILABLE)
-    dispute = await _open_event_dispute(session, listing, now)
+    dispute = await _open_event_dispute(session, listing, mark, actor_id, now)
     listing.version += 1
     record(
         session,
