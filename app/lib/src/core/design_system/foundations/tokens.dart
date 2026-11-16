@@ -24,6 +24,16 @@ abstract final class CampusGeometry {
 }
 
 abstract final class CampusMotion {
+  static bool reduced(BuildContext context) =>
+      MediaQuery.disableAnimationsOf(context) ||
+      MediaQuery.reduceMotionOf(context);
+  static Duration duration(BuildContext context, Duration normal) =>
+      reduced(context) ? Duration.zero : normal;
+  static AnimationStyle modalStyle(BuildContext context) => AnimationStyle(
+    duration: duration(context, transition),
+    reverseDuration: duration(context, content),
+  );
+
   static const feedback = Duration(milliseconds: 120);
   static const content = Duration(milliseconds: 180);
   static const transition = Duration(milliseconds: 260);

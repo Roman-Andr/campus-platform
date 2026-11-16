@@ -28,7 +28,7 @@ class BusyAction extends StatelessWidget {
           if (busy)
             SizedBox.square(
               dimension: CampusSpace.md,
-              child: MediaQuery.disableAnimationsOf(context)
+              child: CampusMotion.reduced(context)
                   ? const Icon(Icons.hourglass_top, size: CampusSpace.md)
                   : const CircularProgressIndicator(strokeWidth: 2),
             ),

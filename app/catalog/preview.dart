@@ -107,6 +107,7 @@ class _CatalogPreviewState extends State<CatalogPreview> {
                       data: MediaQuery.of(context).copyWith(
                         textScaler: TextScaler.linear(scale),
                         disableAnimations: reduced,
+                        reduceMotion: reduced,
                       ),
                       child: Material(
                         color: Theme.of(context).colorScheme.surface,

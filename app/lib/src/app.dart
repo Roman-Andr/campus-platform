@@ -5,6 +5,8 @@ import 'package:flutter_localizations/flutter_localizations.dart'
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'core/design_system/foundations/tokens.dart';
+import 'core/design_system/motion/campus_motion.dart';
 import 'core/l10n/l10n.dart';
 import 'core/realtime/realtime_status_view.dart';
 import 'core/router/app_router.dart';
@@ -36,10 +38,16 @@ class CampusApp extends ConsumerWidget {
       theme: AppTheme.forPalette(settings.paletteId, Brightness.light),
       darkTheme: AppTheme.forPalette(settings.paletteId, Brightness.dark),
       themeMode: settings.themeMode,
+      themeAnimationDuration: CampusMotion.duration(
+        context,
+        CampusMotion.theme,
+      ),
       debugShowCheckedModeBanner: false,
-      builder: (context, child) => RealtimeStatusBanner(
-        child: OfflineBanner(
-          child: ConsentGuard(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => CampusMotionVisibility(
+        child: RealtimeStatusBanner(
+          child: OfflineBanner(
+            child: ConsentGuard(child: child ?? const SizedBox.shrink()),
+          ),
         ),
       ),
     );
