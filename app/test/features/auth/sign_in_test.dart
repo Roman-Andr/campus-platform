@@ -555,6 +555,8 @@ void main() {
     await tester.tap(find.byKey(const Key('home-settings')));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.byKey(const Key('sign-out')), 200);
+    await tester.ensureVisible(find.byKey(const Key('sign-out')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('sign-out')));
     await tester.pumpAndSettle();
 
