@@ -3045,4 +3045,244 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get timelineLoanNotReturned => 'Вещь отмечена не возвращённой';
+
+  @override
+  String get reviewSummaryTitle => 'Отзыв о взаимодействии';
+
+  @override
+  String get reviewSummaryHint =>
+      'Оцените звёздами и готовыми тегами; отзыв раскрывается взаимно.';
+
+  @override
+  String get reviewSummaryOrganizerHint =>
+      'Участники оценивают организатора; вы отвечаете на их отзывы.';
+
+  @override
+  String get reviewSummaryAction => 'Открыть отзыв';
+
+  @override
+  String get reviewTitle => 'Отзыв';
+
+  @override
+  String get reviewIntro =>
+      'Оценка, готовые теги и необязательный текст. Отзыв второй стороны скрыт до взаимного раскрытия.';
+
+  @override
+  String get reviewIntroOneWay =>
+      'Участники мероприятия оценивают организатора; организатор отвечает на отзывы и свой не пишет.';
+
+  @override
+  String get reviewOwnTitle => 'Ваш отзыв';
+
+  @override
+  String get reviewTheirsTitle => 'Отзыв о вас';
+
+  @override
+  String get reviewTagsNone => 'Без тегов';
+
+  @override
+  String reviewRatingOf(int rating) {
+    return '$rating из 5';
+  }
+
+  @override
+  String get reviewTextLabel => 'Текст отзыва';
+
+  @override
+  String get reviewTextHint => 'Необязательно';
+
+  @override
+  String get reviewTagsLabel => 'Что запомнилось';
+
+  @override
+  String get reviewRatingLabel => 'Оценка';
+
+  @override
+  String get reviewRatingRequired => 'Поставьте оценку от 1 до 5.';
+
+  @override
+  String get reviewSubmit => 'Отправить отзыв';
+
+  @override
+  String get reviewSave => 'Сохранить изменения';
+
+  @override
+  String get reviewEdit => 'Изменить отзыв';
+
+  @override
+  String get reviewSaved => 'Отзыв сохранён.';
+
+  @override
+  String get reviewWaiting => 'Ваш отзыв скрыт: ждём отзыв второй стороны.';
+
+  @override
+  String reviewWaitingUntil(String time) {
+    return 'Отзыв станет виден после отзыва второй стороны или $time.';
+  }
+
+  @override
+  String get reviewRevealed => 'Отзывы раскрыты; изменить свой больше нельзя.';
+
+  @override
+  String get reviewPublishedOwn => 'Ваш отзыв опубликован.';
+
+  @override
+  String reviewWindowMissed(String time) {
+    return 'Окно отзыва закрылось $time, отзывов нет.';
+  }
+
+  @override
+  String get reviewUnavailableNotCompleted =>
+      'Отзыв можно оставить после завершения взаимодействия.';
+
+  @override
+  String get reviewUnavailableOrganizer =>
+      'Вы организатор: участники оценивают вас, а вы можете ответить на их отзывы.';
+
+  @override
+  String get reviewUnavailable => 'Отзыв для этого взаимодействия недоступен.';
+
+  @override
+  String get reviewHiddenByModerator =>
+      'Отзыв скрыт модератором; изменить его нельзя.';
+
+  @override
+  String get reviewRefresh => 'Обновить';
+
+  @override
+  String get reviewReplyTitle => 'Ответ на отзыв';
+
+  @override
+  String get reviewReplyLabel => 'Ответ';
+
+  @override
+  String get reviewReplyHint => 'Ответ публичный и единственный.';
+
+  @override
+  String get reviewReplyAction => 'Ответить';
+
+  @override
+  String get reviewReplyRequired => 'Напишите ответ.';
+
+  @override
+  String get reviewReplied => 'Ответ сохранён.';
+
+  @override
+  String reviewReplyBy(String name) {
+    return 'Ответ: $name';
+  }
+
+  @override
+  String get reviewTagOther => 'Другой тег';
+
+  @override
+  String get reviewTagPunctual => 'Пунктуально';
+
+  @override
+  String get reviewTagItemAsDescribed => 'Вещь как в описании';
+
+  @override
+  String get reviewTagFriendly => 'Дружелюбно';
+
+  @override
+  String get reviewTagClearCommunication => 'Понятно договорились';
+
+  @override
+  String get reviewTagFairOffer => 'Честное предложение';
+
+  @override
+  String get reviewTagItemInOrder => 'Вещь в порядке';
+
+  @override
+  String get reviewTagReturnedOnTime => 'Вернули вовремя';
+
+  @override
+  String get reviewTagClearExplanation => 'Понятно объясняет';
+
+  @override
+  String get reviewTagPatient => 'Терпеливо';
+
+  @override
+  String get reviewTagUseful => 'Полезно';
+
+  @override
+  String get reviewTagHelpedAsPromised => 'Помог как обещал';
+
+  @override
+  String get reviewTagResponsive => 'Быстро отвечает';
+
+  @override
+  String get reviewTagInteresting => 'Интересно';
+
+  @override
+  String get reviewTagWellOrganized => 'Хорошо организовано';
+
+  @override
+  String get reviewTagOrganizerPunctual => 'Организатор пунктуален';
+
+  @override
+  String get reviewTagAsDescribed => 'Как и было заявлено';
+
+  @override
+  String get reviewTagTransparentTerms => 'Прозрачные условия';
+
+  @override
+  String get reviewErrorForbidden =>
+      'Отзыв может оставить только участник взаимодействия.';
+
+  @override
+  String get reviewErrorOneWay =>
+      'Участники оценивают организатора; организатор не пишет отзыв.';
+
+  @override
+  String get reviewErrorUnavailable =>
+      'Отзыв доступен только после завершения взаимодействия.';
+
+  @override
+  String get reviewErrorWindowClosed => 'Окно отзыва закрылось.';
+
+  @override
+  String get reviewErrorExists =>
+      'Вы уже оставили отзыв об этом взаимодействии.';
+
+  @override
+  String get reviewErrorPublished => 'После раскрытия отзыв изменить нельзя.';
+
+  @override
+  String get reviewErrorHidden => 'Отзыв скрыт модератором.';
+
+  @override
+  String get reviewErrorRating => 'Оценка — целое число звёзд от 1 до 5.';
+
+  @override
+  String get reviewErrorTags => 'Эти теги не подходят к сценарию.';
+
+  @override
+  String get reviewErrorText => 'Текст отзыва слишком длинный.';
+
+  @override
+  String get reviewErrorReplyExists => 'На отзыв уже ответили.';
+
+  @override
+  String get reviewErrorReplyInvalid =>
+      'Напишите ответ в пределах допустимой длины.';
+
+  @override
+  String get reviewErrorNotFound => 'Отзыв пока недоступен.';
+
+  @override
+  String get profileReviews => 'Отзывы';
+
+  @override
+  String get profileReviewsTitle => 'Отзывы обо мне';
+
+  @override
+  String get profileReviewsIntro =>
+      'Опубликованные отзывы о вас. Скрытые и нераскрытые отзывы здесь не показываются.';
+
+  @override
+  String get profileReviewsEmpty => 'Пока нет опубликованных отзывов.';
+
+  @override
+  String get profileReviewsMore => 'Показать ещё';
 }

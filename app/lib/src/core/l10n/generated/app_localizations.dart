@@ -5371,6 +5371,444 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Вещь отмечена не возвращённой'**
   String get timelineLoanNotReturned;
+
+  /// Заголовок карточки отзыва у завершённого взаимодействия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отзыв о взаимодействии'**
+  String get reviewSummaryTitle;
+
+  /// Подсказка карточки отзыва для участника.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оцените звёздами и готовыми тегами; отзыв раскрывается взаимно.'**
+  String get reviewSummaryHint;
+
+  /// Подсказка карточки отзыва организатору мероприятия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Участники оценивают организатора; вы отвечаете на их отзывы.'**
+  String get reviewSummaryOrganizerHint;
+
+  /// Кнопка карточки отзыва.
+  ///
+  /// In ru, this message translates to:
+  /// **'Открыть отзыв'**
+  String get reviewSummaryAction;
+
+  /// Заголовок экрана отзыва.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отзыв'**
+  String get reviewTitle;
+
+  /// Пояснение к форме отзыва во взаимном сценарии.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оценка, готовые теги и необязательный текст. Отзыв второй стороны скрыт до взаимного раскрытия.'**
+  String get reviewIntro;
+
+  /// Пояснение к отзыву мероприятия: сценарий односторонний.
+  ///
+  /// In ru, this message translates to:
+  /// **'Участники мероприятия оценивают организатора; организатор отвечает на отзывы и свой не пишет.'**
+  String get reviewIntroOneWay;
+
+  /// Заголовок своего отзыва.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ваш отзыв'**
+  String get reviewOwnTitle;
+
+  /// Заголовок отзыва второй стороны о пользователе.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отзыв о вас'**
+  String get reviewTheirsTitle;
+
+  /// Отзыв без готовых тегов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Без тегов'**
+  String get reviewTagsNone;
+
+  /// Оценка в звёздах.
+  ///
+  /// In ru, this message translates to:
+  /// **'{rating} из 5'**
+  String reviewRatingOf(int rating);
+
+  /// Подпись поля текста отзыва.
+  ///
+  /// In ru, this message translates to:
+  /// **'Текст отзыва'**
+  String get reviewTextLabel;
+
+  /// Подсказка необязательного текста отзыва.
+  ///
+  /// In ru, this message translates to:
+  /// **'Необязательно'**
+  String get reviewTextHint;
+
+  /// Подпись выбора готовых тегов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Что запомнилось'**
+  String get reviewTagsLabel;
+
+  /// Подпись выбора оценки звёздами.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оценка'**
+  String get reviewRatingLabel;
+
+  /// Оценка не выбрана перед отправкой.
+  ///
+  /// In ru, this message translates to:
+  /// **'Поставьте оценку от 1 до 5.'**
+  String get reviewRatingRequired;
+
+  /// Кнопка отправки нового отзыва.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отправить отзыв'**
+  String get reviewSubmit;
+
+  /// Кнопка сохранения изменённого отзыва.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сохранить изменения'**
+  String get reviewSave;
+
+  /// Кнопка правки отзыва до раскрытия.
+  ///
+  /// In ru, this message translates to:
+  /// **'Изменить отзыв'**
+  String get reviewEdit;
+
+  /// Успешная запись отзыва.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отзыв сохранён.'**
+  String get reviewSaved;
+
+  /// Ожидание второго отзыва без известного срока.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ваш отзыв скрыт: ждём отзыв второй стороны.'**
+  String get reviewWaiting;
+
+  /// Ожидание второго отзыва со сроком раскрытия; время в поясе города.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отзыв станет виден после отзыва второй стороны или {time}.'**
+  String reviewWaitingUntil(String time);
+
+  /// Отзывы раскрыты после второго отзыва.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отзывы раскрыты; изменить свой больше нельзя.'**
+  String get reviewRevealed;
+
+  /// Отзыв мероприятия опубликован сразу; отзыва второй стороны нет.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ваш отзыв опубликован.'**
+  String get reviewPublishedOwn;
+
+  /// Окно закрылось, а отзывов не было; время в поясе города.
+  ///
+  /// In ru, this message translates to:
+  /// **'Окно отзыва закрылось {time}, отзывов нет.'**
+  String reviewWindowMissed(String time);
+
+  /// Взаимодействие ещё не завершено.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отзыв можно оставить после завершения взаимодействия.'**
+  String get reviewUnavailableNotCompleted;
+
+  /// Организатор мероприятия не пишет отзыв.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы организатор: участники оценивают вас, а вы можете ответить на их отзывы.'**
+  String get reviewUnavailableOrganizer;
+
+  /// Общий случай недоступного отзыва.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отзыв для этого взаимодействия недоступен.'**
+  String get reviewUnavailable;
+
+  /// Отзыв скрыт решением модератора.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отзыв скрыт модератором; изменить его нельзя.'**
+  String get reviewHiddenByModerator;
+
+  /// Кнопка перечитывания состояния отзывов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Обновить'**
+  String get reviewRefresh;
+
+  /// Заголовок формы ответа адресата.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ответ на отзыв'**
+  String get reviewReplyTitle;
+
+  /// Подпись поля ответа.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ответ'**
+  String get reviewReplyLabel;
+
+  /// Подсказка к ответу на отзыв.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ответ публичный и единственный.'**
+  String get reviewReplyHint;
+
+  /// Кнопка отправки ответа.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ответить'**
+  String get reviewReplyAction;
+
+  /// Пустой ответ перед отправкой.
+  ///
+  /// In ru, this message translates to:
+  /// **'Напишите ответ.'**
+  String get reviewReplyRequired;
+
+  /// Успешная отправка ответа.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ответ сохранён.'**
+  String get reviewReplied;
+
+  /// Подпись ответа с именем автора.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ответ: {name}'**
+  String reviewReplyBy(String name);
+
+  /// Код готового тега, неизвестный этой версии клиента.
+  ///
+  /// In ru, this message translates to:
+  /// **'Другой тег'**
+  String get reviewTagOther;
+
+  /// Готовый тег: пунктуальность.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пунктуально'**
+  String get reviewTagPunctual;
+
+  /// Готовый тег: вещь соответствует описанию.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вещь как в описании'**
+  String get reviewTagItemAsDescribed;
+
+  /// Готовый тег: дружелюбие.
+  ///
+  /// In ru, this message translates to:
+  /// **'Дружелюбно'**
+  String get reviewTagFriendly;
+
+  /// Готовый тег: понятная договорённость.
+  ///
+  /// In ru, this message translates to:
+  /// **'Понятно договорились'**
+  String get reviewTagClearCommunication;
+
+  /// Готовый тег: честное предложение обмена.
+  ///
+  /// In ru, this message translates to:
+  /// **'Честное предложение'**
+  String get reviewTagFairOffer;
+
+  /// Готовый тег: вещь возвращена в порядке.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вещь в порядке'**
+  String get reviewTagItemInOrder;
+
+  /// Готовый тег: вещь возвращена вовремя.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вернули вовремя'**
+  String get reviewTagReturnedOnTime;
+
+  /// Готовый тег: понятное объяснение навыка.
+  ///
+  /// In ru, this message translates to:
+  /// **'Понятно объясняет'**
+  String get reviewTagClearExplanation;
+
+  /// Готовый тег: терпеливость.
+  ///
+  /// In ru, this message translates to:
+  /// **'Терпеливо'**
+  String get reviewTagPatient;
+
+  /// Готовый тег: занятие было полезным.
+  ///
+  /// In ru, this message translates to:
+  /// **'Полезно'**
+  String get reviewTagUseful;
+
+  /// Готовый тег: помощь оказана как обещано.
+  ///
+  /// In ru, this message translates to:
+  /// **'Помог как обещал'**
+  String get reviewTagHelpedAsPromised;
+
+  /// Готовый тег: быстрые ответы.
+  ///
+  /// In ru, this message translates to:
+  /// **'Быстро отвечает'**
+  String get reviewTagResponsive;
+
+  /// Готовый тег: мероприятие было интересным.
+  ///
+  /// In ru, this message translates to:
+  /// **'Интересно'**
+  String get reviewTagInteresting;
+
+  /// Готовый тег: мероприятие хорошо организовано.
+  ///
+  /// In ru, this message translates to:
+  /// **'Хорошо организовано'**
+  String get reviewTagWellOrganized;
+
+  /// Готовый тег: организатор пунктуален.
+  ///
+  /// In ru, this message translates to:
+  /// **'Организатор пунктуален'**
+  String get reviewTagOrganizerPunctual;
+
+  /// Готовый тег: мероприятие прошло как заявлено.
+  ///
+  /// In ru, this message translates to:
+  /// **'Как и было заявлено'**
+  String get reviewTagAsDescribed;
+
+  /// Готовый тег: прозрачные условия покупки.
+  ///
+  /// In ru, this message translates to:
+  /// **'Прозрачные условия'**
+  String get reviewTagTransparentTerms;
+
+  /// Отказ review_forbidden.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отзыв может оставить только участник взаимодействия.'**
+  String get reviewErrorForbidden;
+
+  /// Отказ review_one_way.
+  ///
+  /// In ru, this message translates to:
+  /// **'Участники оценивают организатора; организатор не пишет отзыв.'**
+  String get reviewErrorOneWay;
+
+  /// Отказ review_unavailable.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отзыв доступен только после завершения взаимодействия.'**
+  String get reviewErrorUnavailable;
+
+  /// Отказ review_window_closed.
+  ///
+  /// In ru, this message translates to:
+  /// **'Окно отзыва закрылось.'**
+  String get reviewErrorWindowClosed;
+
+  /// Отказ review_exists.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вы уже оставили отзыв об этом взаимодействии.'**
+  String get reviewErrorExists;
+
+  /// Отказ review_published.
+  ///
+  /// In ru, this message translates to:
+  /// **'После раскрытия отзыв изменить нельзя.'**
+  String get reviewErrorPublished;
+
+  /// Отказ review_hidden.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отзыв скрыт модератором.'**
+  String get reviewErrorHidden;
+
+  /// Отказ review_rating_invalid.
+  ///
+  /// In ru, this message translates to:
+  /// **'Оценка — целое число звёзд от 1 до 5.'**
+  String get reviewErrorRating;
+
+  /// Отказ review_tags_invalid.
+  ///
+  /// In ru, this message translates to:
+  /// **'Эти теги не подходят к сценарию.'**
+  String get reviewErrorTags;
+
+  /// Отказ review_text_invalid.
+  ///
+  /// In ru, this message translates to:
+  /// **'Текст отзыва слишком длинный.'**
+  String get reviewErrorText;
+
+  /// Отказ review_reply_exists.
+  ///
+  /// In ru, this message translates to:
+  /// **'На отзыв уже ответили.'**
+  String get reviewErrorReplyExists;
+
+  /// Отказ review_reply_invalid.
+  ///
+  /// In ru, this message translates to:
+  /// **'Напишите ответ в пределах допустимой длины.'**
+  String get reviewErrorReplyInvalid;
+
+  /// Отказ not_found: отзыв скрыт или ещё не раскрыт.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отзыв пока недоступен.'**
+  String get reviewErrorNotFound;
+
+  /// Пункт профиля и заголовок списка отзывов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отзывы'**
+  String get profileReviews;
+
+  /// Заголовок списка опубликованных отзывов о себе.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отзывы обо мне'**
+  String get profileReviewsTitle;
+
+  /// Пояснение к списку публичных отзывов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Опубликованные отзывы о вас. Скрытые и нераскрытые отзывы здесь не показываются.'**
+  String get profileReviewsIntro;
+
+  /// Пустой список публичных отзывов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пока нет опубликованных отзывов.'**
+  String get profileReviewsEmpty;
+
+  /// Кнопка следующей страницы публичных отзывов.
+  ///
+  /// In ru, this message translates to:
+  /// **'Показать ещё'**
+  String get profileReviewsMore;
 }
 
 class _AppLocalizationsDelegate
