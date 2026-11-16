@@ -53,6 +53,7 @@ dev_dependencies:
   riverpod_generator: ^4.0.10
   swagger_parser: ^2.1.1
   url_launcher_platform_interface: ^2.3.2
+  widgetbook: 3.25.0
 
 flutter:
   generate: true

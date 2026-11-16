@@ -87,6 +87,30 @@ abstract final class CampusTheme {
           ),
         ),
       ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: ButtonStyle(
+          minimumSize: const WidgetStatePropertyAll(
+            Size(CampusGeometry.target, CampusGeometry.target),
+          ),
+          shape: WidgetStatePropertyAll(shape),
+        ),
+      ),
+      textButtonTheme: const TextButtonThemeData(
+        style: ButtonStyle(
+          minimumSize: WidgetStatePropertyAll(
+            Size(CampusGeometry.target, CampusGeometry.target),
+          ),
+        ),
+      ),
+      searchBarTheme: SearchBarThemeData(
+        elevation: const WidgetStatePropertyAll(0),
+        shape: WidgetStatePropertyAll(shape),
+      ),
+      dialogTheme: DialogThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(CampusGeometry.sheetRadius),
+        ),
+      ),
       iconButtonTheme: const IconButtonThemeData(
         style: ButtonStyle(
           minimumSize: WidgetStatePropertyAll(
