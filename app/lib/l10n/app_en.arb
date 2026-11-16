@@ -365,43 +365,96 @@
   "listingExtended": "The listing has been extended.",
   "@listingExtended": {},
   "listingCancel": "Cancel listing",
-  "@listingCancel": {"description": "Owner action that cancels a listing."},
+  "@listingCancel": {
+    "description": "Owner action that cancels a listing."
+  },
   "listingCancelTitle": "Cancel the listing?",
-  "@listingCancelTitle": {"description": "Title of the cancellation dialog."},
+  "@listingCancelTitle": {
+    "description": "Title of the cancellation dialog."
+  },
   "listingCancelBody": "The listing will close and accepted requests and reservations will be cancelled.",
-  "@listingCancelBody": {"description": "Explains what cancelling a listing does."},
+  "@listingCancelBody": {
+    "description": "Explains what cancelling a listing does."
+  },
   "listingCancelAcceptedWarning": "Accepted interactions: {count}. Participants will be notified with the reason.",
-  "@listingCancelAcceptedWarning": {"description": "The listing has accepted interactions; participants will be notified.", "placeholders": {"count": {"type": "int"}}},
+  "@listingCancelAcceptedWarning": {
+    "description": "The listing has accepted interactions; participants will be notified.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "listingCancelReason": "Cancellation reason",
-  "@listingCancelReason": {"description": "Label of the cancellation reason field."},
+  "@listingCancelReason": {
+    "description": "Label of the cancellation reason field."
+  },
   "listingCancelReasonRequired": "Enter a reason: the listing already has accepted interactions.",
-  "@listingCancelReasonRequired": {"description": "The reason is required after acceptance."},
+  "@listingCancelReasonRequired": {
+    "description": "The reason is required after acceptance."
+  },
   "listingCancelReasonMissing": "Enter a cancellation reason.",
-  "@listingCancelReasonMissing": {"description": "Validation error for an empty required reason."},
+  "@listingCancelReasonMissing": {
+    "description": "Validation error for an empty required reason."
+  },
   "listingCancelReasonTooLong": "The reason is longer than {max} characters.",
-  "@listingCancelReasonTooLong": {"description": "The cancellation reason exceeds the server limit.", "placeholders": {"max": {"type": "int"}}},
+  "@listingCancelReasonTooLong": {
+    "description": "The cancellation reason exceeds the server limit.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "listingCancelReasonInvalid": "Check the cancellation reason.",
-  "@listingCancelReasonInvalid": {"description": "The server rejected the cancellation reason."},
+  "@listingCancelReasonInvalid": {
+    "description": "The server rejected the cancellation reason."
+  },
   "listingCancelConfirm": "Cancel listing",
-  "@listingCancelConfirm": {"description": "Confirm button of the cancellation dialog."},
+  "@listingCancelConfirm": {
+    "description": "Confirm button of the cancellation dialog."
+  },
   "listingCancelKeep": "Keep",
-  "@listingCancelKeep": {"description": "Dismisses the cancellation dialog."},
+  "@listingCancelKeep": {
+    "description": "Dismisses the cancellation dialog."
+  },
   "listingCancelled": "Listing cancelled.",
-  "@listingCancelled": {"description": "Confirmation after cancelling a listing."},
+  "@listingCancelled": {
+    "description": "Confirmation after cancelling a listing."
+  },
   "listingCancelledByAuthor": "The author cancelled: {reason}",
-  "@listingCancelledByAuthor": {"description": "A participant sees why the author cancelled.", "placeholders": {"reason": {"type": "String"}}},
+  "@listingCancelledByAuthor": {
+    "description": "A participant sees why the author cancelled.",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "interactionCancelTitle": "Cancel the interaction?",
-  "@interactionCancelTitle": {"description": "Title of the participant cancellation warning."},
+  "@interactionCancelTitle": {
+    "description": "Title of the participant cancellation warning."
+  },
   "interactionCancelBody": "The request or reservation will be cancelled.",
-  "@interactionCancelBody": {"description": "Explains what cancelling an interaction does."},
+  "@interactionCancelBody": {
+    "description": "Explains what cancelling an interaction does."
+  },
   "interactionLateCancellation": "This is a late cancellation: it will be counted as late.",
-  "@interactionLateCancellation": {"description": "Warning before a late cancellation."},
+  "@interactionLateCancellation": {
+    "description": "Warning before a late cancellation."
+  },
   "interactionCancellationApproval": "The organiser must approve leaving.",
-  "@interactionCancellationApproval": {"description": "A fixed purchase share needs the organiser's approval."},
+  "@interactionCancellationApproval": {
+    "description": "A fixed purchase share needs the organiser's approval."
+  },
   "interactionCancelKeep": "Keep",
-  "@interactionCancelKeep": {"description": "Dismisses the late cancellation warning."},
+  "@interactionCancelKeep": {
+    "description": "Dismisses the late cancellation warning."
+  },
   "interactionCancelConfirm": "Cancel anyway",
-  "@interactionCancelConfirm": {"description": "Confirms the late cancellation anyway."},
+  "@interactionCancelConfirm": {
+    "description": "Confirms the late cancellation anyway."
+  },
   "meetingTitle": "Meeting",
   "meetingNotScheduled": "No meeting scheduled yet",
   "meetingCurrent": "Current meeting",
@@ -823,386 +876,854 @@
   "reservationUntilMeeting": "The hold is extended until the meeting: {time}",
   "reservationExpiredByDeadline": "The hold expired: no meeting was scheduled in time.",
   "exchangeOfferItem": "Offers: {description}",
-
   "listingKindSkill": "Skill",
-  "@listingKindSkill": {"description": "Listing kind name: skill."},
+  "@listingKindSkill": {
+    "description": "Listing kind name: skill."
+  },
   "skillDirection": "Direction",
-  "@skillDirection": {"description": "Field of the skill listing direction."},
+  "@skillDirection": {
+    "description": "Field of the skill listing direction."
+  },
   "skillCreateTitle": "New skill listing",
-  "@skillCreateTitle": {"description": "Title of the skill listing form."},
+  "@skillCreateTitle": {
+    "description": "Title of the skill listing form."
+  },
   "skillDirectionTeach": "I can teach",
-  "@skillDirectionTeach": {"description": "The author offers to teach a skill."},
+  "@skillDirectionTeach": {
+    "description": "The author offers to teach a skill."
+  },
   "skillDirectionLearn": "I want to learn",
-  "@skillDirectionLearn": {"description": "The author looks for someone to teach a skill."},
+  "@skillDirectionLearn": {
+    "description": "The author looks for someone to teach a skill."
+  },
   "skillDirectionRequired": "Choose what you can teach or want to learn.",
-  "@skillDirectionRequired": {"description": "The skill direction is not chosen."},
+  "@skillDirectionRequired": {
+    "description": "The skill direction is not chosen."
+  },
   "skillPublished": "The skill listing has been published.",
-  "@skillPublished": {"description": "The skill listing was created."},
+  "@skillPublished": {
+    "description": "The skill listing was created."
+  },
   "lessonOptionsTitle": "Time options",
-  "@lessonOptionsTitle": {"description": "Heading of the lesson time options."},
+  "@lessonOptionsTitle": {
+    "description": "Heading of the lesson time options."
+  },
   "lessonPropose": "Offer a lesson",
-  "@lessonPropose": {"description": "The participant offers a lesson with time options."},
+  "@lessonPropose": {
+    "description": "The participant offers a lesson with time options."
+  },
   "lessonProposeTitle": "Lesson time",
-  "@lessonProposeTitle": {"description": "Title of the lesson proposal form."},
+  "@lessonProposeTitle": {
+    "description": "Title of the lesson proposal form."
+  },
   "lessonRepeat": "Another lesson",
-  "@lessonRepeat": {"description": "Creates the next lesson with the same participant."},
+  "@lessonRepeat": {
+    "description": "Creates the next lesson with the same participant."
+  },
   "lessonRepeatTitle": "Another lesson with {name}",
-  "@lessonRepeatTitle": {"description": "Title of the repeated lesson form."},
+  "@lessonRepeatTitle": {
+    "description": "Title of the repeated lesson form."
+  },
   "lessonCounterpart": "With: {name}",
-  "@lessonCounterpart": {"description": "The other side of the repeated lesson."},
+  "@lessonCounterpart": {
+    "description": "The other side of the repeated lesson."
+  },
   "lessonOptionsHint": "Choose {min} to {max} time options.",
-  "@lessonOptionsHint": {"description": "Hint about the number of time options."},
+  "@lessonOptionsHint": {
+    "description": "Hint about the number of time options."
+  },
   "lessonOptionNumber": "Option {number}",
-  "@lessonOptionNumber": {"description": "Number of a lesson time option."},
+  "@lessonOptionNumber": {
+    "description": "Number of a lesson time option."
+  },
   "lessonAddOption": "Add a time option",
-  "@lessonAddOption": {"description": "Adds another time option."},
+  "@lessonAddOption": {
+    "description": "Adds another time option."
+  },
   "lessonRemoveOption": "Remove option",
-  "@lessonRemoveOption": {"description": "Removes a time option from the form."},
+  "@lessonRemoveOption": {
+    "description": "Removes a time option from the form."
+  },
   "lessonOptionsTooFew": "Add at least {min} time options.",
-  "@lessonOptionsTooFew": {"description": "There are fewer time options than allowed."},
+  "@lessonOptionsTooFew": {
+    "description": "There are fewer time options than allowed."
+  },
   "lessonOptionsTooMany": "A lesson can have at most {max} time options.",
-  "@lessonOptionsTooMany": {"description": "The time option limit is reached."},
+  "@lessonOptionsTooMany": {
+    "description": "The time option limit is reached."
+  },
   "lessonOptionsInvalid": "A lesson needs {min} to {max} time options in the future.",
-  "@lessonOptionsInvalid": {"description": "The server rejected the time options."},
+  "@lessonOptionsInvalid": {
+    "description": "The server rejected the time options."
+  },
   "lessonConflict": "The lesson has already been answered. Refresh the listing.",
-  "@lessonConflict": {"description": "The lesson was already handled."},
+  "@lessonConflict": {
+    "description": "The lesson was already handled."
+  },
   "lessonForbidden": "Only the author and the participant can answer the lesson.",
-  "@lessonForbidden": {"description": "The user may not act on the lesson."},
+  "@lessonForbidden": {
+    "description": "The user may not act on the lesson."
+  },
   "lessonOnline": "Online",
-  "@lessonOnline": {"description": "The lesson takes place online."},
+  "@lessonOnline": {
+    "description": "The lesson takes place online."
+  },
   "lessonOffline": "In person",
-  "@lessonOffline": {"description": "The lesson takes place in person."},
+  "@lessonOffline": {
+    "description": "The lesson takes place in person."
+  },
   "lessonOnlineSwitch": "Online meeting",
-  "@lessonOnlineSwitch": {"description": "Toggle of the online lesson format."},
+  "@lessonOnlineSwitch": {
+    "description": "Toggle of the online lesson format."
+  },
   "lessonPlaceLabel": "Lesson place",
-  "@lessonPlaceLabel": {"description": "Place field of an offline lesson."},
+  "@lessonPlaceLabel": {
+    "description": "Place field of an offline lesson."
+  },
   "lessonOptionProposed": "Awaiting response",
-  "@lessonOptionProposed": {"description": "The time option awaits an answer."},
+  "@lessonOptionProposed": {
+    "description": "The time option awaits an answer."
+  },
   "lessonOptionSelected": "Selected",
-  "@lessonOptionSelected": {"description": "The selected lesson time option."},
+  "@lessonOptionSelected": {
+    "description": "The selected lesson time option."
+  },
   "lessonOptionDeclined": "Declined",
-  "@lessonOptionDeclined": {"description": "The declined lesson time option."},
+  "@lessonOptionDeclined": {
+    "description": "The declined lesson time option."
+  },
   "lessonOptionByYou": "Your option",
-  "@lessonOptionByYou": {"description": "The time option was proposed by the current user."},
+  "@lessonOptionByYou": {
+    "description": "The time option was proposed by the current user."
+  },
   "lessonOptionByParticipant": "Participant's option",
-  "@lessonOptionByParticipant": {"description": "The time option was proposed by the participant."},
+  "@lessonOptionByParticipant": {
+    "description": "The time option was proposed by the participant."
+  },
   "lessonOptionByAuthor": "Author's option",
-  "@lessonOptionByAuthor": {"description": "The time option was proposed by the listing author."},
+  "@lessonOptionByAuthor": {
+    "description": "The time option was proposed by the listing author."
+  },
   "lessonAccept": "Choose this time",
-  "@lessonAccept": {"description": "Selects a lesson time option."},
+  "@lessonAccept": {
+    "description": "Selects a lesson time option."
+  },
   "lessonCounter": "Offer another time",
-  "@lessonCounter": {"description": "The author offers a counter time."},
+  "@lessonCounter": {
+    "description": "The author offers a counter time."
+  },
   "lessonCounterTitle": "Another time",
-  "@lessonCounterTitle": {"description": "Title of the counter-proposal form."},
+  "@lessonCounterTitle": {
+    "description": "Title of the counter-proposal form."
+  },
   "lessonSend": "Send",
-  "@lessonSend": {"description": "Sends the lesson time options."},
+  "@lessonSend": {
+    "description": "Sends the lesson time options."
+  },
   "lessonSent": "Lesson offered.",
-  "@lessonSent": {"description": "The lesson request was sent."},
+  "@lessonSent": {
+    "description": "The lesson request was sent."
+  },
   "lessonCounterSent": "Another time offered.",
-  "@lessonCounterSent": {"description": "The counter-proposal was sent."},
+  "@lessonCounterSent": {
+    "description": "The counter-proposal was sent."
+  },
   "lessonAccepted": "Lesson scheduled.",
-  "@lessonAccepted": {"description": "The time option was selected and the meeting scheduled."},
+  "@lessonAccepted": {
+    "description": "The time option was selected and the meeting scheduled."
+  },
   "lessonRepeated": "Another lesson offered.",
-  "@lessonRepeated": {"description": "The next lesson was created."},
+  "@lessonRepeated": {
+    "description": "The next lesson was created."
+  },
   "lessonNoOptions": "There are no time options.",
-  "@lessonNoOptions": {"description": "The lesson has no time options."},
+  "@lessonNoOptions": {
+    "description": "The lesson has no time options."
+  },
   "lessonAwaitingAnswer": "Waiting for the author",
-  "@lessonAwaitingAnswer": {"description": "The participant awaits the answer."},
+  "@lessonAwaitingAnswer": {
+    "description": "The participant awaits the answer."
+  },
   "lessonAwaitingYourAnswer": "Waiting for your response",
-  "@lessonAwaitingYourAnswer": {"description": "The author must answer the participant's options."},
+  "@lessonAwaitingYourAnswer": {
+    "description": "The author must answer the participant's options."
+  },
   "lessonAwaitingParticipant": "Waiting for the participant",
-  "@lessonAwaitingParticipant": {"description": "The author awaits the participant's answer."},
+  "@lessonAwaitingParticipant": {
+    "description": "The author awaits the participant's answer."
+  },
   "lessonResponseDue": "Answer by {time}",
-  "@lessonResponseDue": {"description": "The author response deadline."},
+  "@lessonResponseDue": {
+    "description": "The author response deadline."
+  },
   "meetingOnline": "Online meeting",
-  "@meetingOnline": {"description": "The meeting takes place online without a place."},
-
+  "@meetingOnline": {
+    "description": "The meeting takes place online without a place."
+  },
   "listingKindHelp": "Help request",
-  "@listingKindHelp": {"description": "Listing kind name: help request."},
+  "@listingKindHelp": {
+    "description": "Listing kind name: help request."
+  },
   "feedCreateHelp": "Ask for help",
-  "@feedCreateHelp": {"description": "Entry point to a new help request."},
+  "@feedCreateHelp": {
+    "description": "Entry point to a new help request."
+  },
   "helpCreateTitle": "New help request",
-  "@helpCreateTitle": {"description": "Title of the help request form."},
+  "@helpCreateTitle": {
+    "description": "Title of the help request form."
+  },
   "helpPublished": "The help request has been published.",
-  "@helpPublished": {"description": "The help request was created."},
+  "@helpPublished": {
+    "description": "The help request was created."
+  },
   "helpDeadline": "Relevant until",
-  "@helpDeadline": {"description": "Field of the help request relevance deadline."},
+  "@helpDeadline": {
+    "description": "Field of the help request relevance deadline."
+  },
   "helpDeadlinePast": "Choose a future deadline.",
-  "@helpDeadlinePast": {"description": "The relevance deadline is in the past."},
+  "@helpDeadlinePast": {
+    "description": "The relevance deadline is in the past."
+  },
   "helpDeadlineInvalid": "The deadline must be in the future and no later than the listing lifetime.",
-  "@helpDeadlineInvalid": {"description": "The server rejected the relevance deadline."},
+  "@helpDeadlineInvalid": {
+    "description": "The server rejected the relevance deadline."
+  },
   "helpRespond": "Respond",
-  "@helpRespond": {"description": "Applies to a help request."},
+  "@helpRespond": {
+    "description": "Applies to a help request."
+  },
   "helpResponded": "Response sent.",
-  "@helpResponded": {"description": "The application to a help request was sent."},
+  "@helpResponded": {
+    "description": "The application to a help request was sent."
+  },
   "helpApplicationPending": "Your response is waiting for the author.",
-  "@helpApplicationPending": {"description": "The application is pending while the request is active."},
+  "@helpApplicationPending": {
+    "description": "The application is pending while the request is active."
+  },
   "helpReserve": "Reserve",
-  "@helpReserve": {"description": "An application kept in reserve behind the selected executor."},
+  "@helpReserve": {
+    "description": "An application kept in reserve behind the selected executor."
+  },
   "helpReserveNotice": "An executor is already selected; you remain in the reserve.",
-  "@helpReserveNotice": {"description": "The respondent is kept in reserve because an executor was chosen."},
+  "@helpReserveNotice": {
+    "description": "The respondent is kept in reserve because an executor was chosen."
+  },
   "helpExecutor": "Executor",
-  "@helpExecutor": {"description": "The selected executor of a help request."},
+  "@helpExecutor": {
+    "description": "The selected executor of a help request."
+  },
   "helpYouAreExecutor": "You are the executor.",
-  "@helpYouAreExecutor": {"description": "The current user was selected as the executor."},
+  "@helpYouAreExecutor": {
+    "description": "The current user was selected as the executor."
+  },
   "helpSelectExecutor": "Choose executor",
-  "@helpSelectExecutor": {"description": "The author selects one application as the executor."},
+  "@helpSelectExecutor": {
+    "description": "The author selects one application as the executor."
+  },
   "helpSelected": "The executor has been selected.",
-  "@helpSelected": {"description": "The author selected an executor."},
+  "@helpSelected": {
+    "description": "The author selected an executor."
+  },
   "helpConflict": "The help request has already changed. Refresh the listing.",
-  "@helpConflict": {"description": "The help request changed after it was loaded."},
+  "@helpConflict": {
+    "description": "The help request changed after it was loaded."
+  },
   "helpForbidden": "You cannot act on this help request.",
-  "@helpForbidden": {"description": "The user may not act on this help request."},
+  "@helpForbidden": {
+    "description": "The user may not act on this help request."
+  },
   "helpIncoming": "Responses",
-  "@helpIncoming": {"description": "Heading of the applications to a help request."},
+  "@helpIncoming": {
+    "description": "Heading of the applications to a help request."
+  },
   "helpDeadlineHint": "Not later than the listing lifetime ({days} days).",
-  "@helpDeadlineHint": {"description": "Hint about the earliest acceptable deadline.", "placeholders": {"days": {"type": "int"}}},
+  "@helpDeadlineHint": {
+    "description": "Hint about the earliest acceptable deadline.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "helpDeadlineTooLate": "The deadline cannot be later than {days} days.",
-  "@helpDeadlineTooLate": {"description": "The deadline exceeds the listing lifetime.", "placeholders": {"days": {"type": "int"}}},
+  "@helpDeadlineTooLate": {
+    "description": "The deadline exceeds the listing lifetime.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "helpRelevantUntil": "Relevant until {date}",
-  "@helpRelevantUntil": {"description": "Relevance deadline shown on a help request."},
-
+  "@helpRelevantUntil": {
+    "description": "Relevance deadline shown on a help request."
+  },
   "chatsTitle": "Chats",
-  "@chatsTitle": {"description":  "Title of the personal chats list."},
+  "@chatsTitle": {
+    "description": "Title of the personal chats list."
+  },
   "chatsEmpty": "No chats yet. Write to the author of a listing.",
-  "@chatsEmpty": {"description":  "Empty personal chats list."},
+  "@chatsEmpty": {
+    "description": "Empty personal chats list."
+  },
   "chatsNoMessages": "No messages yet",
-  "@chatsNoMessages": {"description":  "The chat has no messages yet."},
+  "@chatsNoMessages": {
+    "description": "The chat has no messages yet."
+  },
   "chatsUnnamed": "Chat",
-  "@chatsUnnamed": {"description":  "The other participant's name is not available."},
+  "@chatsUnnamed": {
+    "description": "The other participant's name is not available."
+  },
   "chatTitle": "Chat",
-  "@chatTitle": {"description":  "Title of a personal chat without the participant name."},
+  "@chatTitle": {
+    "description": "Title of a personal chat without the participant name."
+  },
   "chatEmpty": "No messages yet. Say hello.",
-  "@chatEmpty": {"description":  "Empty personal chat history."},
+  "@chatEmpty": {
+    "description": "Empty personal chat history."
+  },
   "chatInputHint": "Message",
-  "@chatInputHint": {"description":  "Hint of the message input field."},
+  "@chatInputHint": {
+    "description": "Hint of the message input field."
+  },
   "chatSend": "Send",
-  "@chatSend": {"description":  "Sends the message."},
+  "@chatSend": {
+    "description": "Sends the message."
+  },
   "chatMessageEmpty": "Enter a message.",
-  "@chatMessageEmpty": {"description":  "The message text is empty."},
+  "@chatMessageEmpty": {
+    "description": "The message text is empty."
+  },
   "chatMessageTooLong": "The message is longer than {max} characters.",
-  "@chatMessageTooLong": {"description":  "The message exceeds the allowed length.", "placeholders":  {"max":  {"type":  "int"}}},
+  "@chatMessageTooLong": {
+    "description": "The message exceeds the allowed length.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "chatMessageSending": "Sending…",
-  "@chatMessageSending": {"description":  "The message is being sent to the server."},
+  "@chatMessageSending": {
+    "description": "The message is being sent to the server."
+  },
   "chatMessageWaiting": "Waiting to be sent",
-  "@chatMessageWaiting": {"description":  "The queued message is waiting for the network."},
+  "@chatMessageWaiting": {
+    "description": "The queued message is waiting for the network."
+  },
   "chatMessageFailed": "Not sent",
-  "@chatMessageFailed": {"description":  "The message was not sent because of an error."},
+  "@chatMessageFailed": {
+    "description": "The message was not sent because of an error."
+  },
   "chatMessageRetry": "Retry",
-  "@chatMessageRetry": {"description":  "Retries sending the message."},
+  "@chatMessageRetry": {
+    "description": "Retries sending the message."
+  },
   "chatMessageDiscard": "Delete",
-  "@chatMessageDiscard": {"description":  "Discards an unsent message from the queue."},
+  "@chatMessageDiscard": {
+    "description": "Discards an unsent message from the queue."
+  },
   "chatLoadMoreFailed": "Could not load more chats.",
-  "@chatLoadMoreFailed": {"description":  "The next page of dialogs failed to load."},
+  "@chatLoadMoreFailed": {
+    "description": "The next page of dialogs failed to load."
+  },
   "chatLoadOlderFailed": "Could not load earlier messages.",
-  "@chatLoadOlderFailed": {"description":  "The previous page of the chat history failed to load."},
+  "@chatLoadOlderFailed": {
+    "description": "The previous page of the chat history failed to load."
+  },
   "chatSyncFailed": "Could not refresh the chat.",
-  "@chatSyncFailed": {"description":  "A realtime update failed to load the missed messages."},
+  "@chatSyncFailed": {
+    "description": "A realtime update failed to load the missed messages."
+  },
   "chatLoadOlder": "Show earlier",
-  "@chatLoadOlder": {"description":  "Loads the previous page of the history."},
+  "@chatLoadOlder": {
+    "description": "Loads the previous page of the history."
+  },
   "chatStart": "Write a message",
-  "@chatStart": {"description":  "Opens a personal chat with the author of a listing."},
+  "@chatStart": {
+    "description": "Opens a personal chat with the author of a listing."
+  },
   "chatNotFound": "Chat unavailable",
-  "@chatNotFound": {"description":  "The chat does not exist or is not available."},
+  "@chatNotFound": {
+    "description": "The chat does not exist or is not available."
+  },
   "chatForbiddenAlumni": "Alumni can write only in existing chats.",
-  "@chatForbiddenAlumni": {"description":  "An alumni cannot create a new chat."},
+  "@chatForbiddenAlumni": {
+    "description": "An alumni cannot create a new chat."
+  },
   "chatFailureConflict": "This message was already sent with different text.",
-  "@chatFailureConflict": {"description":  "One message identifier was used with another text."},
+  "@chatFailureConflict": {
+    "description": "One message identifier was used with another text."
+  },
   "chatFailureInvalid": "The message was not sent: check the text.",
-  "@chatFailureInvalid": {"description":  "The server rejected the message text."},
+  "@chatFailureInvalid": {
+    "description": "The server rejected the message text."
+  },
   "chatFailureRateLimited": "Too many messages. Try again later.",
-  "@chatFailureRateLimited": {"description":  "The message rate limit was exceeded."},
+  "@chatFailureRateLimited": {
+    "description": "The message rate limit was exceeded."
+  },
   "chatFailureNetwork": "No network. The message will be sent when the connection returns.",
-  "@chatFailureNetwork": {"description":  "The message is waiting for the network."},
+  "@chatFailureNetwork": {
+    "description": "The message is waiting for the network."
+  },
   "chatFailureForbidden": "You can't write in this chat.",
-  "@chatFailureForbidden": {"description":  "The action in the chat is forbidden."},
+  "@chatFailureForbidden": {
+    "description": "The action in the chat is forbidden."
+  },
   "chatFailureUnauthorized": "Your session has expired. Sign in again.",
-  "@chatFailureUnauthorized": {"description":  "The session ended and the message was not sent."},
+  "@chatFailureUnauthorized": {
+    "description": "The session ended and the message was not sent."
+  },
   "chatFailureServer": "The message was not sent: the server is unavailable.",
-  "@chatFailureServer": {"description":  "A temporary server error while sending."},
+  "@chatFailureServer": {
+    "description": "A temporary server error while sending."
+  },
   "chatFailureUnexpected": "The message was not sent. Try again.",
-  "@chatFailureUnexpected": {"description":  "An unknown sending error."},
+  "@chatFailureUnexpected": {
+    "description": "An unknown sending error."
+  },
   "chatSearchTitle": "Search chats",
-  "@chatSearchTitle": {"description":  "Title of the chat message search screen."},
+  "@chatSearchTitle": {
+    "description": "Title of the chat message search screen."
+  },
   "chatSearchHint": "Word or phrase",
-  "@chatSearchHint": {"description":  "Hint of the chat search input."},
+  "@chatSearchHint": {
+    "description": "Hint of the chat search input."
+  },
   "chatSearchClear": "Clear search",
-  "@chatSearchClear": {"description":  "Clears the chat search query and results."},
+  "@chatSearchClear": {
+    "description": "Clears the chat search query and results."
+  },
   "chatSearchPrompt": "Type a word or phrase to find messages in your chats.",
-  "@chatSearchPrompt": {"description":  "Initial state of the chat search before a query."},
+  "@chatSearchPrompt": {
+    "description": "Initial state of the chat search before a query."
+  },
   "chatSearchEmpty": "Nothing found for “{query}”.",
-  "@chatSearchEmpty": {"description":  "The search returned no messages.", "placeholders":  {"query":  {"type":  "String"}}},
+  "@chatSearchEmpty": {
+    "description": "The search returned no messages.",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "chatSearchFailed": "Could not search chats. Try again.",
-  "@chatSearchFailed": {"description":  "The first search page failed."},
+  "@chatSearchFailed": {
+    "description": "The first search page failed."
+  },
   "chatSearchNetwork": "No network. Check the connection and search again.",
-  "@chatSearchNetwork": {"description":  "The chat search failed because the device is offline."},
+  "@chatSearchNetwork": {
+    "description": "The chat search failed because the device is offline."
+  },
   "chatSearchTooLong": "The search query is too long. Shorten it.",
-  "@chatSearchTooLong": {"description":  "The server rejected an over-limit chat search query."},
+  "@chatSearchTooLong": {
+    "description": "The server rejected an over-limit chat search query."
+  },
   "chatSearchLoadMore": "Load more",
-  "@chatSearchLoadMore": {"description":  "Loads the next page of chat search results."},
+  "@chatSearchLoadMore": {
+    "description": "Loads the next page of chat search results."
+  },
   "chatSearchLoadMoreFailed": "Could not load more results.",
-  "@chatSearchLoadMoreFailed": {"description":  "The next page of chat search results failed to load."},
+  "@chatSearchLoadMoreFailed": {
+    "description": "The next page of chat search results failed to load."
+  },
   "chatSearchMessageUnavailable": "The found message is no longer available.",
-  "@chatSearchMessageUnavailable": {"description":  "The context of a search hit could not be loaded."},
+  "@chatSearchMessageUnavailable": {
+    "description": "The context of a search hit could not be loaded."
+  },
   "profileChats": "My chats",
-  "@profileChats": {"description":  "Opens personal chats from the profile."},
+  "@profileChats": {
+    "description": "Opens personal chats from the profile."
+  },
   "listingKindPurchase": "Group purchase",
-  "@listingKindPurchase": {"description": "Listing kind name: group purchase."},
+  "@listingKindPurchase": {
+    "description": "Listing kind name: group purchase."
+  },
   "purchaseCreateTitle": "New group purchase",
-  "@purchaseCreateTitle": {"description": "Title of the group purchase form."},
+  "@purchaseCreateTitle": {
+    "description": "Title of the group purchase form."
+  },
   "purchasePublished": "The group purchase has been published.",
-  "@purchasePublished": {"description": "The group purchase was created."},
+  "@purchasePublished": {
+    "description": "The group purchase was created."
+  },
   "purchasePrice": "Price per unit",
-  "@purchasePrice": {"description": "Field of the unit price of a group purchase."},
+  "@purchasePrice": {
+    "description": "Field of the unit price of a group purchase."
+  },
   "purchasePriceInvalid": "Enter a positive price with at most two decimal places.",
-  "@purchasePriceInvalid": {"description": "The unit price is invalid."},
+  "@purchasePriceInvalid": {
+    "description": "The unit price is invalid."
+  },
   "purchaseMinUnits": "Minimum volume",
-  "@purchaseMinUnits": {"description": "Field of the minimum volume of a purchase."},
+  "@purchaseMinUnits": {
+    "description": "Field of the minimum volume of a purchase."
+  },
   "purchaseMaxUnits": "Maximum volume",
-  "@purchaseMaxUnits": {"description": "Field of the maximum volume of a purchase."},
+  "@purchaseMaxUnits": {
+    "description": "Field of the maximum volume of a purchase."
+  },
   "purchaseMinInvalid": "The volume must be at least 1.",
-  "@purchaseMinInvalid": {"description": "The minimum volume is invalid."},
+  "@purchaseMinInvalid": {
+    "description": "The minimum volume is invalid."
+  },
   "purchaseMaxBelowMin": "The maximum cannot be below the minimum ({min}).",
-  "@purchaseMaxBelowMin": {"description": "The maximum volume is below the minimum.", "placeholders": {"min": {"type": "int"}}},
+  "@purchaseMaxBelowMin": {
+    "description": "The maximum volume is below the minimum.",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
   "purchaseCollectionDeadline": "Collect until",
-  "@purchaseCollectionDeadline": {"description": "Field of the collection deadline."},
+  "@purchaseCollectionDeadline": {
+    "description": "Field of the collection deadline."
+  },
   "purchaseDeadlinePast": "Choose a future collection deadline.",
-  "@purchaseDeadlinePast": {"description": "The collection deadline is in the past."},
+  "@purchaseDeadlinePast": {
+    "description": "The collection deadline is in the past."
+  },
   "purchaseDeadlineTooLate": "The collection deadline cannot be later than {days} days.",
-  "@purchaseDeadlineTooLate": {"description": "The collection deadline exceeds the listing lifetime.", "placeholders": {"days": {"type": "int"}}},
+  "@purchaseDeadlineTooLate": {
+    "description": "The collection deadline exceeds the listing lifetime.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "purchaseStageCollecting": "Collecting shares",
-  "@purchaseStageCollecting": {"description": "The purchase is collecting shares."},
+  "@purchaseStageCollecting": {
+    "description": "The purchase is collecting shares."
+  },
   "purchaseStageFixed": "Composition fixed",
-  "@purchaseStageFixed": {"description": "The purchase composition is fixed."},
+  "@purchaseStageFixed": {
+    "description": "The purchase composition is fixed."
+  },
   "purchaseStageCancelled": "Purchase cancelled",
-  "@purchaseStageCancelled": {"description": "The purchase was cancelled."},
+  "@purchaseStageCancelled": {
+    "description": "The purchase was cancelled."
+  },
   "purchaseUnitPriceValue": "Price per unit: {price}",
-  "@purchaseUnitPriceValue": {"description": "Unit price on a purchase card.", "placeholders": {"price": {"type": "String"}}},
+  "@purchaseUnitPriceValue": {
+    "description": "Unit price on a purchase card.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "purchaseCollected": "Collected {taken} of {limit} units",
-  "@purchaseCollected": {"description": "Collected volume of a purchase.", "placeholders": {"taken": {"type": "int"}, "limit": {"type": "int"}}},
+  "@purchaseCollected": {
+    "description": "Collected volume of a purchase.",
+    "placeholders": {
+      "taken": {
+        "type": "int"
+      },
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
   "purchaseMinimumValue": "Minimum volume: {min} units",
-  "@purchaseMinimumValue": {"description": "Minimum volume of a purchase.", "placeholders": {"min": {"type": "int"}}},
+  "@purchaseMinimumValue": {
+    "description": "Minimum volume of a purchase.",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
   "purchaseFixedUnitsValue": "Fixed: {units} units",
-  "@purchaseFixedUnitsValue": {"description": "Fixed volume of a purchase.", "placeholders": {"units": {"type": "int"}}},
+  "@purchaseFixedUnitsValue": {
+    "description": "Fixed volume of a purchase.",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
   "purchaseCollectionDeadlineValue": "Collect until {date}",
-  "@purchaseCollectionDeadlineValue": {"description": "Collection deadline on a purchase card.", "placeholders": {"date": {"type": "String"}}},
+  "@purchaseCollectionDeadlineValue": {
+    "description": "Collection deadline on a purchase card.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "purchaseShareTitle": "Your share",
-  "@purchaseShareTitle": {"description": "Heading of the own share of a purchase."},
+  "@purchaseShareTitle": {
+    "description": "Heading of the own share of a purchase."
+  },
   "purchaseShareAvailable": "Available: {available} units",
-  "@purchaseShareAvailable": {"description": "Free volume available to take.", "placeholders": {"available": {"type": "int"}}},
+  "@purchaseShareAvailable": {
+    "description": "Free volume available to take.",
+    "placeholders": {
+      "available": {
+        "type": "int"
+      }
+    }
+  },
   "purchaseShareInput": "Units",
-  "@purchaseShareInput": {"description": "Field of the number of units in a share."},
+  "@purchaseShareInput": {
+    "description": "Field of the number of units in a share."
+  },
   "purchaseShareAmount": "Amount: {amount}",
-  "@purchaseShareAmount": {"description": "Amount of a purchase share.", "placeholders": {"amount": {"type": "String"}}},
+  "@purchaseShareAmount": {
+    "description": "Amount of a purchase share.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "purchaseNewAmount": "New amount: {amount}",
-  "@purchaseNewAmount": {"description": "Amount the changed share would cost.", "placeholders": {"amount": {"type": "String"}}},
+  "@purchaseNewAmount": {
+    "description": "Amount the changed share would cost.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "purchaseShareJoin": "Take a share",
-  "@purchaseShareJoin": {"description": "Takes a share of a purchase."},
+  "@purchaseShareJoin": {
+    "description": "Takes a share of a purchase."
+  },
   "purchaseShareJoined": "You took a share of the purchase.",
-  "@purchaseShareJoined": {"description": "The share was taken."},
+  "@purchaseShareJoined": {
+    "description": "The share was taken."
+  },
   "purchaseShareChange": "Change share",
-  "@purchaseShareChange": {"description": "Changes the number of units of a share."},
+  "@purchaseShareChange": {
+    "description": "Changes the number of units of a share."
+  },
   "purchaseShareChanged": "The share has been changed.",
-  "@purchaseShareChanged": {"description": "The share was changed."},
+  "@purchaseShareChanged": {
+    "description": "The share was changed."
+  },
   "purchaseShareLeave": "Leave purchase",
-  "@purchaseShareLeave": {"description": "Leaves a purchase while collecting."},
+  "@purchaseShareLeave": {
+    "description": "Leaves a purchase while collecting."
+  },
   "purchaseShareLeft": "You left the purchase.",
-  "@purchaseShareLeft": {"description": "The participant left the purchase."},
+  "@purchaseShareLeft": {
+    "description": "The participant left the purchase."
+  },
   "purchaseShareUnits": "Share: {units} units",
-  "@purchaseShareUnits": {"description": "Number of units in a share.", "placeholders": {"units": {"type": "int"}}},
+  "@purchaseShareUnits": {
+    "description": "Number of units in a share.",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
   "purchaseShareNoUnits": "No units are left.",
-  "@purchaseShareNoUnits": {"description": "No free volume is left in the purchase."},
+  "@purchaseShareNoUnits": {
+    "description": "No free volume is left in the purchase."
+  },
   "purchaseUnitsPositive": "Enter at least one unit.",
-  "@purchaseUnitsPositive": {"description": "The share must contain at least one unit."},
+  "@purchaseUnitsPositive": {
+    "description": "The share must contain at least one unit."
+  },
   "purchaseUnitsUnavailable": "Only {available} units are available.",
-  "@purchaseUnitsUnavailable": {"description": "The requested share exceeds the free volume.", "placeholders": {"available": {"type": "int"}}},
+  "@purchaseUnitsUnavailable": {
+    "description": "The requested share exceeds the free volume.",
+    "placeholders": {
+      "available": {
+        "type": "int"
+      }
+    }
+  },
   "purchaseLeaveApprovalRequired": "After the composition is fixed, leaving needs the organiser's approval.",
-  "@purchaseLeaveApprovalRequired": {"description": "A fixed purchase requires the organiser's approval to leave."},
+  "@purchaseLeaveApprovalRequired": {
+    "description": "A fixed purchase requires the organiser's approval to leave."
+  },
   "purchaseLeaveRequest": "Request to leave",
-  "@purchaseLeaveRequest": {"description": "Asks the organiser to leave a fixed purchase."},
+  "@purchaseLeaveRequest": {
+    "description": "Asks the organiser to leave a fixed purchase."
+  },
   "purchaseLeaveRequestSent": "The leave request has been sent to the organiser.",
-  "@purchaseLeaveRequestSent": {"description": "The leave request was sent."},
+  "@purchaseLeaveRequestSent": {
+    "description": "The leave request was sent."
+  },
   "purchaseLeaveRequestPending": "The leave request is waiting for the organiser.",
-  "@purchaseLeaveRequestPending": {"description": "The leave request is pending."},
+  "@purchaseLeaveRequestPending": {
+    "description": "The leave request is pending."
+  },
   "purchaseLeaveCancel": "Cancel request",
-  "@purchaseLeaveCancel": {"description": "Cancels the leave request of the participant."},
+  "@purchaseLeaveCancel": {
+    "description": "Cancels the leave request of the participant."
+  },
   "purchaseLeaveRequestCancelled": "The leave request has been cancelled.",
-  "@purchaseLeaveRequestCancelled": {"description": "The leave request was cancelled."},
+  "@purchaseLeaveRequestCancelled": {
+    "description": "The leave request was cancelled."
+  },
   "purchaseCompositionTitle": "Purchase composition",
-  "@purchaseCompositionTitle": {"description": "Heading of the purchase composition for the organiser."},
+  "@purchaseCompositionTitle": {
+    "description": "Heading of the purchase composition for the organiser."
+  },
   "purchaseCompositionEmpty": "Nobody has taken a share yet.",
-  "@purchaseCompositionEmpty": {"description": "No shares have been taken yet."},
+  "@purchaseCompositionEmpty": {
+    "description": "No shares have been taken yet."
+  },
   "purchaseCompositionTotal": "Total: {units} units, {amount}",
-  "@purchaseCompositionTotal": {"description": "Total volume and amount of a purchase.", "placeholders": {"units": {"type": "int"}, "amount": {"type": "String"}}},
+  "@purchaseCompositionTotal": {
+    "description": "Total volume and amount of a purchase.",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "purchaseLeaveRequestedBy": "Asked to leave",
-  "@purchaseLeaveRequestedBy": {"description": "A participant asked to leave a fixed purchase."},
+  "@purchaseLeaveRequestedBy": {
+    "description": "A participant asked to leave a fixed purchase."
+  },
   "purchaseLeaveApprove": "Approve leave",
-  "@purchaseLeaveApprove": {"description": "The organiser approves leaving."},
+  "@purchaseLeaveApprove": {
+    "description": "The organiser approves leaving."
+  },
   "purchaseLeaveReject": "Reject",
-  "@purchaseLeaveReject": {"description": "The organiser rejects the leave request."},
+  "@purchaseLeaveReject": {
+    "description": "The organiser rejects the leave request."
+  },
   "purchaseLeaveApproved": "The leave has been approved.",
-  "@purchaseLeaveApproved": {"description": "The leave request was approved."},
+  "@purchaseLeaveApproved": {
+    "description": "The leave request was approved."
+  },
   "purchaseLeaveRejected": "The leave request has been rejected.",
-  "@purchaseLeaveRejected": {"description": "The leave request was rejected."},
+  "@purchaseLeaveRejected": {
+    "description": "The leave request was rejected."
+  },
   "purchaseShareExists": "You already have a share of this purchase.",
-  "@purchaseShareExists": {"description": "The account already holds a share."},
+  "@purchaseShareExists": {
+    "description": "The account already holds a share."
+  },
   "purchaseVolumeInvalid": "Check the price and volume bounds of the purchase.",
-  "@purchaseVolumeInvalid": {"description": "The server rejected the price or volume bounds."},
+  "@purchaseVolumeInvalid": {
+    "description": "The server rejected the price or volume bounds."
+  },
   "purchaseDeadlineInvalid": "The collection deadline must be in the future and no later than the listing lifetime.",
-  "@purchaseDeadlineInvalid": {"description": "The server rejected the collection deadline."},
+  "@purchaseDeadlineInvalid": {
+    "description": "The server rejected the collection deadline."
+  },
   "purchaseLeaveRequestMissing": "There is no leave request.",
-  "@purchaseLeaveRequestMissing": {"description": "There is no leave request to act on."},
+  "@purchaseLeaveRequestMissing": {
+    "description": "There is no leave request to act on."
+  },
   "purchaseNotFixed": "The purchase composition is not fixed yet.",
-  "@purchaseNotFixed": {"description": "The purchase is not fixed yet."},
+  "@purchaseNotFixed": {
+    "description": "The purchase is not fixed yet."
+  },
   "purchaseCapacityConflict": "The purchase volume has already changed. Refresh the card.",
-  "@purchaseCapacityConflict": {"description": "The purchase volume conflicts with new conditions."},
+  "@purchaseCapacityConflict": {
+    "description": "The purchase volume conflicts with new conditions."
+  },
   "purchaseCollectionClosed": "The collection is closed.",
-  "@purchaseCollectionClosed": {"description": "The purchase no longer collects shares."},
+  "@purchaseCollectionClosed": {
+    "description": "The purchase no longer collects shares."
+  },
   "purchaseManageShare": "Change your share on the purchase card.",
-  "@purchaseManageShare": {"description": "A purchase share is managed on the listing card."},
-
+  "@purchaseManageShare": {
+    "description": "A purchase share is managed on the listing card."
+  },
   "profilePrivacy": "Privacy",
-  "@profilePrivacy": {"description": "Section of the own profile with privacy links."},
+  "@profilePrivacy": {
+    "description": "Section of the own profile with privacy links."
+  },
   "messagePolicyTitle": "Who can message me",
-  "@messagePolicyTitle": {"description": "Title of the incoming message policy screen."},
+  "@messagePolicyTitle": {
+    "description": "Title of the incoming message policy screen."
+  },
   "messagePolicyIntro": "This setting applies on all your devices.",
-  "@messagePolicyIntro": {"description": "Explains that the policy is stored on the server."},
+  "@messagePolicyIntro": {
+    "description": "Explains that the policy is stored on the server."
+  },
   "messagePolicyAll": "Everyone",
-  "@messagePolicyAll": {"description": "Policy: anybody may start a personal chat."},
+  "@messagePolicyAll": {
+    "description": "Policy: anybody may start a personal chat."
+  },
   "messagePolicyAllHint": "Any student or employee can start a personal chat with you.",
-  "@messagePolicyAllHint": {"description": "Explanation of the everyone policy."},
+  "@messagePolicyAllHint": {
+    "description": "Explanation of the everyone policy."
+  },
   "messagePolicyRelated": "Only people with a listing or interaction",
-  "@messagePolicyRelated": {"description": "Policy: only related users may start a personal chat."},
+  "@messagePolicyRelated": {
+    "description": "Policy: only related users may start a personal chat."
+  },
   "messagePolicyRelatedHint": "Only people who share a listing or a started interaction with you can write.",
-  "@messagePolicyRelatedHint": {"description": "Explanation of the related-only policy."},
+  "@messagePolicyRelatedHint": {
+    "description": "Explanation of the related-only policy."
+  },
   "blockedUsersTitle": "Blocked users",
-  "@blockedUsersTitle": {"description": "Title of the blacklist screen."},
+  "@blockedUsersTitle": {
+    "description": "Title of the blacklist screen."
+  },
   "blockedUsersEmpty": "No one is blocked yet.",
-  "@blockedUsersEmpty": {"description": "Empty state of the blacklist."},
+  "@blockedUsersEmpty": {
+    "description": "Empty state of the blacklist."
+  },
   "blockedUsersBlockedAt": "Blocked on {date}",
-  "@blockedUsersBlockedAt": {"description": "When a user was blocked.", "placeholders": {"date": {"type": "String"}}},
+  "@blockedUsersBlockedAt": {
+    "description": "When a user was blocked.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "blockedUsersMore": "Load more",
-  "@blockedUsersMore": {"description": "Loads the next blacklist page."},
+  "@blockedUsersMore": {
+    "description": "Loads the next blacklist page."
+  },
   "blockedUsersUnblock": "Unblock",
-  "@blockedUsersUnblock": {"description": "Action that removes a block."},
+  "@blockedUsersUnblock": {
+    "description": "Action that removes a block."
+  },
   "chatBlock": "Block",
-  "@chatBlock": {"description": "Action that blocks the other chat participant."},
+  "@chatBlock": {
+    "description": "Action that blocks the other chat participant."
+  },
   "chatUnblock": "Unblock",
-  "@chatUnblock": {"description": "Action that unblocks the other chat participant."},
+  "@chatUnblock": {
+    "description": "Action that unblocks the other chat participant."
+  },
   "chatBlockTitle": "Block this user?",
-  "@chatBlockTitle": {"description": "Title of the block confirmation dialog."},
+  "@chatBlockTitle": {
+    "description": "Title of the block confirmation dialog."
+  },
   "chatBlockExplanation": "New personal messages and responses in both directions will be unavailable. Started interactions and the chat history stay available.",
-  "@chatBlockExplanation": {"description": "Explains what blocking does and does not do."},
+  "@chatBlockExplanation": {
+    "description": "Explains what blocking does and does not do."
+  },
   "chatBlockCancel": "Cancel",
-  "@chatBlockCancel": {"description": "Cancels the block confirmation dialog."},
+  "@chatBlockCancel": {
+    "description": "Cancels the block confirmation dialog."
+  },
   "chatBlocked": "The user is blocked.",
-  "@chatBlocked": {"description": "Confirmation after a successful block."},
+  "@chatBlocked": {
+    "description": "Confirmation after a successful block."
+  },
   "chatUnblocked": "The user is unblocked.",
-  "@chatUnblocked": {"description": "Confirmation after a successful unblock."},
+  "@chatUnblocked": {
+    "description": "Confirmation after a successful unblock."
+  },
   "chatBlockedNotice": "You blocked this user. New messages are unavailable.",
-  "@chatBlockedNotice": {"description": "Shown instead of the composer after blocking the participant."},
+  "@chatBlockedNotice": {
+    "description": "Shown instead of the composer after blocking the participant."
+  },
   "chatUnavailable": "Personal messaging with this user is unavailable.",
-  "@chatUnavailable": {"description": "Neutral refusal for an unavailable personal dialog; never names a block."},
+  "@chatUnavailable": {
+    "description": "Neutral refusal for an unavailable personal dialog; never names a block."
+  },
   "chatMessageEdited": "edited",
   "chatReply": "Reply",
   "chatReplyCancel": "Cancel reply",
@@ -1227,31 +1748,78 @@
   "chatPhotoFix": "Remove or retry the failed photos.",
   "chatPhotosUnavailable": "Photos are unavailable.",
   "chatYou": "You",
-  "@chatMessageEdited": {"description": "Marker of an edited message next to its time."},
-  "@chatReply": {"description": "Menu item: reply with a quote."},
-  "@chatReplyCancel": {"description": "Clears the chosen quote."},
-  "@chatQuoteDeleted": {"description": "Quote of a deleted message: its text is hidden."},
-  "@chatEdit": {"description": "Menu item: edit an own message."},
-  "@chatDelete": {"description": "Menu item and confirmation button: delete an own message."},
-  "@chatEditTitle": {"description": "Title of the edit dialog."},
-  "@chatDeleteTitle": {"description": "Title of the delete confirmation."},
-  "@chatDeleteExplanation": {"description": "Explains that the text disappears while a hidden copy stays for complaints."},
-  "@chatCancel": {"description": "Cancels the dialog."},
-  "@chatSave": {"description": "Saves the edited message."},
-  "@chatEditFailed": {"description": "The message could not be edited."},
-  "@chatDeleteFailed": {"description": "The message could not be deleted."},
-  "@chatMessageDeleted": {"description": "The server reports the message is already deleted."},
-  "@chatMessageUnavailable": {"description": "The message is no longer visible (404)."},
-  "@chatActionForbidden": {"description": "Server refusal because permissions changed (403)."},
-  "@chatPhotoInvalid": {"description": "The photo is unprocessed, rejected or belongs to another chat."},
-  "@chatPhotoExpired": {"description": "The photo upload has expired."},
-  "@chatPhotoAdd": {"description": "Attaches a photo to the message."},
-  "@chatPhotoFailed": {"description": "The photo upload failed."},
-  "@chatPhotoWait": {"description": "Sending waits for photo processing."},
-  "@chatPhotoFix": {"description": "Asks to remove or retry failed photos."},
-  "@chatPhotosUnavailable": {"description": "Signed photo links were not received."},
-  "@chatYou": {"description": "Author label of an own quote."}
-,
+  "@chatMessageEdited": {
+    "description": "Marker of an edited message next to its time."
+  },
+  "@chatReply": {
+    "description": "Menu item: reply with a quote."
+  },
+  "@chatReplyCancel": {
+    "description": "Clears the chosen quote."
+  },
+  "@chatQuoteDeleted": {
+    "description": "Quote of a deleted message: its text is hidden."
+  },
+  "@chatEdit": {
+    "description": "Menu item: edit an own message."
+  },
+  "@chatDelete": {
+    "description": "Menu item and confirmation button: delete an own message."
+  },
+  "@chatEditTitle": {
+    "description": "Title of the edit dialog."
+  },
+  "@chatDeleteTitle": {
+    "description": "Title of the delete confirmation."
+  },
+  "@chatDeleteExplanation": {
+    "description": "Explains that the text disappears while a hidden copy stays for complaints."
+  },
+  "@chatCancel": {
+    "description": "Cancels the dialog."
+  },
+  "@chatSave": {
+    "description": "Saves the edited message."
+  },
+  "@chatEditFailed": {
+    "description": "The message could not be edited."
+  },
+  "@chatDeleteFailed": {
+    "description": "The message could not be deleted."
+  },
+  "@chatMessageDeleted": {
+    "description": "The server reports the message is already deleted."
+  },
+  "@chatMessageUnavailable": {
+    "description": "The message is no longer visible (404)."
+  },
+  "@chatActionForbidden": {
+    "description": "Server refusal because permissions changed (403)."
+  },
+  "@chatPhotoInvalid": {
+    "description": "The photo is unprocessed, rejected or belongs to another chat."
+  },
+  "@chatPhotoExpired": {
+    "description": "The photo upload has expired."
+  },
+  "@chatPhotoAdd": {
+    "description": "Attaches a photo to the message."
+  },
+  "@chatPhotoFailed": {
+    "description": "The photo upload failed."
+  },
+  "@chatPhotoWait": {
+    "description": "Sending waits for photo processing."
+  },
+  "@chatPhotoFix": {
+    "description": "Asks to remove or retry failed photos."
+  },
+  "@chatPhotosUnavailable": {
+    "description": "Signed photo links were not received."
+  },
+  "@chatYou": {
+    "description": "Author label of an own quote."
+  },
   "attendanceTitle": "Event attendance",
   "attendanceManageAction": "Participants' attendance",
   "attendanceOpenAction": "Mark my attendance",
@@ -1349,83 +1917,171 @@
   "attendanceCodeExpired": "The code has expired. Ask for a new one.",
   "attendanceNotFound": "This participant has no mark.",
   "qrConfirmationTitle": "Meeting QR confirmation",
-  "@qrConfirmationTitle": {"description": "Title of the card that starts the online QR confirmation."},
+  "@qrConfirmationTitle": {
+    "description": "Title of the card that starts the online QR confirmation."
+  },
   "qrConfirmationHint": "One participant shows the code, the other scans it.",
-  "@qrConfirmationHint": {"description": "Explains how to confirm a meeting with a shown and scanned code."},
+  "@qrConfirmationHint": {
+    "description": "Explains how to confirm a meeting with a shown and scanned code."
+  },
   "qrShowOpen": "Show QR code",
-  "@qrShowOpen": {"description": "Button that opens the screen with the QR code."},
+  "@qrShowOpen": {
+    "description": "Button that opens the screen with the QR code."
+  },
   "qrScanOpen": "Scan QR code",
-  "@qrScanOpen": {"description": "Button that opens the QR scanner."},
+  "@qrScanOpen": {
+    "description": "Button that opens the QR scanner."
+  },
   "qrPresenterTitle": "Meeting QR code",
-  "@qrPresenterTitle": {"description": "Title of the QR showing screen."},
+  "@qrPresenterTitle": {
+    "description": "Title of the QR showing screen."
+  },
   "qrPresenterIntro": "Show this code to the other participant: they confirm the meeting by scanning it. The code refreshes automatically.",
-  "@qrPresenterIntro": {"description": "Explanation on the QR showing screen."},
+  "@qrPresenterIntro": {
+    "description": "Explanation on the QR showing screen."
+  },
   "qrPresenterValidUntil": "The code is valid until {time}",
-  "@qrPresenterValidUntil": {"description": "When the server stops accepting the shown code; the time is in the city zone.", "placeholders": {"time": {"type": "String"}}},
+  "@qrPresenterValidUntil": {
+    "description": "When the server stops accepting the shown code; the time is in the city zone.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "qrPresenterRefresh": "Refresh the code",
-  "@qrPresenterRefresh": {"description": "Button that replaces the QR code."},
+  "@qrPresenterRefresh": {
+    "description": "Button that replaces the QR code."
+  },
   "qrPresenterCompleted": "The meeting is confirmed with a QR code.",
-  "@qrPresenterCompleted": {"description": "The interaction is already completed with a QR code."},
+  "@qrPresenterCompleted": {
+    "description": "The interaction is already completed with a QR code."
+  },
   "qrPresenterAlreadyCompleted": "The interaction is already completed in another way.",
-  "@qrPresenterAlreadyCompleted": {"description": "There is nothing to confirm with a QR code."},
+  "@qrPresenterAlreadyCompleted": {
+    "description": "There is nothing to confirm with a QR code."
+  },
   "qrPresenterNotAccepted": "Only an accepted interaction can be confirmed.",
-  "@qrPresenterNotAccepted": {"description": "The interaction is not accepted."},
+  "@qrPresenterNotAccepted": {
+    "description": "The interaction is not accepted."
+  },
   "qrPresenterUnavailable": "This interaction cannot be completed with a QR code.",
-  "@qrPresenterUnavailable": {"description": "The kind or stage of the interaction has no final QR meeting step."},
+  "@qrPresenterUnavailable": {
+    "description": "The kind or stage of the interaction has no final QR meeting step."
+  },
   "qrScannerTitle": "Scan a QR code",
-  "@qrScannerTitle": {"description": "Title of the scanning screen."},
+  "@qrScannerTitle": {
+    "description": "Title of the scanning screen."
+  },
   "qrScannerIntro": "Point the camera at the QR code shown by the other participant.",
-  "@qrScannerIntro": {"description": "Hint above the camera preview."},
+  "@qrScannerIntro": {
+    "description": "Hint above the camera preview."
+  },
   "qrScannerSending": "Confirming the meeting…",
-  "@qrScannerSending": {"description": "The confirmation is being sent to the server."},
+  "@qrScannerSending": {
+    "description": "The confirmation is being sent to the server."
+  },
   "qrScannerSuccess": "Meeting confirmed",
-  "@qrScannerSuccess": {"description": "The server completed the interaction with the scanned code."},
+  "@qrScannerSuccess": {
+    "description": "The server completed the interaction with the scanned code."
+  },
   "qrScannerAlreadyConfirmed": "The meeting is already confirmed with a QR code.",
-  "@qrScannerAlreadyConfirmed": {"description": "The interaction was completed with a QR code before the scanner opened."},
+  "@qrScannerAlreadyConfirmed": {
+    "description": "The interaction was completed with a QR code before the scanner opened."
+  },
   "qrScannerAlreadyCompleted": "The interaction is already completed in another way.",
-  "@qrScannerAlreadyCompleted": {"description": "Scanning is not needed."},
+  "@qrScannerAlreadyCompleted": {
+    "description": "Scanning is not needed."
+  },
   "qrScannerNotAccepted": "The interaction is not accepted and cannot be confirmed.",
-  "@qrScannerNotAccepted": {"description": "Scanning is impossible because of the interaction status."},
+  "@qrScannerNotAccepted": {
+    "description": "Scanning is impossible because of the interaction status."
+  },
   "qrScannerUnavailable": "This interaction cannot be confirmed with a QR code.",
-  "@qrScannerUnavailable": {"description": "The kind or stage of the interaction has no QR confirmation."},
+  "@qrScannerUnavailable": {
+    "description": "The kind or stage of the interaction has no QR confirmation."
+  },
   "qrScannerScanAgain": "Scan another code",
-  "@qrScannerScanAgain": {"description": "Button that returns to the camera after an error."},
+  "@qrScannerScanAgain": {
+    "description": "Button that returns to the camera after an error."
+  },
   "qrScannerCameraDenied": "No camera access. Allow the camera in the app settings.",
-  "@qrScannerCameraDenied": {"description": "The user denied camera access."},
+  "@qrScannerCameraDenied": {
+    "description": "The user denied camera access."
+  },
   "qrScannerCameraError": "The camera could not be started.",
-  "@qrScannerCameraError": {"description": "The camera is unavailable or busy."},
+  "@qrScannerCameraError": {
+    "description": "The camera is unavailable or busy."
+  },
   "qrScannerCameraUnsupported": "Camera scanning is not available on this device.",
-  "@qrScannerCameraUnsupported": {"description": "The platform has no camera scanner."},
+  "@qrScannerCameraUnsupported": {
+    "description": "The platform has no camera scanner."
+  },
   "qrScannerMalformed": "This is not a meeting confirmation code.",
-  "@qrScannerMalformed": {"description": "The scanned QR code is not a Campus code."},
+  "@qrScannerMalformed": {
+    "description": "The scanned QR code is not a Campus code."
+  },
   "qrScannerWrongInteraction": "The code belongs to another interaction.",
-  "@qrScannerWrongInteraction": {"description": "The QR code of another listing or interaction."},
+  "@qrScannerWrongInteraction": {
+    "description": "The QR code of another listing or interaction."
+  },
   "qrScannerOwnCode": "This is your code: show it to the other participant and let them scan it.",
-  "@qrScannerOwnCode": {"description": "The showing participant scanned their own code."},
+  "@qrScannerOwnCode": {
+    "description": "The showing participant scanned their own code."
+  },
   "qrScannerExpired": "The code has expired. Ask for a new one.",
-  "@qrScannerExpired": {"description": "The server rejected the code by time."},
+  "@qrScannerExpired": {
+    "description": "The server rejected the code by time."
+  },
   "qrScannerNotYetValid": "The code time is ahead of the server. Ask to refresh the code.",
-  "@qrScannerNotYetValid": {"description": "The code was formed with a clock running ahead."},
+  "@qrScannerNotYetValid": {
+    "description": "The code was formed with a clock running ahead."
+  },
   "qrScannerBeforeAcceptance": "The code was formed before the interaction was accepted. Ask for a new one.",
-  "@qrScannerBeforeAcceptance": {"description": "The code predates the acceptance."},
+  "@qrScannerBeforeAcceptance": {
+    "description": "The code predates the acceptance."
+  },
   "qrScannerUnknownKey": "The device key is not valid. Ask to refresh the code on the showing device.",
-  "@qrScannerUnknownKey": {"description": "The signing key is unknown or revoked on the server."},
+  "@qrScannerUnknownKey": {
+    "description": "The signing key is unknown or revoked on the server."
+  },
   "qrScannerUsed": "This code has already been used. Ask for a new one.",
-  "@qrScannerUsed": {"description": "The one-time code was applied already or the interaction is completed."},
+  "@qrScannerUsed": {
+    "description": "The one-time code was applied already or the interaction is completed."
+  },
   "qrScannerNotParticipant": "You are not a participant of this interaction and cannot confirm it.",
-  "@qrScannerNotParticipant": {"description": "The server refused a non-participant."},
+  "@qrScannerNotParticipant": {
+    "description": "The server refused a non-participant."
+  },
   "qrScannerSameParticipant": "The showing participant cannot confirm their own code.",
-  "@qrScannerSameParticipant": {"description": "The server refused the showing participant."},
+  "@qrScannerSameParticipant": {
+    "description": "The server refused the showing participant."
+  },
   "qrScannerStageUnavailable": "Another stage of the interaction is being confirmed now.",
-  "@qrScannerStageUnavailable": {"description": "A staged interaction is completed by its own action."},
+  "@qrScannerStageUnavailable": {
+    "description": "A staged interaction is completed by its own action."
+  },
   "qrScannerAfterNoShow": "The interaction was marked as not held; this code cannot be used.",
-  "@qrScannerAfterNoShow": {"description": "The code was formed after the no-show mark."},
+  "@qrScannerAfterNoShow": {
+    "description": "The code was formed after the no-show mark."
+  },
   "qrKeyConflict": "The device key is already used by another session. Try again.",
-  "@qrKeyConflict": {"description": "The server found this public key in another device session."},
+  "@qrKeyConflict": {
+    "description": "The server found this public key in another device session."
+  },
   "qrDone": "Done",
-  "@qrDone": {"description": "Button that closes the result screen."},
+  "@qrDone": {
+    "description": "Button that closes the result screen."
+  },
   "qrCompletedAt": "Completed {time}",
-  "@qrCompletedAt": {"description": "When the interaction was completed; the time is in the city zone.", "placeholders": {"time": {"type": "String"}}},
+  "@qrCompletedAt": {
+    "description": "When the interaction was completed; the time is in the city zone.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "noShowSummaryTitle": "The meeting did not take place",
   "noShowSummaryHint": "Say the meeting did not take place; a reason is required.",
   "noShowSummaryWaiting": "The mark will become available later.",
@@ -1436,12 +2092,12 @@
   "noShowIntro": "Say the meeting did not take place if the other participant did not come. The reason is required and shown to them.",
   "noShowBasisUnmarked": "No marks yet",
   "noShowBasisMarked": "Marked by a participant",
-  "noShowBasisAutomatic": "\u201cDid not take place\u201d by the deadline",
+  "noShowBasisAutomatic": "“Did not take place” by the deadline",
   "noShowBasisMutualDispute": "Mutual marks: under dispute",
   "noShowBasisCompleted": "The meeting took place",
   "noShowAt": "Marked: {time}",
   "noShowWindowOpen": "A no-show can be marked until {time}.",
-  "noShowClosedMessage": "No-show marking is closed: the interaction has already become \u201cdid not take place\u201d.",
+  "noShowClosedMessage": "No-show marking is closed: the interaction has already become “did not take place”.",
   "noShowUnavailable": "A no-show cannot be marked for this interaction.",
   "noShowReasonHint": "Why did the meeting not take place?",
   "noShowReasonLabel": "Reason",
@@ -1476,7 +2132,7 @@
   "eventNoShowAction": "The event did not take place",
   "eventNoShowResultAction": "Event result",
   "eventNoShowIntro": "Registered participants decide whether the event took place. At a third of the registrations, rounded up, the organiser is charged a no-show instead.",
-  "eventNoShowVotes": "Votes: {votes} of {threshold} needed \u00b7 {registered} registered",
+  "eventNoShowVotes": "Votes: {votes} of {threshold} needed · {registered} registered",
   "eventNoShowVoteOpensAt": "Voting opens at {time}.",
   "eventNoShowVoteClosesAt": "Voting is open until {time}.",
   "eventNoShowVoteWindowClosed": "Voting is closed: more than a week has passed since the event.",
@@ -1506,133 +2162,333 @@
   "noShowAnswerHint": "If the meeting did take place, answer: a mutual allegation opens a dispute for a moderator.",
   "noShowLoanUnavailable": "A loan cannot be marked as a no-show: the item was handed over. After the return deadline its owner marks it not returned.",
   "listingKindLoan": "Lending",
-  "@listingKindLoan": {"description": "Listing kind name: loan."},
+  "@listingKindLoan": {
+    "description": "Listing kind name: loan."
+  },
   "loanCreateTitle": "New loan listing",
-  "@loanCreateTitle": {"description": "Entry point and title of a new loan listing."},
+  "@loanCreateTitle": {
+    "description": "Entry point and title of a new loan listing."
+  },
   "loanPeriodLabel": "Return period, days",
-  "@loanPeriodLabel": {"description": "Label of the loan period field, in days."},
+  "@loanPeriodLabel": {
+    "description": "Label of the loan period field, in days."
+  },
   "loanPeriodHint": "From 1 to {max} days",
-  "@loanPeriodHint": {"description": "Allowed loan period range.", "placeholders": {"max": {"type": "int"}}},
+  "@loanPeriodHint": {
+    "description": "Allowed loan period range.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "loanPeriodInvalid": "The return period must be from 1 to {max} days",
-  "@loanPeriodInvalid": {"description": "A loan period outside the configured range was entered.", "placeholders": {"max": {"type": "int"}}},
+  "@loanPeriodInvalid": {
+    "description": "A loan period outside the configured range was entered.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "loanPeriodShort": "{days} d",
-  "@loanPeriodShort": {"description": "Loan period on a compact card.", "placeholders": {"days": {"type": "int"}}},
+  "@loanPeriodShort": {
+    "description": "Loan period on a compact card.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "loanPeriodValue": "Return period: {days} days after the handover",
-  "@loanPeriodValue": {"description": "Loan period on the listing card.", "placeholders": {"days": {"type": "int"}}},
+  "@loanPeriodValue": {
+    "description": "Loan period on the listing card.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "loanPeriodFixed": "Return period set at publication: {days} days",
-  "@loanPeriodFixed": {"description": "Read-only loan period of a draft being edited.", "placeholders": {"days": {"type": "int"}}},
+  "@loanPeriodFixed": {
+    "description": "Read-only loan period of a draft being edited.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "loanCardTitle": "Loan",
-  "@loanCardTitle": {"description": "Title of the loan card of an interaction."},
+  "@loanCardTitle": {
+    "description": "Title of the loan card of an interaction."
+  },
   "loanStepAccepted": "Accepted",
-  "@loanStepAccepted": {"description": "First step of a loan."},
+  "@loanStepAccepted": {
+    "description": "First step of a loan."
+  },
   "loanStepIssued": "Handed over",
-  "@loanStepIssued": {"description": "Second step of a loan."},
+  "@loanStepIssued": {
+    "description": "Second step of a loan."
+  },
   "loanStepReturned": "Returned",
-  "@loanStepReturned": {"description": "Third step of a loan."},
+  "@loanStepReturned": {
+    "description": "Third step of a loan."
+  },
   "loanReturnDue": "Return by {time}",
-  "@loanReturnDue": {"description": "Return deadline of a loan in the city zone.", "placeholders": {"time": {"type": "String"}}},
+  "@loanReturnDue": {
+    "description": "Return deadline of a loan in the city zone.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "loanOverdueChip": "Overdue",
-  "@loanOverdueChip": {"description": "The loan is past its return deadline."},
+  "@loanOverdueChip": {
+    "description": "The loan is past its return deadline."
+  },
   "loanShowHandover": "Show handover QR",
-  "@loanShowHandover": {"description": "The owner shows the handover code."},
+  "@loanShowHandover": {
+    "description": "The owner shows the handover code."
+  },
   "loanScanHandover": "Scan handover QR",
-  "@loanScanHandover": {"description": "The borrower scans the handover code."},
+  "@loanScanHandover": {
+    "description": "The borrower scans the handover code."
+  },
   "loanShowReturn": "Show return QR",
-  "@loanShowReturn": {"description": "The borrower shows the return code."},
+  "@loanShowReturn": {
+    "description": "The borrower shows the return code."
+  },
   "loanScanReturn": "Scan return QR",
-  "@loanScanReturn": {"description": "The owner scans the return code."},
+  "@loanScanReturn": {
+    "description": "The owner scans the return code."
+  },
   "loanHandoverHint": "The owner shows the handover code; the borrower scans it.",
-  "@loanHandoverHint": {"description": "Who does what at the handover."},
+  "@loanHandoverHint": {
+    "description": "Who does what at the handover."
+  },
   "loanReturnHint": "The borrower shows the return code; the owner scans it.",
-  "@loanReturnHint": {"description": "Who does what at the return."},
+  "@loanReturnHint": {
+    "description": "Who does what at the return."
+  },
   "loanNotReturned": "Item not returned",
-  "@loanNotReturned": {"description": "The owner marks the item as not returned."},
+  "@loanNotReturned": {
+    "description": "The owner marks the item as not returned."
+  },
   "loanNotReturnedUntil": "Available from {time}",
-  "@loanNotReturnedUntil": {"description": "When the owner may mark the item not returned.", "placeholders": {"time": {"type": "String"}}},
+  "@loanNotReturnedUntil": {
+    "description": "When the owner may mark the item not returned.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "loanNotReturnedConfirmTitle": "Mark the item as not returned?",
-  "@loanNotReturnedConfirmTitle": {"description": "Confirmation of the not-returned mark."},
+  "@loanNotReturnedConfirmTitle": {
+    "description": "Confirmation of the not-returned mark."
+  },
   "loanNotReturnedConfirmBody": "The borrower gets a no-show and may dispute it. The item stays busy until the dispute is decided.",
-  "@loanNotReturnedConfirmBody": {"description": "Consequences of the not-returned mark."},
+  "@loanNotReturnedConfirmBody": {
+    "description": "Consequences of the not-returned mark."
+  },
   "loanNotReturnedConfirm": "Mark",
-  "@loanNotReturnedConfirm": {"description": "Confirm the not-returned mark."},
+  "@loanNotReturnedConfirm": {
+    "description": "Confirm the not-returned mark."
+  },
   "loanNotReturnedKeep": "Cancel",
-  "@loanNotReturnedKeep": {"description": "Dismiss the not-returned confirmation."},
+  "@loanNotReturnedKeep": {
+    "description": "Dismiss the not-returned confirmation."
+  },
   "loanNotReturnedMarked": "The owner marked the item as not returned.",
-  "@loanNotReturnedMarked": {"description": "The borrower sees the owner's mark."},
+  "@loanNotReturnedMarked": {
+    "description": "The borrower sees the owner's mark."
+  },
   "loanBorrowerNoShow": "The borrower did not return the item in time: a no-show was recorded.",
-  "@loanBorrowerNoShow": {"description": "The owner sees the recorded no-show."},
+  "@loanBorrowerNoShow": {
+    "description": "The owner sees the recorded no-show."
+  },
   "loanDisputeOpen": "The no-show is disputed; a moderator will decide.",
-  "@loanDisputeOpen": {"description": "A dispute is open."},
+  "@loanDisputeOpen": {
+    "description": "A dispute is open."
+  },
   "loanDisputeWaiting": "The borrower may dispute the no-show within the dispute window.",
-  "@loanDisputeWaiting": {"description": "The borrower has not answered the mark yet."},
+  "@loanDisputeWaiting": {
+    "description": "The borrower has not answered the mark yet."
+  },
   "loanDispute": "Dispute the no-show",
-  "@loanDispute": {"description": "The borrower answers the mark."},
+  "@loanDispute": {
+    "description": "The borrower answers the mark."
+  },
   "loanDisputeTitle": "Dispute the no-show",
-  "@loanDisputeTitle": {"description": "Title of the dispute dialog."},
+  "@loanDisputeTitle": {
+    "description": "Title of the dispute dialog."
+  },
   "loanDisputeReason": "Reason",
-  "@loanDisputeReason": {"description": "Reason field of the dispute dialog."},
+  "@loanDisputeReason": {
+    "description": "Reason field of the dispute dialog."
+  },
   "loanDisputeReasonRequired": "Describe the reason",
-  "@loanDisputeReasonRequired": {"description": "The dispute reason is empty."},
+  "@loanDisputeReasonRequired": {
+    "description": "The dispute reason is empty."
+  },
   "loanDisputeReasonInvalid": "The reason may be at most {max} characters",
-  "@loanDisputeReasonInvalid": {"description": "The dispute reason is too long.", "placeholders": {"max": {"type": "int"}}},
+  "@loanDisputeReasonInvalid": {
+    "description": "The dispute reason is too long.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "loanDisputeSend": "Send",
-  "@loanDisputeSend": {"description": "Send the dispute."},
+  "@loanDisputeSend": {
+    "description": "Send the dispute."
+  },
   "loanDisputeKeep": "Cancel",
-  "@loanDisputeKeep": {"description": "Dismiss the dispute dialog."},
+  "@loanDisputeKeep": {
+    "description": "Dismiss the dispute dialog."
+  },
   "loanDisputeClosed": "The dispute window is closed.",
-  "@loanDisputeClosed": {"description": "The server refused a late dispute."},
+  "@loanDisputeClosed": {
+    "description": "The server refused a late dispute."
+  },
   "loanDisputeForbidden": "Only a participant of the interaction may dispute the no-show.",
-  "@loanDisputeForbidden": {"description": "The server refused a stranger."},
+  "@loanDisputeForbidden": {
+    "description": "The server refused a stranger."
+  },
   "loanNoShowUnavailable": "This no-show cannot be disputed.",
-  "@loanNoShowUnavailable": {"description": "The server refused the answer."},
+  "@loanNoShowUnavailable": {
+    "description": "The server refused the answer."
+  },
   "loanQrAlreadyReturned": "The item was already returned.",
-  "@loanQrAlreadyReturned": {"description": "The loan is completed at the return QR screen."},
+  "@loanQrAlreadyReturned": {
+    "description": "The loan is completed at the return QR screen."
+  },
   "loanQrHandoverUnavailable": "The handover is already confirmed or the loan is closed.",
-  "@loanQrHandoverUnavailable": {"description": "The handover step cannot run now."},
+  "@loanQrHandoverUnavailable": {
+    "description": "The handover step cannot run now."
+  },
   "loanQrReturnUnavailable": "The return is possible only after the handover.",
-  "@loanQrReturnUnavailable": {"description": "The return step cannot run before the handover."},
+  "@loanQrReturnUnavailable": {
+    "description": "The return step cannot run before the handover."
+  },
   "loanNotReturnedTooEarly": "The item can be marked not returned from {time}.",
-  "@loanNotReturnedTooEarly": {"description": "The server named the first allowed moment.", "placeholders": {"time": {"type": "String"}}},
+  "@loanNotReturnedTooEarly": {
+    "description": "The server named the first allowed moment.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "loanNotReturnedLater": "The item cannot be marked not returned yet.",
-  "@loanNotReturnedLater": {"description": "The not-returned wait has not passed."},
+  "@loanNotReturnedLater": {
+    "description": "The not-returned wait has not passed."
+  },
   "loanNotReturnedForbidden": "Only the owner may mark the item as not returned.",
-  "@loanNotReturnedForbidden": {"description": "The server refused a non-owner."},
+  "@loanNotReturnedForbidden": {
+    "description": "The server refused a non-owner."
+  },
   "loanNotReturnedUnavailable": "Only a handed-over item can be marked as not returned.",
-  "@loanNotReturnedUnavailable": {"description": "The loan is not in the issued stage."},
+  "@loanNotReturnedUnavailable": {
+    "description": "The loan is not in the issued stage."
+  },
   "loanReturnedAt": "Returned {time}",
-  "@loanReturnedAt": {"description": "When the item was returned; the time is in the city zone.", "placeholders": {"time": {"type": "String"}}},
+  "@loanReturnedAt": {
+    "description": "When the item was returned; the time is in the city zone.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "loanQrHandoverPresenterTitle": "Handover QR code",
-  "@loanQrHandoverPresenterTitle": {"description": "Title of the handover presenter screen."},
+  "@loanQrHandoverPresenterTitle": {
+    "description": "Title of the handover presenter screen."
+  },
   "loanQrHandoverPresenterIntro": "Show this code to the borrower: they confirm receiving the item.",
-  "@loanQrHandoverPresenterIntro": {"description": "Explanation on the handover presenter screen."},
+  "@loanQrHandoverPresenterIntro": {
+    "description": "Explanation on the handover presenter screen."
+  },
   "loanQrReturnPresenterTitle": "Return QR code",
-  "@loanQrReturnPresenterTitle": {"description": "Title of the return presenter screen."},
+  "@loanQrReturnPresenterTitle": {
+    "description": "Title of the return presenter screen."
+  },
   "loanQrReturnPresenterIntro": "Show this code to the owner: they confirm the return.",
-  "@loanQrReturnPresenterIntro": {"description": "Explanation on the return presenter screen."},
+  "@loanQrReturnPresenterIntro": {
+    "description": "Explanation on the return presenter screen."
+  },
   "loanQrHandoverScanTitle": "Scan the handover",
-  "@loanQrHandoverScanTitle": {"description": "Title of the handover scanner screen."},
+  "@loanQrHandoverScanTitle": {
+    "description": "Title of the handover scanner screen."
+  },
   "loanQrHandoverScanIntro": "Point the camera at the code the owner shows.",
-  "@loanQrHandoverScanIntro": {"description": "Hint above the handover camera."},
+  "@loanQrHandoverScanIntro": {
+    "description": "Hint above the handover camera."
+  },
   "loanQrReturnScanTitle": "Scan the return",
-  "@loanQrReturnScanTitle": {"description": "Title of the return scanner screen."},
+  "@loanQrReturnScanTitle": {
+    "description": "Title of the return scanner screen."
+  },
   "loanQrReturnScanIntro": "Point the camera at the code the borrower shows.",
-  "@loanQrReturnScanIntro": {"description": "Hint above the return camera."},
+  "@loanQrReturnScanIntro": {
+    "description": "Hint above the return camera."
+  },
   "loanQrHandoverDone": "The handover is confirmed.",
-  "@loanQrHandoverDone": {"description": "The scanned handover is applied."},
+  "@loanQrHandoverDone": {
+    "description": "The scanned handover is applied."
+  },
   "loanQrReturnDone": "The return is confirmed; the loan is complete.",
-  "@loanQrReturnDone": {"description": "The scanned return completes the loan."},
+  "@loanQrReturnDone": {
+    "description": "The scanned return completes the loan."
+  },
   "qrScannerLoanNotHandedOver": "Confirm the handover of the item first.",
-  "@qrScannerLoanNotHandedOver": {"description": "The server refused a return before the handover."},
+  "@qrScannerLoanNotHandedOver": {
+    "description": "The server refused a return before the handover."
+  },
   "qrScannerLoanAlreadyIssued": "The handover is already confirmed. Use the return code instead.",
-  "@qrScannerLoanAlreadyIssued": {"description": "The server refused a repeated handover."},
+  "@qrScannerLoanAlreadyIssued": {
+    "description": "The server refused a repeated handover."
+  },
   "qrScannerLoanReturnMarked": "The owner marked the item as not returned; the dispute decides the outcome.",
-  "@qrScannerLoanReturnMarked": {"description": "The server refused a return after the not-returned mark."},
+  "@qrScannerLoanReturnMarked": {
+    "description": "The server refused a return after the not-returned mark."
+  },
   "qrScannerLoanActionRequired": "A loan is confirmed by its handover and return actions.",
-  "@qrScannerLoanActionRequired": {"description": "The plain QR endpoint refused a loan."},
+  "@qrScannerLoanActionRequired": {
+    "description": "The plain QR endpoint refused a loan."
+  },
   "timelineLoanHandedOver": "Item handover confirmed",
-  "@timelineLoanHandedOver": {"description": "Journal event of a confirmed handover."},
+  "@timelineLoanHandedOver": {
+    "description": "Journal event of a confirmed handover."
+  },
   "timelineLoanReturned": "Item return confirmed",
-  "@timelineLoanReturned": {"description": "Journal event of a confirmed return."},
+  "@timelineLoanReturned": {
+    "description": "Journal event of a confirmed return."
+  },
   "timelineLoanNotReturned": "Item marked as not returned",
-  "@timelineLoanNotReturned": {"description": "Journal event of the owner's not-returned mark."}
+  "@timelineLoanNotReturned": {
+    "description": "Journal event of the owner's not-returned mark."
+  },
+  "settingsPalette": "Palette",
+  "@settingsPalette": {
+    "description": "Appearance palette label."
+  },
+  "paletteLavender": "Lavender",
+  "@paletteLavender": {
+    "description": "Appearance palette label."
+  },
+  "paletteSage": "Sage",
+  "@paletteSage": {
+    "description": "Appearance palette label."
+  },
+  "paletteSky": "Sky",
+  "@paletteSky": {
+    "description": "Appearance palette label."
+  },
+  "palettePeach": "Peach",
+  "@palettePeach": {
+    "description": "Appearance palette label."
+  }
 }

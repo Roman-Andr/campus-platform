@@ -37,7 +37,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'61965f2519e1bcbc2ce1fb128e81a1653e7c6197';
+    r'd5fc0cbdff92beb78f8b28ca3f45b3ccd9627e08';
 
 /// Current [AppSettings]; changes are applied immediately and persisted.
 

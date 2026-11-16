@@ -33,8 +33,8 @@ class CampusApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
+      theme: AppTheme.forPalette(settings.paletteId, Brightness.light),
+      darkTheme: AppTheme.forPalette(settings.paletteId, Brightness.dark),
       themeMode: settings.themeMode,
       debugShowCheckedModeBanner: false,
       builder: (context, child) => RealtimeStatusBanner(

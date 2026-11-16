@@ -1,3 +1,4 @@
+import 'package:campus/src/core/design_system/foundations/palette.dart';
 import 'package:campus/src/features/settings/application/settings_controller.dart';
 import 'package:campus/src/features/settings/data/settings_repository.dart';
 import 'package:campus/src/features/settings/domain/app_settings.dart';
@@ -19,10 +20,12 @@ void main() {
 
     await controller.setLanguage(AppLanguage.russian);
     await controller.setThemeMode(ThemeMode.dark);
+    await controller.setPalette(PaletteId.sage);
 
     const expected = AppSettings(
       language: AppLanguage.russian,
       themeMode: ThemeMode.dark,
+      paletteId: PaletteId.sage,
     );
     expect(container.read(settingsControllerProvider).value, expected);
     expect(await DriftSettingsRepository(database).load(), expected);

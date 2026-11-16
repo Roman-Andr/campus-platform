@@ -3045,4 +3045,19 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get timelineLoanNotReturned => 'Вещь отмечена не возвращённой';
+
+  @override
+  String get settingsPalette => 'Палитра';
+
+  @override
+  String get paletteLavender => 'Лаванда';
+
+  @override
+  String get paletteSage => 'Шалфей';
+
+  @override
+  String get paletteSky => 'Небо';
+
+  @override
+  String get palettePeach => 'Персик';
 }
