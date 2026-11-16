@@ -1,0 +1,293 @@
+{
+  "tool": "Built-in image_gen",
+  "reference": "02-lilac.png",
+  "commonPrompt": "Use case: ui-mockup. Create one HIGH-FIDELITY MOBILE APP DESIGN BOARD for Russian university community app «Кампус». This is one sheet of a coherent full-product redesign, not a new branding direction. The attached image is STYLE AND COMPONENT REFERENCE ONLY. Preserve its visual language, typography, UI density, card/button proportions, rounded line icons, muted lavender/cream accents and modular hierarchy; render NEW screens described below, do not duplicate the reference screens unless explicitly requested.\nCanvas: high-resolution landscape 3:2, THREE flat tall mobile screens side by side, front view, around 390:844 logical ratio, extremely thin/no phone frame. Screens dominate board, consistent spacing and shared chrome. Small restrained top header «Кампус · Мягкая сетка» plus board section title. Small footer screen captions EXACTLY as provided below. No huge marketing copy, watermark, 3D device mockups or irrelevant decoration.\nScreen 1 and Screen 2 are LIGHT lavender theme: background #FCFBFF, white/soft-lilac #EEEAF8 cards, dark plum #302544 text, violet #7056B8 primary buttons with white text, occasional subdued butter #F5EDC8 surface. Screen 3 is the matching DARK LAVENDER theme: soft deep plum-charcoal #211E2C background, #2E293D surfaces, near-white #F1EDF8 text, pale lavender #C8B8FF primary button with dark plum text. NOT mint/neon, NOT pure-black gamer UI. Both themes use same component family, 20–24px rounded cards, 12–16px controls, generous but usable spacing, strong text contrast, normal 16px body, short descriptive Russian UI labels.\nInteraction standards: one contextual primary action, secondary text actions, back and close where needed, safe keyboard space and scrollable forms, 48dp touch targets. Four app destinations «Главная», «Мои дела», «Чаты», «Профиль» and central action «Создать» only on appropriate top-level screens; auth gates, deep editor, scan, full-screen conversation need purposeful local navigation. Create is an action, not a selected fifth page. A six-format picker uses Вещь/Навык/Помощь/Событие/Закупка/Публикация; last role label Для старост. Scope is university campus, not GPS city map.\nTrust/product constraints: no invented identity verification; «Почта вуза подтверждена» only means email. No invented ratings, follower counts or wallet. Purchases record payments to organizer, never integrated payment service. Do not show completed reservation/QR/upload success before server confirmation; local queue must say waiting. Role-restricted features must not look generally available. Use only fictional sample names «Саша», «Аня Морозова», no real user email, identifiers or credentials. Dates/times are illustrative. Exact Cyrillic text, readable without dense fine-print. Real photographs only inside meaningful listing/avatar/photo attachment areas. Other screens can be beautifully typographic without photos. Show only the THREE requested screens; do not add arbitrary mini screens or display explanatory text blocks outside the board.\nBuild faithful, practical shippable-looking interfaces. This is a visual draft; prioritize correct action/state hierarchy over decoration.\n",
+  "boards": [
+    {
+      "slug": "01-auth",
+      "title": "Вход",
+      "issue": 387,
+      "titles": [
+        "Почта вуза",
+        "Код из письма",
+        "Имя и фамилия"
+      ],
+      "brief": "Screen 1: clean welcome wordmark, short closed-university explanation, single university email field 'Почта вуза', domain hint, primary 'Получить код', link to legal documents. Screen 2: back, masked sample university email, one six-digit OTP input with paste support, resend countdown 'Повторить через 00:42', action 'Продолжить', inline invalid-code example only if readable. Screen 3: dark theme, two large fields 'Имя', 'Фамилия', note 'Укажите настоящее имя', Continue, progress 2 из 3. No passwords, social login, bank card, or provider brands."
+    },
+    {
+      "slug": "02-onboarding",
+      "title": "Знакомство",
+      "issue": 387,
+      "titles": [
+        "Ваш кампус",
+        "Фото профиля",
+        "Ваши навыки"
+      ],
+      "brief": "Screen 1: onboarding form for 'Город-кампус', 'Факультет', 'Курс', optional 'Общежитие', visible option 'Не живу в общежитии'; sticky 'Продолжить'. Screen 2: large avatar preview, 'Добавить фото', useful photo guidance, primary 'Продолжить', clear 'Пропустить' secondary. Screen 3 dark: two sections 'Могу научить' and 'Хочу научиться', selected chips Английский, Python, Математика, searchable tag picker, 'Готово' and skip. Respect keyboard space, ordinary human profile."
+    },
+    {
+      "slug": "03-access",
+      "title": "Согласия и доступ",
+      "issue": 387,
+      "titles": [
+        "Документы и согласия",
+        "Подтвердите статус",
+        "Обновление приложения"
+      ],
+      "brief": "Screen1: calm required-consent gate, two document rows with version/date and open action, unchecked required consent and separate unchecked optional consent for external notifications, primary 'Принять и продолжить', email badge means university email only. Screen2 annual student status verification: explain deadline and alumni limitations, email input, 'Отправить код', 'Позже', no invented hard dates. Screen3 dark: mandatory update screen, clear 'Доступна новая версия', app version info, 'Обновить', 'Повторить проверку'; do not show Home navigation on mandatory gate."
+    },
+    {
+      "slug": "04-home",
+      "title": "Главная и поиск",
+      "issue": 385,
+      "titles": [
+        "Главная",
+        "Результаты поиска",
+        "Фильтры"
+      ],
+      "brief": "Screen1 reproduce chosen concept's bento home with Вещи/Навыки/Помощь/События/Закупки, scope, search, small useful listing cards. Screen2 active search 'лампа', visible active scope, category chips, credible lamp result cards, remove query and filter actions, consistent bottom nav. Screen3 dark filter bottom sheet on dimmed results: type, category, scope Весь кампус/Факультет/Общежитие, 'Сбросить' and sticky 'Показать результаты'. No fake recommender metrics, no map/GPS requirement."
+    },
+    {
+      "slug": "05-tasks",
+      "title": "Мои дела",
+      "issue": 400,
+      "titles": [
+        "Ближайшие дела",
+        "Мои объявления",
+        "Очередь и предложение"
+      ],
+      "brief": "Screen1 task hub, tabs 'Участие', 'Мои объявления', 'Очередь'; next action card 'Забрать лампу · сегодня, 19:00', event and lesson rows, clear status and next step. Screen2 own listings with 'Активные', 'Черновики', 'Архив', small cards with author edit/status and one unified Create. Screen3 dark active waitlist offer: 'Освободилось место', event Настолки, countdown 09:42, primary 'Подтвердить место', secondary 'Отказаться', beneath ordinary waiting entry with position; label deadline explicitly, calm urgency, no fictional reservation confirmation."
+    },
+    {
+      "slug": "06-items",
+      "title": "Вещи",
+      "issue": 397,
+      "titles": [
+        "Отдам",
+        "Обменяю",
+        "Одолжу"
+      ],
+      "brief": "Three item detail variants with same reusable photo/title/author/location/action layout. Screen1 cream desk lamp 'Настольная лампа', type Отдам, Бесплатно, primary Забронировать and secondary Задать вопрос. Screen2 'Учебник по математике', type Обменяю, section 'Хочу взамен' with readable desired item description, primary 'Предложить обмен'. Screen3 dark 'Шуруповёрт на выходные', type Одолжу, visible return date and lending conditions, primary 'Забронировать'. All show university-email verification only, no invented scores or QR before acceptance."
+    },
+    {
+      "slug": "07-services-event",
+      "title": "Навыки, помощь, событие",
+      "issue": 398,
+      "titles": [
+        "Объявление о навыке",
+        "Просьба о помощи",
+        "Мероприятие"
+      ],
+      "brief": "Screen1 skill detail 'Помогу с Python', 'Могу научить', tags, format Онлайн, author, primary 'Предложить занятие', secondary question. Screen2 help request 'Помочь с переездом', deadline, short practical text, primary 'Откликнуться', no invented monetary price. Screen3 dark event detail 'Настолки в кампусе', warm real photo, date/time/place, capacity '12 из 20 мест', organizer, primary 'Записаться', chat only when participant accepted. Consistent listing layout with scenario blocks."
+    },
+    {
+      "slug": "08-collective-owner",
+      "title": "Общие дела и управление",
+      "issue": 399,
+      "titles": [
+        "Совместная закупка",
+        "Публикация старосты",
+        "Отклики автору"
+      ],
+      "brief": "Screen1 purchase detail 'Вода на этаж', '120 ₽ за упаковку', goal/progress quantity, collection deadline, labeled quantity stepper 'Моя доля', primary 'Записаться', note payment is directly to organizer; NO in-app Pay/wallet. Screen2 scoped pinned publication with author role 'Староста', 'Общежитие № 3', headline 'Встреча жильцов', pin expiration, readable body and Save. Screen3 dark author applicants list for help: compact real-name profiles, university email badge, available reputation only if explicitly placeholder generic label, primary contextual 'Выбрать исполнителя', chosen confirmation remains separate; no exposed unrelated private information."
+    },
+    {
+      "slug": "09-thing-editor",
+      "title": "Создание вещи",
+      "issue": 394,
+      "titles": [
+        "Выбор формата",
+        "Редактор вещи",
+        "Фотографии"
+      ],
+      "brief": "Screen1 exact chosen six-option creation sheet Вещь, Навык, Помощь, Событие, Закупка, Публикация with Для старост role. Screen2 thing editor with compact format tabs Отдам/Обменяю/Одолжу, photo thumbnails, title, description, category, visibility, sticky 'Продолжить'; no endless wall of cramped fields. Screen3 dark photo-management full screen: thumbnail grid, add-photo tile, one 'Обрабатывается' thumbnail and one retry error, clear count '3 из 10', primary 'Готово', reorder afforded via handles, no false upload success."
+    },
+    {
+      "slug": "10-service-editor",
+      "title": "Создание навыка и помощи",
+      "issue": 395,
+      "titles": [
+        "Навык",
+        "Запрос о помощи",
+        "Событие"
+      ],
+      "brief": "Screen1 skill editor: Могу научить/Хочу научиться segmented control, title 'Помогу с Python', tags, Очная/Онлайн, description, preview/publish bar. Screen2 help editor title/description/deadline and location/scope, 'Когда нужна помощь?', primary 'Продолжить'; request-only, do not offer unsupported help advertisement types. Screen3 dark event editor title/photo, date/time and timezone hint 'Время кампуса', place, capacity, audience, publish; distinguish fixed sections and primary action, no arbitrary payment."
+    },
+    {
+      "slug": "11-collective-editor",
+      "title": "Создание общего события",
+      "issue": 396,
+      "titles": [
+        "Закупка",
+        "Публикация",
+        "Изменение события"
+      ],
+      "brief": "Screen1 purchase editor short grouped fields товар/цена за единицу/минимальный объём/дедлайн, scope, primary 'Предпросмотр'. Screen2 publication editor for headman, role and scope, title/body, optional pin duration within role permissions, preview. Screen3 dark event-edit screen with read-only title/description group and editable schedule/place/capacity, version-conflict notice 'Событие уже изменилось' with 'Обновить данные' preserving user intent, Save button. No editing readonly fields."
+    },
+    {
+      "slug": "12-agreement",
+      "title": "Договорённость",
+      "issue": 401,
+      "titles": [
+        "Хронология",
+        "Место и время",
+        "Время занятия"
+      ],
+      "brief": "Screen1 accepted lamp interaction: context listing card, named participant, planned handover, single next action 'Договориться о встрече', timeline accepted/created, link to chat. Screen2 schedule form with place, selected date/time, campus timezone, 'Предложить встречу', secondary cancel; no completion until accepted/QR. Screen3 dark lesson-time negotiation with 2–3 offered slots, selected one, 'Подтвердить время' and 'Предложить другое', online/onsite explicit. Do not conflate pending proposal with server acceptance."
+    },
+    {
+      "slug": "13-completion",
+      "title": "Завершение и отмена",
+      "issue": 401,
+      "titles": [
+        "Без встречи",
+        "Неявка",
+        "Отмена участия"
+      ],
+      "brief": "Screen1 remote completion 'Подтвердить выполнение', named counterpart, clear notice 'Нужно подтверждение обоих участников', primary 'Подтвердить со своей стороны', after-action status pending other party. Screen2 no-show form for eligible past meeting, selected reason, concise explanation of dispute possibility, submit and back; do not make accusation already confirmed. Screen3 dark calm cancellation sheet with reason field and impact summary for accepted participant, explicit 'Отменить участие' destructive label plus 'Продолжить участие'; no scary red full-screen treatment."
+    },
+    {
+      "slug": "14-qr",
+      "title": "Подтверждение встречи",
+      "issue": 402,
+      "titles": [
+        "Показать QR",
+        "Сканирование",
+        "Код без камеры"
+      ],
+      "brief": "Screen1 high-contrast black-on-white QR zone inside lavender app, contextual item and correct 'Передача вещи' stage, expiry countdown, note to show counterpart; QR is illustrative nonfunctional image. Screen2 camera scanning screen with clear viewfinder and readable item/participant context, cancel and 'Ввести код'; no decorative QR scanning unrelated flow. Screen3 dark manual six-digit verification screen, six-digit input, primary 'Проверить код', camera alternative, explicit invalid/expired error. Avoid real credentials, personal identifiers, or reusable tokens."
+    },
+    {
+      "slug": "15-attendance",
+      "title": "Посещение и офлайн",
+      "issue": 402,
+      "titles": [
+        "Организатор",
+        "Участник события",
+        "Ожидает синхронизации"
+      ],
+      "brief": "Screen1 event organizer attendance: Название Настолки, count 'Пришли 8 из 12', list with arrived/not-yet label, primary 'Показать код события', search participant. Screen2 attendee event pass, event date/place, accepted signup status, primary 'Сканировать код организатора', clear alternative manual code. Screen3 dark offline scan saved: informative 'Подтверждение сохранено', status 'Ожидает проверки сервера', last connectivity, queued entry and 'Проверить соединение'; explicitly do NOT show Завершено or success confetti before sync."
+    },
+    {
+      "slug": "16-chats",
+      "title": "Чаты и поиск",
+      "issue": 390,
+      "titles": [
+        "Список чатов",
+        "Поиск в переписках",
+        "Личный диалог"
+      ],
+      "brief": "Screen1 list with people avatars, actual readable conversation snippets, unread badges, time, listing context; bottom Chat tab selected. Screen2 search query 'лампа', search hits with highlighted matching text, person and time; tap target obvious, no leaking blocked chats. Screen3 dark personal conversation about lamp handover with author/item context header, text bubbles, reply preview, one pending 'Отправляется' message, photo thumbnail, keyboard-safe composer with attachment/send and no giant extra toolbars."
+    },
+    {
+      "slug": "17-chat-tools",
+      "title": "Инструменты общения",
+      "issue": 391,
+      "titles": [
+        "Ответ и фото",
+        "Групповой диалог",
+        "Участники группы"
+      ],
+      "brief": "Screen1 personal chat with open reply composer and attachment preview strip, one failed upload row with retry/remove, contextual message action menu Ответить/Изменить/Удалить; no simultaneous modal stacking. Screen2 event group conversation with group title, participant count, event context card and useful text; no AI summary enabled by default. Screen3 dark group info: event-linked group, participants, mute, permitted actions, notice membership follows accepted event participation; after removal read-only notice, no free independent invite flow outside spec."
+    },
+    {
+      "slug": "18-profiles",
+      "title": "Профиль",
+      "issue": 388,
+      "titles": [
+        "Мой профиль",
+        "Профиль участника",
+        "Редактирование"
+      ],
+      "brief": "Screen1 self profile Sasha with avatar, name, university-email badge, faculty/dorm fields only where permitted, skills, separate trust section and shortcuts to own listings/favorites/settings. Screen2 public author Anya with concise allowed info, skills, reviews section without fabricated perfect scores, primary 'Написать', report/block in overflow, privacy hides dorm if needed. Screen3 dark edit profile: avatar/name-change affordance, campus/faculty/course/optional dorm, Save, inline unsaved-change state. One consistent profile composition."
+    },
+    {
+      "slug": "19-privacy-skills",
+      "title": "Навыки и приватность",
+      "issue": 389,
+      "titles": [
+        "Мои навыки",
+        "Приватность",
+        "Заблокированные"
+      ],
+      "brief": "Screen1 own skill-tag editor with searchable tags and clear sections Умею/Хочу научиться, add/remove chips and save. Screen2 privacy settings with field visibility choices for faculty/dorm/course and message policy Всем/Только связанным взаимодействием; explanatory subtitles, no ambiguous toggles. Screen3 dark blocked-users list with avatar/name, primary per-row 'Разблокировать', search and meaningful empty-state treatment; no exposing full private profile in block list."
+    },
+    {
+      "slug": "20-settings",
+      "title": "Настройки и оформление",
+      "issue": 389,
+      "titles": [
+        "Настройки",
+        "Цветовая тема",
+        "Устройства"
+      ],
+      "brief": "Screen1 organized settings hub: Оформление, Язык, Уведомления, Приватность, Аккаунт, Документы, separated sign-out. Screen2 appearance settings with four sample palette tiles Лаванда/Шалфей/Небо/Персик, selected lavender, independent radio Светлая/Тёмная/Как в системе, miniature component preview, immediately applied selection. Screen3 dark device inventory: 'Это устройство' badge, Android/Desktop entries with last activity, explicit 'Завершить сеанс' action for other device and confirmation entry; no full tokens/IPs printed."
+    },
+    {
+      "slug": "21-account",
+      "title": "Адреса и документы",
+      "issue": 389,
+      "titles": [
+        "Электронная почта",
+        "Документы",
+        "Удаление аккаунта"
+      ],
+      "brief": "Screen1 linked email page differentiates corporate verified and backup verified/pending, add address, verify flow, explain university account status not changed by backup address. Screen2 legal documents list with version/date and acceptance history, document reader access, mandatory vs optional external-processing preferences, no prechecked new consent. Screen3 dark scheduled account deletion page: concise consequences, existing 30-day cancellation window explained, deliberate action 'Запросить удаление', if scheduled show 'Отменить удаление'; no instant destruction, export link separate secondary."
+    },
+    {
+      "slug": "22-notifications",
+      "title": "Уведомления",
+      "issue": 392,
+      "titles": [
+        "Входящие",
+        "Типы и каналы",
+        "Тихие часы"
+      ],
+      "brief": "Screen1 notifications inbox with unread rows, accepted booking, one expiring offer and chat reply, clear contextual actions and expired handling; keep bell navigation conceptual. Screen2 preferences matrix as vertical accessible cards with category and Push/В приложении toggles, disabled permission notice, no fake delivery success, Save or explicit autosave status. Screen3 dark quiet-hours settings with enabled switch, start/end time, campus timezone label, note important accepted-offer/meeting notifications follow service policy; also muted-chat entry."
+    },
+    {
+      "slug": "23-reputation",
+      "title": "Отзывы и доверие",
+      "issue": 404,
+      "titles": [
+        "Оставить отзыв",
+        "Отзывы участника",
+        "Репутация"
+      ],
+      "brief": "Screen1 review composer following eligible finished lamp exchange, 1–5 stars with labels, scenario tags Пунктуален/Вещь как в описании, optional text, clear submit and timing note. Screen2 reviews list with context and publication states, 'Ваш отзыв будет открыт после взаимного раскрытия' where applicable; do not reveal hidden counterpart content or fake counts. Screen3 dark trust explainer with completed interactions, badges 'Встреча подтверждена' versus 'Без встречи', explain rating basis without pretending email is identity verification; no points wallet."
+    },
+    {
+      "slug": "24-moderation",
+      "title": "Жалобы и решения",
+      "issue": 405,
+      "titles": [
+        "Подать жалобу",
+        "Спор",
+        "Решение и апелляция"
+      ],
+      "brief": "Screen1 report sheet on listing with object context, reason choices, evidence selection limited to selected content, comment, 'Отправить жалобу'; no whole private chat access. Screen2 own dispute detail for lamp handover/no-show, neutral status На рассмотрении, timeline, selected evidence, link permitted context, no moderator admin dashboard. Screen3 dark decision page with reason, date, impact and one eligible 'Подать апелляцию' action; after exhausted appeal explain final state, preserve user access rights."
+    },
+    {
+      "slug": "25-edge-states",
+      "title": "Пустота, ошибки, ограничения",
+      "issue": 406,
+      "titles": [
+        "Пустой кампус",
+        "Ошибка с сохранённым списком",
+        "Ограниченный аккаунт"
+      ],
+      "brief": "Screen1 empty bento campus home with meaningful no-listings state and primary 'Создать объявление', no invented data/photos to fill empty feed. Screen2 cached feed still visible under small offline/retry banner, partial pagination error row, distinguish known cached content from fresh data, disable online-only booking contextually. Screen3 dark alumni/blocked account state with exact concise reason and safe available paths 'Мои дела', history, support/appeal/reverify where applicable; do not let restriction screen create new participation."
+    },
+    {
+      "slug": "26-preview-favorites",
+      "title": "Просмотр и сохранённое",
+      "issue": 394,
+      "titles": [
+        "Избранное",
+        "Предпросмотр публикации",
+        "Несохранённые изменения"
+      ],
+      "brief": "Screen1 saved listings with photo/text cards, filter/sort and remove save, missing/expired item has clear status rather than broken placeholder. Screen2 draft preview of desk lamp with scope/audience labels and sticky 'Опубликовать', secondary 'Редактировать', visible draft badge until server success. Screen3 dark editor with unsaved-changes sheet: 'Сохранить черновик?', primary 'Сохранить', secondary 'Продолжить редактирование', clear destructive 'Удалить изменения', no automatic irreversible deletion."
+    }
+  ]
+}

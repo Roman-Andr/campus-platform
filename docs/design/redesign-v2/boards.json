@@ -1,0 +1,473 @@
+{
+  "tool": "built-in image_gen",
+  "boards": [
+    {
+      "slug": "01-auth",
+      "title": "Вход",
+      "screens": [
+        "Почта вуза",
+        "Код из письма",
+        "Имя и фамилия"
+      ],
+      "issue": 387,
+      "file": "boards/01-auth.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "04d1e1e8e9299e3b282c0536961b6bcc9436aab78bb3cc449ae93d855500aea8"
+    },
+    {
+      "slug": "02-onboarding",
+      "title": "Знакомство",
+      "screens": [
+        "Ваш кампус",
+        "Фото профиля",
+        "Ваши навыки"
+      ],
+      "issue": 387,
+      "file": "boards/02-onboarding.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "fb3cf4587b96eab246bd80adb5943721e5695611ee34dc164f8ad6573622cd21"
+    },
+    {
+      "slug": "03-access",
+      "title": "Согласия и доступ",
+      "screens": [
+        "Документы и согласия",
+        "Подтвердите статус",
+        "Обновление приложения"
+      ],
+      "issue": 387,
+      "file": "boards/03-access.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "df32e32581a313c780cf07c79d126b2022217479b55c2346591f6f0ee9e1ba7b"
+    },
+    {
+      "slug": "04-home",
+      "title": "Главная и поиск",
+      "screens": [
+        "Главная",
+        "Результаты поиска",
+        "Фильтры"
+      ],
+      "issue": 385,
+      "file": "boards/04-home.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "47d381efc84e202c860f1fd6656689acf5010788b501bcb4b2df6d7b7eafdaf8"
+    },
+    {
+      "slug": "05-tasks",
+      "title": "Мои дела",
+      "screens": [
+        "Ближайшие дела",
+        "Мои объявления",
+        "Очередь и предложение"
+      ],
+      "issue": 400,
+      "file": "boards/05-tasks.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "254ab639e8fb4ca12387676f99521de0150b43acf056820815990c3e41438ccb"
+    },
+    {
+      "slug": "06-items",
+      "title": "Вещи",
+      "screens": [
+        "Отдам",
+        "Обменяю",
+        "Одолжу"
+      ],
+      "issue": 397,
+      "file": "boards/06-items.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "4a167ad7956bf7fef390d3b8d1de0212184de33356afee0f01752077410ef362"
+    },
+    {
+      "slug": "07-services-event",
+      "title": "Навыки, помощь, событие",
+      "screens": [
+        "Объявление о навыке",
+        "Просьба о помощи",
+        "Мероприятие"
+      ],
+      "issue": 398,
+      "file": "boards/07-services-event.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "6bbac64b7a44b90d73acb0030a0a3a561b5fef8a735993cc64ba5dd90e3b2f8e"
+    },
+    {
+      "slug": "08-collective-owner",
+      "title": "Общие дела и управление",
+      "screens": [
+        "Совместная закупка",
+        "Публикация старосты",
+        "Отклики автору"
+      ],
+      "issue": 399,
+      "file": "boards/08-collective-owner.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "37f17b36774cbe16e83be1b8d810aab64c9cd5f6af159e7e3d92db841e532fb8"
+    },
+    {
+      "slug": "09-thing-editor",
+      "title": "Создание вещи",
+      "screens": [
+        "Выбор формата",
+        "Редактор вещи",
+        "Фотографии"
+      ],
+      "issue": 394,
+      "file": "boards/09-thing-editor.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "386a6b0185fa9d043c16eaf399aa9d4bda43199d6f01795da826535603e6cdaa"
+    },
+    {
+      "slug": "10-service-editor",
+      "title": "Создание навыка и помощи",
+      "screens": [
+        "Навык",
+        "Запрос о помощи",
+        "Событие"
+      ],
+      "issue": 395,
+      "file": "boards/10-service-editor.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "336358d1f72d35758a84424172331d9b4fc970f273bdb84c22cdb41a543d6608"
+    },
+    {
+      "slug": "11-collective-editor",
+      "title": "Создание общего события",
+      "screens": [
+        "Закупка",
+        "Публикация",
+        "Изменение события"
+      ],
+      "issue": 396,
+      "file": "boards/11-collective-editor.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "3a76dcc6d035b7245622121b40bf1b4c972236ca84a1c4543a28085164e1b3bd"
+    },
+    {
+      "slug": "12-agreement",
+      "title": "Договорённость",
+      "screens": [
+        "Хронология",
+        "Место и время",
+        "Время занятия"
+      ],
+      "issue": 401,
+      "file": "boards/12-agreement.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "28351370459c094532f59fe19b460f04f808b3ed01f39c046bf766c1a2ab630d"
+    },
+    {
+      "slug": "13-completion",
+      "title": "Завершение и отмена",
+      "screens": [
+        "Без встречи",
+        "Неявка",
+        "Отмена участия"
+      ],
+      "issue": 401,
+      "file": "boards/13-completion.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "f0b452e6bdb8f2e2e0ef505011a16c5309401b9b186ee93ef576935890798060"
+    },
+    {
+      "slug": "14-qr",
+      "title": "Подтверждение встречи",
+      "screens": [
+        "Показать QR",
+        "Сканирование",
+        "Код без камеры"
+      ],
+      "issue": 402,
+      "file": "boards/14-qr.webp",
+      "revision": 2,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "9ec2445832f78473140a1185df3f2a2dbe46e3ea9272e1a9ba5466a3aa848746"
+    },
+    {
+      "slug": "15-attendance",
+      "title": "Посещение и офлайн",
+      "screens": [
+        "Организатор",
+        "Участник события",
+        "Ожидает синхронизации"
+      ],
+      "issue": 402,
+      "file": "boards/15-attendance.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "07adb7f992837b26e2b8ac719b302ace8b2d1f1c4c44ac3e7e632d2e3f9483f3"
+    },
+    {
+      "slug": "16-chats",
+      "title": "Чаты и поиск",
+      "screens": [
+        "Список чатов",
+        "Поиск в переписках",
+        "Личный диалог"
+      ],
+      "issue": 390,
+      "file": "boards/16-chats.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "7c2c1e78d5b47c67706d4b6ea98d6bb2e8a8f81f5f31af57cc64997e4889e971"
+    },
+    {
+      "slug": "17-chat-tools",
+      "title": "Инструменты общения",
+      "screens": [
+        "Ответ и фото",
+        "Групповой диалог",
+        "Участники группы"
+      ],
+      "issue": 391,
+      "file": "boards/17-chat-tools.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "ecd7b676f5517a48b44d132c09cdf99a42060f0726ecb447b4488c2b55ef9d9f"
+    },
+    {
+      "slug": "18-profiles",
+      "title": "Профиль",
+      "screens": [
+        "Мой профиль",
+        "Профиль участника",
+        "Редактирование"
+      ],
+      "issue": 388,
+      "file": "boards/18-profiles.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "1200d9bd28fd66583757d3558fe3dcbc056d6067868101b2146db3a89c9bb522"
+    },
+    {
+      "slug": "19-privacy-skills",
+      "title": "Навыки и приватность",
+      "screens": [
+        "Мои навыки",
+        "Приватность",
+        "Заблокированные"
+      ],
+      "issue": 389,
+      "file": "boards/19-privacy-skills.webp",
+      "revision": 2,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "2f015e660eae71f00350000415cfb7dc915536e931b8930c1ff0f270fb8d465c"
+    },
+    {
+      "slug": "20-settings",
+      "title": "Настройки и оформление",
+      "screens": [
+        "Настройки",
+        "Цветовая тема",
+        "Устройства"
+      ],
+      "issue": 389,
+      "file": "boards/20-settings.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "3068fb70444852b2842785fb9929b2ef03fade00fe3a41809f10037bee0810fc"
+    },
+    {
+      "slug": "21-account",
+      "title": "Адреса и документы",
+      "screens": [
+        "Электронная почта",
+        "Документы",
+        "Удаление аккаунта"
+      ],
+      "issue": 389,
+      "file": "boards/21-account.webp",
+      "revision": 2,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "427828ac29f0e1b9ec34c43c4d2b10822c15674bd01184fc147274424d2338c5"
+    },
+    {
+      "slug": "22-notifications",
+      "title": "Уведомления",
+      "screens": [
+        "Входящие",
+        "Типы и каналы",
+        "Тихие часы"
+      ],
+      "issue": 392,
+      "file": "boards/22-notifications.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "4fd4823f8025320d6d45b6ab5804cccfe5af8efdbabc4a6cff155b7b5735798c"
+    },
+    {
+      "slug": "23-reputation",
+      "title": "Отзывы и доверие",
+      "screens": [
+        "Оставить отзыв",
+        "Отзывы участника",
+        "Репутация"
+      ],
+      "issue": 404,
+      "file": "boards/23-reputation.webp",
+      "revision": 2,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "bddbf6de74043cb28d85ba4a08f1a9a96a99f66f12f28dd0a683e3a5ebdda0c3"
+    },
+    {
+      "slug": "24-moderation",
+      "title": "Жалобы и решения",
+      "screens": [
+        "Подать жалобу",
+        "Спор",
+        "Решение и апелляция"
+      ],
+      "issue": 405,
+      "file": "boards/24-moderation.webp",
+      "revision": 2,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "fa031fc5fe8beba7db7627ad81000f1bc956aba68a7e497440c9900b72d557eb"
+    },
+    {
+      "slug": "25-edge-states",
+      "title": "Пустота, ошибки, ограничения",
+      "screens": [
+        "Пустой кампус",
+        "Ошибка с сохранённым списком",
+        "Ограниченный аккаунт"
+      ],
+      "issue": 406,
+      "file": "boards/25-edge-states.webp",
+      "revision": 2,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "47b5202f67a56eaec4da7a704a035af9588842f37152e845d6ec1f2f8def1cca"
+    },
+    {
+      "slug": "26-preview-favorites",
+      "title": "Просмотр и сохранённое",
+      "screens": [
+        "Избранное",
+        "Предпросмотр публикации",
+        "Несохранённые изменения"
+      ],
+      "issue": 394,
+      "file": "boards/26-preview-favorites.webp",
+      "revision": 1,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "status": "visual-draft",
+      "original_png_sha256": "d50c89e6aad25d0ada38081b66cc0150965494975aaa650dfb8ace109b16a3ce"
+    }
+  ]
+}
