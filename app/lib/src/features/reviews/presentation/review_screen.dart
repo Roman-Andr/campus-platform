@@ -25,15 +25,17 @@ String reviewPath(String listingId, String interactionId) =>
 /// Entry point to the review of a completed interaction.
 ///
 /// It is offered for every scenario that has reviews and only after the
-/// interaction is completed: the server decides who may write, change and
-/// answer a review, so the card itself stays cheap and does not ask for the
-/// state of every row. A participant of an event is told that the organiser
-/// is reviewed there, not the other way round.
+/// interaction is completed, which for an event is the end of the listing:
+/// the server decides who may write, change and answer a review, so the card
+/// itself stays cheap and does not ask for the state of every row. A
+/// participant of an event is told that the organiser is reviewed there, not
+/// the other way round.
 class ReviewSummary extends ConsumerWidget {
   const ReviewSummary({
     required this.item,
     required this.kind,
     required this.authorId,
+    this.eventEndsAt,
     super.key,
   });
 
@@ -45,10 +47,16 @@ class ReviewSummary extends ConsumerWidget {
   /// The author of the listing, the other side of the interaction.
   final String authorId;
 
+  /// When the event ends; an event interaction carries no completion of its
+  /// own, so the end of the listing is the moment it becomes reviewable.
+  final DateTime? eventEndsAt;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
-    if (!reviewAvailable(kind, item)) return const SizedBox.shrink();
+    if (!reviewAvailable(kind, item, eventEndsAt: eventEndsAt)) {
+      return const SizedBox.shrink();
+    }
     final me = ref.watch(myProfileProvider).value?.id;
     // Only the two participants see the card; the interaction row is shown
     // to them alone, but a stale row of a former participant must not keep

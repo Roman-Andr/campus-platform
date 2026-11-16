@@ -1111,7 +1111,12 @@ class ReservationTile extends ConsumerWidget {
             city: value.cityTimezone,
           ),
         if (listing.value case final value?)
-          ReviewSummary(item: item, kind: value.kind, authorId: value.authorId),
+          ReviewSummary(
+            item: item,
+            kind: value.kind,
+            authorId: value.authorId,
+            eventEndsAt: value.eventEndsAt,
+          ),
         ParticipantCancel(item: item),
       ],
     );
@@ -1232,6 +1237,7 @@ class _IncomingListState extends ConsumerState<IncomingList> {
                         item: item,
                         kind: listing.kind,
                         authorId: listing.authorId,
+                        eventEndsAt: listing.eventEndsAt,
                       ),
                     if (listing != null && skill)
                       LessonOptionsCard(item: item, listing: listing),

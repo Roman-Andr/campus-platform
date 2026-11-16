@@ -5,9 +5,11 @@ import 'package:campus/src/core/auth/auth_session.dart';
 import 'package:campus/src/core/l10n/generated/app_localizations.dart';
 import 'package:campus/src/core/realtime/realtime_service.dart';
 import 'package:campus/src/core/router/app_router.dart';
+import 'package:campus/src/features/reviews/presentation/review_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/realtime/fake_centrifuge.dart';
@@ -120,29 +122,61 @@ Future<void> wakeup(
   await settle(tester);
 }
 
-/// Pumps one widget with the providers and the texts of the app.
+/// Pumps one widget with the providers, the texts and the routes of the app.
+///
+/// The routes carry the card to the review screen, so a test can tap the
+/// entry card and see the screen it opens. [route] answers the requests of a
+/// fake server apart from the realtime ones.
 Future<void> pumpCard(
   WidgetTester tester,
   Widget child, {
   String viewer = reviewAuthorId,
+  ResponseBody Function(RequestOptions options)? route,
 }) async {
   tester.platformDispatcher.localesTestValue = const [Locale('en')];
   addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+  final client = FakeCentrifugeClient();
   final server = FakeHttpAdapter(me: account(viewer))
-    ..route((options) => realtimeReply(options) ?? jsonBody(200, citiesJson));
+    ..route(
+      (options) =>
+          realtimeReply(options) ??
+          route?.call(options) ??
+          jsonBody(200, citiesJson),
+    );
   final container = ProviderContainer(
-    overrides: apiOverrides(adapter: server, secure: signedInStorage),
+    overrides: [
+      ...apiOverrides(adapter: server, secure: signedInStorage),
+      realtimeClientProvider.overrideWithValue(client),
+    ],
   );
   addTearDown(container.dispose);
   await container.read(authStatusProvider.future);
+  final router = GoRouter(
+    initialLocation: '/card',
+    routes: [
+      GoRoute(
+        path: '/card',
+        builder: (context, state) =>
+            Scaffold(body: SingleChildScrollView(child: child)),
+      ),
+      GoRoute(
+        path: '/listings/:listingId/interactions/:interactionId/review',
+        builder: (context, state) => ReviewScreen(
+          listingId: state.pathParameters['listingId']!,
+          interactionId: state.pathParameters['interactionId']!,
+        ),
+      ),
+    ],
+  );
+  addTearDown(router.dispose);
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
-      child: MaterialApp(
+      child: MaterialApp.router(
+        routerConfig: router,
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(body: SingleChildScrollView(child: child)),
       ),
     ),
   );

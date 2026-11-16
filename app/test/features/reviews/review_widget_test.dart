@@ -195,6 +195,12 @@ class FakeReviewBackend {
 /// The route of the review of the fixture interaction.
 const reviewPath = '/listings/listing-1/interactions/request-1/review';
 
+/// An event interaction: it carries no completion of its own, the end of the
+/// event is the completion for the server.
+InteractionOutput eventInteraction() => InteractionOutput.fromJson(
+  interactionJson(status: 'accepted', completedAt: null),
+);
+
 Future<void> writeReview(
   WidgetTester tester, {
   int stars = 4,
@@ -550,16 +556,24 @@ void main() {
       expect(find.byKey(const Key('review-open-request-1')), findsNothing);
     });
 
-    testWidgets('tells the organiser of an event who reviews whom', (
+    testWidgets('tells the organiser of an ended event who reviews whom', (
       tester,
     ) async {
+      final backend = FakeReviewBackend(kind: 'event')
+        ..oneWay = true
+        ..canReview = false
+        ..eligible = false;
       await pumpCard(
         tester,
         ReviewSummary(
-          item: InteractionOutput.fromJson(interactionJson()),
+          item: eventInteraction(),
           kind: 'event',
           authorId: reviewAuthorId,
+          eventEndsAt: DateTime.now().toUtc().subtract(
+            const Duration(minutes: 5),
+          ),
         ),
+        route: backend.reply,
       );
 
       expect(
@@ -568,6 +582,56 @@ void main() {
         ),
         findsOneWidget,
       );
+
+      // The organiser gets no form of their own, only the answer.
+      await tester.tap(find.byKey(const Key('review-open-request-1')));
+      await settle(tester);
+      expect(find.byKey(const Key('review-form')), findsNothing);
+      expect(find.byKey(const Key('review-unavailable')), findsOneWidget);
+    });
+
+    testWidgets('an event participant gets the card after the end', (
+      tester,
+    ) async {
+      final backend = FakeReviewBackend(
+        kind: 'event',
+        viewer: reviewParticipantId,
+      )..oneWay = true;
+      final item = eventInteraction();
+
+      // Before the event ends the server will not accept a review.
+      await pumpCard(
+        tester,
+        ReviewSummary(
+          item: item,
+          kind: 'event',
+          authorId: reviewAuthorId,
+          eventEndsAt: DateTime.now().toUtc().add(const Duration(hours: 2)),
+        ),
+        viewer: reviewParticipantId,
+        route: backend.reply,
+      );
+      expect(find.byKey(const Key('review-open-request-1')), findsNothing);
+
+      // After the end the card appears and opens the form.
+      await pumpCard(
+        tester,
+        ReviewSummary(
+          item: item,
+          kind: 'event',
+          authorId: reviewAuthorId,
+          eventEndsAt: DateTime.now().toUtc().subtract(
+            const Duration(minutes: 5),
+          ),
+        ),
+        viewer: reviewParticipantId,
+        route: backend.reply,
+      );
+      expect(find.byKey(const Key('review-open-request-1')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('review-open-request-1')));
+      await settle(tester);
+      expect(find.byKey(const Key('review-form')), findsOneWidget);
     });
   });
 }

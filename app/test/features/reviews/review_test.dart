@@ -46,13 +46,56 @@ void main() {
         'loan',
         'skill',
         'help',
-        'event',
         'purchase',
       ]) {
         expect(reviewAvailable(kind, item), isTrue, reason: kind);
       }
       expect(reviewAvailable('publication', item), isFalse);
       expect(reviewAvailable('unknown', item), isFalse);
+    });
+
+    test('waits for the end of an event instead of a completion', () {
+      // An event interaction keeps `completed_at` empty: the end of the
+      // listing is the moment the server starts accepting reviews.
+      final event = InteractionOutput.fromJson(
+        interactionJson(status: 'accepted', completedAt: null),
+      );
+      final endsAt = DateTime.utc(2026, 11, 20, 20);
+      expect(
+        reviewAvailable(
+          'event',
+          event,
+          eventEndsAt: endsAt,
+          now: DateTime.utc(2026, 11, 20, 19),
+        ),
+        isFalse,
+      );
+      expect(
+        reviewAvailable(
+          'event',
+          event,
+          eventEndsAt: endsAt,
+          now: DateTime.utc(2026, 11, 20, 20),
+        ),
+        isTrue,
+      );
+      // Without the listing the end is unknown, so the card stays away.
+      expect(reviewAvailable('event', event), isFalse);
+    });
+
+    test('is not offered for an interaction that never happened', () {
+      final cancelled = InteractionOutput.fromJson(
+        interactionJson(status: 'cancelled', completedAt: null),
+      );
+      expect(
+        reviewAvailable(
+          'event',
+          cancelled,
+          eventEndsAt: DateTime.utc(2026, 11, 20, 20),
+          now: DateTime.utc(2026, 11, 21),
+        ),
+        isFalse,
+      );
     });
   });
 

@@ -86,8 +86,32 @@ ReviewPhase reviewPhaseOf(ReviewStateOutput state) {
 /// server, so an interaction row never waits for another request. The exact
 /// window, the one-way rule and the answer availability come from the state
 /// of the screen.
-bool reviewAvailable(String kind, InteractionOutput item) =>
-    reviewKindSupported(kind) && item.completedAt != null;
+///
+/// An event interaction keeps `completed_at` empty even after the event:
+/// the server counts its end as the completion, so [eventEndsAt] of the
+/// listing decides when the card appears. Without a known end the card stays
+/// away: an event that has not finished cannot be reviewed, and a row
+/// without the listing cannot tell.
+bool reviewAvailable(
+  String kind,
+  InteractionOutput item, {
+  DateTime? eventEndsAt,
+  DateTime? now,
+}) {
+  if (!reviewKindSupported(kind)) return false;
+  if (kind == 'event') {
+    final endsAt = eventEndsAt;
+    if (endsAt == null) return false;
+    if (item.status != InteractionStatus.accepted &&
+        item.status != InteractionStatus.completed) {
+      return false;
+    }
+    // The server judges the event once it has ended; a card before that
+    // would open a screen the server refuses.
+    return !(now ?? clock.now()).isBefore(endsAt);
+  }
+  return item.completedAt != null;
+}
 
 /// A localized name of a ready-made tag code of the scenario.
 ///
